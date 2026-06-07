@@ -978,4 +978,34 @@
                 else if((currentClass.includes("H") || currentClass === "D") && currentXFreq < 100) dummyGain = +2;
 
                 let y = (canvas.height / 2) - (dummyGain * 2.5);
-                if(
+                if(y > canvas.height - 10) y = canvas.height - 10;
+                if(y < 10) y = 10;
+
+                if(x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+
+            let pointerX = (currentFreq / 22000) * canvas.width;
+            if(pointerX < 4) pointerX = 4;
+
+            ctx.beginPath(); ctx.strokeStyle = "#f59e0b"; ctx.lineWidth = 2;
+            ctx.setLineDash([4, 4]); ctx.moveTo(pointerX, 0); ctx.lineTo(pointerX, canvas.height); ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        // ENGINE LOOP ANIMASI UNTUK VU METER REFRESHMENT
+        function animationLoop() {
+            updateVuMeterVisual();
+            animationFrameId = requestAnimationFrame(animationLoop);
+        }
+
+        window.onload = function() {
+            resizeCanvas();
+            buildVuMeterLEDs();
+            m1TopologySync();
+            m6TrCategorySync();
+            animationLoop();
+        }
+    </script>
+</body>
+</html>
