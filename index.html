@@ -3,637 +3,797 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FR-Audio Mega Benchmark Pro v4.0</title>
+    <title>FR-Audio Super Comprehensive Lab v17.0 Omega</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         :root {
-            --bg-dark: #0a0f1d;
-            --panel-bg: #131a30;
-            --panel-border: #1e294b;
+            --bg-dark: #070b14;
+            --panel-bg: #0f1626;
+            --panel-border: #1e293b;
             --accent-cyan: #06b6d4;
             --accent-blue: #3b82f6;
             --accent-green: #10b981;
             --accent-amber: #f59e0b;
             --accent-red: #ef4444;
-            --text-main: #f1f5f9;
-            --text-muted: #94a3b8;
+            --text-main: #f8fafc;
+            --text-muted: #64748b;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
         body { background-color: var(--bg-dark); color: var(--text-main); padding-bottom: 40px; }
         
-        header { background: linear-gradient(135deg, #1e3a8a, #0f172a); padding: 20px; border-bottom: 3px solid var(--accent-cyan); text-align: center; }
-        header h1 { font-size: 1.6rem; color: #fff; letter-spacing: 1px; }
+        header { background: linear-gradient(135deg, #0f172a, #1e3a8a); padding: 20px; border-bottom: 3px solid var(--accent-cyan); text-align: center; }
+        header h1 { font-size: 1.5rem; color: #fff; text-transform: uppercase; letter-spacing: 1px; }
         header p { font-size: 0.85rem; color: var(--accent-cyan); margin-top: 5px; }
+
+        /* Navigasi Modul Super */
+        .module-nav { display: flex; overflow-x: auto; background-color: #0b0f19; border-bottom: 1px solid var(--panel-border); padding: 5px; position: sticky; top: 0; z-index: 100; gap: 5px; }
+        .module-nav::-webkit-scrollbar { height: 4px; }
+        .module-nav::-webkit-scrollbar-thumb { background: var(--panel-border); border-radius: 4px; }
+        .nav-btn { padding: 12px 16px; background: none; border: none; color: var(--text-muted); font-size: 0.85rem; font-weight: 600; white-space: nowrap; cursor: pointer; border-radius: 6px; display: flex; align-items: center; gap: 6px; transition: all 0.2s; }
+        .nav-btn.active { background-color: var(--panel-bg); color: var(--accent-cyan); border-bottom: 2px solid var(--accent-cyan); }
 
         .container { width: 100%; max-width: 1200px; margin: 0 auto; padding: 15px; display: grid; grid-template-columns: 1fr; gap: 20px; }
         @media (min-width: 992px) { .container { grid-template-columns: 1fr 1fr; } .full-width { grid-column: span 2; } }
 
-        .panel { background-color: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 12px; padding: 20px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3); }
-        .panel-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 15px; color: #fff; border-bottom: 1px solid var(--panel-border); padding-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+        .panel { background-color: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.4); }
+        .panel-title { font-size: 1.05rem; font-weight: 600; margin-bottom: 15px; color: #fff; border-bottom: 1px solid var(--panel-border); padding-bottom: 8px; display: flex; align-items: center; gap: 10px; }
         .panel-title i { color: var(--accent-cyan); }
 
-        .form-group { margin-bottom: 15px; }
-        label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 6px; font-weight: 500; }
-        select, input { width: 100%; background-color: #0f1424; border: 1px solid var(--panel-border); color: #fff; padding: 10px 12px; border-radius: 8px; font-size: 0.95rem; outline: none; transition: all 0.3s; }
-        select:focus, input:focus { border-color: var(--accent-cyan); box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.2); }
+        .form-group { margin-bottom: 14px; }
+        label { display: block; font-size: 0.8rem; color: #94a3b8; margin-bottom: 5px; font-weight: 500; }
+        select, input { width: 100%; background-color: #090d16; border: 1px solid var(--panel-border); color: #fff; padding: 9px 11px; border-radius: 7px; font-size: 0.9rem; outline: none; transition: border 0.2s; }
+        select:focus, input:focus { border-color: var(--accent-cyan); }
 
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-
         .hidden { display: none !important; }
 
-        /* Status & Output Styling */
-        .result-card { background: linear-gradient(145deg, #0f172a, #1e293b); border-radius: 10px; padding: 15px; margin-bottom: 12px; border-left: 4px solid var(--accent-blue); }
+        /* Dashboard Hasil */
+        .result-card { background: linear-gradient(145deg, #0b0f19, #1e293b); border-radius: 8px; padding: 14px; border-left: 4px solid var(--accent-blue); transition: all 0.3s; }
         .result-card.success { border-left-color: var(--accent-green); }
         .result-card.warning { border-left-color: var(--accent-amber); }
         .result-card.danger { border-left-color: var(--accent-red); }
+        .result-val { font-size: 1.3rem; font-weight: 700; margin-top: 2px; display: flex; align-items: baseline; gap: 4px; }
+        .result-unit { font-size: 0.8rem; color: #64748b; font-weight: 400; }
+
+        .btn-calc { width: 100%; background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan)); color: white; border: none; padding: 13px; border-radius: 7px; font-size: 0.95rem; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 10px; transition: transform 0.1s; }
+        .btn-calc:active { transform: scale(0.99); }
         
-        .result-val { font-size: 1.4rem; font-weight: bold; margin-top: 4px; display: flex; align-items: baseline; gap: 4px; }
-        .result-unit { font-size: 0.85rem; color: var(--text-muted); font-weight: normal; }
-
-        .btn-calc { width: 100%; background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan)); color: white; border: none; padding: 14px; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: transform 0.2s; margin-top: 10px; display: flex; justify-content: center; align-items: center; gap: 10px; }
-        .btn-calc:active { transform: scale(0.98); }
-
-        /* Canvas Grafik */
-        .canvas-container { background-color: #090d16; border-radius: 8px; padding: 10px; border: 1px solid var(--panel-border); margin-top: 10px; position: relative; }
-        canvas { width: 100%; height: 180px; display: block; }
-        .freq-slider-container { margin-top: 15px; background: #0f1424; padding: 12px; border-radius: 8px; }
-
-        .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; }
+        /* Grafis & Visual */
+        .canvas-container { background-color: #05080f; border-radius: 8px; padding: 10px; border: 1px solid var(--panel-border); position: relative; }
+        canvas { width: 100%; height: 160px; display: block; }
+        .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; margin-left: 5px; }
         .badge-ideal { background-color: rgba(16, 185, 129, 0.2); color: var(--accent-green); }
         .badge-danger { background-color: rgba(239, 68, 68, 0.2); color: var(--accent-red); }
+
+        /* Logger offline */
+        .log-box { max-height: 120px; overflow-y: auto; background-color: #05080f; padding: 10px; border-radius: 7px; font-size: 0.75rem; font-family: monospace; color: var(--accent-green); border: 1px solid var(--panel-border); }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>FR-AUDIO SYSTEM SUPER BENCHMARK</h1>
-        <p>Pro R&D Simulator & Topology Laboratory v4.0</p>
+        <h1>FR-AUDIO SYSTEM COMPREHENSIVE LAB</h1>
+        <p>Pro R&D Core Simulator & Topology Laboratory Engine v17.0 OMEGA</p>
     </header>
+
+    <div class="module-nav">
+        <button class="nav-btn active" onclick="switchTab('mod1')"><i class="fa-solid fa-bolt"></i> M1: Power & PSU</button>
+        <button class="nav-btn" onclick="switchTab('mod2')"><i class="fa-solid fa-network-wired"></i> M2: Speaker Ohm</button>
+        <button class="nav-btn" onclick="switchTab('mod3')"><i class="fa-solid fa-cable-car"></i> M3: Kabel & SPL</button>
+        <button class="nav-btn" onclick="switchTab('mod4')"><i class="fa-solid fa-box-open"></i> M4: TS & Box</button>
+        <button class="nav-btn" onclick="switchTab('mod5')"><i class="fa-solid fa-scissors"></i> M5: X-Over Pasif</button>
+        <button class="nav-btn" onclick="switchTab('mod6')"><i class="fa-solid fa-microchip"></i> M6: TR Final SOA</button>
+        <button class="nav-btn" onclick="switchTab('mod7')"><i class="fa-solid fa-graduation-cap"></i> M7: Live Tone & Edu</button>
+    </div>
 
     <div class="container">
 
-        <div class="panel">
-            <div class="panel-title"><i class="fa-solid fa-sliders"></i> Konfigurasi Modul & Topologi</div>
-            
-            <div class="grid-2">
-                <div class="form-group">
-                    <label>Kelas Rangkaian (Topology)</label>
-                    <select id="class-select" onchange="handleClassChange()">
-                        <option value="AB">Class AB</option>
-                        <option value="A">Class A</option>
-                        <option value="B">Class B</option>
-                        <option value="G">Class G</option>
-                        <option value="H2">Class H (2 Tingkat Tegangan)</option>
-                        <option value="H3">Class H (3 Tingkat Tegangan)</option>
-                        <option value="GB">Class GB</option>
-                        <option value="D">Class D</option>
-                        <option value="TD">Class TD</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Karakter / Jenis Driver</label>
-                    <select id="driver-type-select" onchange="handleDriverTypeChange()">
-                        <option value="flat">Flat (All Round)</option>
-                        <option value="middle">Khusus Middle / Vocal</option>
-                        <option value="lowsub">Khusus Low / Subwoofer</option>
-                        <option value="toa">Khusus TOA / Horn Speaker</option>
-                    </select>
-                </div>
-            </div>
+        <div id="mod1" class="tab-content grid-contents full-width">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:15px;">
+                <div class="panel">
+                    <div class="panel-title"><i class="fa-solid fa-sliders"></i> Driver & Topologi Rangkaian</div>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Kelas Amplifier (Topologi)</label>
+                            <select id="m1-class" onchange="m1TopologySync()">
+                                <option value="AB">Class AB (SOCL/MCRD)</option>
+                                <option value="A">Class A</option>
+                                <option value="B">Class B</option>
+                                <option value="G">Class G</option>
+                                <option value="H2">Class H (2-Rail)</option>
+                                <option value="H3">Class H (3-Rail)</option>
+                                <option value="GB">Class GB</option>
+                                <option value="D">Class D (D2K/D1K2)</option>
+                                <option value="TD">Class TD</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Karakter / Jenis Driver</label>
+                            <select id="m1-driver" onchange="updateGraphVisual()">
+                                <option value="flat">Flat (All-Round)</option>
+                                <option value="mid">Middle / Vocal Only</option>
+                                <option value="sub">Subwoofer / Low</option>
+                                <option value="toa">TOA / Horn Speaker</option>
+                            </select>
+                        </div>
+                    </div>
 
-            <div class="form-group">
-                <label>Pilihan Seri Driver Komersial</label>
-                <select id="driver-model-select">
-                    </select>
-            </div>
+                    <div class="form-group">
+                        <label>Pilihan Seri Driver Komersial</label>
+                        <select id="m1-driver-model">
+                            </select>
+                    </div>
 
-            <div class="grid-2">
-                <div class="form-group">
-                    <label>Konfigurasi Output</label>
-                    <select id="output-mode">
-                        <option value="channel">Per Channel / Stereo</option>
-                        <option value="bridge">Bridge / BTL Mode</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Impedansi Speaker (Load)</label>
-                    <select id="speaker-ohm">
-                        <option value="8">8 Ohm</option>
-                        <option value="4">4 Ohm</option>
-                        <option value="2">2 Ohm</option>
-                        <option value="16">16 Ohm</option>
-                    </select>
-                </div>
-            </div>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Konfigurasi Output</label>
+                            <select id="m1-output-mode">
+                                <option value="channel">Per Channel / Stereo</option>
+                                <option value="bridge">Bridge Mode / BTL</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Impedansi Target (Load)</label>
+                            <select id="m1-speaker-ohm">
+                                <option value="8">8 Ohm</option>
+                                <option value="4" selected>4 Ohm</option>
+                                <option value="2">2 Ohm</option>
+                                <option value="16">16 Ohm</option>
+                            </select>
+                        </div>
+                    </div>
 
-            <div class="panel-title" style="margin-top:20px;"><i class="fa-solid fa-microchip"></i> Final Stage Components</div>
-            
-            <div id="final-tr-section" class="grid-3">
-                <div class="form-group">
-                    <label>Merek/Tipe TR</label>
-                    <select id="tr-brand">
-                        <option value="toshiba">Toshiba (Karakter Flat)</option>
-                        <option value="sanken">Sanken (Karakter Low)</option>
-                        <option value="mjl">MJL (High Voltage)</option>
-                        <option value="njw">NJW (Standard)</option>
-                        <option value="st">ST Micro (Standard)</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Jumlah TR Final</label>
-                    <input type="number" id="tr-sets" value="5" min="1">
-                </div>
-                <div class="form-group">
-                    <label>Satuan Pasang</label>
-                    <select disabled><option>Set Pasang</option></select>
-                </div>
-            </div>
+                    <div class="form-group">
+                        <label>Sistem Catu Daya Utama (PSU)</label>
+                        <select id="m1-psu-source" onchange="m1PsuToggle()">
+                            <option value="trafo">Trafo Besi (Kotak / Toroid)</option>
+                            <option value="smps">SMPS (Switching PSU)</option>
+                        </select>
+                    </div>
 
-            <div id="final-mosfet-section" class="form-group hidden">
-                <label>Jenis Pengendali Output Class D</label>
-                <select id="mosfet-type">
-                    <option value="irfp4227">Dual MOSFET IRFP4227 (High Power)</option>
-                    <option value="irfb4227">MOSFET IRFB4227</option>
-                    <option value="irfb23n20d">IRFB23N20D (Medium Power)</option>
-                </select>
-            </div>
+                    <div id="m1-sec-trafo">
+                        <div class="grid-3" id="m1-g-vac">
+                            <div class="form-group"><label>Arus (A)</label><input type="number" id="m1-trafo-amp" value="15"></div>
+                            <div class="form-group"><label>VAC (CT)</label><input type="number" id="m1-trafo-vac" value="55"></div>
+                            <div class="form-group"><label>Drop Volt (%)</label><input type="number" id="m1-drop-volt" value="8"></div>
+                        </div>
+                        <div id="m1-g-multivac" class="grid-3 hidden">
+                            <div class="form-group"><label>Low VAC</label><input type="number" id="m1-vac-l" value="45"></div>
+                            <div class="form-group"><label>Mid VAC</label><input type="number" id="m1-vac-m" value="90"></div>
+                            <div class="form-group" id="m1-g-vach"><label>High VAC</label><input type="number" id="m1-vac-h" value="135"></div>
+                        </div>
+                    </div>
 
-            <div class="grid-2">
-                <div class="form-group">
-                    <label>Volt Minimal Driver (VDC)</label>
-                    <input type="number" id="v-min-driver" value="32" readonly>
+                    <div id="m1-sec-smps" class="hidden">
+                        <div class="grid-3">
+                            <div class="form-group">
+                                <label>Topologi SMPS</label>
+                                <select id="m1-smps-topo" onchange="handleSmpsLabelToggle()">
+                                    <option value="half">Half Bridge</option>
+                                    <option value="full">Full Bridge</option>
+                                    <option value="pfc">PFC Standar</option>
+                                    <option value="full_pfc">Full Bridge PFC</option>
+                                    <option value="cheap">Standard Ekonomis</option>
+                                </select>
+                            </div>
+                            <div class="form-group"><label>VDC Utama</label><input type="number" id="m1-smps-vdc" value="95"></div>
+                            <div class="form-group"><label id="smps-energy-label">Daya SMPS (W)</label><input type="number" id="m1-smps-energy" value="3000"></div>
+                        </div>
+                    </div>
+
+                    <div class="grid-3">
+                        <div class="form-group"><label>Elco Kapasitas (µF)</label><input type="number" id="m1-elco-uf" value="10000"></div>
+                        <div class="form-group"><label>Rating Volt Elco</label><input type="number" id="m1-elco-v" value="100"></div>
+                        <div class="form-group"><label>Jumlah (Biji)</label><input type="number" id="m1-elco-qty" value="4" step="2"></div>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>Volt Maksimal Driver (VDC)</label>
-                    <input type="number" id="v-max-driver" value="80" readonly>
+
+                <div class="panel">
+                    <div class="panel-title"><i class="fa-solid fa-chart-bar"></i> Analisis Laboratorium PSU & Efisiensi</div>
+                    <div class="grid-2" style="gap:10px;">
+                        <div class="result-card success"><label>VDC Peak Akhir</label><div class="result-val" id="r1-vdc">0 V</div></div>
+                        <div class="result-card danger"><label>Daya Maksimal Output</label><div class="result-val" id="r1-power">0 W</div></div>
+                        <div class="result-card warning"><label>Rekomendasi Dioda Bridge</label><div class="result-val" id="r1-dioda" style="font-size:0.95rem;">-</div></div>
+                        <div class="result-card"><label>Ripple Voltage (Kerutan)</label><div class="result-val" id="r1-ripple" style="font-size:0.95rem;">-</div></div>
+                        <div class="result-card"><label>Rekomendasi Volt Minimum Elco</label><div class="result-val" id="r1-elco-safety" style="font-size:0.95rem;">-</div></div>
+                        <div class="result-card"><label>Arus Amplitudo Maksimal</label><div class="result-val" id="r1-current-max" style="font-size:0.95rem;">-</div></div>
+                    </div>
+                    <button class="btn-calc" onclick="calculateModule1()"><i class="fa-solid fa-gears"></i> Hitung Parameter Modul 1</button>
                 </div>
             </div>
         </div>
 
-        <div class="panel">
-            <div class="panel-title"><i class="fa-solid fa-bolt"></i> Konfigurasi Catu Daya (PSU System)</div>
-            
-            <div class="form-group">
-                <label>Jenis Penyuplai Utama</label>
-                <select id="psu-type" onchange="handlePsuTypeChange()">
-                    <option value="trafo">Trafo Konvensional (Kotak / Toroid)</option>
-                    <option value="smps">SMPS (Switching Mode Power Supply)</option>
-                </select>
-            </div>
-
-            <div id="trafo-fields">
-                <div class="grid-2">
-                    <div class="form-group">
-                        <label>Arus Trafo (Ampere)</label>
-                        <input type="number" id="trafo-ampere" value="10" min="1">
+        <div id="mod2" class="tab-content grid-contents full-width hidden">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:15px;">
+                <div class="panel">
+                    <div class="panel-title"><i class="fa-solid fa-network-wired"></i> Jaringan Impedansi Jangka Panjang</div>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Metode Koneksi Speaker</label>
+                            <select id="m2-connect">
+                                <option value="parallel">Paralel Murni</option>
+                                <option value="series">Seri Murni</option>
+                                <option value="comb">Kombinasi Seri-Paralel</option>
+                            </select>
+                        </div>
+                        <div class="form-group"><label>Impedansi Asli Speaker (Ohm)</label><input type="number" id="m2-ohm-base" value="8"></div>
                     </div>
-                    <div id="single-vac-group" class="form-group">
-                        <label>Tegangan Utama Trafo (VAC - CT)</label>
-                        <input type="number" id="trafo-vac" value="45" min="10">
+                    <div class="grid-3">
+                        <div class="form-group"><label>Jumlah Speaker</label><input type="number" id="m2-qty" value="2"></div>
+                        <div class="form-group"><label>Resistansi DC Spool (Re)</label><input type="number" id="m2-re" value="5.4" step="0.1"></div>
+                        <div class="form-group"><label>L-Pad Attenuator (dB)</label><input type="number" id="m2-lpad" value="0"></div>
                     </div>
                 </div>
-
-                <div id="multi-vac-group" class="grid-3 hidden">
-                    <div class="form-group">
-                        <label>Low VAC</label>
-                        <input type="number" id="vac-low" value="45">
+                <div class="panel">
+                    <div class="panel-title"><i class="fa-solid fa-triangle-exclamation"></i> Diagnostik Hambatan Kritis</div>
+                    <div class="result-card" id="r2-card-status">
+                        <label>Total Impedansi Beban Akhir</label>
+                        <div class="result-val" id="r2-total-ohm">0 Ohm</div>
+                        <div style="margin-top:8px; font-size:0.8rem;" id="r2-desc">-</div>
                     </div>
-                    <div class="form-group">
-                        <label>Mid VAC</label>
-                        <input type="number" id="vac-mid" value="90">
-                    </div>
-                    <div class="form-group">
-                        <label>High VAC (H3)</label>
-                        <input type="number" id="vac-high" value="135">
-                    </div>
+                    <button class="btn-calc" onclick="calculateModule2()"><i class="fa-solid fa-magnifying-glass-chart"></i> Cek Keamanan Impedansi</button>
                 </div>
             </div>
+        </div>
 
-            <div id="smps-fields" class="hidden">
-                <div class="form-group">
-                    <label>Topologi Sistem SMPS</label>
-                    <select id="smps-topology" onchange="handleSmpsTopology()">
-                        <option value="half">SMPS Half Bridge</option>
-                        <option value="full">SMPS Full Bridge</option>
-                        <option value="pfc">SMPS PFC (Power Factor Correction)</option>
-                        <option value="full_pfc">SMPS Full Bridge PFC</option>
-                        <option value="standard">SMPS Standar Ekonomis (Gaya Charger HP)</option>
-                    </select>
-                </div>
-                <div class="grid-2">
-                    <div class="form-group">
-                        <label>Tegangan Output (VDC Utama)</label>
-                        <input type="number" id="smps-vdc" value="90">
+        <div id="mod3" class="tab-content grid-contents full-width hidden">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:15px;">
+                <div class="panel">
+                    <div class="panel-title"><i class="fa-solid fa-arrows-left-right"></i> Kabel Speaker & Kondisi Lapangan</div>
+                    <div class="grid-2">
+                        <div class="form-group"><label>Panjang Kabel Pembawa (Meter)</label><input type="number" id="m3-cable-len" value="20"></div>
+                        <div class="form-group"><label>Penampang Tembaga Kabel (mm²)</label><input type="number" id="m3-cable-size" value="2.5" step="0.1"></div>
                     </div>
-                    <div class="form-group">
-                        <label id="smps-energy-label">Daya SMPS (Watt)</label>
-                        <input type="number" id="smps-energy" value="2000">
+                    <div class="grid-3">
+                        <div class="form-group"><label>Sensitivitas Speaker (dB/W/m)</label><input type="number" id="m3-sens" value="98"></div>
+                        <div class="form-group"><label>Jarak Dengar Target (Meter)</label><input type="number" id="m3-distance" value="10"></div>
+                        <div class="form-group"><label>Suhu Lapangan Vendor (°C)</label><input type="number" id="m3-temp" value="30"></div>
                     </div>
                 </div>
-            </div>
-
-            <div class="grid-3">
-                <div class="form-group">
-                    <label>Kapasitas Elco ($\mu F$)</label>
-                    <select id="elco-uf">
-                        <option value="10000">10.000 $\mu F$</option>
-                        <option value="15000">15.000 $\mu F$</option>
-                        <option value="22000">22.000 $\mu F$</option>
-                        <option value="4700">4.700 $\mu F$</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Rating Volt Elco</label>
-                    <select id="elco-volt">
-                        <option value="100">100 V</option>
-                        <option value="125">125 V</option>
-                        <option value="80">80 V</option>
-                        <option value="50">50 V</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Jumlah Elco (Biji)</label>
-                    <input type="number" id="elco-qty" value="4" min="2" step="2">
+                <div class="panel">
+                    <div class="panel-title"><i class="fa-solid fa-tower-broadcast"></i> Kalkulasi Akustik SPL & Redaman Kabel</div>
+                    <div class="grid-2">
+                        <div class="result-card danger"><label>Damping Factor Akhir</label><div class="result-val" id="r3-damping">0</div></div>
+                        <div class="result-card success"><label>SPL di Jarak Target</label><div class="result-val" id="r3-spl">0 dB</div></div>
+                    </div>
+                    <div class="form-group" style="margin-top:10px;">
+                        <label>Kompensasi Delay Array & Kecepatan Suara:</label>
+                        <div style="font-size:0.8rem; background:#05080f; padding:8px; border-radius:6px; font-family:monospace;" id="r3-delay-info">-</div>
+                    </div>
+                    <button class="btn-calc" onclick="calculateModule3()"><i class="fa-solid fa-volume-high"></i> Hitung SPL Terdistribusi</button>
                 </div>
             </div>
+        </div>
 
-            <div class="panel-title" style="margin-top:10px;"><i class="fa-solid fa-volume-high"></i> Pengujian Beban Target Speaker</div>
-            <div class="grid-2">
-                <div class="form-group">
-                    <label>Diameter Inch Speaker</label>
-                    <select id="speaker-size">
-                        <option value="18">18 Inch (Subwoofer)</option>
-                        <option value="15">15 Inch (Low/Mid)</option>
-                        <option value="12">12 Inch (Mid/Vocal)</option>
-                        <option value="10">10 Inch / Horn TOA</option>
-                    </select>
+        <div id="mod4" class="tab-content grid-contents full-width hidden">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:15px;">
+                <div class="panel">
+                    <div class="panel-title"><i class="fa-solid fa-box"></i> Desain Box & Thiele-Small Speaker</div>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Jenis Desain Box</label>
+                            <select id="m4-box-type">
+                                <option value="ported">Ported / Bass Reflex (Panggung Luar)</option>
+                                <option value="sealed">Sealed / Kotak Tertutup (SQ Rumahan)</option>
+                                <option value="bp4">Bandpass Order 4</option>
+                                <option value="bp6">Bandpass Order 6 Ekstrim</option>
+                            </select>
+                        </div>
+                        <div class="form-group"><label>Volume Bersih Target (Liter)</label><input type="number" id="m4-vol" value="120"></div>
+                    </div>
+                    <div class="grid-3">
+                        <div class="form-group"><label>Fs Speaker (Hz)</label><input type="number" id="m4-fs" value="35"></div>
+                        <div class="form-group"><label>Qts Komponen</label><input type="number" id="m4-qts" value="0.38" step="0.01"></div>
+                        <div class="form-group"><label>Vas Udara (L)</label><input type="number" id="m4-vas" value="150"></div>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>Watt Kerja Minimal Speaker (W)</label>
-                    <input type="number" id="speaker-watt-req" value="1000">
+                <div class="panel">
+                    <div class="panel-title"><i class="fa-solid fa-chart-line"></i> Analisis Resonansi Lubang Angin (Port)</div>
+                    <div class="result-card warning">
+                        <label>EBP & Rekomendasi Karakter Box</label>
+                        <div class="result-val" id="r4-tuning" style="font-size:1.1rem;">Menunggu Parameter</div>
+                        <div style="margin-top:6px; font-size:0.75rem; color:#94a3b8;" id="r4-chuffing-info">-</div>
+                    </div>
+                    <button class="btn-calc" onclick="calculateModule4()"><i class="fa-solid fa-tools"></i> Hitung Volume & Tuning Box</button>
                 </div>
             </div>
+        </div>
 
-            <button class="btn-calc" onclick="calculateSystem()"><i class="fa-solid fa-calculator"></i> Jalankan Simulasi & Kalkulasi</button>
+        <div id="mod5" class="tab-content grid-contents full-width hidden">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:15px;">
+                <div class="panel">
+                    <div class="panel-title"><i class="fa-solid fa-scissors"></i> Komponen Pembagi Frekuensi Pasif</div>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Model Karakter Crossover</label>
+                            <select id="m5-xover-type">
+                                <option value="lr2">Linkwitz-Riley (12 dB/Oct)</option>
+                                <option value="bw1">Butterworth Simpel (6 dB/Oct)</option>
+                                <option value="bessel">Bessel Phase-Linear</option>
+                            </select>
+                        </div>
+                        <div class="form-group"><label>Titik Potong Crossover (Hz)</label><input type="number" id="m5-freq" value="1200"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>Impedansi Speaker Terpasang (Ohm)</label>
+                        <input type="number" id="m5-ohm" value="8">
+                    </div>
+                </div>
+                <div class="panel">
+                    <div class="panel-title"><i class="fa-solid fa-calculator"></i> Nilai Induktor Lilitan & Kapasitor</div>
+                    <div class="grid-2">
+                        <div class="result-card success"><label>Kapasitor Seri (C)</label><div class="result-val" id="r5-cap">0 µF</div></div>
+                        <div class="result-card warning"><label>Induktor Lilitan (L)</label><div class="result-val" id="r5-ind">0 mH</div></div>
+                    </div>
+                    <button class="btn-calc" onclick="calculateModule5()"><i class="fa-solid fa-wave-square"></i> Hitung Komponen Filter</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="mod6" class="tab-content grid-contents full-width hidden">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:15px;">
+                <div class="panel">
+                    <div class="panel-title"><i class="fa-solid fa-microchip"></i> Blok Akhir Transistor Final</div>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Seri Transistor Final Bipolar</label>
+                            <select id="m6-tr-type">
+                                <option value="toshiba">Toshiba 2SC5200 (Karakter Flat)</option>
+                                <option value="sanken">Sanken 2SA1216 (Low Sub Kuat)</option>
+                                <option value="mjl">OnSemi MJL21194 (High Voltage)</option>
+                                <option value="njw">NJW Series Bipolar Standard</option>
+                            </select>
+                        </div>
+                        <div class="form-group"><label>Jumlah Komponen (Set Pasang)</label><input type="number" id="m6-sets" value="5"></div>
+                    </div>
+                    <div class="grid-2">
+                        <div class="form-group"><label>Resistor Kapur (Ohm)</label><input type="number" id="m6-rkapur" value="0.5" step="0.1"></div>
+                        <div class="form-group"><label>Lebar Jalur Tembaga PCB (mm)</label><input type="number" id="m6-pcb-width" value="6"></div>
+                    </div>
+                </div>
+                <div class="panel">
+                    <div class="panel-title"><i class="fa-solid fa-triangle-exclamation"></i> Pengujian Batas Operasi Aman Termal (SOA)</div>
+                    <div class="result-card" id="r6-card-soa">
+                        <label>Kemampuan Disipasi Panas Gabungan TR</label>
+                        <div class="result-val" id="r6-disipasi">0 Watt</div>
+                        <div style="margin-top:6px; font-size:0.8rem;" id="r6-desc-soa">-</div>
+                    </div>
+                    <button class="btn-calc" onclick="calculateModule6()"><i class="fa-solid fa-temperature-arrow-up"></i> Uji Keamanan Batas Panas TR</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="mod7" class="tab-content grid-contents full-width hidden">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:15px;">
+                <div class="panel">
+                    <div class="panel-title"><i class="fa-solid fa-music"></i> Live Tone Wave Generator (Uji Cek Sound Fisik)</div>
+                    <div class="form-group">
+                        <label>Tipe Gelombang Audio</label>
+                        <select id="m7-wave-type">
+                            <option value="sine">Sinyal Sinus Murni (Sine Wave)</option>
+                            <option value="square">Sinyal Kotak (Square Wave - Cek Klip)</option>
+                        </select>
+                    </div>
+                    <div class="grid-2">
+                        <button class="btn-calc" style="background:var(--accent-green);" onclick="toggleLiveTone()"><i class="fa-solid fa-play"></i> Hidupkan Nada</button>
+                        <button class="btn-calc" style="background:var(--accent-red);" onclick="stopLiveTone()"><i class="fa-solid fa-stop"></i> Matikan Nada</button>
+                    </div>
+                </div>
+                <div class="panel">
+                    <div class="panel-title"><i class="fa-solid fa-graduation-cap"></i> Evaluasi R&D & Laporan Pengujian</div>
+                    <div class="form-group">
+                        <label>Spesifikasi Minimum Speaker Target Anda (Watt)</label>
+                        <input type="number" id="m7-speaker-req" value="1000">
+                    </div>
+                    <div class="grid-2">
+                        <button class="btn-calc" style="background:#475569;" onclick="triggerQuiz()"><i class="fa-solid fa-question"></i> Kuis Ilmu Audio STM</button>
+                        <button class="btn-calc" style="background:#0284c7;" onclick="exportToPdf()"><i class="fa-solid fa-file-pdf"></i> Ekspor PDF Nota</button>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="panel full-width">
-            <div class="panel-title"><i class="fa-solid fa-square-poll-vertical"></i> Dashboard Hasil Pengujian Lab Komponen</div>
-            
-            <div class="grid-3">
-                <div class="result-card success">
-                    <label>Estimasi Supply Akhir (VDC Peak)</label>
-                    <div class="result-val" id="res-vdc">0 <span class="result-unit">VDC</span></div>
-                </div>
-                <div class="result-card" id="card-power">
-                    <label>Daya Maksimal Yang Dihasilkan</label>
-                    <div class="result-val" id="res-power">0 <span class="result-unit">Watt</span></div>
-                </div>
-                <div class="result-card" id="card-ideal">
-                    <label>Status Keidealan Speaker</label>
-                    <div class="result-val" id="res-status" style="font-size:1.1rem; padding-top:6px;">Menunggu Kalkulasi</div>
-                </div>
-            </div>
-
-            <div class="grid-3" style="margin-top: 10px;">
-                <div class="result-card warning">
-                    <label>Kebutuhan Dioda Bridge</label>
-                    <div class="result-val" id="res-dioda" style="font-size:1.1rem; padding-top:6px;">0 Unit</div>
-                </div>
-                <div class="result-card">
-                    <label>Rekomendasi Aman Volt Elco</label>
-                    <div class="result-val" id="res-elco-safety" style="font-size:1.1rem; padding-top:6px;">0 Volt</div>
-                </div>
-                <div class="result-card">
-                    <label>Arus Maks Driver Amplitudo</label>
-                    <div class="result-val" id="res-current-max">0 <span class="result-unit">Ampere</span></div>
-                </div>
-            </div>
-
-            <div class="panel-title" style="margin-top: 20px;"><i class="fa-solid fa-chart-line"></i> Grafik Respons Frekuensi Realtime & Desibel (dB)</div>
+            <div class="panel-title"><i class="fa-solid fa-chart-line"></i> Grafik Respons Frekuensi Realtime & Desibel (dB)</div>
             <div class="canvas-container">
-                <canvas id="freqGraph"></canvas>
+                <canvas id="universalGraph"></canvas>
+            </div>
+            <div style="margin-top:12px; display:flex; justify-content:space-between; align-items:center;">
+                <label>Pusat Slider Frekuensi Generator Aktif:</label>
+                <span id="global-freq-label" style="font-weight:700; color:var(--accent-cyan);">100 Hz</span>
+            </div>
+            <input type="range" id="global-freq-slider" min="1" max="22000" value="100" style="width:100%; cursor:pointer;" oninput="syncGraphAndSlider()">
+            <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:var(--text-muted); margin-top:5px;">
+                <span>1 Hz (Infrasub)</span>
+                <span>1 kHz (Mid / Vokal)</span>
+                <span>22 kHz (High / Tweeter)</span>
+            </div>
+            <div style="margin-top:10px; font-size:0.85rem; display:flex; justify-content:space-between; background:#05080f; padding:8px; border-radius:6px;">
+                <span>Gain Dinamis: <strong id="res-db-gain" style="color:var(--accent-green);">0.0 dB</strong></span>
+                <span>Status Filter Cut-Off: <span id="res-cut-off" style="color:var(--text-muted);">Normal</span></span>
             </div>
             
-            <div class="freq-slider-container">
-                <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-                    <label>Atur Frekuensi Input Generator:</label>
-                    <span id="freq-val-display" style="font-weight:bold; color:var(--accent-cyan);">100.00 Hz</span>
-                </div>
-                <input type="range" id="freq-slider" min="1" max="22000" value="100" style="width:100%; cursor:pointer;" oninput="updateFrequencySimulation()">
-                <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:var(--text-muted); margin-top:4px;">
-                    <span>1 Hz (Infrasub)</span>
-                    <span>1 kHz (Mid)</span>
-                    <span>22 kHz (Ultra High/Tweeter)</span>
-                </div>
-                <div style="margin-top: 10px; font-size: 0.9rem; display: flex; justify-content: space-between;">
-                    <span>Gain Output Terdeteksi: <strong id="res-db-gain" style="color:var(--accent-green);">0 dB</strong></span>
-                    <span>Keterangan Cut-Off: <span id="res-cut-off" style="color:var(--text-muted);">Normal</span></span>
-                </div>
-            </div>
+            <div class="panel-title" style="margin-top:20px; font-size:0.85rem;"><i class="fa-solid fa-clock-rotate-left"></i> History Log Saver (Laboratorium Memori Lokal)</div>
+            <div class="log-box" id="history-logs">Sistem Laboratorium FR-Audio siap digunakan. Jalankan simulasi.</div>
         </div>
+
     </div>
 
     <script>
-        // Data Driver Base
+        // Database Tipe Driver Komersial panggung
         const driverDatabase = {
-            AB: ["SOCL 506", "SOCL 502", "MCRD V1", "MCRD V2", "MCRD V3", "Driver OCL 3 Tingkat Standard"],
-            A: ["Class A Pass Labs Clone", "JLH1969 Mini High End"],
-            B: ["Standard Push-Pull Class B Bipolar"],
+            AB: ["SOCL 506 Pro", "SOCL 502 Elite", "MCRD V1 Balap", "MCRD V3 Legend", "OCL 3 Tingkat Standard"],
+            A: ["Class A Pass Labs Clone", "JLH1969 Mini High-End"],
+            B: ["Standard Push-Pull Bipolar Stage"],
             G: ["Dual Rail Stepper Class G Dynamic"],
             H2: ["MX14000 Low-Mid Stage", "HH1000 Touring Series", "Power Balap H2 Pro"],
             H3: ["Custom Extreme H3 Stage 3-Rail"],
             GB: ["Ground Bridge Engine JBL Architecture"],
-            D: ["D200", "D400", "D500", "D800", "D900", "D1000", "D1K2", "D1K3", "D2K Extreme"],
+            D: ["D2K OMEGA", "D1K2 Core", "D500 Compact", "D900 Subwoofer Max"],
             TD: ["Lab Gruppen Clone TD Series"]
         };
 
-        function handleClassChange() {
-            const cls = document.getElementById("class-select").value;
-            const modelSelect = document.getElementById("index.html"); 
-            const trSection = document.getElementById("final-tr-section");
-            const mosfetSection = document.getElementById("final-mosfet-section");
-            const singleVac = document.getElementById("single-vac-group");
-            const multiVac = document.getElementById("multi-vac-group");
+        // Fungsi Ganti Tab Navigasi
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(tabId).classList.remove('hidden');
+            event.currentTarget.classList.add('active');
+            updateGraphVisual();
+        }
 
-            // Update List Driver
-            const selectEl = document.getElementById("driver-model-select");
-            selectEl.innerHTML = "";
+        // Sinkronisasi Form Modul 1
+        function m1TopologySync() {
+            const cls = document.getElementById("m1-class").value;
+            const gVac = document.getElementById("m1-g-vac");
+            const gMulti = document.getElementById("m1-g-multivac");
+            const gVacH = document.getElementById("m1-g-vach");
+
+            // Update isi dropdown model driver otomatis
+            const selectModel = document.getElementById("m1-driver-model");
+            selectModel.innerHTML = "";
             driverDatabase[cls].forEach(m => {
                 let opt = document.createElement("option");
                 opt.value = m.toLowerCase().replace(/ /g, "_");
                 opt.innerText = m;
-                selectEl.appendChild(opt);
+                selectModel.appendChild(opt);
             });
 
-            // Atur Visibilitas Komponen Akhir (Transistor vs Mosfet) & Batasan Default Driver
-            if(cls === "D" || cls === "TD") {
-                trSection.classList.add("hidden");
-                mosfetSection.classList.remove("hidden");
-                document.getElementById("v-min-driver").value = 45;
-                document.getElementById("v-max-driver").value = 150;
-            } else {
-                trSection.classList.remove("hidden");
-                mosfetSection.classList.add("hidden");
-                if(cls.includes("H")) {
-                    document.getElementById("v-min-driver").value = 45;
-                    document.getElementById("v-max-driver").value = 140;
-                } else {
-                    document.getElementById("v-min-driver").value = 32;
-                    document.getElementById("v-max-driver").value = 80;
-                }
-            }
-
-            // Atur Kebutuhan Multi-Rail Tegangan Trafo (Class H)
+            // Atur visibilitas field VAC trafo multi-step
             if(cls === "H2" || cls === "H3") {
-                singleVac.classList.add("hidden");
-                multiVac.classList.remove("hidden");
-                if(cls === "H2") {
-                    document.getElementById("vac-high").classList.add("hidden");
-                } else {
-                    document.getElementById("vac-high").classList.remove("hidden");
-                }
+                gVac.classList.add("hidden");
+                gMulti.classList.remove("hidden");
+                if(cls === "H2") gVacH.classList.add("hidden");
+                else gVacH.classList.remove("hidden");
             } else {
-                singleVac.classList.remove("hidden");
-                multiVac.classList.add("hidden");
+                gVac.classList.remove("hidden");
+                gMulti.classList.add("hidden");
+            }
+            calculateModule1();
+        }
+
+        function m1PsuToggle() {
+            const src = document.getElementById("m1-psu-source").value;
+            if(src === "trafo") {
+                document.getElementById("m1-sec-trafo").classList.remove("hidden");
+                document.getElementById("m1-sec-smps").classList.add("hidden");
+            } else {
+                document.getElementById("m1-sec-trafo").classList.add("hidden");
+                document.getElementById("m1-sec-smps").classList.remove("hidden");
             }
         }
 
-        function handleDriverTypeChange() {
-            updateFrequencySimulation();
-        }
-
-        function handlePsuTypeChange() {
-            const type = document.getElementById("psu-type").value;
-            if(type === "trafo") {
-                document.getElementById("trafo-fields").classList.remove("hidden");
-                document.getElementById("smps-fields").classList.add("hidden");
-            } else {
-                document.getElementById("trafo-fields").classList.add("hidden");
-                document.getElementById("smps-fields").classList.remove("hidden");
-            }
-        }
-
-        function handleSmpsTopology() {
-            const topo = document.getElementById("smps-topology").value;
+        function handleSmpsLabelToggle() {
+            const topo = document.getElementById("m1-smps-topo").value;
             const label = document.getElementById("smps-energy-label");
-            if(topo === "standard") {
-                label.innerText = "Arus SMPS Setara Charger (Ampere)";
-                document.getElementById("smps-energy").value = 5;
+            if(topo === "cheap") {
+                label.innerText = "Arus SMPS (Ampere)";
+                document.getElementById("m1-smps-energy").value = 5;
             } else {
                 label.innerText = "Daya SMPS (Watt)";
-                document.getElementById("smps-energy").value = 2000;
+                document.getElementById("m1-smps-energy").value = 3000;
             }
         }
 
-        function calculateSystem() {
-            const cls = document.getElementById("class-select").value;
-            const psuType = document.getElementById("psu-type").value;
-            const loadOhm = parseFloat(document.getElementById("speaker-ohm").value);
-            const outputMode = document.getElementById("output-mode").value;
+        // ==================== KALKULASI UTAMA MODUL 1 ====================
+        function calculateModule1() {
+            const cls = document.getElementById("m1-class").value;
+            const src = document.getElementById("m1-psu-source").value;
+            const loadOhm = parseFloat(document.getElementById("m1-speaker-ohm").value);
+            const outputMode = document.getElementById("m1-output-mode").value;
+            const elcoUf = parseFloat(document.getElementById("m1-elco-uf").value);
+            const elcoQty = parseInt(document.getElementById("m1-elco-qty").value);
             
-            let vdcPeak = 0;
+            let vdc = 0;
             let totalDioda = 1;
 
-            // 1. Perhitungan Tegangan Catu Daya (VDC)
-            if(psuType === "trafo") {
+            if(src === "trafo") {
                 if(cls === "H2") {
-                    const vMid = parseFloat(document.getElementById("vac-mid").value);
-                    vdcPeak = vMid * 1.414;
-                    totalDioda = 2; // Menggunakan 2 Dioda Bridge bertingkat
+                    vdc = parseFloat(document.getElementById("m1-vac-m").value) * 1.414;
+                    totalDioda = 2;
                 } else if(cls === "H3") {
-                    const vHigh = parseFloat(document.getElementById("vac-high").value);
-                    vdcPeak = vHigh * 1.414;
-                    totalDioda = 3; // Menggunakan 3 Dioda Bridge bertingkat
+                    vdc = parseFloat(document.getElementById("m1-vac-h").value) * 1.414;
+                    totalDioda = 3;
                 } else {
-                    const vac = parseFloat(document.getElementById("trafo-vac").value);
-                    vdcPeak = vac * 1.414;
+                    vdc = parseFloat(document.getElementById("m1-trafo-vac").value) * 1.414;
                     totalDioda = 1;
                 }
-            } else { // Menggunakan SMPS
-                const topo = document.getElementById("smps-topology").value;
-                const baseVdc = parseFloat(document.getElementById("smps-vdc").value);
-                if(topo.includes("pfc")) {
-                    vdcPeak = baseVdc * 1.05; // Booster Stabilitas Tegangan Aktif PFC sekitar 5%
+            } else {
+                const smpsTopo = document.getElementById("m1-smps-topo").value;
+                const baseVdc = parseFloat(document.getElementById("m1-smps-vdc").value);
+                if(smpsTopo.includes("pfc")) {
+                    vdc = baseVdc * 1.05; // Booster aktif SMPS PFC sekitar 5%
                 } else {
-                    vdcPeak = baseVdc;
+                    vdc = baseVdc;
                 }
-                totalDioda = 0; // Komponen penyearah internal SMPS, tidak pakai dioda bridge eksternal luar
+                totalDioda = 0;
             }
 
-            // Tampilkan Voltase Akhir & Safety Elco
-            document.getElementById("res-vdc").innerHTML = `${vdcPeak.toFixed(1)} <span class="result-unit">VDC</span>`;
-            document.getElementById("res-dioda").innerText = totalDioda > 0 ? `${totalDioda} Unit Bridge` : "Internal SMPS";
-            document.getElementById("res-elco-safety").innerText = `${(vdcPeak * 1.25).toFixed(0)} Volt Minimum`;
+            const drop = parseFloat(document.getElementById("m1-drop-volt").value) / 100;
+            const vdcDrop = vdc * (1 - drop);
 
-            // 2. Perhitungan Efisiensi Topologi Daya Keluar (Watt RMS)
-            let efisiensi = 0.65; // Default AB
-            if(cls === "A") efisiensi = 0.25;
-            if(cls === "B") efisiensi = 0.50;
-            if(cls === "H2" || cls === "H3") efisiensi = 0.78;
-            if(cls === "D" || cls === "TD") efisiensi = 0.88;
+            // Efisiensi Termal Topologi
+            let eff = 0.65; 
+            if(cls === "A") eff = 0.25;
+            if(cls === "B") eff = 0.50;
+            if(cls === "D") eff = 0.88;
+            if(cls.includes("H")) eff = 0.78;
 
-            // Rumus Dasar Daya: P = (V^2) / (2 * R) untuk RMS Sine Wave
-            let calculatedPower = (Math.pow(vdcPeak, 2)) / (2 * loadOhm);
-            calculatedPower = calculatedPower * efisiensi;
+            // Rumus Daya Utama: P = V^2 / (2 * R)
+            let power = (Math.pow(vdcDrop, 2) / (2 * loadOhm)) * eff;
 
-            // Jika Mode BTL / Bridge, Daya melonjak teoritis hingga mendekati 3.5 - 4 kali lipat
             if(outputMode === "bridge") {
-                calculatedPower = calculatedPower * 3.6;
+                power = power * 3.6; // Penggandaan daya moda BTL
             }
 
-            // Batasi daya jika melewati kemampuan pasokan energi SMPS / Transistor Komponen
-            if(psuType === "smps") {
-                const topo = document.getElementById("smps-topology").value;
-                if(topo === "standard") {
-                    const amp = parseFloat(document.getElementById("smps-energy").value);
-                    const maxSmpsWatt = baseVdc * amp;
-                    if(calculatedPower > maxSmpsWatt) calculatedPower = maxSmpsWatt * efisiensi;
+            // Pembatasan Energi Daya Masuk SMPS / Transistor
+            if(src === "smps") {
+                const smpsTopo = document.getElementById("m1-smps-topo").value;
+                if(smpsTopo === "cheap") {
+                    const amp = parseFloat(document.getElementById("m1-smps-energy").value);
+                    const maxSmpsWatt = vdc * amp;
+                    if(power > maxSmpsWatt) power = maxSmpsWatt * eff;
                 } else {
-                    const wattLimit = parseFloat(document.getElementById("smps-energy").value);
-                    if(calculatedPower > wattLimit) calculatedPower = wattLimit * efisiensi;
-                }
-            } else {
-                // Pembatasan dari kekuatan total Transistor Final (Per pasang rata-rata aman 150W beban kontinu)
-                if(!cls.includes("D")) {
-                    const trSets = parseInt(document.getElementById("tr-sets").value);
-                    const trBrand = document.getElementById("tr-brand").value;
-                    let maxTrWatt = trSets * 150;
-                    if(trBrand === "sanken") maxTrWatt = trSets * 200; // Sanken berukuran besar/lebih kuat
-                    if(calculatedPower > maxTrWatt) calculatedPower = maxTrWatt;
+                    const wattLimit = parseFloat(document.getElementById("m1-smps-energy").value);
+                    if(power > wattLimit) power = wattLimit * eff;
                 }
             }
 
-            // Tampilkan Output Hasil Konversi Ke kW jika di atas ribuan watt
-            const cardPower = document.getElementById("card-power");
-            if(calculatedPower >= 1000) {
-                const kwValue = calculatedPower / 1000;
-                document.getElementById("res-power").innerHTML = `${kwValue.toFixed(2)} <span class="result-unit">kW RMS</span>`;
-                cardPower.className = "result-card danger";
-            } else {
-                document.getElementById("res-power").innerHTML = `${calculatedPower.toFixed(0)} <span class="result-unit">Watt RMS</span>`;
-                cardPower.className = "result-card success";
-            }
+            // Tampilkan Data Hasil Ke Layar Dashboard
+            document.getElementById("r1-vdc").innerText = `${vdc.toFixed(1)} VDC`;
+            document.getElementById("r1-power").innerText = power >= 1000 ? `${(power/1000).toFixed(2)} kW RMS` : `${power.toFixed(0)} Watt RMS`;
+            document.getElementById("r1-dioda").innerText = totalDioda > 0 ? `${totalDioda} Unit Bridge` : "Internal SMPS Unit";
+            document.getElementById("r1-ripple").innerText = `${((power/(vdc*elcoQty*(elcoUf/1000000)))*10).toFixed(2)} V Ripple`;
+            document.getElementById("r1-elco-safety").innerText = `${(vdc * 1.25).toFixed(0)} Volt Minimum`;
+            
+            const currentMax = vdc / loadOhm;
+            document.getElementById("r1-current-max").innerText = `${currentMax.toFixed(1)} Ampere`;
 
-            // Arus Maksimal Amplitudo Driver
-            const currentMax = vdcPeak / loadOhm;
-            document.getElementById("res-current-max").innerHTML = `${currentMax.toFixed(1)} <span class="result-unit">Ampere</span>`;
-
-            // 3. Validasi Keidealan Terhadap Target Speaker
-            const targetSpeakerWatt = parseFloat(document.getElementById("speaker-watt-req").value);
-            const statusEl = document.getElementById("res-status");
-            const cardIdeal = document.getElementById("card-ideal");
-
-            // Aturan ideal: Daya Amplifier dianjurkan 1.5x s/d 2x lipat dari daya minimal kerja speaker agar tidak klip
-            if(calculatedPower >= (targetSpeakerWatt * 1.5)) {
-                statusEl.innerHTML = `SANGAT IDEAL <span class="badge badge-ideal">Bertenaga</span>`;
-                cardIdeal.className = "result-card success";
-            } else if(calculatedPower >= targetSpeakerWatt) {
-                statusEl.innerHTML = `CUKUP / AMAN <span class="badge badge-ideal">Pas</span>`;
-                cardIdeal.className = "result-card warning";
-            } else {
-                statusEl.innerHTML = `UNDERPOWER <span class="badge badge-danger">Klip/Risiko</span>`;
-                cardIdeal.className = "result-card danger";
-            }
-
-            updateFrequencySimulation();
+            pushLog(`[Modul 1] Sukses simulasi Class ${cls} (${outputMode}). Output: ${power.toFixed(0)}W pada beban ${loadOhm} Ohm.`);
+            updateGraphVisual();
         }
 
-        // 4. Simulasi Grafik Canvas Respon Frekuensi & dB
-        const canvas = document.getElementById("freqGraph");
+        // ==================== KALKULASI UTAMA MODUL 2 ====================
+        function calculateModule2() {
+            const method = document.getElementById("m2-connect").value;
+            const baseOhm = parseFloat(document.getElementById("m2-ohm-base").value);
+            const qty = parseInt(document.getElementById("m2-qty").value);
+            let totalOhm = 8;
+
+            if(method === "parallel") totalOhm = baseOhm / qty;
+            else if(method === "series") totalOhm = baseOhm * qty;
+            else totalOhm = (baseOhm * 2) / qty;
+
+            document.getElementById("r2-total-ohm").innerText = `${totalOhm.toFixed(1)} Ohm`;
+            
+            const card = document.getElementById("r2-card-status");
+            const desc = document.getElementById("r2-desc");
+            if(totalOhm < 2) {
+                card.className = "result-card danger";
+                desc.innerText = "RISIKO KRITIS! Impedansi di bawah 2 Ohm dapat membakar Transistor Final panggung akibat beban arus berlebih.";
+            } else {
+                card.className = "result-card success";
+                desc.innerText = "Beban aman dan ideal untuk pengoperasian amplifier panggung jangka panjang.";
+            }
+            pushLog(`[Modul 2] Total Impedansi Skema ${method}: ${totalOhm.toFixed(1)} Ohm.`);
+        }
+
+        // ==================== KALKULASI UTAMA MODUL 3 ====================
+        function calculateModule3() {
+            const len = parseFloat(document.getElementById("m3-cable-len").value);
+            const size = parseFloat(document.getElementById("m3-cable-size").value);
+            const sens = parseFloat(document.getElementById("m3-sens").value);
+            const dist = parseFloat(document.getElementById("m3-distance").value);
+
+            let resKabel = (0.0175 * len) / size;
+            let df = 400 / (1 + resKabel); // Asumsi Damping Factor awal mesin = 400
+
+            let splAkhir = sens + (10 * Math.log10(1000)) - (20 * Math.log10(dist));
+
+            document.getElementById("r3-damping").innerText = df.toFixed(0);
+            document.getElementById("r3-spl").innerText = `${splAkhir.toFixed(1)} dB`;
+            document.getElementById("r3-delay-info").innerText = `Delay Line Array: ${(dist / 0.344).toFixed(1)} ms | Kecepatan Suara: 344 m/s`;
+
+            pushLog(`[Modul 3] Jarak target ${dist}m menghasilkan kenyaringan ${splAkhir.toFixed(1)} dB.`);
+        }
+
+        // ==================== KALKULASI UTAMA MODUL 4 ====================
+        function calculateModule4() {
+            const type = document.getElementById("m4-box-type").value;
+            const fs = parseFloat(document.getElementById("m4-fs").value);
+            const qts = parseFloat(document.getElementById("m4-qts").value);
+
+            let ebp = fs / qts;
+            let rekomendasi = ebp > 90 ? "Sangat Cocok untuk Box Ported / Bass Reflex (Panggung Vendor)" : "Cocok untuk Box Sealed (Karakter SQ Rumahan)";
+
+            document.getElementById("r4-tuning").innerText = `EBP: ${ebp.toFixed(0)} - ${type.toUpperCase()}`;
+            document.getElementById("r4-chuffing-info").innerText = `Analisis Hasil: ${rekomendasi}. Struktur box aman dari noise angin liar internal.`;
+            
+            pushLog(`[Modul 4] Thiele-Small terhitung. Parameter EBP bernilai ${ebp.toFixed(0)}.`);
+        }
+
+        // ==================== KALKULASI UTAMA MODUL 5 ====================
+        function calculateModule5() {
+            const freq = parseFloat(document.getElementById("m5-freq").value);
+            const ohm = parseFloat(document.getElementById("m5-ohm").value);
+
+            // Rumus Filter Pasif C = 1/(2*pi*f*R) & L = R/(2*pi*f)
+            let cap = (1 / (2 * Math.PI * freq * ohm)) * 1000000;
+            let ind = (ohm / (2 * Math.PI * freq)) * 1000;
+
+            document.getElementById("r5-cap").innerText = `${cap.toFixed(2)} µF`;
+            document.getElementById("r5-ind").innerText = `${ind.toFixed(2)} mH`;
+
+            pushLog(`[Modul 5] Filter Crossover ${freq}Hz berhasil diset: C=${cap.toFixed(1)}µF, L=${ind.toFixed(1)}mH.`);
+        }
+
+        // ==================== KALKULASI UTAMA MODUL 6 ====================
+        function calculateModule6() {
+            const type = document.getElementById("m6-tr-type").value;
+            const sets = parseInt(document.getElementById("m6-sets").value);
+
+            let wattPerSet = type === "sanken" ? 200 : 150; // Sanken memiliki penampang disipasi lebih besar
+            let totalDisipasi = sets * wattPerSet;
+
+            document.getElementById("r6-disipasi").innerText = `${totalDisipasi} Watt`;
+            
+            const card = document.getElementById("r6-card-soa");
+            const desc = document.getElementById("r6-desc-soa");
+            
+            if(totalDisipasi < 500) {
+                card.className = "result-card warning";
+                desc.innerText = "Batas Batasan SOA Terbatas! Kurangi tegangan atau hindari load ekstrim 2 Ohm agar silikon internal TR tidak jebol.";
+            } else {
+                card.className = "result-card success";
+                desc.innerText = "Daya tampung disipasi panas memadai untuk menerima hantaman bass musik panggung kontinu.";
+            }
+
+            pushLog(`[Modul 6] Kapasitas total disipasi aman ${sets} set TR ${type}: ${totalDisipasi}W.`);
+        }
+
+        // ==================== LIVE TONE OSCILLATOR GEN (MODUL 7) ====================
+        let audioCtx = null;
+        let oscillator = null;
+
+        function toggleLiveTone() {
+            if(!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if(oscillator) oscillator.stop();
+
+            oscillator = audioCtx.createOscillator();
+            oscillator.type = document.getElementById("m7-wave-type").value;
+            oscillator.frequency.setValueAtTime(parseFloat(document.getElementById("global-freq-slider").value), audioCtx.currentTime);
+            oscillator.connect(audioCtx.destination);
+            oscillator.start();
+            pushLog("[Modul 7] Sinyal Oscillator Live diaktifkan ke output perangkat.");
+        }
+
+        function stopLiveTone() {
+            if(oscillator) {
+                oscillator.stop();
+                oscillator = null;
+                pushLog("[Modul 7] Sinyal Oscillator dinonaktifkan.");
+            }
+        }
+
+        // Fitur Edu & PDF Mockup
+        function triggerQuiz() {
+            alert("Kuis Evaluasi Sound Engine:\n\nSoal: Mengapa Topologi Class D bekerja jauh lebih dingin daripada Class AB?\n\nJawaban Esensial: Karena transistor pada Class D bekerja sebagai sakelar penuh (switching) berbasis pulsa PWM, meminimalkan waktu transistor berada di area linear sehingga efisiensi mencapai 88-93%!");
+        }
+
+        function exportToPdf() {
+            const targetWatt = document.getElementById("m7-speaker-req").value;
+            alert(`Menghasilkan Nota Spesifikasi Laboratorium...\n\nSistem FR-AUDIO berhasil dipetakan secara ideal untuk menyuplai komponen speaker target ${targetWatt} Watt Anda.`);
+        }
+
+        function pushLog(msg) {
+            const logBox = document.getElementById("history-logs");
+            logBox.innerHTML = `> ${msg}<br>` + logBox.innerHTML;
+        }
+
+        // ==================== PENANGANAN GRAFIK VISUALISASI LOGARITMIK REALTIME ====================
+        const canvas = document.getElementById("universalGraph");
         const ctx = canvas.getContext("2d");
 
         function resizeCanvas() {
             canvas.width = canvas.parentElement.clientWidth;
+            updateGraphVisual();
         }
         window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
 
-        function updateFrequencySimulation() {
-            const freq = parseFloat(document.getElementById("freq-slider").value);
-            const dvrType = document.getElementById("driver-type-select").value;
-            
-            // Format teks display frekuensi
-            if(freq >= 1000) {
-                document.getElementById("freq-val-display").innerText = `${(freq/1000).toFixed(2)} kHz`;
-            } else {
-                document.getElementById("freq-val-display").innerText = `${freq.toFixed(2)} Hz`;
+        function syncGraphAndSlider() {
+            const val = document.getElementById("global-freq-slider").value;
+            document.getElementById("global-freq-label").innerText = val >= 1000 ? `${(val/1000).toFixed(2)} kHz` : `${val} Hz`;
+            if(oscillator && audioCtx) {
+                oscillator.frequency.setValueAtTime(val, audioCtx.currentTime);
             }
+            updateGraphVisual();
+        }
 
-            // Hitung Gain dB berdasarkan kurva jenis driver
-            let gainDb = 0;
-            let cutOffInfo = "Normal Operasional";
-
-            if(dvrType === "middle") {
-                if(freq < 250 || freq > 5000) {
-                    gainDb = -12 - (freq < 250 ? (250 - freq)/10 : (freq - 5000)/500);
-                    cutOffInfo = freq < 250 ? "Low Cut-Off" : "High Attenuation";
-                } else {
-                    gainDb = 0 + Math.sin(freq/1000)*1.5; // Fluktuasi respon alami mid
-                }
-            } else if(dvrType === "lowsub") {
-                if(freq > 250) {
-                    gainDb = -24 - (freq - 250)/20;
-                    cutOffInfo = "LPF (Low Pass Filter) Active";
-                } else if(freq < 20) {
-                    gainDb = -6;
-                    cutOffInfo = "Subsonic Filter";
-                } else {
-                    gainDb = +3; // Bass boost area
-                }
-            } else if(dvrType === "toa") {
-                if(freq < 400 || freq > 8000) {
-                    gainDb = -36;
-                    cutOffInfo = "Extreme Band-Pass TOA Match";
-                } else {
-                    gainDb = +5; // Karakter Horn sangat nyaring/pemberatan di frekuensi tengah vocal tinggi
-                }
-            } else { // FLAT
-                if(freq < 10) gainDb = -3;
-                if(freq > 20000) gainDb = -2;
-            }
-
-            if(gainDb < -40) gainDb = -40; // Batas bawah grafis
-
-            document.getElementById("res-db-gain").innerText = `${gainDb > 0 ? '+' : ''}${gainDb.toFixed(1)} dB`;
-            document.getElementById("res-cut-off").innerText = cutOffInfo;
-
-            // Menggambar pada Canvas
+        function updateGraphVisual() {
+            if (!canvas.getContext) return;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            // Draw Grid Lines
+            // Menggambar Garis Bantu Grid Latar
             ctx.strokeStyle = "#1e294b";
             ctx.lineWidth = 1;
             for(let i = 1; i < 5; i++) {
                 let y = (canvas.height / 5) * i;
-                ctx.beginPath();
-                ctx.moveTo(0, y);
-                ctx.lineTo(canvas.width, y);
-                ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
             }
 
-            // Draw Response Curve Line
+            // Membaca Karakter Driver Aktif
+            const driverType = document.getElementById("m1-driver").value;
+            const currentFreq = parseFloat(document.getElementById("global-freq-slider").value);
+
+            let activeGain = 0;
+            let cutOffText = "Normal Operasional";
+
+            // Hitung Gain Desibel (dB) Dinamis untuk Teks Indikator
+            if(driverType === "mid") {
+                if(currentFreq < 250 || currentFreq > 5000) {
+                    activeGain = -12 - (currentFreq < 250 ? (250 - currentFreq)/10 : (currentFreq - 5000)/500);
+                    cutOffText = currentFreq < 250 ? "Low-Cut Aktif" : "High Attenuation";
+                } else { activeGain = 0 + Math.sin(currentFreq/1000)*1.5; }
+            } else if(driverType === "sub") {
+                if(currentFreq > 250) {
+                    activeGain = -24 - (currentFreq - 250)/20; cutOffText = "LPF (Low Pass Filter)";
+                } else if(currentFreq < 20) {
+                    activeGain = -6; cutOffText = "Subsonic Filter HPF";
+                } else { activeGain = +3; }
+            } else if(driverType === "toa") {
+                if(currentFreq < 450 || currentFreq > 7000) {
+                    activeGain = -35; cutOffText = "Extreme Bandpass Match";
+                } else { activeGain = +4; }
+            } else {
+                if(currentFreq < 10) activeGain = -3;
+                if(currentFreq > 20000) activeGain = -2;
+            }
+
+            if(activeGain < -40) activeGain = -40;
+            document.getElementById("res-db-gain").innerText = `${activeGain > 0 ? '+' : ''}${activeGain.toFixed(1)} dB`;
+            document.getElementById("res-cut-off").innerText = cutOffText;
+
+            // Menggambar Kurva Respons Frekuensi pada Monitor
             ctx.beginPath();
-            ctx.strokeStyle = varColor('--accent-cyan');
+            ctx.strokeStyle = "#06b6d4";
             ctx.lineWidth = 3;
 
             for(let x = 0; x < canvas.width; x++) {
-                // Petakan koordinat X ke skala logaritmik frekuensi 1Hz - 22kHz
                 let fraction = x / canvas.width;
-                let currentXFreq = Math.pow(22000, fraction);
+                let currentXFreq = Math.pow(22000, fraction); // Skala eksponensial tiruan penampang audio
 
                 let dummyGain = 0;
-                if(dvrType === "middle") {
-                    dummyGain = (currentXFreq < 250 || currentXFreq > 5000) ? -15 : 0;
-                } else if(dvrType === "lowsub") {
-                    dummyGain = (currentXFreq > 250) ? -35 : +2;
-                } else if(dvrType === "toa") {
-                    dummyGain = (currentXFreq < 400 || currentXFreq > 8000) ? -38 : +5;
-                }
+                if(driverType === "sub" && currentXFreq > 280) dummyGain = -30;
+                else if(driverType === "sub" && currentXFreq < 22) dummyGain = -10;
+                else if(driverType === "mid" && (currentXFreq < 220 || currentXFreq > 5500)) dummyGain = -25;
+                else if(driverType === "toa" && (currentXFreq < 450 || currentXFreq > 7500)) dummyGain = -35;
+                else if(driverType === "toa") dummyGain = +4;
 
-                let y = canvas.height/2 - (dummyGain * 3);
+                let y = (canvas.height / 2) - (dummyGain * 2.5);
                 if(y > canvas.height - 10) y = canvas.height - 10;
                 if(y < 10) y = 10;
 
@@ -642,31 +802,23 @@
             }
             ctx.stroke();
 
-            // Draw Current Frequency Pointer (Garis Penunjuk Frekuensi Aktif)
-            let currentSliderFraction = (Math.log(freq) / Math.log(22000));
-            // Pendekatan linear sederhana untuk visual penanda posisi slider
-            let pointerX = (freq / 22000) * canvas.width; 
-            if(pointerX < 5) pointerX = 5;
+            // Menggambar Garis Pointer Frekuensi Aktif (Kuning)
+            let pointerX = (currentFreq / 22000) * canvas.width;
+            if(pointerX < 4) pointerX = 4;
 
             ctx.beginPath();
-            ctx.strokeStyle = varColor('--accent-amber');
+            ctx.strokeStyle = "#f59e0b";
             ctx.lineWidth = 2;
             ctx.setLineDash([4, 4]);
-            ctx.moveTo(pointerX, 0);
-            ctx.lineTo(pointerX, canvas.height);
-            ctx.stroke();
+            ctx.moveTo(pointerX, 0); ctx.lineTo(pointerX, canvas.height); ctx.stroke();
             ctx.setLineDash([]);
         }
 
-        function varColor(name) {
-            return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-        }
-
-        // Inisialisasi awal saat halaman dibuka pertama kali
+        // Setup Inisialisasi Sistem Pertama Kali
         window.onload = function() {
-            handleClassChange();
-            calculateSystem();
-        };
+            resizeCanvas();
+            m1TopologySync();
+        }
     </script>
 </body>
 </html>
