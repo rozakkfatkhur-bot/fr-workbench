@@ -398,22 +398,32 @@
                 <div class="panel">
                     <div class="panel-title"><i class="fa-solid fa-microchip"></i> Blok Akhir Transistor Final / MOSFET</div>
                     
-                    <div class="form-group">
-                        <label>Kategori Jenis Transistor Final</label>
-                        <select id="m6-tr-cat" onchange="m6TrCategorySync()">
-                            <option value="toshiba">Bipolar Toshiba (Legendaris & Flat)</option>
-                            <option value="sanken">Bipolar Sanken (Kuat & Bass Tebal)</option>
-                            <option value="mosfet">MOSFET High Speed (Efisien Class D/H)</option>
-                        </select>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Kategori Jenis Komponen Final</label>
+                            <select id="m6-tr-cat" onchange="m6TrCategorySync()">
+                                <option value="toshiba">Bipolar Toshiba (Legendaris & Flat)</option>
+                                <option value="sanken">Bipolar Sanken (Kuat & Bass Tebal)</option>
+                                <option value="mosfet">MOSFET High Speed (Efisien Class D/H)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Kualitas / Kode Lot</label>
+                            <select id="m6-tr-lot" onchange="calculateModule6()">
+                                <option value="premium">Original (Lot Premium / Bagus) - SOA 100%</option>
+                                <option value="standar">Original (Lot Standar) - SOA 90%</option>
+                                <option value="lokal">KW / Lokal / Biasa - SOA 50% (Pangkas Otomatis)</option>
+                            </select>
+                        </div>
                     </div>
 
                     <div class="grid-2">
                         <div class="form-group">
                             <label>Seri Transistor / MOSFET</label>
-                            <select id="m6-tr-type">
+                            <select id="m6-tr-type" onchange="calculateModule6()">
                             </select>
                         </div>
-                        <div class="form-group"><label>Jumlah Komponen (Set / Pasang)</label><input type="number" id="m6-sets" value="5"></div>
+                        <div class="form-group"><label>Jumlah Komponen (Set / Pasang per Driver)</label><input type="number" id="m6-sets" value="5" oninput="calculateModule6()"></div>
                     </div>
                     <div class="grid-2">
                         <div class="form-group"><label>Resistor Kapur (Ohm)</label><input type="number" id="m6-rkapur" value="0.5" step="0.1"></div>
@@ -556,7 +566,6 @@
     </div>
 
     <script>
-        // DATA DIKEMBALIKAN PENUH SEPERTI CODINGAN AWAL
         const driverDatabase = {
             A: ["JLH 1969 (Legendary Class A)", "Nelson Pass Zen", "Hiraga Le Class A", "Aleph 3 Clone", "First Watt F5", "Gainclone (mode Class A)", "Mosfet Class A Single Ended", "Hood 1969 Modifikasi", "Class A Transformer Coupled", "Class A Fully Complementary"],
             B: ["OCL 150W Standard", "OCL 200W Bell", "OCL 400W (Karakter kasar)", "TIP 41/42 OCL", "Mini OCL 50W", "OCL 100W Stereo", "Kit OCL Modifikasi 2N3055", "OCL 150W Versi BTL", "OCL 300W Sanken", "OCL 600W"],
@@ -569,10 +578,44 @@
             TOA: ["Matching Transformer TOA 100V", "Driver Unit Horn 35W (TU-632)", "Driver Unit Horn 50W (TU-652)", "Booster Transformer Matching", "Module Amplifier 30W (ZA-230W)", "Module Amplifier 60W (ZA-260W)", "Module Amplifier 120W (ZA-2120)", "Module Amplifier 240W (ZA-2240)", "Modul Digital Player TOA (ZA-3248)", "Power Mixer 6-Channel (ZA-2060)"]
         };
 
-        const trDatabase = {
-            toshiba: ["2SC5200 (NPN)", "2SA1943 (PNP)", "2SC3858", "2SA1494", "2SC2922", "2SA1216", "2SC3281", "2SA1302", "2SC5198", "2SA1941"],
-            sanken: ["2SC2922 (Sanken)", "2SA1216 (Sanken)", "2SC3858 (Sanken)", "2SA1494 (Sanken)", "2SC3519", "2SA1386", "2SC4468", "2SA1695", "2SC6011", "2SA2151"],
-            mosfet: ["IRFP250", "IRFP260", "IRFP460", "IRF640", "IRF9640", "IRFZ44N", "IRFP4227 (High Performance)", "IRFP4229", "STW45NM60", "FQA24N50"]
+        // DATABASE SPESIFIKASI DETAIL TRANSISTOR & MOSFET (WATT, AMPERE, VOLT)
+        const trSpecsDatabase = {
+            toshiba: {
+                "2SC5200 (NPN)": { watt: 150, amp: 15, volt: 230 },
+                "2SA1943 (PNP)": { watt: 150, amp: 15, volt: 230 },
+                "2SC3858": { watt: 200, amp: 17, volt: 200 },
+                "2SA1494": { watt: 200, amp: 17, volt: 200 },
+                "2SC2922": { watt: 200, amp: 17, volt: 180 },
+                "2SA1216": { watt: 200, amp: 17, volt: 180 },
+                "2SC3281": { watt: 150, amp: 15, volt: 200 },
+                "2SA1302": { watt: 150, amp: 15, volt: 200 },
+                "2SC5198": { watt: 100, amp: 10, volt: 140 },
+                "2SA1941": { watt: 100, amp: 10, volt: 140 }
+            },
+            sanken: {
+                "2SC2922 (Sanken)": { watt: 200, amp: 17, volt: 180 },
+                "2SA1216 (Sanken)": { watt: 200, amp: 17, volt: 180 },
+                "2SC3858 (Sanken)": { watt: 200, amp: 17, volt: 200 },
+                "2SA1494 (Sanken)": { watt: 200, amp: 17, volt: 200 },
+                "2SC3519": { watt: 130, amp: 15, volt: 180 },
+                "2SA1386": { watt: 130, amp: 15, volt: 180 },
+                "2SC4468": { watt: 100, amp: 10, volt: 140 },
+                "2SA1695": { watt: 100, amp: 10, volt: 140 },
+                "2SC6011": { watt: 160, amp: 15, volt: 200 },
+                "2SA2151": { watt: 160, amp: 15, volt: 200 }
+            },
+            mosfet: {
+                "IRFP250": { watt: 214, amp: 30, volt: 200 },
+                "IRFP260": { watt: 300, amp: 50, volt: 200 },
+                "IRFP460": { watt: 280, amp: 20, volt: 500 },
+                "IRF640": { watt: 125, amp: 18, volt: 200 },
+                "IRF9640": { watt: 125, amp: 18, volt: 200 },
+                "IRFZ44N": { watt: 94, amp: 49, volt: 55 },
+                "IRFP4227 (High Performance)": { watt: 330, amp: 65, volt: 200 },
+                "IRFP4229": { watt: 330, amp: 44, volt: 250 },
+                "STW45NM60": { watt: 417, amp: 45, volt: 650 },
+                "FQA24N50": { watt: 290, amp: 24, volt: 500 }
+            }
         };
 
         let isSignalActive = false;
@@ -642,11 +685,12 @@
             const cat = document.getElementById("m6-tr-cat").value;
             const selectTr = document.getElementById("m6-tr-type");
             selectTr.innerHTML = "";
-            trDatabase[cat].forEach(t => {
+            Object.keys(trSpecsDatabase[cat]).forEach(t => {
                 let opt = document.createElement("option");
                 opt.value = t; opt.innerText = t;
                 selectTr.appendChild(opt);
             });
+            calculateModule6();
         }
 
         function calculateModule1() {
@@ -780,29 +824,49 @@
             pushLog(`[Modul 5] Komponen Filter X-Over ${freq}Hz diset: C=${cap.toFixed(1)}µF, L=${ind.toFixed(1)}mH.`);
         }
 
+        // ==================== KALKULASI INTEGRASI TR FINAL + LOT + SPECS ====================
         function calculateModule6() {
             const cat = document.getElementById("m6-tr-cat").value;
             const trType = document.getElementById("m6-tr-type").value;
-            const sets = parseInt(document.getElementById("m6-sets").value);
+            const sets = parseInt(document.getElementById("m6-sets").value) || 0;
+            const lot = document.getElementById("m6-tr-lot").value;
 
-            let wattPerSet = 150;
-            if(cat === "sanken") wattPerSet = 200;
-            if(trType && (trType.includes("High Performance") || trType === "IRFP260")) wattPerSet = 250; 
+            if (!trType || !trSpecsDatabase[cat][trType]) return;
 
-            let totalDisipasi = sets * wattPerSet;
-            document.getElementById("r6-disipasi").innerText = `${totalDisipasi} Watt`;
+            // Ambil data dari database spesifikasi asli
+            const spec = trSpecsDatabase[cat][trType];
+            let baseWatt = spec.watt;
+            let maxAmp = spec.amp;
+            let maxVolt = spec.volt;
+
+            // Faktor pengali kualitas berdasarkan Lot komponen
+            let lotFactor = 1.0;
+            if (lot === "standar") lotFactor = 0.9;
+            if (lot === "lokal") lotFactor = 0.5;
+
+            // Kalkulasi disipasi total gabungan pasangan TR
+            let totalDisipasi = sets * baseWatt * lotFactor;
+            document.getElementById("r6-disipasi").innerText = `${totalDisipasi.toFixed(0)} Watt`;
             
             const card = document.getElementById("r6-card-soa");
             const desc = document.getElementById("r6-desc-soa");
             
-            if(totalDisipasi < 500) {
+            // Evaluasi tingkat keamanan berdasarkan beban watt global dari Modul 1
+            let safeThreshold = calculatedWattGlobal * 1.5; // Batas aman ideal disipasi adalah 1.5x dari daya kerja RMS
+            
+            let specInfo = `<br><span style='color:var(--accent-cyan)'>Datasheet per biji: Max ${baseWatt}W | ${maxAmp}A | ${maxVolt}V</span>`;
+
+            if (totalDisipasi < calculatedWattGlobal) {
+                card.className = "result-card danger";
+                desc.innerHTML = `<strong>STATUS: KRITIS / RAWAN JEBOL!</strong><br>Total disipasi TR (${totalDisipasi.toFixed(0)}W) lebih rendah dari output power driver (${calculatedWattGlobal.toFixed(0)}W). Komponen dijamin akan mengalami Overheat dan jebol saat digenjot musik horeg balap! Disarankan tambah jumlah set.${specInfo}`;
+            } else if (totalDisipasi < safeThreshold) {
                 card.className = "result-card warning";
-                desc.innerText = "Batas SOA Kritis! Hindari menggenjot load ekstrim 2 Ohm secara kontinu agar komponen silikon internal tidak jebol.";
+                desc.innerHTML = `<strong>STATUS: SIAGA / SOA KETAT!</strong><br>Kapasitas disipasi mencukupi untuk pemakaian normal, namun sangat rawan jika dipaksa menghantam load berat (misal 2 Ohm kontinu). Jaga suhu heatsink tetap adem menggunakan kipas hi-speed.${specInfo}`;
             } else {
                 card.className = "result-card success";
-                desc.innerText = "Disipasi termal silikon sangat memadai untuk menerima hantaman beban berat musik konser lapangan.";
+                desc.innerHTML = `<strong>STATUS: AMAN / KOKOH AMBLES!</strong><br>Disipasi termal silikon gabungan sangat longgar dan tangguh menahan hantaman power ekstrem. Aman dari gejala Thermal Runaway di arena konser panggung terbuka.${specInfo}`;
             }
-            pushLog(`[Modul 6] Kapasitas total disipasi aman ${sets} set komponen: ${totalDisipasi}W.`);
+            pushLog(`[Modul 6] Analisis SOA Komponen Final selesai. Total Kapasitas: ${totalDisipasi.toFixed(0)}W.`);
         }
 
         // ==================== ENGINE INTEGRATED AI ADVICE GENERATOR ====================
@@ -906,106 +970,3 @@
                 isSignalActive = false;
                 pushLog("[Modul 7] Sinyal Oscillator dinonaktifkan.");
             }
-        }
-
-        function triggerQuiz() {
-            alert("Kuis Evaluasi Laboratorium FR-Audio:\n\nMengapa SMPS PFC (Power Factor Correction) jauh lebih handal daripada SMPS Biasa untuk sound system panggung?\n\nJawaban Esensial: Karena varian SMPS PFC memiliki rangkaian booster aktif yang menstabilkan tegangan drop dari genset lapangan, sehingga output VDC ke driver power tetap konstan dan anti loyo!");
-        }
-
-        function exportToPdf() {
-            alert("Menghasilkan Blueprint Laporan Rekayasa...\n\nSistem FR-AUDIO berhasil dipetakan ke memori ekspor lokal.");
-        }
-
-        function pushLog(msg) {
-            const logBox = document.getElementById("history-logs");
-            logBox.innerHTML = `> ${msg}<br>` + logBox.innerHTML;
-        }
-
-        // ==================== MONITOR GRAFIK RESPONS FREKUENSI LOGARITMIK ====================
-        const canvas = document.getElementById("universalGraph");
-        const ctx = canvas.getContext("2d");
-
-        function resizeCanvas() {
-            canvas.width = canvas.parentElement.clientWidth;
-            updateGraphVisual();
-        }
-        window.addEventListener('resize', resizeCanvas);
-
-        function syncGraphAndSlider() {
-            const val = document.getElementById("global-freq-slider").value;
-            document.getElementById("global-freq-label").innerText = val >= 1000 ? `${(val/1000).toFixed(2)} kHz` : `${val} Hz`;
-            if(oscillator && audioCtx) { oscillator.frequency.setValueAtTime(val, audioCtx.currentTime); }
-            updateGraphVisual();
-        }
-
-        function updateGraphVisual() {
-            if (!canvas.getContext) return;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            ctx.strokeStyle = "#1e294b"; ctx.lineWidth = 1;
-            for(let i = 1; i < 5; i++) {
-                let y = (canvas.height / 5) * i;
-                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
-            }
-
-            const currentClass = document.getElementById("m1-class").value;
-            const currentFreq = parseFloat(document.getElementById("global-freq-slider").value);
-
-            let activeGain = 0;
-            let cutOffText = "Kondisi Linear Normal";
-
-            if(currentClass === "TOA") {
-                if(currentFreq < 350 || currentFreq > 6500) { activeGain = -30; cutOffText = "Bandpass Horn TOA Limited"; }
-                else { activeGain = +3; }
-            } else if(currentClass.includes("H") || currentClass === "GB" || currentClass === "D") {
-                if(currentFreq < 20) { activeGain = -6; cutOffText = "Subsonic HPF Protection Aktif"; }
-                else if(currentFreq < 120) { activeGain = +2.5; }
-            }
-
-            if(activeGain < -40) activeGain = -40;
-            document.getElementById("res-db-gain").innerText = `${activeGain > 0 ? '+' : ''}${activeGain.toFixed(1)} dB`;
-            document.getElementById("res-cut-off").innerText = cutOffText;
-
-            ctx.beginPath(); ctx.strokeStyle = "#06b6d4"; ctx.lineWidth = 3;
-
-            for(let x = 0; x < canvas.width; x++) {
-                let fraction = x / canvas.width;
-                let currentXFreq = Math.pow(22000, fraction);
-
-                let dummyGain = 0;
-                if(currentClass === "TOA" && (currentXFreq < 350 || currentXFreq > 7000)) dummyGain = -30;
-                else if((currentClass.includes("H") || currentClass === "D") && currentXFreq < 22) dummyGain = -10;
-                else if((currentClass.includes("H") || currentClass === "D") && currentXFreq < 100) dummyGain = +2;
-
-                let y = (canvas.height / 2) - (dummyGain * 2.5);
-                if(y > canvas.height - 10) y = canvas.height - 10;
-                if(y < 10) y = 10;
-
-                if(x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-            }
-            ctx.stroke();
-
-            let pointerX = (currentFreq / 22000) * canvas.width;
-            if(pointerX < 4) pointerX = 4;
-
-            ctx.beginPath(); ctx.strokeStyle = "#f59e0b"; ctx.lineWidth = 2;
-            ctx.setLineDash([4, 4]); ctx.moveTo(pointerX, 0); ctx.lineTo(pointerX, canvas.height); ctx.stroke();
-            ctx.setLineDash([]);
-        }
-
-        // ENGINE LOOP ANIMASI UNTUK VU METER REFRESHMENT
-        function animationLoop() {
-            updateVuMeterVisual();
-            animationFrameId = requestAnimationFrame(animationLoop);
-        }
-
-        window.onload = function() {
-            resizeCanvas();
-            buildVuMeterLEDs();
-            m1TopologySync();
-            m6TrCategorySync();
-            animationLoop();
-        }
-    </script>
-</body>
-</html>
