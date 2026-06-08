@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FARO TRIUMPHANT - Split DLMS System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-dark: #07030d;
+            --panel-bg: #120b1e;
+            --panel-inner: #1a0f2b;
+            --violet-main: #8a2be2;
+            --violet-glow: #bc13fe;
+            --text-white: #ffffff;
+            --text-muted: #8e859c;
+            --led-green: #2ecc71;
+            --led-yellow: #f1c40f;
+            --led-red: #e74c3c;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-white);
+            padding: 10px;
+            padding-bottom: 55px; /* Spasi untuk master VU footer */
+        }
+
+        /* HEADER */
+        .header {
+            text-align: center;
+            padding: 12px;
+            background: linear-gradient(135deg, var(--panel-bg), #1e0f33);
+            border-radius: 10px;
+            border: 1px solid rgba(138, 43, 226, 0.25);
+            margin-bottom: 12px;
+        }
+
+        .header h1 {
+            font-size: 18px;
+            letter-spacing: 2px;
+            text-shadow: 0 0 8px var(--violet-glow);
+        }
+
+        .header p {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        /* HARDWARE STATUS MINI BANNER */
+        .sys-monitor {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .monitor-box {
+            background: var(--panel-bg);
+            border: 1px solid rgba(255,255,255,0.04);
+            border-radius: 6px;
+            padding: 6px;
+            text-align: center;
+        }
+
+        .monitor-box span {
+            display: block;
+            font-size: 9px;
+            color: var(--text-muted);
+        }
+
+        .monitor-box strong {
+            font-size: 11px;
+        }
+
+        /* MAIN PLATFORM: SPLIT SCREEN LAYOUT */
+        .split-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        @media (min-width: 768px) {
+            .split-container {
+                grid-template-columns: 1.1fr 0.9fr; /* Kiri display grafik, kanan kontrol menu */
+            }
+        }
+
+        /* SIDE LEFT: GRAPHICS LAB CONSOLE */
+        .left-display-panel {
+            background: var(--panel-bg);
+            border-radius: 12px;
+            border: 1px solid rgba(138, 43, 226, 0.2);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .channel-selector-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0,0,0,0.3);
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .channel-title {
+            font-size: 12px;
+            font-weight: bold;
+            color: #fff;
+            letter-spacing: 1px;
+        }
+
+        .channel-tabs {
+            display: flex;
+            gap: 4px;
+        }
+
+        .tab-btn {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: var(--text-muted);
+            padding: 4px 10px;
+            font-size: 10px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .tab-btn.active {
+            background: var(--violet-main);
+            color: #fff;
+            box-shadow: 0 0 8px var(--violet-glow);
+            border-color: var(--violet-glow);
+        }
+
+        /* DISPLAY MONITOR UTAMA (SCREEN SIMULATION) */
+        .screen-frame {
+            background: #040108;
+            border: 2px solid #23163a;
+            border-radius: 8px;
+            position: relative;
+            padding: 5px;
+            overflow: hidden;
+        }
+
+        canvas {
+            width: 100%;
+            height: 140px;
+            display: block;
+            background: #020005;
+        }
+
+        .screen-label-overlay {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            font-size: 9px;
+            font-family: monospace;
+            background: rgba(0,0,0,0.6);
+            padding: 2px 5px;
+            border-radius: 3px;
+            color: var(--led-green);
+        }
+
+        /* AUDIO SOURCE INSIDE LEFT */
+        .audio-input-box {
+            background: var(--panel-inner);
+            border-radius: 8px;
+            padding: 10px;
+            border: 1px dashed rgba(138,43,226,0.3);
+        }
+
+        .audio-input-box label {
+            display: block;
+            font-size: 11px;
+            margin-bottom: 6px;
+            color: var(--violet-glow);
+            font-weight: bold;
+        }
+
+        /* SIDE RIGHT: MENU MATRIX CONTROLLER */
+        .right-menu-panel {
+            background: var(--panel-bg);
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.05);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .panel-section-title {
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 5px;
+            color: var(--text-white);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* 16 MATRIX MENU MATRIX GRID */
+        .matrix-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .menu-slot-card {
+            background: var(--panel-inner);
+            border: 1px solid rgba(255,255,255,0.03);
+            border-radius: 8px;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+        }
+
+        .menu-slot-card.active {
+            border-color: rgba(138,43,226,0.6);
+            background: linear-gradient(145deg, var(--panel-inner), rgba(138,43,226,0.05));
+        }
+
+        .slot-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 6px;
+        }
+
+        .slot-title {
+            font-size: 10px;
+            font-weight: 600;
+            line-height: 1.2;
+            color: #efebf5;
+        }
+
+        .slot-index {
+            font-size: 8px;
+            background: rgba(138, 43, 226, 0.4);
+            padding: 1px 4px;
+            border-radius: 3px;
+            font-weight: bold;
+            font-family: monospace;
+        }
+
+        /* INTERACTIVES INSIDE MATRIX */
+        .slot-action-row {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            margin-top: 4px;
+        }
+
+        .action-toggle-btn {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.05);
+            color: #fff;
+            font-size: 9px;
+            font-weight: bold;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            flex: 1;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .action-toggle-btn.active-on {
+            background: var(--violet-main);
+            border-color: var(--violet-glow);
+            box-shadow: 0 0 6px rgba(188,19,254,0.4);
+        }
+
+        .matrix-slider-pack {
+            width: 100%;
+            margin-top: 4px;
+        }
+
+        .matrix-slider-pack input[type="range"] {
+            width: 100%;
+            accent-color: var(--violet-main);
+            height: 4px;
+            outline: none;
+        }
+
+        /* MATRIX SIGNAL UV LED BAR */
+        .slot-uv-bar {
+            width: 100%;
+            height: 4px;
+            background: #05020a;
+            border-radius: 2px;
+            overflow: hidden;
+            display: flex;
+            gap: 1px;
+            margin-top: 6px;
+        }
+
+        .uv-dot {
+            flex: 1;
+            height: 100%;
+            background: #1c1526;
+            transition: background 0.04s ease;
+        }
+
+        /* FIXED HARDWARE FOOTER OUTPUT CONSOLE */
+        .master-output-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #080410;
+            border-top: 2px solid var(--violet-main);
+            padding: 8px 15px;
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.9);
+            z-index: 999;
+        }
+
+        .vu-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .vu-label {
+            font-size: 10px;
+            font-weight: bold;
+            width: 20px;
+        }
+
+        .vu-meter-main {
+            flex: 1;
+            height: 10px;
+            background: #0d0914;
+            border-radius: 2px;
+            display: flex;
+            gap: 1px;
+            padding: 1px;
+            overflow: hidden;
+        }
+
+        .vu-segment {
+            flex: 1;
+            height: 100%;
+            background: rgba(255,255,255,0.02);
+        }
+
+        .vu-segment.green-on { background-color: var(--led-green); box-shadow: 0 0 3px var(--led-green); }
+        .vu-segment.yellow-on { background-color: var(--led-yellow); box-shadow: 0 0 3px var(--led-yellow); }
+        .vu-segment.red-on { background-color: var(--led-red); box-shadow: 0 0 3px var(--led-red); }
+
+        .footer-status {
+            text-align: center;
+            font-size: 8px;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            margin-top: 2px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>FARO TRIUMPHANT</h1>
+        <p>Comprehensive Split-Architecture DLMS IoT Engine v17.0</p>
+    </div>
+
+    <div class="sys-monitor">
+        <div class="monitor-box">
+            <span>CPU TEMP</span>
+            <strong id="cpu-temp" style="color: #fff;">42.1 °C</strong>
+        </div>
+        <div class="monitor-box">
+            <span>SYS VOLT</span>
+            <strong id="volt-monitor" style="color: #fff;">13.8 VDC</strong>
+        </div>
+        <div class="monitor-box">
+            <span>LINK MODE</span>
+            <strong style="color: var(--led-green);">SOFT-AP</strong>
+        </div>
+    </div>
+
+    <div class="split-container">
+        
+        <div class="left-display-panel">
+            <div class="channel-selector-header">
+                <div class="channel-title" id="active-ch-text"><i class="fa-solid fa-microchip"></i> MONITOR: CH1 (LEFT OUTPUT)</div>
+                <div class="channel-tabs">
+                    <button class="tab-btn active" onclick="switchChannel('L')">CH1 (L)</button>
+                    <button class="tab-btn" onclick="switchChannel('R')">CH2 (R)</button>
+                </div>
+            </div>
+
+            <div class="screen-frame">
+                <div class="screen-label-overlay" id="screen-mode-tag">RTA + CROSSOVER GRAPH</div>
+                <canvas id="displayCanvas"></canvas>
+            </div>
+
+            <div class="audio-input-box">
+                <label><i class="fa-solid fa-music"></i> UPLOAD MUSIC FILE FROM HP</label>
+                <input type="file" id="audio-file" accept="audio/*">
+                <audio id="audio-element" controls loop style="width: 100%; margin-top: 6px;"></audio>
+            </div>
+
+            <div style="font-size: 10px; background: rgba(255,255,255,0.02); padding: 8px; border-radius: 6px; color: var(--text-muted);">
+                <p><i class="fa-solid fa-wifi"></i> <strong>IoT AP:</strong> FARO_TRIUMPHANTLY_IOT</p>
+                <p><i class="fa-solid fa-globe"></i> <strong>Control IP:</strong> http://192.168.4.1/omega-dashboard</p>
+            </div>
+        </div>
+
+        <div class="right-menu-panel">
+            <div class="panel-section-title">
+                <span><i class="fa-solid fa-sliders"></i> CORE MATRIX CONTROL (F1-F300++)</span>
+                <span style="color: var(--violet-glow); font-family: monospace;">16 MAIN BLOCKS</span>
+            </div>
+
+            <div class="matrix-grid">
+                
+                <div class="menu-slot-card active">
+                    <div class="slot-header">
+                        <span class="slot-title">Dual-Core Management</span>
+                        <span class="slot-index">F1-5</span>
+                    </div>
+                    <div class="slot-action-row">
+                        <button class="action-toggle-btn active-on" onclick="toggleSlot(this)">CORE 1-0</button>
+                    </div>
+                    <div class="slot-uv-bar" data-uv-target="core"><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
+                </div>
+
+                <div class="menu-slot-card active">
+                    <div class="slot-header">
+                        <span class="slot-title">CPU 240MHz Turbo</span>
+                        <span class="slot-index">F6-10</span>
+                    </div>
+                    <div class="slot-action-row">
+                        <button class="action-toggle-btn active-on" onclick="toggleSlot(this)">MAX BOOST</button>
+                    </div>
+                    <div class="slot-uv-bar" data-uv-target="core"><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
+                </div>
+
+                <div class="menu-slot-card">
+                    <div class="slot-header">
+                        <span class="slot-title">HPF / Low-Cut Freq</span>
+                        <span class="slot-index">F51-55</span>
+                    </div>
+                    <div class="matrix-slider-pack">
+                        <input type="range" id="hpf-slider" min="30" max="500" value="45">
+                    </div>
+                    <div class="slot-uv-bar" data-uv-target="bass"><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
+                </div>
+
+                <div class="menu-slot-card">
+                    <div class="slot-header">
+                        <span class="slot-title">LPF / High-Cut Freq</span>
+                        <span class="slot-index">F56-60</span>
+                    </div>
+                    <div class="matrix-slider-pack">
+                        <input type="range" id="lpf-slider" min="80" max="18000" value="12000">
+                    </div>
+                    <div class="slot-uv-bar" data-uv-target="treble"><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
+                </div>
+
+                <div class="menu-slot-card active">
+                    <div class="slot-header">
+                        <span class="slot-title">Linkwitz-Riley 24dB</span>
+                        <span class="slot-index">F61-70</span>
+                    </div>
+                    <div class="slot-action-row">
+                        <button class="action-toggle-btn active-on" onclick="toggleSlot(this)">LR-ACTIVE</button>
+                    </div>
+                    <div class="slot-uv-bar" data-uv-target="mid"><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
+                </div>
+
+                <div class="menu-slot-card">
+                    <div class="slot-header">
+                        <span class="slot-title">Phase Alignment Logic</span>
+                        <span class="slot-index">F71-80</span>
+                    </div>
+                    <div class="slot-action-row">
+                        <button class="action-toggle-btn" onclick="toggleSlot(this, 'phase')">0 DEG</button>
+                    </div>
+                    <div class="slot-uv-bar" data-uv-target="mid"><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
+                </div>
+
+                <div class="menu-slot-card">
+                    <div class="slot-header">
+                        <span class="slot-title">Master Volume Gain</span>
+                        <span class="slot-index">F81-90</span>
+                    </div>
+                    <div class="matrix-slider-pack">
+                        <input type="range" id="gain-slider" min="0" max="180" value="120">
+                    </div>
+                    <div class="slot-uv-bar" data-uv-target="all"><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
+                </div>
+
+                <div class="menu-slot-card active">
+                    <div class="slot-header">
+                        <span class="slot-title">Harmonic Enhancer</span>
+                        <span class="slot-index">F91-100</span>
+                    </div>
+                    <div class="slot-action-row">
+                        <button class="action-toggle-btn active-on" onclick="toggleSlot(this)">XTREME DETAIL</button>
+                    </div>
+                    <div class="slot-uv-bar" data-uv-target="treble"><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
+                </div>
+
+                <div class="menu-slot-card active">
+                    <div class="slot-header">
+                        <span class="slot-title" style="color: var(--violet-glow); font-weight: bold;">SELECTIVE SULTAN</span>
+                        <span class="slot-index">F118</span>
+                    </div>
+                    <div class="slot-action-row">
+                        <button class="action-toggle-btn active-on" onclick="toggleSlot(this)">FARO SULTAN</button>
+                    </div>
+                    <div class="slot-uv-bar" data-uv-target="bass"><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
+                </div>
+
+                <div class="menu-slot-card">
+                    <div class="slot-header">
+                        <span class="slot-title">Vocal Presence Boost</span>
+                        <span class="slot-index">F111-117</span>
+                    </div>
+                    <div class="slot-action-row">
+                        <button class="action-toggle-btn" onclick="toggleSlot(this)">BOOST OFF</button>
+                    </div>
+                    <div class="slot-uv-bar" data-uv-target="mid"><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
+                </div>
+
+                <div class="menu-slot-card">
+                    <div class="slot-header">
+                        <span class="slot-title">Sultan Feedback Loop</span>
+                        <span class="slot-index">F126-135</span>
+                    </div>
+                    <div class="slot-action-row">
+                        <button class="action-toggle-btn" onclick="toggleSlot(this)">PSRAM ECHO</button>
+                    </div>
+                    <div class="slot-uv-bar" data-uv-target="mid"><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
+                </div>
+
+                <div class="menu-slot-card active">
+                    <div class="slot-header">
+                        <span class="slot-title">Smart Multi-Band Limiter</span>
+                        <span class="slot-index">F151-160</span>
+                    </div>
+                    <div class="slot-action-row">
+                        <button class="action-toggle-btn active-on" onclick="toggleSlot(this)">GUARDING</button>
+                    </div>
+                    <div class="slot-uv-bar" data-uv-target="all"><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
+                </div>
+
+                <div class="menu-slot-card">
+                    <div class="slot-header">
+                        <span class="slot-title">Sub Woofer Peak Limit</span>
+                        <span class="slot-index">F161-170</span>
+                    </div>
+                    <div class="matrix-slider-pack">
+                        <input type="range" min="10000" max="32000" value="26000">
+                    </div>
+                    <div class="slot-uv-bar" data-uv-target="bass"><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
+                </div>
+
+                <div class="menu-slot-card active">
+                    <div class="slot-header">
+                        <span class="slot-title">Anti-Pop Speaker Guard</span>
+                        <span class="slot-index">F191-195</span>
+                    </div>
+                    <div class="slot-action-row">
+                        <button class="action-toggle-btn active-on" onclick="toggleSlot(this)">SECURE ON</button>
+                    </div>
+                    <div class="slot-uv-bar" data-uv-target="core"><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
+                </div>
+
+                <div class="menu-slot-card">
+                    <div class="slot-header">
+                        <span class="slot-title">OTA Update Module</span>
+                        <span class="slot-index">F227</span>
+                    </div>
+                    <div class="slot-action-row">
+                        <button class="action-toggle-btn" onclick="alert('Checking Over-The-Air Update...')">CHECK LINK</button>
+                    </div>
+                    <div class="slot-uv-bar" data-uv-target="core"><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
+                </div>
+
+                <div class="menu-slot-card active">
+                    <div class="slot-header">
+                        <span class="slot-title">Master System Integration</span>
+                        <span class="slot-index">F301++</span>
+                    </div>
+                    <div class="slot-action-row">
+                        <button class="action-toggle-btn active-on" onclick="toggleSlot(this)">SYS COMBINE</button>
+                    </div>
+                    <div class="slot-uv-bar" data-uv-target="all"><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="master-output-footer">
+        <div class="vu-row">
+            <div class="vu-label" style="color: #fff;">L</div>
+            <div class="vu-meter-main" id="vu-left">
+                <div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div>
+                <div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div>
+                <div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div>
+                <div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div>
+            </div>
+        </div>
+        <div class="vu-row">
+            <div class="vu-label" style="color: #fff;">R</div>
+            <div class="vu-meter-main" id="vu-right">
+                <div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div>
+                <div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div>
+                <div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div>
+                <div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div>
+            </div>
+        </div>
+        <div class="footer-status"><i class="fa-solid fa-bolt-lightning fa-fade" style="color: var(--violet-glow);"></i> CORE STATUS: FARO TRIUMPHANT RUNNING ALIVE</div>
+    </div>
+
+    <script>
+        const audioFile = document.getElementById('audio-file');
+        const audioElement = document.getElementById('audio-element');
+        const gainSlider = document.getElementById('gain-slider');
+        const hpfSlider = document.getElementById('hpf-slider');
+        const lpfSlider = document.getElementById('lpf-slider');
+        const cpuTempEl = document.getElementById('cpu-temp');
+        const voltEl = document.getElementById('volt-monitor');
+        const canvas = document.getElementById('displayCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let audioCtx, analyser, sourceNode, dataArray, bufferLength;
+        let currentChannel = 'L';
+
+        // Atur dimensi internal Canvas agar tajam
+        function resizeCanvas() {
+            canvas.width = canvas.clientWidth;
+            canvas.height = canvas.clientHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Pemuatan Musik
+        audioFile.addEventListener('change', function(){
+            const files = this.files;
+            if(files.length === 0) return;
+            audioElement.src = URL.createObjectURL(files[0]);
+            audioElement.load();
+            initAudioEngine();
+        });
+
+        function initAudioEngine() {
+            if (audioCtx) return;
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            analyser = audioCtx.createAnalyser();
+            analyser.fftSize = 64; // Frekuensi RTA 32 band hemat memori
+            bufferLength = analyser.frequencyBinCount;
+            dataArray = new Uint8Array(bufferLength);
+
+            sourceNode = audioCtx.createMediaElementSource(audioElement);
+            sourceNode.connect(analyser);
+            analyser.connect(audioCtx.destination);
+
+            renderSystemLoop();
+        }
+
+        // SWITH ACTIVE CHANNEL INTERFACE
+        function switchChannel(ch) {
+            currentChannel = ch;
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('active-ch-text').innerHTML = `<i class="fa-solid fa-microchip"></i> MONITOR: CH${ch === 'L' ? '1 (LEFT' : '2 (RIGHT'} OUTPUT)`;
+        }
+
+        // SYSTEM ANIMATION RENDER LOOP (GRAPHICS + VU)
+        function renderSystemLoop() {
+            if (!analyser) return;
+            requestAnimationFrame(renderSystemLoop);
+
+            analyser.getByteFrequencyData(dataArray);
+            
+            // Bersihkan Canvas Layar Monitor Kiri
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Hitung Volume Global
+            let sumVol = 0;
+            let bassVol = 0;
+            let midVol = 0;
+            let trebleVol = 0;
+
+            for(let i = 0; i < bufferLength; i++) {
+                sumVol += dataArray[i];
+                if(i < 8) bassVol += dataArray[i];
+                else if(i < 22) midVol += dataArray[i];
+                else trebleVol += dataArray[i];
+            }
+            
+            let avgVol = sumVol / bufferLength;
+            bassVol = bassVol / 8;
+            midVol = midVol / 14;
+            trebleVol = trebleVol / 10;
+
+            let finalGainMultiplier = parseFloat(gainSlider.value) / 120;
+            let currentVolume = avgVol * finalGainMultiplier;
+
+            // DRAW LIVE GRAPHIC (COMBINED RTA AND SPLINE CROSSOVER CURVE)
+            drawDigitalScreenGraph(currentVolume, dataArray);
+
+            // PROCESS MASTER LR VU METERS
+            let leftOutputLevel = 0;
+            let rightOutputLevel = 0;
+
+            if (!audioElement.paused) {
+                // Memberi sedikit variasi real-time agar gelombang stereo L dan R terlihat hidup berbeda
+                leftOutputLevel = Math.min(20, Math.floor((currentVolume / 140) * 20 + (Math.random() * 1.5)));
+                rightOutputLevel = Math.min(20, Math.floor((currentVolume / 140) * 20 + (Math.random() * 1.5)));
+                
+                // Reduksi tipis jika channel tertentu di-offset
+                if(currentChannel === 'L') rightOutputLevel = Math.max(2, rightOutputLevel - 1);
+                if(currentChannel === 'R') leftOutputLevel = Math.max(2, leftOutputLevel - 1);
+            }
+
+            renderVUFooterBars('vu-left', leftOutputLevel);
+            renderVUFooterBars('vu-right', rightOutputLevel);
+
+            // RE-RENDER ALL NODE MATRIX UV LIGHTS
+            renderMatrixUVMeters(bassVol, midVol, trebleVol, currentVolume);
+        }
+
+        // FUNGSI DRAW MONITOR GRAPHIC (SISI KIRI)
+        function drawDigitalScreenGraph(volume, data) {
+            const w = canvas.width;
+            const h = canvas.height;
+
+            // 1. Draw RTA Audio Spectrum Bar Background (Ungu Transparan)
+            let barWidth = w / bufferLength;
+            for(let i = 0; i < bufferLength; i++) {
+                let barHeight = (data[i] / 255) * h * 0.8;
+                ctx.fillStyle = 'rgba(138, 43, 226, 0.12)';
+                ctx.fillRect(i * barWidth, h - barHeight, barWidth - 2, barHeight);
+            }
+
+            // 2. Draw Dynamic Curve Crossover Line (HPF & LPF Simulation Plot)
+            let hpfVal = parseInt(hpfSlider.value);
+            let lpfVal = parseInt(lpfSlider.value);
+
+            // Konversi nilai frekuensi slider logis ke koordinat X piksel layar
+            let cutOffX_HPF = (hpfVal / 500) * (w * 0.3) + 20;
+            let cutOffX_LPF = w - ((18000 - lpfVal) / 18000) * (w * 0.4) - 20;
+
+            ctx.beginPath();
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = '#bc13fe'; // Warna Violet Essence Glow
+
+            // Titik awal kiri bawah (HPF Drop)
+            ctx.moveTo(0, h - 10);
+            // Melengkung naik melewati HPF Cutoff
+            ctx.quadraticCurveTo(cutOffX_HPF * 0.5, h - 10, cutOffX_HPF, 35);
+            // Garis datar respons tengah (Mid Flat)
+            ctx.lineTo(cutOffX_LPF, 35);
+            // Melengkung turun melewati LPF Cutoff
+            ctx.quadraticCurveTo((w + cutOffX_LPF) * 0.5, h - 10, w, h - 10);
+            ctx.stroke();
+
+            // Draw Simbol Titik Potong Filter Sinyal
+            ctx.fillStyle = '#2ecc71';
+            ctx.beginPath();
+            ctx.arc(cutOffX_HPF, 35, 4, 0, 2 * Math.PI);
+            ctx.fill();
+
+            ctx.fillStyle = '#e74c3c';
+            ctx.beginPath();
+            ctx.arc(cutOffX_LPF, 35, 4, 0, 2 * Math.PI);
+            ctx.fill();
+        }
+
+        // RENDER MASTER VU SEGMENTS
+        function renderVUFooterBars(id, count) {
+            const parent = document.getElementById(id);
+            const segments = parent.getElementsByClassName('vu-segment');
+            for(let i = 0; i < segments.length; i++) {
+                segments[i].className = 'vu-segment';
+                if(i < count) {
+                    if(i < 12) segments[i].classList.add('green-on');
+                    else if(i < 17) segments[i].classList.add('yellow-on');
+                    else segments[i].classList.add('red-on');
+                }
+            }
+        }
+
+        // RENDER MATRIX COMPONENT UV SIGNAL LIGHTS
+        function renderMatrixUVMeters(b, m, t, all) {
+            const bars = document.querySelectorAll('.slot-uv-bar');
+            bars.forEach(bar => {
+                const dots = bar.getElementsByClassName('uv-dot');
+                const targetType = bar.getAttribute('data-uv-target');
+                
+                let val = all;
+                if(targetType === 'bass') val = b;
+                if(targetType === 'mid') val = m;
+                if(targetType === 'treble') val = t;
+                if(targetType === 'core') val = all * 0.7 + (Math.random() * 20); // Variasi beban processor
+
+                let litCount = Math.floor((val / 160) * dots.length);
+                if(audioElement.paused) litCount = 0;
+
+                for(let i = 0; i < dots.length; i++) {
+                    if(i < litCount) {
+                        if(i === dots.length - 1) dots[i].style.backgroundColor = 'var(--led-red)';
+                        else if(i >= dots.length - 2) dots[i].style.backgroundColor = 'var(--led-yellow)';
+                        else dots[i].style.backgroundColor = 'var(--led-green)';
+                    } else {
+                        dots[i].style.backgroundColor = '#1c1526';
+                    }
+                }
+            });
+        }
+
+        // TOGGLE SWITCH MATRIX INTERACTIVE
+        function toggleSlot(btn, type) {
+            const card = btn.parentElement.parentElement;
+            if(btn.classList.contains('active-on')) {
+                btn.classList.remove('active-on');
+                btn.innerText = type === 'phase' ? "0 DEG" : "OFF";
+                card.classList.remove('active');
+            } else {
+                btn.classList.add('active-on');
+                btn.innerText = type === 'phase' ? "180 DEG" : "ACTIVE";
+                card.classList.add('active');
+            }
+        }
+
+        // SIMULASI TELEMETRI HARDWARE REAL-TIME
+        setInterval(() => {
+            let temp = 41.5 + (Math.random() * 1.2);
+            let volt = 13.6 + (Math.random() * 0.3);
+            cpuTempEl.innerText = temp.toFixed(1) + " °C";
+            voltEl.innerText = volt.toFixed(1) + " VDC";
+        }, 2000);
+    </script>
+</body>
+</html>
