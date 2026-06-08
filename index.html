@@ -83,6 +83,13 @@
         .ai-response-box ul { margin-left: 18px; margin-bottom: 10px; }
         .ai-response-box strong { color: var(--accent-cyan); }
         .ai-badge { background: rgba(6, 182, 212, 0.1); color: var(--accent-cyan); padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; border: 1px solid rgba(6, 182, 212, 0.2); }
+
+        /* Style kustom untuk pemutar musik */
+        .music-player-box { background: #090d16; border: 1px solid var(--panel-border); border-radius: 8px; padding: 12px; margin-top: 12px; }
+        .file-input-wrapper { position: relative; margin-bottom: 10px; }
+        .file-input-wrapper input[type="file"] { position: absolute; left: 0; top: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
+        .file-custom-btn { background: #1e293b; color: #fff; text-align: center; padding: 8px; border-radius: 6px; border: 1px dashed var(--accent-cyan); font-size: 0.8rem; display: flex; justify-content: center; align-items: center; gap: 8px; }
+        audio { width: 100%; margin-top: 5px; height: 32px; filter: invert(0.9) sepia(1) saturate(5) hue-rotate(140deg); }
     </style>
 </head>
 <body>
@@ -515,7 +522,17 @@
                         <i class="fa-solid fa-brain"></i> Minta Rekomendasi & Analisis AI
                     </button>
 
-                    <div class="panel-title" style="margin-top: 25px; font-size: 0.9rem;"><i class="fa-solid fa-play"></i> Live Tone Wave Generator Panel</div>
+                    <div class="panel-title" style="margin-top: 25px; font-size: 0.9rem;"><i class="fa-solid fa-music"></i> Live Music Input Player (Pakai Lagu Sendiri)</div>
+                    <div class="music-player-box">
+                        <div class="file-input-wrapper">
+                            <div class="file-custom-btn"><i class="fa-solid fa-cloud-arrow-up"></i> Upload File Musik Anda (MP3/WAV)</div>
+                            <input type="file" id="music-file-picker" accept="audio/*">
+                        </div>
+                        <div style="font-size: 0.75rem; color: var(--accent-cyan); margin-bottom: 5px; font-family: monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" id="track-name-label">Lagu belum dimuat</div>
+                        <audio id="my-audio-element" controls></audio>
+                    </div>
+
+                    <div class="panel-title" style="margin-top: 20px; font-size: 0.9rem;"><i class="fa-solid fa-play"></i> Live Tone Wave Generator Panel (Sinyal Statis)</div>
                     <div class="form-group">
                         <label>Tipe Gelombang Audio</label>
                         <select id="m7-wave-type">
@@ -579,7 +596,6 @@
     </div>
 
     <script>
-        // DATABASE BERBAGAI JENIS DRIVER LENGKAP POLL
         const driverDatabase = {
             A: ["JLH 1969 (Legendary Class A)", "Nelson Pass Zen", "Hiraga Le Class A", "Aleph 3 Clone", "First Watt F5", "Gainclone (mode Class A)", "Mosfet Class A Single Ended", "Hood 1969 Modifikasi", "Class A Transformer Coupled", "Class A Fully Complementary"],
             B: ["OCL 150W Standard", "OCL 200W Bell", "OCL 400W (Karakter kasar)", "TIP 41/42 OCL", "Mini OCL 50W", "OCL 100W Stereo", "Kit OCL Modifikasi 2N3055", "OCL 150W Versi BTL", "OCL 300W Sanken", "OCL 600W"],
@@ -592,37 +608,31 @@
             TOA: ["Matching Transformer TOA 100V", "Driver Unit Horn 35W (TU-632)", "Driver Unit Horn 50W (TU-652)", "Booster Transformer Matching", "Module Amplifier 30W (ZA-230W)", "Module Amplifier 60W (ZA-260W)", "Module Amplifier 120W (ZA-2120)", "Module Amplifier 240W (ZA-2240)", "Modul Digital Player TOA (ZA-3248)", "Power Mixer 6-Channel (ZA-2060)"]
         };
 
-        // UPDATE: DATABASE 30 KOMPONEN TRANSISTOR & MOSFET SESUAI PERMINTAAN DETAIL USER
         const trDatabase = {
-            toshiba: [
-                "2SC5200 (NPN)", "2SA1943 (PNP)", "2SC3858", "2SA1494", "2SC2922", 
-                "2SA1216", "2SC3281", "2SA1302", "2SC5198", "2SA1941"
-            ],
-            sanken: [
-                "2SC2922 (Sanken)", "2SA1216 (Sanken)", "2SC3858 (Sanken)", "2SA1494 (Sanken)", 
-                "2SC3519", "2SA1386", "2SC4468", "2SA1695", "2SC6011", "2SA2151"
-            ],
-            mosfet: [
-                "IRFP250", "IRFP260", "IRFP460", "IRF640", "IRF9640", 
-                "IRFZ44N", "IRFP4227 (High Performance)", "IRFP4229", "STW45NM60", "FQA24N50"
-            ]
+            toshiba: ["2SC5200 (NPN)", "2SA1943 (PNP)", "2SC3858", "2SA1494", "2SC2922", "2SA1216", "2SC3281", "2SA1302", "2SC5198", "2SA1941"],
+            sanken: ["2SC2922 (Sanken)", "2SA1216 (Sanken)", "2SC3858 (Sanken)", "2SA1494 (Sanken)", "2SC3519", "2SA1386", "2SC4468", "2SA1695", "2SC6011", "2SA2151"],
+            mosfet: ["IRFP250", "IRFP260", "IRFP460", "IRF640", "IRF9640", "IRFZ44N", "IRFP4227 (High Performance)", "IRFP4229", "STW45NM60", "FQA24N50"]
         };
 
         let isSignalActive = false;
+        let isMusicActive = false;
         let calculatedWattGlobal = 400;
+        
+        // Web Audio API Core Variables
         let audioCtx = null;
         let oscillator = null;
+        let analyser = null;
+        let audioSource = null;
         let animationFrameId = null;
+        let dataArray = [];
 
-        // Inisialisasi daftar Transistor ke Dropdown Modul 1
         function initModule1TrOptions() {
             const m1Select = document.getElementById("m1-tr-type");
             m1Select.innerHTML = "";
             Object.keys(trDatabase).forEach(cat => {
                 trDatabase[cat].forEach(tr => {
                     let opt = document.createElement("option");
-                    opt.value = tr;
-                    opt.innerText = tr;
+                    opt.value = tr; opt.innerText = tr;
                     m1Select.appendChild(opt);
                 });
             });
@@ -652,13 +662,10 @@
             const gMulti = document.getElementById("m1-g-multivac");
             const gVacH = document.getElementById("m1-g-vach");
             const classHCard = document.getElementById("r1-classh-details");
-
             const selectModel = document.getElementById("m1-driver-model");
             selectModel.innerHTML = "";
             
             let sourceKey = cls;
-            if (cls === "H2" || cls === "H3") { sourceKey = cls; }
-            
             if(driverDatabase[sourceKey]) {
                 driverDatabase[sourceKey].forEach(m => {
                     let opt = document.createElement("option");
@@ -668,15 +675,10 @@
             }
 
             if(cls === "H2" || cls === "H3") {
-                gVac.classList.add("hidden");
-                gMulti.classList.remove("hidden");
-                classHCard.classList.remove("hidden");
-                if(cls === "H2") gVacH.classList.add("hidden");
-                else gVacH.classList.remove("hidden");
+                gVac.classList.add("hidden"); gMulti.classList.remove("hidden"); classHCard.classList.remove("hidden");
+                if(cls === "H2") gVacH.classList.add("hidden"); else gVacH.classList.remove("hidden");
             } else {
-                gVac.classList.remove("hidden");
-                gMulti.classList.add("hidden");
-                classHCard.classList.add("hidden");
+                gVac.classList.remove("hidden"); gMulti.classList.add("hidden"); classHCard.classList.add("hidden");
             }
             calculateModule1();
         }
@@ -716,7 +718,6 @@
             calculateModule6();
         }
 
-        // ==================== ENGINE KALKULASI UTAMA (MODUL 1 UPGRADED) ====================
         function calculateModule1() {
             const cls = document.getElementById("m1-class").value;
             const src = document.getElementById("m1-psu-source").value;
@@ -725,68 +726,42 @@
             const channels = parseInt(document.getElementById("m1-channels").value);
             const elcoUf = parseFloat(document.getElementById("m1-elco-uf").value);
             const elcoQty = parseInt(document.getElementById("m1-elco-qty").value);
-            const trTypeChosen = document.getElementById("m1-tr-type").value;
-            const trSetsChosen = parseInt(document.getElementById("m1-tr-sets").value);
             
-            let vdc = 0;
-            let vdcLow = 0, vdcMid = 0, vdcHigh = 0;
-            let trafoRecommendation = "";
-            let driverQtyRecommendation = channels;
-            let estimatedWeight = 5.5; // Berat Box Kosong + Heatsink sirip standard bawaan (Kg)
+            let vdc = 0; let vdcLow = 0, vdcMid = 0, vdcHigh = 0;
+            let trafoRecommendation = ""; let estimatedWeight = 5.5;
 
-            if (outputMode === "btl") { driverQtyRecommendation = channels * 2; }
-            estimatedWeight += (driverQtyRecommendation * 0.4); // Tambah berat driver kit fisiknya
+            if (outputMode === "btl") { estimatedWeight += (channels * 2 * 0.4); } 
+            else { estimatedWeight += (channels * 0.4); }
 
-            // 1. HITUNG TEGANGAN SUPPLY UTAMA & ESTIMASI BERAT TRAFO
             if(src === "trafo") {
                 const trafoType = document.getElementById("m1-trafo-type").value;
                 const trafoAmp = parseFloat(document.getElementById("m1-trafo-amp").value);
-
                 if(cls === "H2") {
-                    let vacL = parseFloat(document.getElementById("m1-vac-l").value);
                     let vacM = parseFloat(document.getElementById("m1-vac-m").value);
-                    vdcLow = vacL * 1.414;
-                    vdcMid = vacM * 1.414;
-                    vdc = vdcMid; // Max Volt Rail
-                    // Estimasi rumus berat trafo linier besi
+                    vdcLow = parseFloat(document.getElementById("m1-vac-l").value) * 1.414;
+                    vdcMid = vacM * 1.414; vdc = vdcMid;
                     estimatedWeight += (trafoAmp * vacM * 2) / 1000 * 0.85;
                 } else if(cls === "H3") {
-                    let vacL = parseFloat(document.getElementById("m1-vac-l").value);
-                    let vacM = parseFloat(document.getElementById("m1-vac-m").value);
                     let vacH = parseFloat(document.getElementById("m1-vac-h").value);
-                    vdcLow = vacL * 1.414;
-                    vdcMid = vacM * 1.414;
-                    vdcHigh = vacH * 1.414;
-                    vdc = vdcHigh;
+                    vdcLow = parseFloat(document.getElementById("m1-vac-l").value) * 1.414;
+                    vdcMid = parseFloat(document.getElementById("m1-vac-m").value) * 1.414;
+                    vdcHigh = vacH * 1.414; vdc = vdcHigh;
                     estimatedWeight += (trafoAmp * vacH * 2) / 1000 * 0.82;
                 } else {
                     let vacUtama = parseFloat(document.getElementById("m1-trafo-vac").value);
                     vdc = vacUtama * 1.414;
                     estimatedWeight += (trafoAmp * vacUtama * 2) / 1000 * 0.88;
                 }
-
-                if (channels === 6) {
-                    trafoRecommendation = `2 Unit Trafo ${trafoType.toUpperCase()} CT`;
-                    estimatedWeight *= 1.8; // Kali dua unit trafo terpisah
-                } else {
-                    trafoRecommendation = `1 Unit Trafo ${trafoType.toUpperCase()} CT`;
-                }
+                if (channels === 6) { estimatedWeight *= 1.8; }
             } else {
-                // Sumber Daya SMPS
                 const smpsTopo = document.getElementById("m1-smps-topo").value;
                 const baseVdc = parseFloat(document.getElementById("m1-smps-vdc").value);
                 const smpsWatt = parseFloat(document.getElementById("m1-smps-energy").value);
                 vdc = smpsTopo.includes("pfc") ? baseVdc * 1.05 : baseVdc;
-                trafoRecommendation = smpsTopo.includes("_d") ? "Internal Double Trafo SMPS Unit" : "Internal Single Trafo SMPS Unit";
-                
-                // Berat SMPS jauh lebih ringan dibanding tembaga besi konvensional
                 estimatedWeight += (smpsWatt / 1000) * 1.2;
             }
 
-            // Tambah berat dari komponen bank kapasitor (Elko)
             estimatedWeight += (elcoQty * 0.16);
-
-            // 2. HITUNG LOSS VOLT DROP & POWER RMS OUTPUT
             const drop = parseFloat(document.getElementById("m1-drop-volt").value) / 100;
             const vdcDrop = vdc * (1 - drop);
 
@@ -806,10 +781,8 @@
 
             calculatedWattGlobal = powerPerChannel;
 
-            // 3. SEGMEN PENAMBAHAN FITUR: REKOMENDASI KABEL SUPPLY UTAMA (mm² & AWG)
-            // Rumus: Hitung total konsumsi arus max dari beban terbagi tegangan supply
             let totalCurrentLoad = (powerPerChannel * channels) / (vdc * 0.8);
-            let requiredCableSize = totalCurrentLoad / 4.5; // Kerapatan aman tembaga audio = 4.5A per mm²
+            let requiredCableSize = totalCurrentLoad / 4.5;
             if(requiredCableSize < 0.75) requiredCableSize = 0.75;
             
             let awgLabel = "AWG 18";
@@ -818,30 +791,18 @@
             else if(requiredCableSize > 2.0) awgLabel = "AWG 14";
             else if(requiredCableSize > 1.3) awgLabel = "AWG 16";
 
-            // 4. SEGMEN UPGRADE: KALKULASI MULTI-TEGANGAN UNTUK CLASS H (MV, HV)
             const classHTextContainer = document.getElementById("r1-classh-text");
             if (cls === "H2") {
                 let pLow = (Math.pow(vdcLow * (1 - drop), 2) / (2 * loadOhm)) * eff;
-                let pMid = powerPerChannel; 
-                if(outputMode === "btl") { pLow *= 3.6; }
-                classHTextContainer.innerHTML = `
-                    • Tegangan Rendah (Low MV): <strong>±${vdcLow.toFixed(0)} VDC</strong> &rarr; Maks Daya: <strong>${pLow.toFixed(0)} W RMS</strong><br>
-                    • Tegangan Tinggi (High HV): <strong>±${vdcMid.toFixed(0)} VDC</strong> &rarr; Maks Daya: <strong>${pMid.toFixed(0)} W RMS</strong><br>
-                    <span style='color:var(--accent-cyan); font-size: 0.75rem;'>*Sistem Stepper otomatis berpindah ke HV saat amplitudo gelombang audio balap memuncak.</span>
-                `;
+                if(outputMode === "btl") pLow *= 3.6;
+                classHTextContainer.innerHTML = `• Tegangan Rendah (Low MV): <strong>±${vdcLow.toFixed(0)} VDC</strong> &rarr; Maks: <strong>${pLow.toFixed(0)} W RMS</strong><br>• Tegangan Tinggi (High HV): <strong>±${vdcMid.toFixed(0)} VDC</strong> &rarr; Maks: <strong>${powerPerChannel.toFixed(0)} W RMS</strong>`;
             } else if (cls === "H3") {
                 let pLow = (Math.pow(vdcLow * (1 - drop), 2) / (2 * loadOhm)) * eff;
                 let pMid = (Math.pow(vdcMid * (1 - drop), 2) / (2 * loadOhm)) * eff;
-                let pHigh = powerPerChannel;
                 if(outputMode === "btl") { pLow *= 3.6; pMid *= 3.6; }
-                classHTextContainer.innerHTML = `
-                    • Tingkat 1 (Low Rail): <strong>±${vdcLow.toFixed(0)} VDC</strong> &rarr; Daya: <strong>${pLow.toFixed(0)} W RMS</strong><br>
-                    • Tingkat 2 (Medium Rail): <strong>±${vdcMid.toFixed(0)} VDC</strong> &rarr; Daya: <strong>${pMid.toFixed(0)} W RMS</strong><br>
-                    • Tingkat 3 (High Rail): <strong>±${vdcHigh.toFixed(0)} VDC</strong> &rarr; Daya: <strong>${pHigh.toFixed(0)} W RMS</strong>
-                `;
+                classHTextContainer.innerHTML = `• Tingkat 1 (Low Rail): <strong>±${vdcLow.toFixed(0)} VDC</strong><br>• Tingkat 2 (Medium Rail): <strong>±${vdcMid.toFixed(0)} VDC</strong><br>• Tingkat 3 (High Rail): <strong>±${vdcHigh.toFixed(0)} VDC</strong>`;
             }
 
-            // OUTPUTKAN HASIL KE UI INTERFACE
             document.getElementById("r1-vdc").innerText = `${vdc.toFixed(1)} VDC`;
             document.getElementById("r1-power").innerText = powerPerChannel >= 1000 ? `${(powerPerChannel/1000).toFixed(2)} kW RMS` : `${powerPerChannel.toFixed(0)} Watt RMS`;
             document.getElementById("r1-cable-supply").innerText = `${requiredCableSize.toFixed(2)} mm² (${awgLabel})`;
@@ -852,11 +813,11 @@
             let safetyList = [];
             if(document.getElementById("f-limiter").checked) safetyList.push("<span style='color:var(--accent-cyan)'>[LIMITER]</span> Mencegah Sinyal Klip");
             if(document.getElementById("f-protector").checked) safetyList.push("<span style='color:var(--accent-red)'>[SPEAKER PROTECTOR]</span> Amankan Spool DC");
-            if(document.getElementById("f-softstart").checked) safetyList.push("<span style='color:var(--accent-amber)'>[SOFTSTART]</span> Anti MCB Listrik Jeglek");
+            if(document.getElementById("f-softstart").checked) safetyList.push("<span style='color:var(--accent-amber)'>[SOFTSTART]</span> Anti MCB Jeglek");
             if(document.getElementById("f-suhu").checked) safetyList.push("<span style='color:var(--accent-green)'>[THERMAL SENSOR]</span> Auto Cut Overheat");
-            document.getElementById("r1-safety-status").innerHTML = safetyList.length > 0 ? safetyList.join("<br>") : "Tanpa Sistem Proteksi Terpasang (Bisa Berbahaya)";
+            document.getElementById("r1-safety-status").innerHTML = safetyList.length > 0 ? safetyList.join("<br>") : "Tanpa Proteksi (Bahaya)";
 
-            pushLog(`[Modul 1] Parameter Power & PSU diperbarui. Berat total simulasi terhitung: ${estimatedWeight.toFixed(1)} Kg.`);
+            pushLog(`[Modul 1] Parameter Power diperbarui. Berat total kit: ${estimatedWeight.toFixed(1)} Kg.`);
             updateGraphVisual();
         }
 
@@ -864,23 +825,18 @@
             const method = document.getElementById("m2-connect").value;
             const baseOhm = parseFloat(document.getElementById("m2-ohm-base").value);
             const qty = parseInt(document.getElementById("m2-qty").value);
-            let totalOhm = 8;
-
-            if(method === "parallel") totalOhm = baseOhm / qty;
-            else if(method === "series") totalOhm = baseOhm * qty;
-            else totalOhm = (baseOhm * 2) / qty;
+            let totalOhm = baseOhm / qty;
+            if(method === "series") totalOhm = baseOhm * qty;
+            else if(method === "comb") totalOhm = (baseOhm * 2) / qty;
 
             document.getElementById("r2-total-ohm").innerText = `${totalOhm.toFixed(1)} Ohm`;
             const card = document.getElementById("r2-card-status");
             const desc = document.getElementById("r2-desc");
             if(totalOhm < 2) {
-                card.className = "result-card danger";
-                desc.innerText = "RISIKO KRITIS! Impedansi di bawah 2 Ohm dapat membakar Transistor Final akibat beban arus berlebih di panggung lapangan.";
+                card.className = "result-card danger"; desc.innerText = "RISIKO KRITIS! Hambatan dibawah 2 Ohm bikin TR final kepanasan mendadak.";
             } else {
-                card.className = "result-card success";
-                desc.innerText = "Beban aman, ideal untuk pengoperasian jangka panjang mesin panggung Anda.";
+                card.className = "result-card success"; desc.innerText = "Beban aman, ideal untuk jangka panjang panggung outdoor.";
             }
-            pushLog(`[Modul 2] Hambatan Total Skema Koneksi ${method}: ${totalOhm.toFixed(1)} Ohm.`);
         }
 
         function calculateModule3() {
@@ -888,142 +844,167 @@
             const size = parseFloat(document.getElementById("m3-cable-size").value);
             const sens = parseFloat(document.getElementById("m3-sens").value);
             const dist = parseFloat(document.getElementById("m3-distance").value);
-
             let resKabel = (0.0175 * len) / size;
-            let df = 400 / (1 + resKabel); 
+            let df = 400 / (1 + resKabel);
             let splAkhir = sens + (10 * Math.log10(1000)) - (20 * Math.log10(dist));
-
             document.getElementById("r3-damping").innerText = df.toFixed(0);
             document.getElementById("r3-spl").innerText = `${splAkhir.toFixed(1)} dB`;
-            document.getElementById("r3-delay-info").innerText = `Delay Line Array: ${(dist / 0.344).toFixed(1)} ms | Kecepatan Suara Lapangan: 344 m/s`;
-            pushLog(`[Modul 3] Jarak target ${dist}m menghasilkan kenyaringan ${splAkhir.toFixed(1)} dB.`);
+            document.getElementById("r3-delay-info").innerText = `Delay Line Array: ${(dist / 0.344).toFixed(1)} ms | Kec. Suara: 344 m/s`;
         }
 
         function calculateModule4() {
-            const type = document.getElementById("m4-box-type").value;
             const fs = parseFloat(document.getElementById("m4-fs").value);
             const qts = parseFloat(document.getElementById("m4-qts").value);
-
             let ebp = fs / qts;
-            let rekomendasi = ebp > 90 ? "Sangat cocok untuk Box Ported / Bass Reflex (Panggung Balap Luar)" : "Sangat ideal untuk Box Sealed (SQ Rumahan)";
-
-            document.getElementById("r4-tuning").innerText = `EBP: ${ebp.toFixed(0)} - ${type.toUpperCase()}`;
-            document.getElementById("r4-chuffing-info").innerText = `Analisis Karakter: ${rekomendasi}. Aman dari masalah angin bocor internal.`;
-            pushLog(`[Modul 4] Thiele-Small terhitung. Parameter EBP bernilai ${ebp.toFixed(0)}.`);
+            document.getElementById("r4-tuning").innerText = `EBP: ${ebp.toFixed(0)}`;
+            document.getElementById("r4-chuffing-info").innerText = ebp > 90 ? "Saran: Gunakan Box Ported/Bass Reflex (Balap)" : "Saran: Gunakan Box Sealed (SQ Rumahan)";
         }
 
         function calculateModule5() {
             const freq = parseFloat(document.getElementById("m5-freq").value);
             const ohm = parseFloat(document.getElementById("m5-ohm").value);
-
             let cap = (1 / (2 * Math.PI * freq * ohm)) * 1000000;
             let ind = (ohm / (2 * Math.PI * freq)) * 1000;
-
             document.getElementById("r5-cap").innerText = `${cap.toFixed(2)} µF`;
             document.getElementById("r5-ind").innerText = `${ind.toFixed(2)} mH`;
-            pushLog(`[Modul 5] Komponen Filter X-Over ${freq}Hz diset: C=${cap.toFixed(1)}µF, L=${ind.toFixed(1)}mH.`);
         }
 
         function calculateModule6() {
             const cat = document.getElementById("m6-tr-cat").value;
             const trType = document.getElementById("m6-tr-type").value;
             const sets = parseInt(document.getElementById("m6-sets").value);
-
-            let wattPerSet = 150; // default dasar
+            let wattPerSet = 150;
             if(cat === "sanken" || trType.includes("Sanken")) wattPerSet = 200;
-            if(trType.includes("High Performance") || trType === "IRFP260" || trType === "IRFP4227" || trType === "IRFP4229") wattPerSet = 250; 
-
+            if(trType.includes("Performance") || trType.includes("4227")) wattPerSet = 250;
             let totalDisipasi = sets * wattPerSet;
             document.getElementById("r6-disipasi").innerText = `${totalDisipasi} Watt`;
-            
-            const card = document.getElementById("r6-card-soa");
-            const desc = document.getElementById("r6-desc-soa");
-            
-            if(totalDisipasi < 500) {
-                card.className = "result-card warning";
-                desc.innerText = "Batas SOA Kritis! Hindari menggenjot load ekstrim 2 Ohm secara kontinu agar komponen silikon internal tidak jebol.";
-            } else {
-                card.className = "result-card success";
-                desc.innerText = "Disipasi termal silikon sangat memadai untuk menerima hantaman beban berat musik konser lapangan.";
-            }
-            pushLog(`[Modul 6] Kapasitas total disipasi aman ${sets} set komponen: ${totalDisipasi}W.`);
         }
 
-        // ==================== ENGINE INTEGRATED AI ADVICE GENERATOR ====================
         function askAudioAI() {
             const targetWatt = parseInt(document.getElementById("ai-target-watt").value);
             const ohm = document.getElementById("ai-target-ohm").value;
             const ampClass = document.getElementById("ai-target-class").value;
             const channels = parseInt(document.getElementById("ai-target-channels").value);
             const psuType = document.getElementById("ai-target-psu").value;
-
             const loader = document.getElementById("ai-loading-status");
             const display = document.getElementById("ai-result-display");
 
-            loader.style.display = "block";
-            display.innerHTML = "";
+            loader.style.display = "block"; display.innerHTML = "";
 
             setTimeout(() => {
                 loader.style.display = "none";
-                pushLog(`[AI Engine] Cetak Biru R&D dipetakan untuk daya ${targetWatt}W.`);
-                
                 let requiredVdc = Math.sqrt(targetWatt * 2 * ohm) / 0.75;
                 let requiredVac = requiredVdc / 1.414;
-                let trafoAmpere = (targetWatt * channels) / requiredVdc;
-                if(trafoAmpere < 5) trafoAmpere = 5;
-
-                let driverSaran = "SOCL 506 Balap / Yiroshi MK5";
-                let trFinalSaran = "Toshiba 2SC5200 / Sanken 2SC2922 sebanyak " + Math.ceil(targetWatt/150) + " set pasang paralel.";
-                
-                if (ampClass === "D") {
-                    driverSaran = "D2K OMEGA / D3K Fullbridge Balap Horeg";
-                    trFinalSaran = "MOSFET High Performance IRFP4227 / IRFP250.";
-                } else if(ampClass === "H") {
-                    driverSaran = "Apex H900 TEF / Triple Stepper H3 High Voltage Balap";
-                    trFinalSaran = "Toshiba 2SC5200 + Sirkuit Transistor Stepper Stepping Stage.";
-                } else if(ampClass === "TD") {
-                    driverSaran = "Lab Gruppen Clone FP14000 (TD Engine 2000)";
-                    trFinalSaran = "OnSemi Bipolar Stage + Modulator Tracking Supply.";
-                } else if(ampClass === "GB") {
-                    driverSaran = "GB Balap Pemburu / GB Monster 5000";
-                    trFinalSaran = "Sanken 2SA1216 / 2SC2922 dalam konfigurasi Bridge Mengambang.";
-                }
-
-                display.innerHTML = `
-                    <h4><i class="fa-solid fa-microchip" style="color:var(--accent-cyan);"></i> Blueprint Rekomendasi Rangkaian Komponen:</h4>
-                    <ul>
-                        <li><strong>Jenis Driver Ideal:</strong> Kit Driver Core ${ampClass} (${driverSaran})</li>
-                        <li><strong>Kebutuhan Kit Driver Fisik:</strong> Memerlukan <strong>${channels} unit driver</strong>.</li>
-                        <li><strong>Spesifikasi Tegangan Rel:</strong> Membutuhkan suplai minimum sebesar <strong>${requiredVdc.toFixed(0)} VDC</strong> (Setara dengan output trafo murni sebesar <strong>${requiredVac.toFixed(0)} VAC CT</strong>).</li>
-                        <li><strong>Kapasitas Daya Suplai:</strong> ${psuType.includes("SMPS") ? `Gunakan modul <strong>${psuType}</strong> kapasitas minimal <strong>${(targetWatt * channels * 1.25).toFixed(0)} Watt</strong>` : `Gunakan <strong>${psuType}</strong> ukuran minimal <strong>${Math.ceil(trafoAmpere)} Ampere murni</strong>`}. ${channels === 6 ? '<span style="color:var(--accent-red); font-weight:bold;">[PERINGATAN KHUSUS] Khusus 6 Channel, WAJIB menggunakan minimal 2 unit Trafo agar beban arus tidak pincang!</span>' : ''}</li>
-                        <li><strong>Rekomendasi Komponen Final:</strong> ${trFinalSaran}</li>
-                        <li><strong>Kapasitor Bank Reservoir:</strong> Minimal 4 hingga 8 biji Elco ukuran 10.000µF dengan rating batas aman 100V s.d 120V agar tangguh menahan ripple voltage panggung.</li>
-                    </ul>
-
-                    <h4 style="margin-top:15px;"><i class="fa-solid fa-graduation-cap" style="color:var(--accent-green);"></i> Dasar Edukasi Sains Audio (Bahan Belajar):</h4>
-                    <p style="color: #cbd5e1; font-size:0.83rem;">
-                        Berdasarkan formula matematis hukum daya, untuk mendongkrak daya hantam speaker sebesar <strong>${ohm} Ohm</strong> hingga menyentuh daya <strong>${targetWatt} Watt</strong>, kamu wajib menyuplai tegangan konstan yang tinggi. Jika voltase drop, gelombang sinus audio akan terpotong secara paksa yang dinamakan gejala <strong>clipping</strong> (penyebab utama spool gosong).<br><br>
-                        Sirkuit <strong>Class ${ampClass}</strong> yang kamu tentukan memiliki efisiensi termal tersendiri. ${ampClass === 'D' ? 'Sistem Class D bekerja dengan modulasi PWM (saklar ON/OFF super cepat), membuat efisiensinya menembus angka 90% sehingga mesin tetap dingin.' : `Arsitektur Class ${ampClass} ini menuntut linieritas gelombang yang murni. Konsekuensinya, disipasi panas silikon internal akan tinggi, wajib disokong sirip heatsink tebal dan kipas berkecepatan tinggi agar tidak terjadi thermal runaway.`}
-                    </p>
-                `;
-                
-                calculatedWattGlobal = targetWatt; 
+                display.innerHTML = `<h4><i class="fa-solid fa-microchip"></i> Blueprint Rekomendasi Rasi AI:</h4><ul><li><strong>Driver Ideal:</strong> Class ${ampClass}</li><li><strong>Kebutuhan Supply:</strong> Minimal ±${requiredVdc.toFixed(0)} VDC (${requiredVac.toFixed(0)} VAC CT)</li><li><strong>Sistem PSU:</strong> ${psuType}</li></ul>`;
             }, 1000);
         }
 
-        // ==================== TRACKER VISUAL VU METER REALTIME ====================
+        // ==================== INITIALIZATION AUDIO API & PLAYER MUSIC ====================
+        function initAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioCtx.createAnalyser();
+                analyser.fftSize = 64; // Set kecil untuk kalkulasi LED VU bar murni
+                let bufferLength = analyser.frequencyBinCount;
+                dataArray = new Uint8Array(bufferLength);
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        // Handler Upload File Lagu
+        document.getElementById("music-file-picker").addEventListener("change", function(e) {
+            initAudioContext();
+            const file = e.target.files[0];
+            if (!file) return;
+
+            document.getElementById("track-name-label").innerText = `Memuat: ${file.name}`;
+            const audioEl = document.getElementById("my-audio-element");
+            audioEl.src = URL.createObjectURL(file);
+
+            // Hubungkan elemen audio ke Analyser jika belum terhubung
+            if (!audioSource) {
+                audioSource = audioCtx.createMediaElementSource(audioEl);
+                audioSource.connect(analyser);
+                analyser.connect(audioCtx.destination);
+            }
+
+            stopLiveTone(); // Matikan generator sinyal statis jika lagu masuk
+            isMusicActive = true;
+            pushLog(`[Music Player] Memuat lagu sukses: ${file.name}`);
+        });
+
+        // Kontrol Sinyal Generator Statis (Sine / Square)
+        function toggleLiveTone() {
+            initAudioContext();
+            if(oscillator) oscillator.stop();
+            document.getElementById("my-audio-element").pause(); // Pause lagu
+
+            oscillator = audioCtx.createOscillator();
+            oscillator.type = document.getElementById("m7-wave-type").value;
+            oscillator.frequency.setValueAtTime(parseFloat(document.getElementById("global-freq-slider").value), audioCtx.currentTime);
+            
+            oscillator.connect(analyser);
+            analyser.connect(audioCtx.destination);
+            oscillator.start();
+            
+            isSignalActive = true;
+            isMusicActive = false;
+            pushLog("[Modul 7] Sinyal Generator Statis Aktif.");
+        }
+
+        function stopLiveTone() {
+            if(oscillator) {
+                oscillator.stop();
+                oscillator = null;
+            }
+            isSignalActive = false;
+            pushLog("[Modul 7] Sinyal Generator Dinonaktifkan.");
+        }
+
+        // ==================== ENGINE REALTIME TRACKER VU METER (LED) ====================
         function updateVuMeterVisual() {
             const leds = document.querySelectorAll(".vu-led");
             if(leds.length === 0) return;
+
             let targetActiveLeds = 0;
+
             if (isSignalActive) {
+                // Perhitungan sinyal statis bawaan
                 let baseFactor = Math.min(calculatedWattGlobal / 2000, 1.0);
                 let dynamicMultiplier = baseFactor * 0.7 + (Math.random() * 0.3);
                 targetActiveLeds = Math.floor(dynamicMultiplier * leds.length);
-                document.getElementById("vu-db-text").innerText = `${(dynamicMultiplier * 10 - 3).toFixed(1)} dB [LIVE OSC]`;
-            } else {
+                document.getElementById("vu-db-text").innerText = `${(dynamicMultiplier * 12 - 3).toFixed(1)} dB [LIVE OSC]`;
+            } 
+            else if (isMusicActive && analyser) {
+                // Perhitungan murni mengambil frekuensi lagu secara dinamis!
+                analyser.getByteFrequencyData(dataArray);
+                
+                // Ambil rata-rata kekuatan volume amplitudo musik saat ini
+                let totalVolumeValue = 0;
+                for (let i = 0; i < dataArray.length; i++) {
+                    totalVolumeValue += dataArray[i];
+                }
+                let averageVolume = totalVolumeValue / dataArray.length; // Range nilai: 0 - 255
+                let volumeRatio = averageVolume / 140; // Sensitivitas goyang lampu VU
+                if (volumeRatio > 1.0) volumeRatio = 1.0;
+
+                targetActiveLeds = Math.floor(volumeRatio * leds.length);
+                
+                const audioEl = document.getElementById("my-audio-element");
+                if (audioEl.paused) {
+                    targetActiveLeds = 0;
+                    document.getElementById("vu-db-text").innerText = "MUSIC PAUSED";
+                } else {
+                    document.getElementById("vu-db-text").innerText = `MUSIC PLAYING [${(volumeRatio * 10).toFixed(1)} dB]`;
+                }
+            } 
+            else {
                 document.getElementById("vu-db-text").innerText = "SIG OFF";
             }
+
+            // Nyalakan LED warna hijau, kuning, merah
             leds.forEach((led, idx) => {
                 led.className = "vu-led";
                 if (idx < targetActiveLeds) {
@@ -1034,49 +1015,17 @@
             });
         }
 
-        function toggleLiveTone() {
-            if(!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
-            if(oscillator) oscillator.stop();
-
-            oscillator = audioCtx.createOscillator();
-            oscillator.type = document.getElementById("m7-wave-type").value;
-            oscillator.frequency.setValueAtTime(parseFloat(document.getElementById("global-freq-slider").value), audioCtx.currentTime);
-            oscillator.connect(audioCtx.destination);
-            oscillator.start();
-            isSignalActive = true;
-            pushLog("[Modul 7] Jalur sinyal Live Oscillator aktif dipancarkan.");
-        }
-
-        function stopLiveTone() {
-            if(oscillator) {
-                oscillator.stop();
-                oscillator = null;
-                isSignalActive = false;
-                pushLog("[Modul 7] Sinyal Oscillator dinonaktifkan.");
-            }
-        }
-
-        function triggerQuiz() {
-            alert("Kuis Evaluasi Laboratorium FR-Audio:\n\nMengapa SMPS PFC (Power Factor Correction) jauh lebih handal daripada SMPS Biasa untuk sound system panggung?\n\nJawaban Esensial: Karena varian SMPS PFC memiliki rangkaian booster aktif yang menstabilkan tegangan drop dari genset lapangan, sehingga output VDC ke driver power tetap konstan dan anti loyo!");
-        }
-
-        function exportToPdf() {
-            alert("Menghasilkan Blueprint Laporan Rekayasa...\n\nSistem FR-AUDIO berhasil dipetakan ke memori ekspor lokal.");
-        }
-
+        function triggerQuiz() { alert("Kuis: SMPS PFC stabil karena punya booster aktif penahan drop genset!"); }
+        function exportToPdf() { alert("Blueprint berhasil diekspor."); }
         function pushLog(msg) {
             const logBox = document.getElementById("history-logs");
             logBox.innerHTML = `> ${msg}<br>` + logBox.innerHTML;
         }
 
-        // ==================== MONITOR GRAFIK RESPONS FREKUENSI LOGARITMIK ====================
+        // GRAPHICS RESPONS FREKUENSI
         const canvas = document.getElementById("universalGraph");
         const ctx = canvas.getContext("2d");
-
-        function resizeCanvas() {
-            canvas.width = canvas.parentElement.clientWidth;
-            updateGraphVisual();
-        }
+        function resizeCanvas() { canvas.width = canvas.parentElement.clientWidth; updateGraphVisual(); }
         window.addEventListener('resize', resizeCanvas);
 
         function syncGraphAndSlider() {
@@ -1089,56 +1038,39 @@
         function updateGraphVisual() {
             if (!canvas.getContext) return;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
             ctx.strokeStyle = "#1e294b"; ctx.lineWidth = 1;
             for(let i = 1; i < 5; i++) {
                 let y = (canvas.height / 5) * i;
                 ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
             }
-
             const currentClass = document.getElementById("m1-class").value;
             const currentFreq = parseFloat(document.getElementById("global-freq-slider").value);
-
-            let activeGain = 0;
-            let cutOffText = "Kondisi Linear Normal";
+            let activeGain = 0; let cutOffText = "Kondisi Linear Normal";
 
             if(currentClass === "TOA") {
-                if(currentFreq < 350 || currentFreq > 6500) { activeGain = -30; cutOffText = "Bandpass Horn TOA Limited"; }
+                if(currentFreq < 350 || currentFreq > 6500) { activeGain = -30; cutOffText = "TOA Limited"; }
                 else { activeGain = +3; }
             } else if(currentClass.includes("H") || currentClass === "GB" || currentClass === "D") {
-                if(currentFreq < 20) { activeGain = -6; cutOffText = "Subsonic HPF Protection Aktif"; }
-                else if(currentFreq < 120) { activeGain = +2.5; }
+                if(currentFreq < 20) { activeGain = -6; cutOffText = "Subsonic HPF Aktif"; }
             }
 
-            if(activeGain < -40) activeGain = -40;
             document.getElementById("res-db-gain").innerText = `${activeGain > 0 ? '+' : ''}${activeGain.toFixed(1)} dB`;
             document.getElementById("res-cut-off").innerText = cutOffText;
 
             ctx.beginPath(); ctx.strokeStyle = "#06b6d4"; ctx.lineWidth = 3;
-
             for(let x = 0; x < canvas.width; x++) {
                 let fraction = x / canvas.width;
                 let currentXFreq = Math.pow(22000, fraction);
-
                 let dummyGain = 0;
                 if(currentClass === "TOA" && (currentXFreq < 350 || currentXFreq > 7000)) dummyGain = -30;
                 else if((currentClass.includes("H") || currentClass === "D") && currentXFreq < 22) dummyGain = -10;
-                else if((currentClass.includes("H") || currentClass === "D") && currentXFreq < 100) dummyGain = +2;
-
                 let y = (canvas.height / 2) - (dummyGain * 2.5);
-                if(y > canvas.height - 10) y = canvas.height - 10;
-                if(y < 10) y = 10;
-
                 if(x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
             }
             ctx.stroke();
-
             let pointerX = (currentFreq / 22000) * canvas.width;
-            if(pointerX < 4) pointerX = 4;
-
             ctx.beginPath(); ctx.strokeStyle = "#f59e0b"; ctx.lineWidth = 2;
-            ctx.setLineDash([4, 4]); ctx.moveTo(pointerX, 0); ctx.lineTo(pointerX, canvas.height); ctx.stroke();
-            ctx.setLineDash([]);
+            ctx.setLineDash([4, 4]); ctx.moveTo(pointerX, 0); ctx.lineTo(pointerX, canvas.height); ctx.stroke(); ctx.setLineDash([]);
         }
 
         function animationLoop() {
@@ -1147,12 +1079,7 @@
         }
 
         window.onload = function() {
-            initModule1TrOptions();
-            resizeCanvas();
-            buildVuMeterLEDs();
-            m1TopologySync();
-            m6TrCategorySync();
-            animationLoop();
+            initModule1TrOptions(); resizeCanvas(); buildVuMeterLEDs(); m1TopologySync(); m6TrCategorySync(); animationLoop();
         }
     </script>
 </body>
