@@ -159,6 +159,18 @@
 
                     <div class="grid-2">
                         <div class="form-group">
+                            <label>Jenis Transistor / MOSFET Final</label>
+                            <select id="m1-tr-type" onchange="calculateModule1()">
+                                </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Jumlah TR Final (Set per Channel)</label>
+                            <input type="number" id="m1-tr-sets" value="5" min="1" max="50" oninput="calculateModule1()">
+                        </div>
+                    </div>
+
+                    <div class="grid-2">
+                        <div class="form-group">
                             <label>Sistem Sumber Daya (PSU)</label>
                             <select id="m1-psu-source" onchange="m1PsuToggle()">
                                 <option value="trafo">Trafo Linier Besi / Toroid</option>
@@ -242,11 +254,17 @@
                     <div class="grid-2" style="gap:10px;">
                         <div class="result-card success"><label>VDC Supply Akhir</label><div class="result-val" id="r1-vdc">0 V</div></div>
                         <div class="result-card danger"><label>Daya Per Channel</label><div class="result-val" id="r1-power">0 W</div></div>
-                        <div class="result-card warning"><label>Rekomendasi Penyuplai Trafo</label><div class="result-val" id="r1-trafo-req" style="font-size:0.95rem;">-</div></div>
-                        <div class="result-card"><label>Total Kebutuhan Driver</label><div class="result-val" id="r1-driver-qty" style="font-size:0.95rem;">-</div></div>
+                        <div class="result-card warning"><label>Rekomendasi Kabel Supply</label><div class="result-val" id="r1-cable-supply" style="font-size:1.05rem; font-weight: bold; color: #fff;">-</div></div>
+                        <div class="result-card danger"><label>Estimasi Berat Total</label><div class="result-val" id="r1-total-weight" style="font-size:1.15rem; font-weight: bold; color: var(--accent-amber);">-</div></div>
                         <div class="result-card"><label>Ripple Voltage (Kerutan)</label><div class="result-val" id="r1-ripple" style="font-size:0.95rem;">-</div></div>
                         <div class="result-card"><label>Batas Aman Volt Elco</label><div class="result-val" id="r1-elco-safety" style="font-size:0.95rem;">-</div></div>
                     </div>
+
+                    <div id="r1-classh-details" class="result-card warning hidden" style="margin-top: 10px; border-left-color: var(--accent-amber);">
+                        <label><i class="fa-solid fa-layer-group"></i> Analisis Tingkatan Tegangan Class H Rail:</label>
+                        <div id="r1-classh-text" style="font-size:0.83rem; margin-top:5px; color:#f8fafc; line-height: 1.5;">-</div>
+                    </div>
+
                     <div class="result-card success" style="margin-top: 10px; border-left-color: var(--accent-cyan);">
                         <label>Status Sinyal Pengkondisi Sistem Proteksi:</label>
                         <div id="r1-safety-status" style="font-size:0.8rem; margin-top:5px; color:#94a3b8;">-</div>
@@ -400,6 +418,7 @@
                     <div class="form-group">
                         <label>Kategori Jenis Transistor Final</label>
                         <select id="m6-tr-cat" onchange="m6TrCategorySync()">
+                            <option value="all">Tampilkan Semua 30 Komponen Lengkap</option>
                             <option value="toshiba">Bipolar Toshiba (Legendaris & Flat)</option>
                             <option value="sanken">Bipolar Sanken (Kuat & Bass Tebal)</option>
                             <option value="mosfet">MOSFET High Speed (Efisien Class D/H)</option>
@@ -560,7 +579,7 @@
     </div>
 
     <script>
-        // DATABASE BERBAGAI JENIS DRIVER LENGKAP POLL SESUAI PERMINTAAN USER
+        // DATABASE BERBAGAI JENIS DRIVER LENGKAP POLL
         const driverDatabase = {
             A: ["JLH 1969 (Legendary Class A)", "Nelson Pass Zen", "Hiraga Le Class A", "Aleph 3 Clone", "First Watt F5", "Gainclone (mode Class A)", "Mosfet Class A Single Ended", "Hood 1969 Modifikasi", "Class A Transformer Coupled", "Class A Fully Complementary"],
             B: ["OCL 150W Standard", "OCL 200W Bell", "OCL 400W (Karakter kasar)", "TIP 41/42 OCL", "Mini OCL 50W", "OCL 100W Stereo", "Kit OCL Modifikasi 2N3055", "OCL 150W Versi BTL", "OCL 300W Sanken", "OCL 600W"],
@@ -573,10 +592,20 @@
             TOA: ["Matching Transformer TOA 100V", "Driver Unit Horn 35W (TU-632)", "Driver Unit Horn 50W (TU-652)", "Booster Transformer Matching", "Module Amplifier 30W (ZA-230W)", "Module Amplifier 60W (ZA-260W)", "Module Amplifier 120W (ZA-2120)", "Module Amplifier 240W (ZA-2240)", "Modul Digital Player TOA (ZA-3248)", "Power Mixer 6-Channel (ZA-2060)"]
         };
 
+        // UPDATE: DATABASE 30 KOMPONEN TRANSISTOR & MOSFET SESUAI PERMINTAAN DETAIL USER
         const trDatabase = {
-            toshiba: ["2SC5200 (NPN)", "2SA1943 (PNP)", "2SC3858", "2SA1494", "2SC2922", "2SA1216", "2SC3281", "2SA1302", "2SC5198", "2SA1941"],
-            sanken: ["2SC2922 (Sanken)", "2SA1216 (Sanken)", "2SC3858 (Sanken)", "2SA1494 (Sanken)", "2SC3519", "2SA1386", "2SC4468", "2SA1695", "2SC6011", "2SA2151"],
-            mosfet: ["IRFP250", "IRFP260", "IRFP460", "IRF640", "IRF9640", "IRFZ44N", "IRFP4227 (High Performance)", "IRFP4229", "STW45NM60", "FQA24N50"]
+            toshiba: [
+                "2SC5200 (NPN)", "2SA1943 (PNP)", "2SC3858", "2SA1494", "2SC2922", 
+                "2SA1216", "2SC3281", "2SA1302", "2SC5198", "2SA1941"
+            ],
+            sanken: [
+                "2SC2922 (Sanken)", "2SA1216 (Sanken)", "2SC3858 (Sanken)", "2SA1494 (Sanken)", 
+                "2SC3519", "2SA1386", "2SC4468", "2SA1695", "2SC6011", "2SA2151"
+            ],
+            mosfet: [
+                "IRFP250", "IRFP260", "IRFP460", "IRF640", "IRF9640", 
+                "IRFZ44N", "IRFP4227 (High Performance)", "IRFP4229", "STW45NM60", "FQA24N50"
+            ]
         };
 
         let isSignalActive = false;
@@ -584,7 +613,20 @@
         let audioCtx = null;
         let oscillator = null;
         let animationFrameId = null;
-        let waveOffset = 0;
+
+        // Inisialisasi daftar Transistor ke Dropdown Modul 1
+        function initModule1TrOptions() {
+            const m1Select = document.getElementById("m1-tr-type");
+            m1Select.innerHTML = "";
+            Object.keys(trDatabase).forEach(cat => {
+                trDatabase[cat].forEach(tr => {
+                    let opt = document.createElement("option");
+                    opt.value = tr;
+                    opt.innerText = tr;
+                    m1Select.appendChild(opt);
+                });
+            });
+        }
 
         function buildVuMeterLEDs() {
             const container = document.getElementById("vuMeter");
@@ -609,6 +651,7 @@
             const gVac = document.getElementById("m1-g-vac");
             const gMulti = document.getElementById("m1-g-multivac");
             const gVacH = document.getElementById("m1-g-vach");
+            const classHCard = document.getElementById("r1-classh-details");
 
             const selectModel = document.getElementById("m1-driver-model");
             selectModel.innerHTML = "";
@@ -627,11 +670,13 @@
             if(cls === "H2" || cls === "H3") {
                 gVac.classList.add("hidden");
                 gMulti.classList.remove("hidden");
+                classHCard.classList.remove("hidden");
                 if(cls === "H2") gVacH.classList.add("hidden");
                 else gVacH.classList.remove("hidden");
             } else {
                 gVac.classList.remove("hidden");
                 gMulti.classList.add("hidden");
+                classHCard.classList.add("hidden");
             }
             calculateModule1();
         }
@@ -652,7 +697,16 @@
             const cat = document.getElementById("m6-tr-cat").value;
             const selectTr = document.getElementById("m6-tr-type");
             selectTr.innerHTML = "";
-            if(trDatabase[cat]) {
+            
+            if (cat === "all") {
+                Object.keys(trDatabase).forEach(c => {
+                    trDatabase[c].forEach(t => {
+                        let opt = document.createElement("option");
+                        opt.value = t; opt.innerText = t;
+                        selectTr.appendChild(opt);
+                    });
+                });
+            } else if(trDatabase[cat]) {
                 trDatabase[cat].forEach(t => {
                     let opt = document.createElement("option");
                     opt.value = t; opt.innerText = t;
@@ -662,6 +716,7 @@
             calculateModule6();
         }
 
+        // ==================== ENGINE KALKULASI UTAMA (MODUL 1 UPGRADED) ====================
         function calculateModule1() {
             const cls = document.getElementById("m1-class").value;
             const src = document.getElementById("m1-psu-source").value;
@@ -670,29 +725,68 @@
             const channels = parseInt(document.getElementById("m1-channels").value);
             const elcoUf = parseFloat(document.getElementById("m1-elco-uf").value);
             const elcoQty = parseInt(document.getElementById("m1-elco-qty").value);
+            const trTypeChosen = document.getElementById("m1-tr-type").value;
+            const trSetsChosen = parseInt(document.getElementById("m1-tr-sets").value);
             
             let vdc = 0;
+            let vdcLow = 0, vdcMid = 0, vdcHigh = 0;
             let trafoRecommendation = "";
             let driverQtyRecommendation = channels;
+            let estimatedWeight = 5.5; // Berat Box Kosong + Heatsink sirip standard bawaan (Kg)
 
             if (outputMode === "btl") { driverQtyRecommendation = channels * 2; }
+            estimatedWeight += (driverQtyRecommendation * 0.4); // Tambah berat driver kit fisiknya
 
+            // 1. HITUNG TEGANGAN SUPPLY UTAMA & ESTIMASI BERAT TRAFO
             if(src === "trafo") {
                 const trafoType = document.getElementById("m1-trafo-type").value;
-                if(cls === "H2") vdc = parseFloat(document.getElementById("m1-vac-m").value) * 1.414;
-                else if(cls === "H3") vdc = parseFloat(document.getElementById("m1-vac-h").value) * 1.414;
-                else vdc = parseFloat(document.getElementById("m1-trafo-vac").value) * 1.414;
+                const trafoAmp = parseFloat(document.getElementById("m1-trafo-amp").value);
 
-                // Logika Aturan Khusus Rekomendasi Trafo untuk 6 Channel
-                if (channels === 6) trafoRecommendation = `2 Unit Trafo ${trafoType.toUpperCase()} CT`;
-                else trafoRecommendation = `1 Unit Trafo ${trafoType.toUpperCase()} CT`;
+                if(cls === "H2") {
+                    let vacL = parseFloat(document.getElementById("m1-vac-l").value);
+                    let vacM = parseFloat(document.getElementById("m1-vac-m").value);
+                    vdcLow = vacL * 1.414;
+                    vdcMid = vacM * 1.414;
+                    vdc = vdcMid; // Max Volt Rail
+                    // Estimasi rumus berat trafo linier besi
+                    estimatedWeight += (trafoAmp * vacM * 2) / 1000 * 0.85;
+                } else if(cls === "H3") {
+                    let vacL = parseFloat(document.getElementById("m1-vac-l").value);
+                    let vacM = parseFloat(document.getElementById("m1-vac-m").value);
+                    let vacH = parseFloat(document.getElementById("m1-vac-h").value);
+                    vdcLow = vacL * 1.414;
+                    vdcMid = vacM * 1.414;
+                    vdcHigh = vacH * 1.414;
+                    vdc = vdcHigh;
+                    estimatedWeight += (trafoAmp * vacH * 2) / 1000 * 0.82;
+                } else {
+                    let vacUtama = parseFloat(document.getElementById("m1-trafo-vac").value);
+                    vdc = vacUtama * 1.414;
+                    estimatedWeight += (trafoAmp * vacUtama * 2) / 1000 * 0.88;
+                }
+
+                if (channels === 6) {
+                    trafoRecommendation = `2 Unit Trafo ${trafoType.toUpperCase()} CT`;
+                    estimatedWeight *= 1.8; // Kali dua unit trafo terpisah
+                } else {
+                    trafoRecommendation = `1 Unit Trafo ${trafoType.toUpperCase()} CT`;
+                }
             } else {
+                // Sumber Daya SMPS
                 const smpsTopo = document.getElementById("m1-smps-topo").value;
                 const baseVdc = parseFloat(document.getElementById("m1-smps-vdc").value);
+                const smpsWatt = parseFloat(document.getElementById("m1-smps-energy").value);
                 vdc = smpsTopo.includes("pfc") ? baseVdc * 1.05 : baseVdc;
                 trafoRecommendation = smpsTopo.includes("_d") ? "Internal Double Trafo SMPS Unit" : "Internal Single Trafo SMPS Unit";
+                
+                // Berat SMPS jauh lebih ringan dibanding tembaga besi konvensional
+                estimatedWeight += (smpsWatt / 1000) * 1.2;
             }
 
+            // Tambah berat dari komponen bank kapasitor (Elko)
+            estimatedWeight += (elcoQty * 0.16);
+
+            // 2. HITUNG LOSS VOLT DROP & POWER RMS OUTPUT
             const drop = parseFloat(document.getElementById("m1-drop-volt").value) / 100;
             const vdcDrop = vdc * (1 - drop);
 
@@ -700,7 +794,7 @@
             if(cls === "A") eff = 0.25;
             if(cls === "B") eff = 0.45;
             if(cls === "D") eff = 0.90;
-            if(cls.includes("H") || cls === "TD" || cls === "GB") eff = 0.80;
+            if(cls.includes("H") || cls === "TD" || cls === "GB") eff = 0.78;
 
             let powerPerChannel = (Math.pow(vdcDrop, 2) / (2 * loadOhm)) * eff;
             if(outputMode === "btl") powerPerChannel = powerPerChannel * 3.6;
@@ -712,10 +806,46 @@
 
             calculatedWattGlobal = powerPerChannel;
 
+            // 3. SEGMEN PENAMBAHAN FITUR: REKOMENDASI KABEL SUPPLY UTAMA (mm² & AWG)
+            // Rumus: Hitung total konsumsi arus max dari beban terbagi tegangan supply
+            let totalCurrentLoad = (powerPerChannel * channels) / (vdc * 0.8);
+            let requiredCableSize = totalCurrentLoad / 4.5; // Kerapatan aman tembaga audio = 4.5A per mm²
+            if(requiredCableSize < 0.75) requiredCableSize = 0.75;
+            
+            let awgLabel = "AWG 18";
+            if(requiredCableSize > 5.2) awgLabel = "AWG 10 / AWG 8";
+            else if(requiredCableSize > 3.3) awgLabel = "AWG 12";
+            else if(requiredCableSize > 2.0) awgLabel = "AWG 14";
+            else if(requiredCableSize > 1.3) awgLabel = "AWG 16";
+
+            // 4. SEGMEN UPGRADE: KALKULASI MULTI-TEGANGAN UNTUK CLASS H (MV, HV)
+            const classHTextContainer = document.getElementById("r1-classh-text");
+            if (cls === "H2") {
+                let pLow = (Math.pow(vdcLow * (1 - drop), 2) / (2 * loadOhm)) * eff;
+                let pMid = powerPerChannel; 
+                if(outputMode === "btl") { pLow *= 3.6; }
+                classHTextContainer.innerHTML = `
+                    • Tegangan Rendah (Low MV): <strong>±${vdcLow.toFixed(0)} VDC</strong> &rarr; Maks Daya: <strong>${pLow.toFixed(0)} W RMS</strong><br>
+                    • Tegangan Tinggi (High HV): <strong>±${vdcMid.toFixed(0)} VDC</strong> &rarr; Maks Daya: <strong>${pMid.toFixed(0)} W RMS</strong><br>
+                    <span style='color:var(--accent-cyan); font-size: 0.75rem;'>*Sistem Stepper otomatis berpindah ke HV saat amplitudo gelombang audio balap memuncak.</span>
+                `;
+            } else if (cls === "H3") {
+                let pLow = (Math.pow(vdcLow * (1 - drop), 2) / (2 * loadOhm)) * eff;
+                let pMid = (Math.pow(vdcMid * (1 - drop), 2) / (2 * loadOhm)) * eff;
+                let pHigh = powerPerChannel;
+                if(outputMode === "btl") { pLow *= 3.6; pMid *= 3.6; }
+                classHTextContainer.innerHTML = `
+                    • Tingkat 1 (Low Rail): <strong>±${vdcLow.toFixed(0)} VDC</strong> &rarr; Daya: <strong>${pLow.toFixed(0)} W RMS</strong><br>
+                    • Tingkat 2 (Medium Rail): <strong>±${vdcMid.toFixed(0)} VDC</strong> &rarr; Daya: <strong>${pMid.toFixed(0)} W RMS</strong><br>
+                    • Tingkat 3 (High Rail): <strong>±${vdcHigh.toFixed(0)} VDC</strong> &rarr; Daya: <strong>${pHigh.toFixed(0)} W RMS</strong>
+                `;
+            }
+
+            // OUTPUTKAN HASIL KE UI INTERFACE
             document.getElementById("r1-vdc").innerText = `${vdc.toFixed(1)} VDC`;
             document.getElementById("r1-power").innerText = powerPerChannel >= 1000 ? `${(powerPerChannel/1000).toFixed(2)} kW RMS` : `${powerPerChannel.toFixed(0)} Watt RMS`;
-            document.getElementById("r1-trafo-req").innerText = trafoRecommendation;
-            document.getElementById("r1-driver-qty").innerText = `${driverQtyRecommendation} Kit Driver`;
+            document.getElementById("r1-cable-supply").innerText = `${requiredCableSize.toFixed(2)} mm² (${awgLabel})`;
+            document.getElementById("r1-total-weight").innerText = `± ${estimatedWeight.toFixed(2)} Kg`;
             document.getElementById("r1-ripple").innerText = `${((powerPerChannel/(vdc*elcoQty*(elcoUf/1000000)))*10).toFixed(2)} V Ripple`;
             document.getElementById("r1-elco-safety").innerText = `${(vdc * 1.25).toFixed(0)} Volt (Min)`;
 
@@ -726,7 +856,7 @@
             if(document.getElementById("f-suhu").checked) safetyList.push("<span style='color:var(--accent-green)'>[THERMAL SENSOR]</span> Auto Cut Overheat");
             document.getElementById("r1-safety-status").innerHTML = safetyList.length > 0 ? safetyList.join("<br>") : "Tanpa Sistem Proteksi Terpasang (Bisa Berbahaya)";
 
-            pushLog(`[Modul 1] Parameter Terkalkulasi Sukses. Output Beban Siap.`);
+            pushLog(`[Modul 1] Parameter Power & PSU diperbarui. Berat total simulasi terhitung: ${estimatedWeight.toFixed(1)} Kg.`);
             updateGraphVisual();
         }
 
@@ -799,9 +929,9 @@
             const trType = document.getElementById("m6-tr-type").value;
             const sets = parseInt(document.getElementById("m6-sets").value);
 
-            let wattPerSet = 150;
-            if(cat === "sanken") wattPerSet = 200;
-            if(trType && (trType.includes("High Performance") || trType.includes("Sanken") || trType === "IRFP260")) wattPerSet = 220; 
+            let wattPerSet = 150; // default dasar
+            if(cat === "sanken" || trType.includes("Sanken")) wattPerSet = 200;
+            if(trType.includes("High Performance") || trType === "IRFP260" || trType === "IRFP4227" || trType === "IRFP4229") wattPerSet = 250; 
 
             let totalDisipasi = sets * wattPerSet;
             document.getElementById("r6-disipasi").innerText = `${totalDisipasi} Watt`;
@@ -863,7 +993,7 @@
                     <h4><i class="fa-solid fa-microchip" style="color:var(--accent-cyan);"></i> Blueprint Rekomendasi Rangkaian Komponen:</h4>
                     <ul>
                         <li><strong>Jenis Driver Ideal:</strong> Kit Driver Core ${ampClass} (${driverSaran})</li>
-                        <li><strong>Kebutuhan Kit Driver Fisik:</strong> Memerlukan <strong>${channels} unit driver</strong> (Sistem otomatis merekomendasikan penyuplai daya terpisah jika merakit sistem ekstrim).</li>
+                        <li><strong>Kebutuhan Kit Driver Fisik:</strong> Memerlukan <strong>${channels} unit driver</strong>.</li>
                         <li><strong>Spesifikasi Tegangan Rel:</strong> Membutuhkan suplai minimum sebesar <strong>${requiredVdc.toFixed(0)} VDC</strong> (Setara dengan output trafo murni sebesar <strong>${requiredVac.toFixed(0)} VAC CT</strong>).</li>
                         <li><strong>Kapasitas Daya Suplai:</strong> ${psuType.includes("SMPS") ? `Gunakan modul <strong>${psuType}</strong> kapasitas minimal <strong>${(targetWatt * channels * 1.25).toFixed(0)} Watt</strong>` : `Gunakan <strong>${psuType}</strong> ukuran minimal <strong>${Math.ceil(trafoAmpere)} Ampere murni</strong>`}. ${channels === 6 ? '<span style="color:var(--accent-red); font-weight:bold;">[PERINGATAN KHUSUS] Khusus 6 Channel, WAJIB menggunakan minimal 2 unit Trafo agar beban arus tidak pincang!</span>' : ''}</li>
                         <li><strong>Rekomendasi Komponen Final:</strong> ${trFinalSaran}</li>
@@ -872,7 +1002,7 @@
 
                     <h4 style="margin-top:15px;"><i class="fa-solid fa-graduation-cap" style="color:var(--accent-green);"></i> Dasar Edukasi Sains Audio (Bahan Belajar):</h4>
                     <p style="color: #cbd5e1; font-size:0.83rem;">
-                        Berdasarkan formula matematis hukum daya <strong>($P = V^2 / 2R$)</strong>, untuk mendongkrak daya hantam speaker sebesar <strong>${ohm} Ohm</strong> hingga menyentuh daya <strong>${targetWatt} Watt</strong>, kamu wajib menyuplai tegangan konstan yang tinggi. Jika voltase drop, gelombang sinus audio akan terpotong secara paksa yang dinamakan gejala <strong>clipping</strong> (penyebab utama spool gosong).<br><br>
+                        Berdasarkan formula matematis hukum daya, untuk mendongkrak daya hantam speaker sebesar <strong>${ohm} Ohm</strong> hingga menyentuh daya <strong>${targetWatt} Watt</strong>, kamu wajib menyuplai tegangan konstan yang tinggi. Jika voltase drop, gelombang sinus audio akan terpotong secara paksa yang dinamakan gejala <strong>clipping</strong> (penyebab utama spool gosong).<br><br>
                         Sirkuit <strong>Class ${ampClass}</strong> yang kamu tentukan memiliki efisiensi termal tersendiri. ${ampClass === 'D' ? 'Sistem Class D bekerja dengan modulasi PWM (saklar ON/OFF super cepat), membuat efisiensinya menembus angka 90% sehingga mesin tetap dingin.' : `Arsitektur Class ${ampClass} ini menuntut linieritas gelombang yang murni. Konsekuensinya, disipasi panas silikon internal akan tinggi, wajib disokong sirip heatsink tebal dan kipas berkecepatan tinggi agar tidak terjadi thermal runaway.`}
                     </p>
                 `;
@@ -1008,21 +1138,4 @@
 
             ctx.beginPath(); ctx.strokeStyle = "#f59e0b"; ctx.lineWidth = 2;
             ctx.setLineDash([4, 4]); ctx.moveTo(pointerX, 0); ctx.lineTo(pointerX, canvas.height); ctx.stroke();
-            ctx.setLineDash([]);
-        }
-
-        function animationLoop() {
-            updateVuMeterVisual();
-            animationFrameId = requestAnimationFrame(animationLoop);
-        }
-
-        window.onload = function() {
-            resizeCanvas();
-            buildVuMeterLEDs();
-            m1TopologySync();
-            m6TrCategorySync();
-            animationLoop();
-        }
-    </script>
-</body>
-</html>
+            ctx.setLine
