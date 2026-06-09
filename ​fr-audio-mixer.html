@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no'>
-    <title>FR-AUDIO Qu-32 SUITE MASTER</title>
+    <title>FR-AUDIO Qu-32 SUITE MASTER v1.2</title>
     <style>
         :root {
             --bg-body: #08020f;
@@ -24,7 +24,6 @@
             box-sizing: border-box;
         }
 
-        /* Top Control Panel (Screen & Master Area) */
         .top-panel {
             display: grid;
             grid-template-columns: 1fr 2fr 1fr;
@@ -42,7 +41,6 @@
         }
         .sys-title p { margin: 2px 0 0 0; font-size: 11px; color: var(--cyan-neon); font-family: monospace; }
 
-        /* Touchscreen Simulator Display */
         .mixer-screen {
             background: #040107;
             border: 2px solid #3d215a;
@@ -52,9 +50,9 @@
             font-size: 11px;
             color: #00ff55;
             box-shadow: inset 0 0 10px rgba(0,255,0,0.2);
+            line-height: 1.4;
         }
 
-        /* Bank Selector Buttons */
         .bank-container {
             display: flex;
             justify-content: center;
@@ -70,25 +68,24 @@
             font-weight: bold;
             border-radius: 4px;
             cursor: pointer;
+            transition: 0.2s;
         }
         .bank-btn.active {
             background: var(--purple-neon);
             box-shadow: 0 0 10px var(--purple-neon);
         }
 
-        /* Fader Console Grid Area */
         .mixer-surface {
             background-color: var(--bg-mixer);
             border: 3px solid #2d1842;
             border-radius: 16px;
             padding: 15px;
             display: grid;
-            grid-template-columns: repeat(8, 1fr) 1.2fr; /* 8 Channel Strips + 1 Master Strip */
+            grid-template-columns: repeat(8, 1fr) 1.2fr;
             gap: 8px;
             overflow-x: auto;
         }
 
-        /* Channel Strip Style */
         .channel-strip {
             background: var(--bg-strip);
             border: 1px solid #331d4c;
@@ -110,28 +107,25 @@
         }
         .master-strip .ch-num { color: var(--cyan-neon); background: #081a17;}
 
-        /* Mute & Select Buttons */
         .btn-ch {
             width: 85%; padding: 6px 0; margin: 3px 0;
             font-size: 10px; font-weight: bold; border-radius: 4px; border: none; cursor: pointer;
         }
         .btn-sel { background: #3d255c; color: white; }
-        .btn-sel.active { background: var(--cyan-neon); color: #000; font-weight: bold; }
+        .btn-sel.active { background: var(--cyan-neon); color: #000; font-weight: bold; box-shadow: 0 0 8px var(--cyan-neon); }
         .btn-mute { background: #5a1827; color: #ff6b8b; }
         .btn-mute.muted { background: #ff0044; color: #fff; box-shadow: 0 0 8px #ff0044; }
 
-        /* VU Meter Led Bar */
         .vu-meter {
             width: 6px; height: 60px; background: #07030a;
             margin: 10px 0; border-radius: 3px; position: relative; overflow: hidden;
             display: flex; flex-direction: column-reverse; gap: 1px;
         }
-        .vu-segment { width: 100%; height: 5px; background: #222; transition: 0.1s; }
+        .vu-segment { width: 100%; height: 5px; background: #222; opacity: 0.15; transition: 0.05s; }
         .vu-segment.green { background: #00ff55; }
         .vu-segment.yellow { background: #ffea00; }
         .vu-segment.red { background: #ff0044; }
 
-        /* Vertical Slider Container */
         .fader-wrapper {
             height: 220px; display: flex; align-items: center; justify-content: center; position: relative; margin: 10px 0;
         }
@@ -140,7 +134,6 @@
             left: -12px; font-size: 8px; color: #5a4b6e; font-family: monospace; pointer-events: none;
         }
 
-        /* Custom Vertical Input Range */
         input[type=range].v-slider {
             -webkit-appearance: none;
             transform: rotate(-90deg);
@@ -168,32 +161,29 @@
     <div class="top-panel">
         <div class="sys-title">
             <h1>FR-AUDIO Qu-32</h1>
-            <p>CONGLOMERATE CORE ENGINE v1.0</p>
+            <p>CONGLOMERATE CORE ENGINE v1.2</p>
         </div>
         <div class="mixer-screen" id="dispScreen">
-            [SYSTEM OK] - CURRENT ACTIVE LAYER: CH 01 - 08<br>
-            PRESET: LIVE_FIELD_REVERB_SULTAN<br>
-            SELECTED CHANNEL: NONE &bull; LR ROUTING: ENABLED
+            [SYSTEM READY] - LAYER: CH 01 - 08<br>
+            MEM_STATE: LOADED FROM LOCAL STORAGE<br>
+            SELECTED: NONE
         </div>
         <div class="bank-container">
-            <button class="bank-btn active" onclick="switchBank(1, this)">1-8</button>
-            <button class="bank-btn" onclick="switchBank(2, this)">9-16</button>
-            <button class="bank-btn" onclick="switchBank(3, this)">17-24</button>
-            <button class="bank-btn" onclick="switchBank(4, this)">25-32</button>
+            <button class="bank-btn active" id="btn-b1" onclick="switchBank(1)">1-8</button>
+            <button class="bank-btn" id="btn-b2" onclick="switchBank(2)">9-16</button>
+            <button class="bank-btn" id="btn-b3" onclick="switchBank(3)">17-24</button>
+            <button class="bank-btn" id="btn-b4" onclick="switchBank(4)">25-32</button>
         </div>
     </div>
 
     <div class="mixer-surface" id="mixerSurface">
         <div class="channel-strip master-strip" style="grid-column: 9;">
             <div class="ch-num">LR ST</div>
-            <button class="btn-ch btn-sel" onclick="selectCh('MASTER')">SEL</button>
-            <button class="btn-ch btn-mute" onclick="toggleMute(this, 'MASTER')">MUTE</button>
-            
-            <div class="vu-meter" id="vu-master">
-                </div>
-
+            <button class="btn-ch btn-sel" id="sel-MASTER" onclick="selectCh('MASTER')">SEL</button>
+            <button class="btn-ch btn-mute" id="mute-MASTER" onclick="toggleMute('MASTER')">MUTE</button>
+            <div class="vu-meter" id="vu-MASTER"></div>
             <div class="fader-wrapper">
-                <input type="range" class="v-slider" min="0" max="100" value="85" oninput="updateFader('MASTER', this.value)">
+                <input type="range" class="v-slider" id="slide-MASTER" min="0" max="100" value="85" oninput="updateFader('MASTER', this.value)">
             </div>
             <div class="db-readout" id="db-MASTER">0.0dB</div>
         </div>
@@ -201,18 +191,27 @@
 
     <script>
         let currentBank = 1;
-        let selectedChannelName = "NONE";
-        
-        // Simpan data gain dan status 32 Channel
-        const channelData = {};
-        for(let i=1; i<=32; i++) {
-            channelData[i] = { gain: 75, muted: false, selected: false };
-        }
-        channelData['MASTER'] = { gain: 85, muted: false, selected: false };
+        let selectedChannel = localStorage.getItem('fr_selected') || "NONE";
+        let channelData = JSON.parse(localStorage.getItem('fr_mixer_data'));
 
-        // Generate VU Meter Segments
+        // Jika data memory kosong, buat settingan awal standar lapangan
+        if (!channelData) {
+            channelData = {};
+            for(let i=1; i<=32; i++) {
+                channelData[i] = { gain: 75, muted: false };
+            }
+            channelData['MASTER'] = { gain: 85, muted: false };
+            saveMemory();
+        }
+
+        function saveMemory() {
+            localStorage.setItem('fr_mixer_data', JSON.stringify(channelData));
+            localStorage.setItem('fr_selected', selectedChannel);
+        }
+
         function createVuSegments(elementId) {
             const vu = document.getElementById(elementId);
+            if (!vu) return;
             vu.innerHTML = '';
             for(let i=0; i<12; i++) {
                 const seg = document.createElement('div');
@@ -221,25 +220,23 @@
             }
         }
 
-        // Render Ulang Permukaan Fader Sesuai Bank Terpilih
         function renderBank() {
             const surface = document.getElementById('mixerSurface');
-            // Hapus channel strip lama kecuali master strip
             const strips = surface.querySelectorAll('.channel-strip:not(.master-strip)');
             strips.forEach(s => s.remove());
 
             const startCh = (currentBank - 1) * 8 + 1;
             const endCh = startCh + 7;
 
-            // Render 8 Channel untuk Bank Tersebut
             for(let i = startCh; i <= endCh; i++) {
                 const data = channelData[i];
+                const isSel = (selectedChannel == i);
                 const strip = document.createElement('div');
                 strip.className = `channel-strip`;
                 strip.innerHTML = `
                     <div class="ch-num">CH ${String(i).padStart(2, '0')}</div>
-                    <button class="btn-ch btn-sel ${data.selected ? 'active' : ''}" onclick="selectCh(${i})">SEL</button>
-                    <button class="btn-ch btn-mute ${data.muted ? 'muted' : ''}" onclick="toggleMute(this, ${i})">MUTE</button>
+                    <button class="btn-ch btn-sel ${isSel ? 'active' : ''}" id="sel-${i}" onclick="selectCh(${i})">SEL</button>
+                    <button class="btn-ch btn-mute ${data.muted ? 'muted' : ''}" id="mute-${i}" onclick="toggleMute(${i})">MUTE</button>
                     <div class="vu-meter" id="vu-${i}"></div>
                     <div class="fader-wrapper">
                         <div class="fader-track-label"><span>+10</span><span>0</span><span>-10</span><span>-30</span><span>-&infin;</span></div>
@@ -247,44 +244,45 @@
                     </div>
                     <div class="db-readout" id="db-${i}">${valToDb(data.gain)}</div>
                 `;
-                // Sisipkan sebelum master strip (kolom ke-9)
                 surface.insertBefore(strip, surface.lastElementChild);
                 createVuSegments(`vu-${i}`);
             }
+
+            // Update status tombol Master Mute & Master Sel dari memory
+            document.getElementById('mute-MASTER').className = `btn-ch btn-mute ${channelData['MASTER'].muted ? 'muted' : ''}`;
+            document.getElementById('mute-MASTER').innerText = 'MUTE';
+            document.getElementById('sel-MASTER').className = `btn-ch btn-sel ${selectedChannel == 'MASTER' ? 'active' : ''}`;
+            document.getElementById(`slide-MASTER`).value = channelData['MASTER'].gain;
+            document.getElementById(`db-MASTER`).innerText = valToDb(channelData['MASTER'].gain);
+
+            createVuSegments('vu-MASTER');
             updateScreen();
         }
 
-        function switchBank(bankNum, btn) {
+        function switchBank(bankNum) {
             currentBank = bankNum;
-            document.querySelectorAll('.bank-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
+            document.querySelectorAll('.bank-btn').forEach((b, idx) => {
+                b.classList.toggle('active', (idx + 1) === bankNum);
+            });
             renderBank();
         }
 
         function updateFader(ch, val) {
-            channelData[ch].gain = val;
+            channelData[ch].gain = parseInt(val);
             document.getElementById(`db-${ch}`).innerText = valToDb(val);
-            
-            // SIMULASI TELEMETRI IOT: Kirim data ke ESP32 lewat log konsol browser
-            console.log(`Sending to ESP32 -> Channel ${ch} Volume set to: ${val}`);
+            saveMemory();
         }
 
-        function toggleMute(btn, ch) {
+        function toggleMute(ch) {
             channelData[ch].muted = !channelData[ch].muted;
-            btn.classList.toggle('muted');
+            const btn = document.getElementById(`mute-${ch}`);
+            if(btn) btn.classList.toggle('muted');
+            saveMemory();
         }
 
         function selectCh(ch) {
-            // Reset status pilihan channel lain
-            for(let k in channelData) channelData[k].selected = false;
-            document.querySelectorAll('.btn-sel').forEach(b => b.classList.remove('active'));
-            
-            if(ch !== 'MASTER') {
-                channelData[ch].selected = true;
-                selectedChannelName = `CH ${String(ch).padStart(2, '0')}`;
-            } else {
-                selectedChannelName = "MASTER LR";
-            }
+            selectedChannel = ch;
+            saveMemory();
             renderBank();
         }
 
@@ -297,24 +295,33 @@
         function updateScreen() {
             const start = (currentBank - 1) * 8 + 1;
             const end = start + 7;
+            let displaySel = (selectedChannel === "NONE") ? "NONE" : (selectedChannel === "MASTER") ? "MASTER LR" : `CH ${String(selectedChannel).padStart(2,'0')}`;
+            
             document.getElementById('dispScreen').innerHTML = `
-                [SYSTEM ACTIVE] - CURRENT LAYER: CH ${String(start).padStart(2,'0')} - ${String(end).padStart(2,'0')}<br>
+                [SYSTEM OK] - LAYER ACTIVE: CH ${String(start).padStart(2,'0')}-${String(end).padStart(2,'0')}<br>
                 PRESET: LIVE_FIELD_REVERB_SULTAN<br>
-                SELECTED CHANNEL: ${selectedChannelName} &bull; DSP RATIO: STABLE
+                SELECTED CHANNEL: ${displaySel} &bull; MEMORY OK
             `;
         }
 
-        // Jalankan Animasi Berkedip VU Meter secara Acak untuk Simulasi Musik Lapangan
+        // Live VU Meter Randomizer
         setInterval(() => {
             const start = (currentBank - 1) * 8 + 1;
             const end = start + 7;
             
             for(let i = start; i <= end; i++) {
-                if(channelData[i].muted) continue;
+                if(channelData[i].muted) {
+                    animateVu(`vu-${i}`, -1);
+                    continue;
+                }
                 animateVu(`vu-${i}`, Math.floor(Math.random() * 12));
             }
-            animateVu('vu-master', Math.floor(Math.random() * 12));
-        }, 120);
+            if(!channelData['MASTER'].muted) {
+                animateVu('vu-MASTER', Math.floor(Math.random() * 12));
+            } else {
+                animateVu('vu-MASTER', -1);
+            }
+        }, 100);
 
         function animateVu(elementId, level) {
             const vu = document.getElementById(elementId);
@@ -325,8 +332,7 @@
             }
         }
 
-        // Inisialisasi awal
-        createVuSegments('vu-master');
+        // Jalankan Pertama Kali
         renderBank();
     </script>
 </body>
