@@ -45,15 +45,17 @@
         }
 
         .header h1 {
-            font-size: 18px;
-            letter-spacing: 2px;
-            text-shadow: 0 0 8px var(--violet-glow);
+            font-size: 22px;
+            letter-spacing: 3px;
+            text-shadow: 0 0 10px var(--violet-glow);
+            color: #fff;
         }
 
         .header p {
             font-size: 10px;
             color: var(--text-muted);
             text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         .sys-monitor {
@@ -142,19 +144,46 @@
         .audio-input-box {
             background: var(--panel-inner);
             border-radius: 8px;
-            padding: 10px;
-            border: 1px dashed rgba(138,43,226,0.3);
+            padding: 12px;
+            border: 1px dashed rgba(138,43,226,0.5);
+            text-align: center;
         }
 
         .audio-input-box label {
             display: block;
-            font-size: 11px;
-            margin-bottom: 6px;
-            color: var(--violet-glow);
+            font-size: 12px;
+            margin-bottom: 8px;
+            color: #00bfff;
             font-weight: bold;
+            text-shadow: 0 0 5px rgba(0,191,255,0.3);
         }
 
-        /* RIGHT SIDE - 16 CORE BLOCKS INDEPENDENT MATRIX MATRIX */
+        .stream-active-btn {
+            background: linear-gradient(135deg, #0099cc, var(--violet-main));
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            font-size: 11px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            box-shadow: 0 0 8px rgba(138, 43, 226, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .stream-active-btn:active {
+            transform: scale(0.98);
+        }
+
+        .stream-status-indicator {
+            margin-top: 6px;
+            font-size: 9px;
+            color: var(--text-muted);
+            font-family: monospace;
+        }
+
+        /* RIGHT SIDE - 16 CORE BLOCKS INDEPENDENT MATRIX */
         .right-menu-panel {
             background: var(--panel-bg);
             border-radius: 12px;
@@ -226,7 +255,6 @@
             font-family: monospace;
         }
 
-        /* TUNING SPLIT CHANNEL OVERRIDE LAYER */
         .ch-control-row {
             display: flex;
             align-items: center;
@@ -366,7 +394,7 @@
 <body>
 
     <div class="header">
-        <h1>FARO TRIUMPHANT</h1>
+        <h1>FR AUDIO</h1>
         <p>Comprehensive Split-Architecture DLMS IoT Processing Matrix v300++ OMEGA</p>
     </div>
 
@@ -381,7 +409,7 @@
         </div>
         <div class="monitor-box">
             <span>LINK MODE</span>
-            <strong style="color: var(--led-green);">SOFT-AP</strong>
+            <strong style="color: var(--led-green);">SYSTEM-LINK</strong>
         </div>
     </div>
 
@@ -400,13 +428,13 @@
             </div>
 
             <div class="audio-input-box">
-                <label><i class="fa-solid fa-cloud-arrow-up"></i> INJECT AUDIO STREAM ARCHIVE</label>
-                <input type="file" id="audio-file" accept="audio/*">
-                <audio id="audio-element" controls loop style="width: 100%; margin-top: 6px;"></audio>
+                <label><i class="fa-solid fa-radio"></i> LIVE SMARTPHONE AUDIO CAPTURE LINK</label>
+                <button class="stream-active-btn" id="start-stream-btn" onclick="initLiveAudioCapture()"><i class="fa-solid fa-play"></i> HUBUNGKAN KE SISTEM AUDIO HP</button>
+                <div class="stream-status-indicator" id="stream-status">Status: Menunggu aktivasi... Putar musik di background sekarang.</div>
             </div>
 
             <div style="font-size: 10px; background: rgba(255,255,255,0.02); padding: 8px; border-radius: 6px; color: var(--text-muted);">
-                <p><i class="fa-solid fa-wifi"></i> <strong>IoT AP:</strong> FARO_TRIUMPHANTLY_IOT</p>
+                <p><i class="fa-solid fa-wifi"></i> <strong>IoT AP:</strong> FR_AUDIO_DLMS_MEGA</p>
                 <p><i class="fa-solid fa-globe"></i> <strong>Control IP:</strong> http://192.168.4.1/omega-dashboard</p>
             </div>
         </div>
@@ -611,7 +639,7 @@
 
                 <div class="menu-slot-card">
                     <div class="slot-header">
-                        <span class="slot-title">Sultan Feedback Loop</span>
+                        <span class="slot-title" style="color: #00bfff;">Sultan Stage Echo-Reverb</span>
                         <span class="slot-index">F126-135</span>
                     </div>
                     <div class="ch-control-row">
@@ -745,29 +773,31 @@
     </div>
 
     <script>
-        const audioFile = document.getElementById('audio-file');
-        const audioElement = document.getElementById('audio-element');
-        
         const cpuTempEl = document.getElementById('cpu-temp');
         const voltEl = document.getElementById('volt-monitor');
+        const streamStatusEl = document.getElementById('stream-status');
         
         const canvasL = document.getElementById('displayCanvasL');
         const canvasR = document.getElementById('displayCanvasR');
         const ctxL = canvasL.getContext('2d');
         const ctxR = canvasR.getContext('2d');
 
-        let audioCtx, sourceNode, splitterNode, mergerNode;
+        let audioCtx, streamNode;
+        let splitterNode, mergerNode;
         let analyserL, analyserR;
         
-        // --- DEKLARASI NODES UNTUK JALUR KIRI (L) ---
-        let hpfL, lpfL, sultanL, vocalL, harmonicL, gainL, delayL;
-        // --- DEKLARASI NODES UNTUK JALUR KANAN (R) ---
-        let hpfR, lpfR, sultanR, vocalR, harmonicR, gainR, delayR;
+        // NODES JALUR KIRI (L)
+        let hpfL, lpfL, sultanL, vocalL, harmonicL, gainL;
+        // NODES JALUR KANAN (R)
+        let hpfR, lpfR, sultanR, vocalR, harmonicR, gainR;
+
+        // ADVANCED ECHO & STAGE REVERB COUPLING CORES
+        let delayL1, delayL2, feedbackL1, feedbackL2, wetGainL, filterL;
+        let delayR1, delayR2, feedbackR1, feedbackR2, wetGainR, filterR;
 
         let dataArrayL, dataArrayR, bufferLength;
         let isEngineBuilt = false;
 
-        // Management Parameter Real-Time Independent per-Channel
         let channelParams = {
             l: { core: true, turbo: true, linkwitz: true, phase: false, harmonic: false, sultan: false, vocal: false, echo: false, limiter: true, antipop: true, syscombine: true },
             r: { core: true, turbo: true, linkwitz: true, phase: false, harmonic: false, sultan: false, vocal: false, echo: false, limiter: true, antipop: true, syscombine: true }
@@ -780,22 +810,40 @@
         window.addEventListener('resize', resizeCanvases);
         resizeCanvases();
 
-        audioFile.addEventListener('change', function(){
-            if(this.files.length === 0) return;
-            audioElement.src = URL.createObjectURL(this.files[0]);
-            audioElement.load();
-            if (!isEngineBuilt) buildDiscreteEngine();
-        });
+        // -------------------------------------------------------------
+        // PEMBARUAN UTAMA: CAPTURE AUDIO INTERNAL SMARTPHONE VIA LOOPBACK
+        // -------------------------------------------------------------
+        async function initLiveAudioCapture() {
+            if (isEngineBuilt) return;
+            
+            streamStatusEl.innerText = "Membuka sistem Sink... Pilih tab/aplikasi audio Anda.";
+            try {
+                // Mengambil streaming audio dari sistem internal perangkat tanpa mic bocor
+                const mediaStream = await navigator.mediaDevices.getDisplayMedia({
+                    video: { displaySurface: "browser" }, // Trick kompatibilitas mobile browser
+                    audio: {
+                        echoCancellation: false,
+                        noiseSuppression: false,
+                        autoGainControl: false
+                    }
+                });
 
-        audioElement.addEventListener('play', () => {
-            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-        });
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioContextClass();
+                
+                streamNode = audioCtx.createMediaStreamSource(mediaStream);
+                buildDiscreteEngine();
+                
+                document.getElementById('start-stream-btn').innerHTML = `<i class="fa-solid fa-circle-check"></i> ENGINE SYSTEM CONNECTED`;
+                document.getElementById('start-stream-btn').style.background = "#2ecc71";
+                streamStatusEl.innerText = "Status: Terhubung! Putar Spotify/YouTube Anda, sistem siap mengontrol penuh.";
+            } catch (err) {
+                console.error(err);
+                streamStatusEl.innerText = "Gagal menyambung. Pastikan izin berbagi audio diaktifkan!";
+            }
+        }
 
         function buildDiscreteEngine() {
-            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-            audioCtx = new AudioContextClass();
-            sourceNode = audioCtx.createMediaElementSource(audioElement);
-
             splitterNode = audioCtx.createChannelSplitter(2);
             mergerNode = audioCtx.createChannelMerger(2);
 
@@ -805,47 +853,84 @@
             dataArrayL = new Uint8Array(bufferLength);
             dataArrayR = new Uint8Array(bufferLength);
 
-            // ================== BLOK SIRKUIT KIRI (CH-L) ==================
+            // ================== SIRKUIT FILTERS CH-L ==================
             hpfL = audioCtx.createBiquadFilter(); hpfL.type = "highpass"; hpfL.frequency.value = parseFloat(document.getElementById('hpf-slider-l').value); hpfL.Q.value = 1.2;
             lpfL = audioCtx.createBiquadFilter(); lpfL.type = "lowpass"; lpfL.frequency.value = parseFloat(document.getElementById('lpf-slider-l').value); lpfL.Q.value = 1.2;
             sultanL = audioCtx.createBiquadFilter(); sultanL.type = "lowshelf"; sultanL.frequency.value = 70; sultanL.gain.value = 0;
             vocalL = audioCtx.createBiquadFilter(); vocalL.type = "peaking"; vocalL.frequency.value = 2000; vocalL.gain.value = 0;
             harmonicL = audioCtx.createBiquadFilter(); harmonicL.type = "highshelf"; harmonicL.frequency.value = 11000; harmonicL.gain.value = 0;
             gainL = audioCtx.createGain(); gainL.gain.value = parseFloat(document.getElementById('gain-slider-l').value) / 100;
-            delayL = audioCtx.createDelay(0.1); delayL.delayTime.value = 0;
 
-            // ================== BLOK SIRKUIT KANAN (CH-R) ==================
+            // --- STRUKTUR BARU REVERB + MULTI-TAP ECHO (CH-L) ---
+            delayL1 = audioCtx.createDelay(1.0); delayL1.delayTime.value = 0.38; // Pantulan Utama (BPM Sync)
+            delayL2 = audioCtx.createDelay(1.0); delayL2.delayTime.value = 0.52; // Multi-tap cross feedback
+            feedbackL1 = audioCtx.createGain(); feedbackL1.gain.value = 0;
+            feedbackL2 = audioCtx.createGain(); feedbackL2.gain.value = 0;
+            filterL = audioCtx.createBiquadFilter(); filterL.type = "lowpass"; filterL.frequency.value = 3500; // Meredam teriakan melengking (HF Damping)
+            wetGainL = audioCtx.createGain(); wetGainL.gain.value = 0;
+
+            // Wiring internal sirkuit Echo Reverb L
+            vocalL.connect(delayL1);
+            delayL1.connect(feedbackL1);
+            feedbackL1.connect(delayL2);
+            delayL2.connect(feedbackL2);
+            feedbackL2.connect(filterL);
+            filterL.connect(delayL1); // Close Loop Feedback
+            filterL.connect(wetGainL);
+
+            // ================== SIRKUIT FILTERS CH-R ==================
             hpfR = audioCtx.createBiquadFilter(); hpfR.type = "highpass"; hpfR.frequency.value = parseFloat(document.getElementById('hpf-slider-r').value); hpfR.Q.value = 1.2;
             lpfR = audioCtx.createBiquadFilter(); lpfR.type = "lowpass"; lpfR.frequency.value = parseFloat(document.getElementById('lpf-slider-r').value); lpfR.Q.value = 1.2;
             sultanR = audioCtx.createBiquadFilter(); sultanR.type = "lowshelf"; sultanR.frequency.value = 70; sultanR.gain.value = 0;
             vocalR = audioCtx.createBiquadFilter(); vocalR.type = "peaking"; vocalR.frequency.value = 2000; vocalR.gain.value = 0;
             harmonicR = audioCtx.createBiquadFilter(); harmonicR.type = "highshelf"; harmonicR.frequency.value = 11000; harmonicR.gain.value = 0;
             gainR = audioCtx.createGain(); gainR.gain.value = parseFloat(document.getElementById('gain-slider-r').value) / 100;
-            delayR = audioCtx.createDelay(0.1); delayR.delayTime.value = 0;
 
-            // --- PROSES ROUTING WIRING DISCRETE (SPLIT ARCHITECTURE) ---
-            sourceNode.connect(splitterNode);
+            // --- STRUKTUR BARU REVERB + MULTI-TAP ECHO (CH-R) ---
+            delayR1 = audioCtx.createDelay(1.0); delayR1.delayTime.value = 0.40; 
+            delayR2 = audioCtx.createDelay(1.0); delayR2.delayTime.value = 0.55; 
+            feedbackR1 = audioCtx.createGain(); feedbackR1.gain.value = 0;
+            feedbackR2 = audioCtx.createGain(); feedbackR2.gain.value = 0;
+            filterR = audioCtx.createBiquadFilter(); filterR.type = "lowpass"; filterR.frequency.value = 3500;
+            wetGainR = audioCtx.createGain(); wetGainR.gain.value = 0;
 
-            // Rute Wiring Jalur Kiri
+            // Wiring internal sirkuit Echo Reverb R
+            vocalR.connect(delayR1);
+            delayR1.connect(feedbackR1);
+            feedbackR1.connect(delayR2);
+            delayR2.connect(feedbackR2);
+            feedbackR2.connect(filterR);
+            filterR.connect(delayR1); 
+            filterR.connect(wetGainR);
+
+            // --- ROUTING WIRING SPLIT ARCHITECTURE ---
+            streamNode.connect(splitterNode);
+
+            // Saluran Kiri (L)
             splitterNode.connect(hpfL, 0);
             hpfL.connect(lpfL);
             lpfL.connect(sultanL);
             sultanL.connect(vocalL);
+            
+            // Menggabungkan sinyal vokal bersih dan vokal basah (Echo) ke keluaran
             vocalL.connect(harmonicL);
+            wetGainL.connect(harmonicL); 
+            
             harmonicL.connect(gainL);
-            gainL.connect(delayL);
-            delayL.connect(analyserL);
+            gainL.connect(analyserL);
             analyserL.connect(mergerNode, 0, 0);
 
-            // Rute Wiring Jalur Kanan
+            // Saluran Kanan (R)
             splitterNode.connect(hpfR, 1);
             hpfR.connect(lpfR);
             lpfR.connect(sultanR);
             sultanR.connect(vocalR);
+            
             vocalR.connect(harmonicR);
+            wetGainR.connect(harmonicR);
+            
             harmonicR.connect(gainR);
-            gainR.connect(delayR);
-            delayR.connect(analyserR);
+            gainR.connect(analyserR);
             analyserR.connect(mergerNode, 0, 1);
 
             mergerNode.connect(audioCtx.destination);
@@ -863,7 +948,6 @@
         document.getElementById('lpf-slider-r').addEventListener('input', function() { if(lpfR) lpfR.frequency.setValueAtTime(parseFloat(this.value), audioCtx.currentTime); });
         document.getElementById('gain-slider-r').addEventListener('input', function() { if(gainR) gainR.gain.setValueAtTime(parseFloat(this.value)/100, audioCtx.currentTime); });
 
-        // TOGGLE LOGIC UNTUK 16 CORE INDEPENDENT MATRIKS BLOCKS
         function toggleDualMatrix(btn, ch, type) {
             if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
             
@@ -874,7 +958,6 @@
                 btn.className = "action-toggle-btn";
                 channelParams[ch][type] = false;
                 
-                // Text Feedback Off State
                 if (type === 'phase') btn.innerText = "0 DEG";
                 else if (type === 'core') btn.innerText = "CORE OFF";
                 else if (type === 'turbo') btn.innerText = "BOOST OFF";
@@ -890,7 +973,6 @@
                 btn.classList.add(ch === 'l' ? 'l-active' : 'r-active');
                 channelParams[ch][type] = true;
 
-                // Text Feedback On State
                 if (type === 'phase') btn.innerText = "180 DEG";
                 else if (type === 'core') btn.innerText = "CORE " + ch.toUpperCase() + " ON";
                 else if (type === 'turbo') btn.innerText = "MAX BOOST";
@@ -904,41 +986,40 @@
                 else if (type === 'syscombine') btn.innerText = "COMBINE " + ch.toUpperCase();
             }
 
-            // Update Card Class Visual Indicator
-            if(channelParams.l[type] || channelParams.r[type]) {
-                card.classList.add('active');
-            } else {
-                card.classList.remove('active');
-            }
+            if(channelParams.l[type] || channelParams.r[type]) card.classList.add('active');
+            else card.classList.remove('active');
 
-            // Eksekusi Algoritma DSP Real-Time Ke Masing-Masing Channel Node
             if(isEngineBuilt) {
                 let nodeHpf = (ch === 'l') ? hpfL : hpfR;
                 let nodeLpf = (ch === 'l') ? lpfL : lpfR;
                 let nodeSultan = (ch === 'l') ? sultanL : sultanR;
                 let nodeVocal = (ch === 'l') ? vocalL : vocalR;
                 let nodeHarmonic = (ch === 'l') ? harmonicL : harmonicR;
-                let nodeDelay = (ch === 'l') ? delayL : delayR;
                 let nodeGain = (ch === 'l') ? gainL : gainR;
+                
+                let wetNode = (ch === 'l') ? wetGainL : wetGainR;
+                let fbNode1 = (ch === 'l') ? feedbackL1 : feedbackR1;
+                let fbNode2 = (ch === 'l') ? feedbackL2 : feedbackR2;
 
-                // 1. Linkwitz-Riley Q modifier
                 let qVal = channelParams[ch].linkwitz ? 1.2 : 0.707;
                 nodeHpf.Q.setValueAtTime(qVal, audioCtx.currentTime);
                 nodeLpf.Q.setValueAtTime(qVal, audioCtx.currentTime);
 
-                // 2. Phase Alignment Logic (Micro-Delay Simulation)
-                nodeDelay.delayTime.setValueAtTime(channelParams[ch].phase ? 0.005 : 0, audioCtx.currentTime);
+                // SIMULASI AKUSTIK RUANG: JIKA PARAMETER ECHO AKTIF (OPTIMALISASI DSP)
+                if(channelParams[ch].echo) {
+                    wetNode.gain.setValueAtTime(0.65, audioCtx.currentTime); // Gain efek basah yang tebal
+                    fbNode1.gain.setValueAtTime(0.70, audioCtx.currentTime); // Feedback panjang berlapis
+                    fbNode2.gain.setValueAtTime(0.55, audioCtx.currentTime);
+                } else {
+                    wetNode.gain.setValueAtTime(0, audioCtx.currentTime);
+                    fbNode1.gain.setValueAtTime(0, audioCtx.currentTime);
+                    fbNode2.gain.setValueAtTime(0, audioCtx.currentTime);
+                }
 
-                // 3. Selective Sultan Bass Booster (24dB Menggelegar)
                 nodeSultan.gain.setValueAtTime(channelParams[ch].sultan ? 24 : 0, audioCtx.currentTime);
-
-                // 4. Vocal Presence Boost
                 nodeVocal.gain.setValueAtTime(channelParams[ch].vocal ? 11 : 0, audioCtx.currentTime);
-
-                // 5. Harmonic Enhancer Detail
                 nodeHarmonic.gain.setValueAtTime(channelParams[ch].harmonic ? 9 : 0, audioCtx.currentTime);
                 
-                // 6. Core Shut off emulation
                 if(!channelParams[ch].core) {
                     nodeGain.gain.setValueAtTime(0, audioCtx.currentTime);
                 } else {
@@ -958,7 +1039,6 @@
             ctxL.clearRect(0, 0, canvasL.width, canvasL.height);
             ctxR.clearRect(0, 0, canvasR.width, canvasR.height);
             
-            // Hitung Spektrum Terpisah per-Channel untuk Keperluan UV Grid
             let bL = 0, bR = 0, mL = 0, mR = 0, tL = 0, tR = 0, allL = 0, allR = 0;
 
             for(let i = 0; i < bufferLength; i++) {
@@ -971,23 +1051,20 @@
             let avgL = allL / bufferLength; let avgR = allR / bufferLength;
             bL /= 12; bR /= 12; mL /= 28; mR /= 28; tL /= (bufferLength-40); tR /= (bufferLength-40);
 
-            // GAMBAR GRAFIK DISCRETE RTA + CROSSOVER
             drawIndividualGraph(ctxL, canvasL, dataArrayL, '#8a2be2', document.getElementById('hpf-slider-l').value, document.getElementById('lpf-slider-l').value);
             drawIndividualGraph(ctxR, canvasR, dataArrayR, '#00bfff', document.getElementById('hpf-slider-r').value, document.getElementById('lpf-slider-r').value);
 
-            // JALANKAN PROSES LIMITER FACTOR DAN PEAK FACTOR DUA CHANNEL
             let factorL = channelParams.l.limiter ? 0.85 : 1.2;
             let factorR = channelParams.r.limiter ? 0.85 : 1.2;
             let peakL = parseFloat(document.getElementById('sub-limit-slider-l').value) / 100;
             let peakR = parseFloat(document.getElementById('sub-limit-slider-r').value) / 100;
 
-            let lvL = !audioElement.paused ? Math.min(20, Math.floor((avgL / 120) * 20 * factorL * peakL)) : 0;
-            let lvR = !audioElement.paused ? Math.min(20, Math.floor((avgR / 120) * 20 * factorR * peakR)) : 0;
+            let lvL = Math.min(20, Math.floor((avgL / 120) * 20 * factorL * peakL));
+            let lvR = Math.min(20, Math.floor((avgR / 120) * 20 * factorR * peakR));
             
             renderVUBars('vu-left', lvL);
             renderVUBars('vu-right', lvR);
 
-            // PROSES ANIMASI INDEPENDENT DUAL UV BARS DI SETIAP SLOT CORE MATRIX
             processDualMatrixUV(bL, bR, mL, mR, tL, tR, avgL, avgR);
         }
 
@@ -1041,8 +1118,8 @@
                 if(group === 'treble') { targetL = tL; targetR = tR; }
                 if(group === 'core') { targetL = aL * 0.6 + (Math.random() * 20); targetR = aR * 0.6 + (Math.random() * 20); }
 
-                let litL = audioElement.paused ? 0 : Math.floor((targetL / 140) * dotsL.length);
-                let litR = audioElement.paused ? 0 : Math.floor((targetR / 140) * dotsR.length);
+                let litL = Math.floor((targetL / 140) * dotsL.length);
+                let litR = Math.floor((targetR / 140) * dotsR.length);
 
                 applyDotsColor(dotsL, litL);
                 applyDotsColor(dotsR, litR);
@@ -1061,7 +1138,6 @@
             }
         }
 
-        // TELEMETRY HARDWARE JITTER
         setInterval(() => {
             cpuTempEl.innerText = (54.5 + Math.random() * 1.5).toFixed(1) + " °C";
             voltEl.innerText = (13.7 + Math.random() * 0.2).toFixed(1) + " VDC";
