@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FARO TRIUMPHANT - Split DLMS System</title>
+    <title>FR AUDIO - Split DLMS System</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -117,36 +117,13 @@
         }
 
         .channel-title {
-            font-size: 12px;
+            font-size: 11px;
             font-weight: bold;
             color: #fff;
             letter-spacing: 1px;
         }
 
-        .channel-tabs {
-            display: flex;
-            gap: 4px;
-        }
-
-        .tab-btn {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            color: var(--text-muted);
-            padding: 4px 10px;
-            font-size: 10px;
-            font-weight: bold;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        .tab-btn.active {
-            background: var(--violet-main);
-            color: #fff;
-            box-shadow: 0 0 8px var(--violet-glow);
-            border-color: var(--violet-glow);
-        }
-
-        /* DISPLAY MONITOR UTAMA (SCREEN SIMULATION) */
+        /* DISPLAY MONITOR UTAMA (SPLIT SCREEN FOR L AND R) */
         .screen-frame {
             background: #040108;
             border: 2px solid #23163a;
@@ -154,25 +131,35 @@
             position: relative;
             padding: 5px;
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .canvas-container {
+            position: relative;
+            background: #020005;
+            border: 1px solid rgba(255,255,255,0.02);
+            border-radius: 4px;
         }
 
         canvas {
             width: 100%;
-            height: 140px;
+            height: 95px;
             display: block;
-            background: #020005;
         }
 
         .screen-label-overlay {
             position: absolute;
-            top: 8px;
-            left: 8px;
-            font-size: 9px;
+            top: 4px;
+            left: 4px;
+            font-size: 8px;
             font-family: monospace;
-            background: rgba(0,0,0,0.6);
-            padding: 2px 5px;
+            background: rgba(0,0,0,0.7);
+            padding: 2px 4px;
             border-radius: 3px;
             color: var(--led-green);
+            z-index: 10;
         }
 
         /* AUDIO SOURCE INSIDE LEFT */
@@ -400,16 +387,19 @@
         
         <div class="left-display-panel">
             <div class="channel-selector-header">
-                <div class="channel-title" id="active-ch-text"><i class="fa-solid fa-microchip"></i> MONITOR: CH1 (LEFT OUTPUT)</div>
-                <div class="channel-tabs">
-                    <button class="tab-btn active" onclick="switchChannel('L')">CH1 (L)</button>
-                    <button class="tab-btn" onclick="switchChannel('R')">CH2 (R)</button>
-                </div>
+                <div class="channel-title" id="active-ch-text"><i class="fa-solid fa-microchip"></i> SYSTEM LABORATORY MONITOR ACTIVE</div>
             </div>
 
+            <!-- FIX DUAL SCREEN DISPLAY (UPPER LEFT & LOWER RIGHT INTERFACE) -->
             <div class="screen-frame">
-                <div class="screen-label-overlay" id="screen-mode-tag">RTA + CROSSOVER GRAPH</div>
-                <canvas id="displayCanvas"></canvas>
+                <div class="canvas-container">
+                    <div class="screen-label-overlay">CH1 (LEFT) - RTA + CROSSOVER</div>
+                    <canvas id="displayCanvasL"></canvas>
+                </div>
+                <div class="canvas-container">
+                    <div class="screen-label-overlay">CH2 (RIGHT) - RTA + CROSSOVER</div>
+                    <canvas id="displayCanvasR"></canvas>
+                </div>
             </div>
 
             <div class="audio-input-box">
@@ -438,7 +428,7 @@
                         <span class="slot-index">F1-5</span>
                     </div>
                     <div class="slot-action-row">
-                        <button class="action-toggle-btn active-on" onclick="toggleSlot(this)">CORE 1-0</button>
+                        <button class="action-toggle-btn active-on" data-param="core-engine" onclick="toggleMatrixParam(this)">CORE 1-0</button>
                     </div>
                     <div class="slot-uv-bar" data-uv-target="core"><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
                 </div>
@@ -449,29 +439,29 @@
                         <span class="slot-index">F6-10</span>
                     </div>
                     <div class="slot-action-row">
-                        <button class="action-toggle-btn active-on" onclick="toggleSlot(this)">MAX BOOST</button>
+                        <button class="action-toggle-btn active-on" data-param="turbo" onclick="toggleMatrixParam(this)">MAX BOOST</button>
                     </div>
                     <div class="slot-uv-bar" data-uv-target="core"><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
                 </div>
 
-                <div class="menu-slot-card">
+                <div class="menu-slot-card active">
                     <div class="slot-header">
                         <span class="slot-title">HPF / Low-Cut Freq</span>
                         <span class="slot-index">F51-55</span>
                     </div>
                     <div class="matrix-slider-pack">
-                        <input type="range" id="hpf-slider" min="30" max="500" value="45">
+                        <input type="range" id="hpf-slider" min="20" max="500" value="20">
                     </div>
                     <div class="slot-uv-bar" data-uv-target="bass"><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
                 </div>
 
-                <div class="menu-slot-card">
+                <div class="menu-slot-card active">
                     <div class="slot-header">
                         <span class="slot-title">LPF / High-Cut Freq</span>
                         <span class="slot-index">F56-60</span>
                     </div>
                     <div class="matrix-slider-pack">
-                        <input type="range" id="lpf-slider" min="80" max="18000" value="12000">
+                        <input type="range" id="lpf-slider" min="2000" max="20000" value="20000">
                     </div>
                     <div class="slot-uv-bar" data-uv-target="treble"><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
                 </div>
@@ -482,7 +472,7 @@
                         <span class="slot-index">F61-70</span>
                     </div>
                     <div class="slot-action-row">
-                        <button class="action-toggle-btn active-on" onclick="toggleSlot(this)">LR-ACTIVE</button>
+                        <button class="action-toggle-btn active-on" data-param="linkwitz" onclick="toggleMatrixParam(this)">LR-ACTIVE</button>
                     </div>
                     <div class="slot-uv-bar" data-uv-target="mid"><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
                 </div>
@@ -493,40 +483,40 @@
                         <span class="slot-index">F71-80</span>
                     </div>
                     <div class="slot-action-row">
-                        <button class="action-toggle-btn" onclick="toggleSlot(this, 'phase')">0 DEG</button>
+                        <button class="action-toggle-btn" data-param="phase" onclick="toggleMatrixParam(this)">0 DEG</button>
                     </div>
                     <div class="slot-uv-bar" data-uv-target="mid"><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
                 </div>
 
-                <div class="menu-slot-card">
+                <div class="menu-slot-card active">
                     <div class="slot-header">
                         <span class="slot-title">Master Volume Gain</span>
                         <span class="slot-index">F81-90</span>
                     </div>
                     <div class="matrix-slider-pack">
-                        <input type="range" id="gain-slider" min="0" max="180" value="120">
+                        <input type="range" id="gain-slider" min="0" max="150" value="100">
                     </div>
                     <div class="slot-uv-bar" data-uv-target="all"><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
                 </div>
 
-                <div class="menu-slot-card active">
+                <div class="menu-slot-card">
                     <div class="slot-header">
                         <span class="slot-title">Harmonic Enhancer</span>
                         <span class="slot-index">F91-100</span>
                     </div>
                     <div class="slot-action-row">
-                        <button class="action-toggle-btn active-on" onclick="toggleSlot(this)">XTREME DETAIL</button>
+                        <button class="action-toggle-btn" data-param="harmonic" onclick="toggleMatrixParam(this)">XTREME OFF</button>
                     </div>
                     <div class="slot-uv-bar" data-uv-target="treble"><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
                 </div>
 
-                <div class="menu-slot-card active">
+                <div class="menu-slot-card">
                     <div class="slot-header">
                         <span class="slot-title" style="color: var(--violet-glow); font-weight: bold;">SELECTIVE SULTAN</span>
                         <span class="slot-index">F118</span>
                     </div>
                     <div class="slot-action-row">
-                        <button class="action-toggle-btn active-on" onclick="toggleSlot(this)">FARO SULTAN</button>
+                        <button class="action-toggle-btn" data-param="sultan" onclick="toggleMatrixParam(this)">SULTAN OFF</button>
                     </div>
                     <div class="slot-uv-bar" data-uv-target="bass"><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
                 </div>
@@ -537,7 +527,7 @@
                         <span class="slot-index">F111-117</span>
                     </div>
                     <div class="slot-action-row">
-                        <button class="action-toggle-btn" onclick="toggleSlot(this)">BOOST OFF</button>
+                        <button class="action-toggle-btn" data-param="vocal" onclick="toggleMatrixParam(this)">BOOST OFF</button>
                     </div>
                     <div class="slot-uv-bar" data-uv-target="mid"><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
                 </div>
@@ -548,7 +538,7 @@
                         <span class="slot-index">F126-135</span>
                     </div>
                     <div class="slot-action-row">
-                        <button class="action-toggle-btn" onclick="toggleSlot(this)">PSRAM ECHO</button>
+                        <button class="action-toggle-btn" data-param="echo" onclick="toggleMatrixParam(this)">PSRAM OFF</button>
                     </div>
                     <div class="slot-uv-bar" data-uv-target="mid"><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
                 </div>
@@ -559,7 +549,7 @@
                         <span class="slot-index">F151-160</span>
                     </div>
                     <div class="slot-action-row">
-                        <button class="action-toggle-btn active-on" onclick="toggleSlot(this)">GUARDING</button>
+                        <button class="action-toggle-btn active-on" data-param="limiter" onclick="toggleMatrixParam(this)">GUARDING</button>
                     </div>
                     <div class="slot-uv-bar" data-uv-target="all"><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
                 </div>
@@ -570,7 +560,7 @@
                         <span class="slot-index">F161-170</span>
                     </div>
                     <div class="matrix-slider-pack">
-                        <input type="range" min="10000" max="32000" value="26000">
+                        <input type="range" id="sub-limit-slider" min="50" max="100" value="90">
                     </div>
                     <div class="slot-uv-bar" data-uv-target="bass"><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
                 </div>
@@ -581,7 +571,7 @@
                         <span class="slot-index">F191-195</span>
                     </div>
                     <div class="slot-action-row">
-                        <button class="action-toggle-btn active-on" onclick="toggleSlot(this)">SECURE ON</button>
+                        <button class="action-toggle-btn active-on" data-param="antipop" onclick="toggleMatrixParam(this)">SECURE ON</button>
                     </div>
                     <div class="slot-uv-bar" data-uv-target="core"><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
                 </div>
@@ -603,7 +593,7 @@
                         <span class="slot-index">F301++</span>
                     </div>
                     <div class="slot-action-row">
-                        <button class="action-toggle-btn active-on" onclick="toggleSlot(this)">SYS COMBINE</button>
+                        <button class="action-toggle-btn active-on" data-param="syscombine" onclick="toggleMatrixParam(this)">SYS COMBINE</button>
                     </div>
                     <div class="slot-uv-bar" data-uv-target="all"><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
                 </div>
@@ -640,157 +630,333 @@
         const gainSlider = document.getElementById('gain-slider');
         const hpfSlider = document.getElementById('hpf-slider');
         const lpfSlider = document.getElementById('lpf-slider');
+        const subLimitSlider = document.getElementById('sub-limit-slider');
+        
         const cpuTempEl = document.getElementById('cpu-temp');
         const voltEl = document.getElementById('volt-monitor');
-        const canvas = document.getElementById('displayCanvas');
-        const ctx = canvas.getContext('2d');
+        
+        const canvasL = document.getElementById('displayCanvasL');
+        const canvasR = document.getElementById('displayCanvasR');
+        const ctxL = canvasL.getContext('2d');
+        const ctxR = canvasR.getContext('2d');
 
-        let audioCtx, analyser, sourceNode, dataArray, bufferLength;
-        let currentChannel = 'L';
+        // AUDIO ENGINE NODES VARIABLES
+        let audioCtx, sourceNode, splitterNode, mergerNode;
+        let analyserL, analyserR;
+        let hpfFilter, lpfFilter;
+        let mainGainNode;
+        let delayNodeL, delayNodeR; // Buat fasa alignment
+        let sultanEQ, harmonicEQ, vocalEQ; // Biquad filter tambahan untuk efek matrix
 
-        // Atur dimensi internal Canvas agar tajam
-        function resizeCanvas() {
-            canvas.width = canvas.clientWidth;
-            canvas.height = canvas.clientHeight;
+        let dataArrayL, dataArrayR, bufferLength;
+        
+        // State system parameter matrix
+        let sysParams = {
+            linkwitz: true,
+            phase: false,
+            harmonic: false,
+            sultan: false,
+            vocal: false,
+            limiter: true
+        };
+
+        function resizeCanvases() {
+            canvasL.width = canvasL.clientWidth;
+            canvasL.height = canvasL.clientHeight;
+            canvasR.width = canvasR.clientWidth;
+            canvasR.height = canvasR.clientHeight;
         }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
+        window.addEventListener('resize', resizeCanvases);
+        resizeCanvases();
 
-        // Pemuatan Musik
+        // Pemuatan File Musik dari HP
         audioFile.addEventListener('change', function(){
             const files = this.files;
             if(files.length === 0) return;
             audioElement.src = URL.createObjectURL(files[0]);
             audioElement.load();
-            initAudioEngine();
+            
+            // Inisialisasi audio setelah ada interaksi user
+            if (!audioCtx) {
+                initAudioEngine();
+            }
         });
 
         function initAudioEngine() {
-            if (audioCtx) return;
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            analyser = audioCtx.createAnalyser();
-            analyser.fftSize = 64; // Frekuensi RTA 32 band hemat memori
-            bufferLength = analyser.frequencyBinCount;
-            dataArray = new Uint8Array(bufferLength);
-
+            
+            // 1. Source Node dari Elemen Audio
             sourceNode = audioCtx.createMediaElementSource(audioElement);
-            sourceNode.connect(analyser);
-            analyser.connect(audioCtx.destination);
 
+            // 2. Pembuatan Filter HPF & LPF Utama (Sirkuit Crossover)
+            hpfFilter = audioCtx.createBiquadFilter();
+            hpfFilter.type = "highpass";
+            hpfFilter.frequency.value = parseFloat(hpfSlider.value);
+            hpfFilter.Q.value = sysParams.linkwitz ? 1.2 : 0.707; // 1.2 Q-factor simulasi Linkwitz-Riley
+
+            lpfFilter = audioCtx.createBiquadFilter();
+            lpfFilter.type = "lowpass";
+            lpfFilter.frequency.value = parseFloat(lpfSlider.value);
+            lpfFilter.Q.value = sysParams.linkwitz ? 1.2 : 0.707;
+
+            // 3. Pembuatan Booster Filter Untuk Fitur Sultan, Harmonic & Vocal
+            sultanEQ = audioCtx.createBiquadFilter();
+            sultanEQ.type = "lowshelf";
+            sultanEQ.frequency.value = 90; // Sasar Sub-Bass
+            sultanEQ.gain.value = 0; // Mulai dari datar (OFF)
+
+            vocalEQ = audioCtx.createBiquadFilter();
+            vocalEQ.type = "peaking";
+            vocalEQ.frequency.value = 2500; // Sasar Mid-vocal kehadiran
+            vocalEQ.gain.value = 0;
+
+            harmonicEQ = audioCtx.createBiquadFilter();
+            harmonicEQ.type = "highshelf";
+            harmonicEQ.frequency.value = 10000; // Sasar Treble detail
+            harmonicEQ.gain.value = 0;
+
+            // 4. Node Pengatur Volume Global (Master Gain)
+            mainGainNode = audioCtx.createGain();
+            mainGainNode.gain.value = parseFloat(gainSlider.value) / 100;
+
+            // 5. Sirkuit Splitter & Merger Stereo Nyata untuk L & R Channel
+            splitterNode = audioCtx.createChannelSplitter(2);
+            mergerNode = audioCtx.createChannelMerger(2);
+
+            // 6. Jalur Phase Alignment Delay Node (L & R terpisah)
+            delayNodeL = audioCtx.createDelay(0.1);
+            delayNodeR = audioCtx.createDelay(0.1);
+            delayNodeL.delayTime.value = 0;
+            delayNodeR.delayTime.value = 0;
+
+            // 7. Analyser Terpisah untuk Grafik Kiri vs Kanan
+            analyserL = audioCtx.createAnalyser();
+            analyserR = audioCtx.createAnalyser();
+            analyserL.fftSize = 64; // Resolusi RTA hemat daya
+            analyserR.fftSize = 64;
+            
+            bufferLength = analyserL.frequencyBinCount;
+            dataArrayL = new Uint8Array(bufferLength);
+            dataArrayR = new Uint8Array(bufferLength);
+
+            // --- STRUKTUR SKEMA WIRING AUDIO ---
+            // Source -> HPF -> LPF -> Sultan -> Vocal -> Harmonic -> Main Gain -> Splitter
+            sourceNode.connect(hpfFilter);
+            hpfFilter.connect(lpfFilter);
+            lpfFilter.connect(sultanEQ);
+            sultanEQ.connect(vocalEQ);
+            vocalEQ.connect(harmonicEQ);
+            harmonicEQ.connect(mainGainNode);
+            mainGainNode.connect(splitterNode);
+
+            // Hubungkan Output Splitter 0 ke Jalur Kiri, Output Splitter 1 ke Jalur Kanan
+            splitterNode.connect(delayNodeL, 0); // Sinyal Kiri ke Delay Kiri
+            splitterNode.connect(delayNodeR, 1); // Sinyal Kanan ke Delay Kanan
+
+            // Sambungkan ke Analyser masing-masing sebelum masuk Merger Speaker
+            delayNodeL.connect(analyserL);
+            delayNodeR.connect(analyserR);
+
+            // Gabungkan Kembali Jalur yang Terpisah ke Merger
+            analyserL.connect(mergerNode, 0, 0); // Kiri ke Input 0 Merger
+            analyserR.connect(mergerNode, 0, 1); // Kanan ke Input 1 Merger
+
+            // Hubungkan Akhir ke Hardware Speaker/HP
+            mergerNode.connect(audioCtx.destination);
+
+            // Mulai siklus render grafis
             renderSystemLoop();
         }
 
-        // SWITH ACTIVE CHANNEL INTERFACE
-        function switchChannel(ch) {
-            currentChannel = ch;
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-            document.getElementById('active-ch-text').innerHTML = `<i class="fa-solid fa-microchip"></i> MONITOR: CH${ch === 'L' ? '1 (LEFT' : '2 (RIGHT'} OUTPUT)`;
+        // INPUT EVENT CONTROLLERS
+        hpfSlider.addEventListener('input', function() {
+            if (hpfFilter) hpfFilter.frequency.value = parseFloat(this.value);
+        });
+
+        lpfSlider.addEventListener('input', function() {
+            if (lpfFilter) lpfFilter.frequency.value = parseFloat(this.value);
+        });
+
+        gainSlider.addEventListener('input', function() {
+            if (mainGainNode) mainGainNode.gain.value = parseFloat(this.value) / 100;
+        });
+
+        // RE-MAPPED MATRIX TOGGLES LOGIC WITH REAL AUDIO EFFECTS
+        function toggleMatrixParam(btn) {
+            const param = btn.getAttribute('data-param');
+            const card = btn.parentElement.parentElement;
+            
+            if(btn.classList.contains('active-on')) {
+                // Matikan Parameter
+                btn.classList.remove('active-on');
+                card.classList.remove('active');
+                sysParams[param] = false;
+
+                if (param === 'phase') btn.innerText = "0 DEG";
+                else if (param === 'linkwitz') btn.innerText = "LR-OFF";
+                else if (param === 'harmonic') btn.innerText = "XTREME OFF";
+                else if (param === 'sultan') btn.innerText = "SULTAN OFF";
+                else if (param === 'vocal') btn.innerText = "BOOST OFF";
+                else if (param === 'echo') btn.innerText = "PSRAM OFF";
+                else btn.innerText = "OFF";
+            } else {
+                // Aktifkan Parameter
+                btn.classList.add('active-on');
+                card.classList.add('active');
+                sysParams[param] = true;
+
+                if (param === 'phase') btn.innerText = "180 DEG";
+                else if (param === 'linkwitz') btn.innerText = "LR-ACTIVE";
+                else if (param === 'harmonic') btn.innerText = "XTREME ON";
+                else if (param === 'sultan') btn.innerText = "FARO SULTAN";
+                else if (param === 'vocal') btn.innerText = "VOCAL ACTIVE";
+                else if (param === 'echo') btn.innerText = "PSRAM ECHO";
+                else btn.innerText = "ACTIVE";
+            }
+
+            // Terapkan Logika DSP langsung ke sirkuit Web Audio Node
+            applyLiveDSPAlgorithms();
         }
 
-        // SYSTEM ANIMATION RENDER LOOP (GRAPHICS + VU)
+        function applyLiveDSPAlgorithms() {
+            if(!audioCtx) return;
+
+            // Linkwitz-Riley Q-Slope Configuration
+            if(hpfFilter && lpfFilter) {
+                let qValue = sysParams.linkwitz ? 1.2 : 0.707;
+                hpfFilter.Q.value = qValue;
+                lpfFilter.Q.value = qValue;
+            }
+
+            // Phase Alignment Logic (Membalik fasa dengan waktu tunda mikro mili-seconds)
+            if(delayNodeR) {
+                delayNodeR.delayTime.value = sysParams.phase ? 0.005 : 0; // Tunda channel kanan untuk geser fasa stereo
+            }
+
+            // Selective Sultan (Xtreme Low-Shelf Bass Booster)
+            if(sultanEQ) {
+                sultanEQ.gain.value = sysParams.sultan ? 12 : 0; // Boost 12dB bass murni jika aktif
+            }
+
+            // Vocal Presence Boost
+            if(vocalEQ) {
+                vocalEQ.gain.value = sysParams.vocal ? 8 : 0;
+            }
+
+            // Harmonic Enhancer (High-Shelf Crystal Clear Treble Detail)
+            if(harmonicEQ) {
+                harmonicEQ.gain.value = sysParams.harmonic ? 9 : 0;
+            }
+        }
+
+        // REAL-TIME GRAPHICS ENGINE AND OUTPUT UV MATRICES LOOP
         function renderSystemLoop() {
-            if (!analyser) return;
+            if (!analyserL || !analyserR) return;
             requestAnimationFrame(renderSystemLoop);
 
-            analyser.getByteFrequencyData(dataArray);
+            // Dapatkan data frekuensi mandiri untuk Kiri dan Kanan
+            analyserL.getByteFrequencyData(dataArrayL);
+            analyserR.getByteFrequencyData(dataArrayR);
             
-            // Bersihkan Canvas Layar Monitor Kiri
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            // Bersihkan Kedua Canvas Layar Monitor
+            ctxL.clearRect(0, 0, canvasL.width, canvasL.height);
+            ctxR.clearRect(0, 0, canvasR.width, canvasR.height);
             
-            // Hitung Volume Global
-            let sumVol = 0;
-            let bassVol = 0;
-            let midVol = 0;
-            let trebleVol = 0;
+            // Hitung Spektrum Frekuensi Komponen untuk Pengendali Lampu Matrix
+            let sumVolL = 0, sumVolR = 0;
+            let bassVol = 0, midVol = 0, trebleVol = 0;
 
             for(let i = 0; i < bufferLength; i++) {
-                sumVol += dataArray[i];
-                if(i < 8) bassVol += dataArray[i];
-                else if(i < 22) midVol += dataArray[i];
-                else trebleVol += dataArray[i];
+                sumVolL += dataArrayL[i];
+                sumVolR += dataArrayR[i];
+                
+                // Distribusi frekuensi band untuk lampu UV Matrix
+                if(i < 8) bassVol += (dataArrayL[i] + dataArrayR[i]) / 2;
+                else if(i < 22) midVol += (dataArrayL[i] + dataArrayR[i]) / 2;
+                else trebleVol += (dataArrayL[i] + dataArrayR[i]) / 2;
             }
             
-            let avgVol = sumVol / bufferLength;
+            let avgVolL = sumVolL / bufferLength;
+            let avgVolR = sumVolR / bufferLength;
+            
             bassVol = bassVol / 8;
             midVol = midVol / 14;
             trebleVol = trebleVol / 10;
+            
+            let globalAverage = (avgVolL + avgVolR) / 2;
 
-            let finalGainMultiplier = parseFloat(gainSlider.value) / 120;
-            let currentVolume = avgVol * finalGainMultiplier;
+            // DRAW INDEPENDENT SPLIT DATA GRAPHICS FOR L AND R CANVAS
+            drawChannelGraph(ctxL, canvasL, dataArrayL, '#8a2be2'); // Canvas Kiri (Warna Ungu)
+            drawChannelGraph(ctxR, canvasR, dataArrayR, '#00bfff'); // Canvas Kanan (Warna Biru Cyan Elektronik)
 
-            // DRAW LIVE GRAPHIC (COMBINED RTA AND SPLINE CROSSOVER CURVE)
-            drawDigitalScreenGraph(currentVolume, dataArray);
-
-            // PROCESS MASTER LR VU METERS
+            // PROCESS FIXED REAL-TIME HARDWARE VU METERS FOOTER
             let leftOutputLevel = 0;
             let rightOutputLevel = 0;
 
             if (!audioElement.paused) {
-                // Memberi sedikit variasi real-time agar gelombang stereo L dan R terlihat hidup berbeda
-                leftOutputLevel = Math.min(20, Math.floor((currentVolume / 140) * 20 + (Math.random() * 1.5)));
-                rightOutputLevel = Math.min(20, Math.floor((currentVolume / 140) * 20 + (Math.random() * 1.5)));
+                // Hitung level output pasca limiter
+                let limiterFactor = sysParams.limiter ? 0.85 : 1.1;
+                let subPeakFactor = parseFloat(subLimitSlider.value) / 100;
                 
-                // Reduksi tipis jika channel tertentu di-offset
-                if(currentChannel === 'L') rightOutputLevel = Math.max(2, rightOutputLevel - 1);
-                if(currentChannel === 'R') leftOutputLevel = Math.max(2, leftOutputLevel - 1);
+                leftOutputLevel = Math.min(20, Math.floor((avgVolL / 130) * 20 * limiterFactor * subPeakFactor));
+                rightOutputLevel = Math.min(20, Math.floor((avgVolR / 130) * 20 * limiterFactor * subPeakFactor));
+                
+                // Tambahkan jitter sinyal listrik mikro
+                if (leftOutputLevel > 0) leftOutputLevel = Math.max(1, Math.min(20, leftOutputLevel + Math.floor(Math.random() * 2 - 1)));
+                if (rightOutputLevel > 0) rightOutputLevel = Math.max(1, Math.min(20, rightOutputLevel + Math.floor(Math.random() * 2 - 1)));
             }
 
             renderVUFooterBars('vu-left', leftOutputLevel);
             renderVUFooterBars('vu-right', rightOutputLevel);
 
-            // RE-RENDER ALL NODE MATRIX UV LIGHTS
-            renderMatrixUVMeters(bassVol, midVol, trebleVol, currentVolume);
+            // ANIMATE BLOCK MATRIX UV INDEPENDENT BANDS
+            renderMatrixUVMeters(bassVol, midVol, trebleVol, globalAverage);
         }
 
-        // FUNGSI DRAW MONITOR GRAPHIC (SISI KIRI)
-        function drawDigitalScreenGraph(volume, data) {
-            const w = canvas.width;
-            const h = canvas.height;
+        // RE-USABLE DIGITAL GRAPH DRAWING ENGINE WITH INTEGRATED FILTER PLOTS
+        function drawChannelGraph(ctx, cnv, data, rtaColor) {
+            const w = cnv.width;
+            const h = cnv.height;
 
-            // 1. Draw RTA Audio Spectrum Bar Background (Ungu Transparan)
+            // 1. Gambar RTA Audio Spectrum Bar Background Nyata sesuai Channel
             let barWidth = w / bufferLength;
             for(let i = 0; i < bufferLength; i++) {
-                let barHeight = (data[i] / 255) * h * 0.8;
-                ctx.fillStyle = 'rgba(138, 43, 226, 0.12)';
+                let barHeight = (data[i] / 255) * h * 0.75;
+                ctx.fillStyle = rtaColor === '#8a2be2' ? 'rgba(138, 43, 226, 0.15)' : 'rgba(0, 191, 255, 0.15)';
                 ctx.fillRect(i * barWidth, h - barHeight, barWidth - 2, barHeight);
             }
 
-            // 2. Draw Dynamic Curve Crossover Line (HPF & LPF Simulation Plot)
+            // 2. Plotting Grafik Curve HPF / LPF Crossover Simulator
             let hpfVal = parseInt(hpfSlider.value);
             let lpfVal = parseInt(lpfSlider.value);
 
-            // Konversi nilai frekuensi slider logis ke koordinat X piksel layar
-            let cutOffX_HPF = (hpfVal / 500) * (w * 0.3) + 20;
-            let cutOffX_LPF = w - ((18000 - lpfVal) / 18000) * (w * 0.4) - 20;
+            // Mapping logis koordinat frekuensi ke garis piksel monitor X
+            let cutOffX_HPF = ((hpfVal - 20) / 480) * (w * 0.3) + 15;
+            let cutOffX_LPF = w - ((20000 - lpfVal) / 18000) * (w * 0.4) - 15;
 
             ctx.beginPath();
-            ctx.lineWidth = 3;
-            ctx.strokeStyle = '#bc13fe'; // Warna Violet Essence Glow
+            ctx.lineWidth = 2.5;
+            ctx.strokeStyle = '#bc13fe'; // Violet Essence Curve line
 
-            // Titik awal kiri bawah (HPF Drop)
-            ctx.moveTo(0, h - 10);
-            // Melengkung naik melewati HPF Cutoff
-            ctx.quadraticCurveTo(cutOffX_HPF * 0.5, h - 10, cutOffX_HPF, 35);
-            // Garis datar respons tengah (Mid Flat)
-            ctx.lineTo(cutOffX_LPF, 35);
-            // Melengkung turun melewati LPF Cutoff
-            ctx.quadraticCurveTo((w + cutOffX_LPF) * 0.5, h - 10, w, h - 10);
+            ctx.moveTo(0, h - 8);
+            ctx.quadraticCurveTo(cutOffX_HPF * 0.5, h - 8, cutOffX_HPF, 25);
+            ctx.lineTo(cutOffX_LPF, 25);
+            ctx.quadraticCurveTo((w + cutOffX_LPF) * 0.5, h - 8, w, h - 8);
             ctx.stroke();
 
-            // Draw Simbol Titik Potong Filter Sinyal
-            ctx.fillStyle = '#2ecc71';
+            // Titik Indikator Hijau & Merah untuk Menandai Titik Crossover Potong Frekuensi
+            ctx.fillStyle = '#2ecc71'; // HPF dot
             ctx.beginPath();
-            ctx.arc(cutOffX_HPF, 35, 4, 0, 2 * Math.PI);
+            ctx.arc(cutOffX_HPF, 25, 3.5, 0, 2 * Math.PI);
             ctx.fill();
 
-            ctx.fillStyle = '#e74c3c';
+            ctx.fillStyle = '#e74c3c'; // LPF dot
             ctx.beginPath();
-            ctx.arc(cutOffX_LPF, 35, 4, 0, 2 * Math.PI);
+            ctx.arc(cutOffX_LPF, 25, 3.5, 0, 2 * Math.PI);
             ctx.fill();
         }
 
-        // RENDER MASTER VU SEGMENTS
+        // FOOTER VU METERS SEGMENT RENDERING
         function renderVUFooterBars(id, count) {
             const parent = document.getElementById(id);
             const segments = parent.getElementsByClassName('vu-segment');
@@ -804,7 +970,7 @@
             }
         }
 
-        // RENDER MATRIX COMPONENT UV SIGNAL LIGHTS
+        // MATRIX CORE COMPONENTS UV METERS CONTROLLER
         function renderMatrixUVMeters(b, m, t, all) {
             const bars = document.querySelectorAll('.slot-uv-bar');
             bars.forEach(bar => {
@@ -815,9 +981,9 @@
                 if(targetType === 'bass') val = b;
                 if(targetType === 'mid') val = m;
                 if(targetType === 'treble') val = t;
-                if(targetType === 'core') val = all * 0.7 + (Math.random() * 20); // Variasi beban processor
+                if(targetType === 'core') val = all * 0.6 + (Math.random() * 25); // Beban fluktuasi CPU turbo
 
-                let litCount = Math.floor((val / 160) * dots.length);
+                let litCount = Math.floor((val / 150) * dots.length);
                 if(audioElement.paused) litCount = 0;
 
                 for(let i = 0; i < dots.length; i++) {
@@ -832,27 +998,16 @@
             });
         }
 
-        // TOGGLE SWITCH MATRIX INTERACTIVE
-        function toggleSlot(btn, type) {
-            const card = btn.parentElement.parentElement;
-            if(btn.classList.contains('active-on')) {
-                btn.classList.remove('active-on');
-                btn.innerText = type === 'phase' ? "0 DEG" : "OFF";
-                card.classList.remove('active');
-            } else {
-                btn.classList.add('active-on');
-                btn.innerText = type === 'phase' ? "180 DEG" : "ACTIVE";
-                card.classList.add('active');
-            }
-        }
-
-        // SIMULASI TELEMETRI HARDWARE REAL-TIME
+        // HARDWARE TELEMETRY HARDWARE SIMULATION
         setInterval(() => {
-            let temp = 41.5 + (Math.random() * 1.2);
-            let volt = 13.6 + (Math.random() * 0.3);
+            let turboActive = document.querySelector('[data-param="turbo"]').classList.contains('active-on');
+            let baseTemp = turboActive ? 54.8 : 41.2;
+            let temp = baseTemp + (Math.random() * 1.5);
+            let volt = 13.7 + (Math.random() * 0.2);
+            
             cpuTempEl.innerText = temp.toFixed(1) + " °C";
             voltEl.innerText = volt.toFixed(1) + " VDC";
-        }, 2000);
+        }, 1500);
     </script>
 </body>
 </html>
