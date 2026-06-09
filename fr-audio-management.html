@@ -256,7 +256,7 @@
             border-color: rgba(138,43,226,0.4);
             background: linear-gradient(145deg, var(--panel-inner), rgba(138,43,226,0.02));
         }
-        
+
         .slot-header {
             display: flex;
             justify-content: space-between;
@@ -453,36 +453,31 @@
             </div>
 
             <div class="audio-input-box">
-                <label><i class="fa-solid fa-radio"></i> LIVE SMARTPHONE AUDIO CAPTURE LINK</label>
-                <div class="capture-controls-wrapper">
-                    <button class="stream-active-btn" id="start-stream-btn" onclick="initLiveAudioCapture()"><i class="fa-solid fa-play"></i> HUBUNGKAN AUDIO HP</button>
-                    <button class="stream-source-btn" id="src-toggle-btn" onclick="toggleAudioSourceMode()" title="Ganti Mode Tangkap (Sistem / Mic)">
-                        <i class="fa-solid fa-sliders"></i> <span id="src-mode-text">AUTO</span>
-                    </button>
-                </div>
-                <div class="audio-input-box" style="margin-top: 10px;">
-    <label for="audio-upload" style="color: #bc13fe; cursor: pointer;">
-        <i class="fa-solid fa-file-audio"></i> LOAD LOKAL FILE AUDIO
-    </label>
-    <input type="file" id="audio-upload" accept="audio/*" style="display: none;" onchange="loadAudioFile(this)">
-    <div id="file-status" style="font-size: 9px; color: var(--text-muted); margin-top: 5px;">Belum ada file dipilih</div>
-</div>
-<div class="audio-input-box">
-    <label for="audio-upload" style="color: #00bfff; cursor: pointer;">
-        <i class="fa-solid fa-folder-open"></i> PILIH FILE AUDIO (MP3/WAV)
-    </label>
-    <input type="file" id="audio-upload" accept="audio/*" style="display: none;" onchange="prepareAudioFile(this)">
-    
-    <div class="capture-controls-wrapper" style="margin-top: 10px;">
-        <button class="stream-active-btn" id="play-file-btn" onclick="togglePlayback()" disabled>
-            <i class="fa-solid fa-play" id="play-icon"></i> PUTAR MUSIK
-        </button>
-    </div>
-    <div class="stream-status-indicator" id="file-status">Belum ada file dipilih...</div>
-</div>
-</script>
+                <label><i class="fa-solid fa-music"></i> AUDIO INPUT SOURCE MATRIX</label>
+                
+                <audio id="audio-file-player" loop style="display: none;"></audio>
 
-                <div class="stream-status-indicator" id="stream-status">Status: Menunggu aktivasi... Gunakan tombol AUTO untuk memilih mode.</div>
+                <div class="capture-controls-wrapper" style="flex-direction: column; gap: 8px;">
+                    <div style="display: flex; gap: 6px; width: 100%;">
+                        <button class="stream-active-btn" id="start-stream-btn" onclick="initLiveAudioCapture()">
+                            <i class="fa-solid fa-radio"></i> HUBUNGKAN AUDIO HP
+                        </button>
+                        <button class="stream-source-btn" id="src-toggle-btn" onclick="toggleAudioSourceMode()" title="Ganti Mode Tangkap (Sistem / Mic)">
+                            <i class="fa-solid fa-sliders"></i> <span id="src-mode-text">AUTO</span>
+                        </button>
+                    </div>
+
+                    <div style="display: flex; gap: 6px; width: 100%;">
+                        <input type="file" id="music-file-input" accept="audio/*" style="display: none;" onchange="handleMusicFileSelect(this)">
+                        <button class="stream-active-btn" id="upload-trigger-btn" onclick="document.getElementById('music-file-input').click()" style="background: linear-gradient(135deg, #11091c, var(--violet-main)); border: 1px solid rgba(138,43,226,0.4); flex: 3;">
+                            <i class="fa-solid fa-file-audio"></i> PILIH FILE MUSIK (MP3/WAV)
+                        </button>
+                        <button class="stream-source-btn" id="play-pause-btn" onclick="toggleFilePlayback()" disabled style="flex: 1; opacity: 0.5;">
+                            <i class="fa-solid fa-play"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="stream-status-indicator" id="stream-status">Status: Menunggu aktivasi input... Gunakan file musik lokal atau live capture.</div>
             </div>
 
             <div style="font-size: 10px; background: rgba(255,255,255,0.02); padding: 8px; border-radius: 6px; color: var(--text-muted);">
@@ -852,8 +847,15 @@
         let dataArrayL, dataArrayR, bufferLength;
         let isEngineBuilt = false;
         
-        // Mode Tangkap: 'auto' (Sistem, fallback ke mic), 'system' (wajib internal), 'mic' (murni mic HP)
+        // Mode Tangkap Live: 'auto', 'system', 'mic'
         let captureMode = 'auto'; 
+
+        // ELEMEN DAN VARIABEL UNTUK INPUT FILE MUSIK LOKAL
+        const filePlayer = document.getElementById('audio-file-player');
+        const playPauseBtn = document.getElementById('play-pause-btn');
+        const uploadTriggerBtn = document.getElementById('upload-trigger-btn');
+        let fileSourceNode = null;
+        let activeInputType = null; // 'live' atau 'file'
 
         let channelParams = {
             l: { core: true, turbo: true, linkwitz: true, phase: false, harmonic: false, sultan: false, vocal: false, echo: false, limiter: true, antipop: true, syscombine: true },
@@ -867,9 +869,9 @@
         window.addEventListener('resize', resizeCanvases);
         resizeCanvases();
 
-        // FUNGSI GANTI MODE TANGKAP MANUAL
+        // FUNGSI GANTI MODE TANGKAP LIVE MANUAL
         function toggleAudioSourceMode() {
-            if(isEngineBuilt) return; // Kunci jika engine sudah berjalan
+            if(isEngineBuilt) return; 
             
             if (captureMode === 'auto') {
                 captureMode = 'system';
@@ -891,22 +893,80 @@
             }
         }
 
-        // -------------------------------------------------------------
-        // PEMBARUAN UTAMA: ENGINE PENANGKAP MULTI-SOURCE DENGAN AUTOFALLBACK
-        // -------------------------------------------------------------
+        // FUNGSI PROSES INPUT FILE MUSIK LOCAL (MP3/WAV)
+        function handleMusicFileSelect(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            if (activeInputType === 'live') {
+                alert("Harap refresh halaman jika ingin berpindah input secara total demi stabilitas clock rate DSP.");
+                return;
+            }
+
+            streamStatusEl.innerText = "Memuat file: " + file.name;
+            const fileURL = URL.createObjectURL(file);
+            filePlayer.src = fileURL;
+
+            if (!audioCtx) {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioContextClass();
+            }
+
+            if (!fileSourceNode) {
+                fileSourceNode = audioCtx.createMediaElementSource(filePlayer);
+                streamNode = fileSourceNode; 
+                buildDiscreteEngine();
+            }
+
+            activeInputType = 'file';
+            playPauseBtn.disabled = false;
+            playPauseBtn.style.opacity = "1";
+            playPauseBtn.style.background = "#2ecc71";
+            playPauseBtn.style.color = "#000";
+            
+            uploadTriggerBtn.innerHTML = `<i class="fa-solid fa-circle-check"></i> TRACK READY`;
+            streamStatusEl.innerText = "Status: " + file.name + " siap. Klik tombol PLAY hijau di samping!";
+        }
+
+        // PLAY / PAUSE FILE MUSIK CONTROL
+        function toggleFilePlayback() {
+            if (!audioCtx || activeInputType !== 'file') return;
+
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            if (filePlayer.paused) {
+                filePlayer.play();
+                playPauseBtn.innerHTML = `<i class="fa-solid fa-pause"></i>`;
+                playPauseBtn.style.background = "#e74c3c";
+                playPauseBtn.style.color = "#fff";
+                streamStatusEl.innerText = "Status: Memutar file musik lokal...";
+            } else {
+                filePlayer.pause();
+                playPauseBtn.innerHTML = `<i class="fa-solid fa-play"></i>`;
+                playPauseBtn.style.background = "#2ecc71";
+                playPauseBtn.style.color = "#000";
+                streamStatusEl.innerText = "Status: Musik di-pause.";
+            }
+        }
+
+        // INGERSI LIVE AUDIO CAPTURE HANDLER
         async function initLiveAudioCapture() {
             if (isEngineBuilt) return;
+            if (activeInputType === 'file') {
+                alert("Sistem sedang mengunci input file musik. Silakan refresh halaman.");
+                return;
+            }
+            activeInputType = 'live';
             
             const AudioContextClass = window.AudioContext || window.webkitAudioContext;
             audioCtx = new AudioContextClass();
             let mediaStream = null;
 
-            // Jika dipaksa menggunakan MIC HP murni
             if (captureMode === 'mic') {
                 mediaStream = await startMicStream();
-            } 
-            // Jika memilih AUTO atau SYSTEM-ONLY
-            else {
+            } else {
                 try {
                     streamStatusEl.innerText = "Membuka sistem Sink... Pilih aplikasi/tab musik Anda.";
                     mediaStream = await navigator.mediaDevices.getDisplayMedia({
@@ -920,12 +980,11 @@
                     streamStatusEl.innerText = "Status: Terhubung via Loopback Internal!";
                 } catch (err) {
                     console.warn("Internal loopback diblokir browser HP:", err);
-                    
                     if (captureMode === 'auto') {
                         streamStatusEl.innerText = "Akses Sistem diblokir Chrome Mobile. Mengalihkan otomatis ke Mikrofon HP...";
                         mediaStream = await startMicStream();
                     } else {
-                        streamStatusEl.innerText = "Gagal menyambung. Mode SYS-ONLY ditolak oleh sistem operasi Android.";
+                        streamStatusEl.innerText = "Gagal menyambung. Mode SYS-ONLY ditolak oleh sistem Android.";
                         return;
                     }
                 }
@@ -938,7 +997,7 @@
                     
                     document.getElementById('start-stream-btn').innerHTML = `<i class="fa-solid fa-circle-check"></i> FR-ENGINE ONLINE`;
                     document.getElementById('start-stream-btn').style.background = "#bc13fe";
-                    srcToggleBtn.disabled = true; // Kunci switch source saat live
+                    srcToggleBtn.disabled = true; 
                 } catch(e) {
                     console.error(e);
                     streamStatusEl.innerText = "Kritis: Gagal menyusun sirkuit routing node!";
@@ -946,26 +1005,26 @@
             }
         }
 
-        // Jalur Fungsi Penangkap Mic HP
         async function startMicStream() {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({
                     video: false,
                     audio: {
-                        echoCancellation: false,  // Matikan agar bass musik speaker tidak disaring dianggap noise
-                        noiseSuppression: false,   // Pertahankan detail high/treble
-                        autoGainControl: false     // Amplitudo gain murni dari luar
+                        echoCancellation: false,  
+                        noiseSuppression: false,   
+                        autoGainControl: false     
                     }
                 });
                 streamStatusEl.innerText = "Status: Terhubung murni via Mikrofon HP! Dekatkan HP ke sumber suara musik.";
                 return stream;
             } catch(e) {
                 console.error(e);
-                streamStatusEl.innerText = "Akses gagal. Pastikan izin Mikrofon pada pengaturan Chrome HP sudah Aktif!";
+                streamStatusEl.innerText = "Akses gagal. Pastikan izin Mikrofon Chrome HP sudah Aktif!";
                 return null;
             }
         }
 
+        // DSP ENGINE CORE BUILDING MATRIX
         function buildDiscreteEngine() {
             splitterNode = audioCtx.createChannelSplitter(2);
             mergerNode = audioCtx.createChannelMerger(2);
@@ -984,7 +1043,7 @@
             harmonicL = audioCtx.createBiquadFilter(); harmonicL.type = "highshelf"; harmonicL.frequency.value = 11000; harmonicL.gain.value = 0;
             gainL = audioCtx.createGain(); gainL.gain.value = parseFloat(document.getElementById('gain-slider-l').value) / 100;
 
-            // --- STRUKTUR BARU REVERB + MULTI-TAP ECHO (CH-L) ---
+            // --- STRUKTUR REVERB + MULTI-TAP ECHO (CH-L) ---
             delayL1 = audioCtx.createDelay(1.0); delayL1.delayTime.value = 0.38; 
             delayL2 = audioCtx.createDelay(1.0); delayL2.delayTime.value = 0.52; 
             feedbackL1 = audioCtx.createGain(); feedbackL1.gain.value = 0;
@@ -1008,7 +1067,7 @@
             harmonicR = audioCtx.createBiquadFilter(); harmonicR.type = "highshelf"; harmonicR.frequency.value = 11000; harmonicR.gain.value = 0;
             gainR = audioCtx.createGain(); gainR.gain.value = parseFloat(document.getElementById('gain-slider-r').value) / 100;
 
-            // --- STRUKTUR BARU REVERB + MULTI-TAP ECHO (CH-R) ---
+            // --- STRUKTUR REVERB + MULTI-TAP ECHO (CH-R) ---
             delayR1 = audioCtx.createDelay(1.0); delayR1.delayTime.value = 0.40; 
             delayR2 = audioCtx.createDelay(1.0); delayR2.delayTime.value = 0.55; 
             feedbackR1 = audioCtx.createGain(); feedbackR1.gain.value = 0;
@@ -1024,33 +1083,28 @@
             filterR.connect(delayR1); 
             filterR.connect(wetGainR);
 
-            // --- ROUTING WIRING SPLIT ARCHITECTURE ---
+            // --- ROUTING WIRING DISCRETE STRUCTURE ---
             streamNode.connect(splitterNode);
 
-            // Saluran Kiri (L)
+            // Jalur Kiri (L)
             splitterNode.connect(hpfL, 0);
             hpfL.connect(lpfL);
             lpfL.connect(sultanL);
             sultanL.connect(vocalL);
-            
             vocalL.connect(harmonicL);
             wetGainL.connect(harmonicL); 
-            
             harmonicL.connect(gainL);
             gainL.connect(analyserL);
             analyserL.connect(mergerNode, 0, 0);
 
-            // Saluran Kanan (R)
-            // Jika mic HP murni mono, otomatis duplikasi input ke R hpfR
+            // Jalur Kanan (R) - Handled fallback jika input mono (1 channel)
             let inputChannelIndex = (streamNode.channelCount > 1) ? 1 : 0;
             splitterNode.connect(hpfR, inputChannelIndex);
             hpfR.connect(lpfR);
             lpfR.connect(sultanR);
             sultanR.connect(vocalR);
-            
             vocalR.connect(harmonicR);
             wetGainR.connect(harmonicR);
-            
             harmonicR.connect(gainR);
             gainR.connect(analyserR);
             analyserR.connect(mergerNode, 0, 1);
@@ -1060,12 +1114,11 @@
             renderSystemLoop();
         }
 
-        // CONTROL LISTENER - KIRI (CH-L)
+        // SLIDER CONTROL LISTENERS
         document.getElementById('hpf-slider-l').addEventListener('input', function() { if(hpfL) hpfL.frequency.setValueAtTime(parseFloat(this.value), audioCtx.currentTime); });
         document.getElementById('lpf-slider-l').addEventListener('input', function() { if(lpfL) lpfL.frequency.setValueAtTime(parseFloat(this.value), audioCtx.currentTime); });
         document.getElementById('gain-slider-l').addEventListener('input', function() { if(gainL) gainL.gain.setValueAtTime(parseFloat(this.value)/100, audioCtx.currentTime); });
 
-        // CONTROL LISTENER - KANAN (CH-R)
         document.getElementById('hpf-slider-r').addEventListener('input', function() { if(hpfR) hpfR.frequency.setValueAtTime(parseFloat(this.value), audioCtx.currentTime); });
         document.getElementById('lpf-slider-r').addEventListener('input', function() { if(lpfR) lpfR.frequency.setValueAtTime(parseFloat(this.value), audioCtx.currentTime); });
         document.getElementById('gain-slider-r').addEventListener('input', function() { if(gainR) gainR.gain.setValueAtTime(parseFloat(this.value)/100, audioCtx.currentTime); });
