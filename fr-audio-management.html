@@ -188,6 +188,7 @@
 
         .capture-controls-wrapper {
             display: flex;
+            flex-direction: column;
             gap: 6px;
             width: 100%;
         }
@@ -201,7 +202,6 @@
             font-weight: bold;
             border-radius: 6px;
             cursor: pointer;
-            flex: 4;
             box-shadow: 0 0 8px rgba(155, 81, 224, 0.4);
             transition: all 0.3s ease;
         }
@@ -213,7 +213,6 @@
             font-size: 11px;
             border-radius: 6px;
             cursor: pointer;
-            flex: 1;
             transition: all 0.2s;
         }
 
@@ -342,7 +341,7 @@
             font-family: monospace;
         }
 
-        .matrix-slider-pack input type="range" {
+        .matrix-slider-pack input[type="range"] {
             width: 100%;
             height: 4px;
             outline: none;
@@ -606,17 +605,17 @@
                 <label><i class="fa-solid fa-music"></i> AUDIO INPUT SOURCE MATRIX</label>
                 <audio id="audio-file-player" loop style="display: none;"></audio>
 
-                <div class="capture-controls-wrapper" style="flex-direction: column; gap: 6px;">
-                    <div style="display: flex; gap: 6px; width: 100%;">
-                        <button class="stream-active-btn" id="start-stream-btn" onclick="initLiveAudioCapture()">
+                <div class="capture-controls-wrapper">
+                    <div style="display: flex; gap: 6px; width: 100%; margin-bottom: 6px;">
+                        <button class="stream-active-btn" id="start-stream-btn" onclick="initLiveAudioCapture()" style="flex: 4;">
                             <i class="fa-solid fa-radio"></i> HUBUNGKAN AUDIO HP
                         </button>
-                        <button class="stream-source-btn" id="src-toggle-btn" onclick="toggleAudioSourceMode()" title="Ganti Mode Tangkap">
+                        <button class="stream-source-btn" id="src-toggle-btn" onclick="toggleAudioSourceMode()" title="Ganti Mode Tangkap" style="flex: 1;">
                             <i class="fa-solid fa-sliders"></i> <span id="src-mode-text">AUTO</span>
                         </button>
                     </div>
 
-                    <div style="display: flex; gap: 6px; width: 100%;">
+                    <div style="display: flex; gap: 6px; width: 100%; margin-bottom: 6px;">
                         <input type="file" id="music-file-input" accept="audio/*" style="display: none;" onchange="handleMusicFileSelect(this)">
                         <button class="stream-active-btn" id="upload-trigger-btn" onclick="document.getElementById('music-file-input').click()" style="background: linear-gradient(135deg, #150b22, var(--violet-main)); border: 1px solid rgba(155,81,224,0.4); flex: 3;">
                             <i class="fa-solid fa-file-audio"></i> PILIH FILE MUSIK
@@ -1649,12 +1648,16 @@
         }
 
         function attachPeqListeners(id, node, param) {
-            document.getElementById(id).addEventListener('input', function() {
-                if(!isEngineBuilt) return;
-                if(param === 'g') node.gain.setValueAtTime(parseFloat(this.value), audioCtx.currentTime);
-                if(param === 'q') node.Q.setValueAtTime(parseFloat(this.value), audioCtx.currentTime);
-            });
+            const el = document.getElementById(id);
+            if(el) {
+                el.addEventListener('input', function() {
+                    if(!isEngineBuilt) return;
+                    if(param === 'g') node.gain.setValueAtTime(parseFloat(this.value), audioCtx.currentTime);
+                    if(param === 'q') node.Q.setValueAtTime(parseFloat(this.value), audioCtx.currentTime);
+                });
+            }
         }
+        
         attachPeqListeners('peq-lm-g-l', peqLML, 'g'); attachPeqListeners('peq-lm-q-l', peqLML, 'q');
         attachPeqListeners('peq-mv-g-l', peqMVL, 'g'); attachPeqListeners('peq-mv-q-l', peqMVL, 'q');
         attachPeqListeners('peq-ht-g-l', peqHTL, 'g'); attachPeqListeners('peq-ht-q-l', peqHTL, 'q');
@@ -1803,7 +1806,7 @@
             if(limiterL && typeof limiterL.reduction === 'number') reductionL = limiterL.reduction; 
             else if (limiterL && limiterL.reduction && typeof limiterL.reduction.value === 'number') reductionL = limiterL.reduction.value;
             
-            if(limiterR && typeof limiterR.reduction === 'number') reductionR = reductionR;
+            if(limiterR && typeof limiterR.reduction === 'number') reductionR = limiterR.reduction;
             else if (limiterR && limiterR.reduction && typeof limiterR.reduction.value === 'number') reductionR = limiterR.reduction.value;
 
             processLedLimitVisuals('l', reductionL);
