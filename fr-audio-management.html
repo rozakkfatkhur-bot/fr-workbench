@@ -17,6 +17,7 @@
             --led-green: #2ecc71;
             --led-yellow: #f1c40f;
             --led-red: #e74c3c;
+            --led-blue: #00bfff;
             --cyan-ch2: #00bfff;
         }
 
@@ -370,7 +371,7 @@
             padding: 4px;
             border-radius: 4px;
             cursor: pointer;
-            flex: 1;
+            flex: 2;
             text-align: center;
             transition: all 0.2s;
         }
@@ -387,21 +388,53 @@
             box-shadow: 0 0 5px rgba(0,191,255,0.4);
         }
 
+        /* CORE MUTE SYSTEM INDICATOR SPECIAL STYLES */
+        .mute-toggle-btn {
+            background: #221435;
+            border: 1px solid rgba(255,255,255,0.05);
+            font-size: 8px;
+            font-weight: bold;
+            padding: 4px 2px;
+            border-radius: 4px;
+            cursor: pointer;
+            flex: 1;
+            text-align: center;
+            transition: all 0.1s ease;
+        }
+        .mute-toggle-btn.mute-on {
+            background: var(--led-red) !important;
+            color: #ffffff !important;
+            border-color: #ff3b30 !important;
+            box-shadow: 0 0 8px var(--led-red);
+        }
+        .mute-toggle-btn.mute-off {
+            background: #0d1f14 !important;
+            color: #2ecc71 !important;
+            border-color: #2ecc71 !important;
+            animation: muteBlinkGreen 1s infinite;
+        }
+        @keyframes muteBlinkGreen {
+            0% { opacity: 1; }
+            50% { opacity: 0.4; }
+            100% { opacity: 1; }
+        }
+
         .dual-uv-container {
             margin-top: 6px;
             display: flex;
             flex-direction: column;
             gap: 2px;
             background: #030107;
-            padding: 3px;
-            border-radius: 3px;
+            padding: 4px;
+            border-radius: 4px;
         }
 
         .slot-uv-bar {
             width: 100%;
-            height: 3px;
+            height: 4px;
             display: flex;
             gap: 1px;
+            align-items: center;
         }
 
         .uv-dot {
@@ -409,6 +442,12 @@
             height: 100%;
             background: #110a1c;
             transition: background 0.03s ease;
+        }
+        
+        /* BLUE ACTIVE INDICATOR FOR ALL VU METERS */
+        .uv-dot.uv-active-indicator, .vu-segment.vu-active-indicator {
+            background-color: var(--led-blue) !important;
+            box-shadow: 0 0 4px var(--led-blue);
         }
 
         .master-output-footer {
@@ -434,12 +473,12 @@
         .vu-label {
             font-size: 10px;
             font-weight: bold;
-            width: 20px;
+            width: 25px;
         }
 
         .vu-meter-main, .gr-meter-main {
             flex: 1;
-            height: 9px;
+            height: 10px;
             background: #0a0612;
             border-radius: 2px;
             display: flex;
@@ -582,14 +621,16 @@
                     <div class="ch-control-row">
                         <div class="ch-indicator-label lbl-l">L</div>
                         <button class="action-toggle-btn l-active" id="core-btn-l" onclick="toggleDualMatrix(this, 'l', 'core')">CORE L ON</button>
+                        <button class="mute-toggle-btn mute-off" id="mute-core-l" onclick="toggleCoreMute('l', 'core')">MUTE</button>
                     </div>
                     <div class="ch-control-row">
                         <div class="ch-indicator-label lbl-r">R</div>
                         <button class="action-toggle-btn r-active" id="core-btn-r" onclick="toggleDualMatrix(this, 'r', 'core')">CORE R ON</button>
+                        <button class="mute-toggle-btn mute-off" id="mute-core-r" onclick="toggleCoreMute('r', 'core')">MUTE</button>
                     </div>
                     <div class="dual-uv-container" data-uv-group="core">
-                        <div class="slot-uv-bar uv-l"><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
-                        <div class="slot-uv-bar uv-r"><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
+                        <div class="slot-uv-bar uv-l"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
+                        <div class="slot-uv-bar uv-r"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
                     </div>
                 </div>
 
@@ -601,14 +642,16 @@
                     <div class="ch-control-row">
                         <div class="ch-indicator-label lbl-l">L</div>
                         <button class="action-toggle-btn l-active" id="turbo-btn-l" onclick="toggleDualMatrix(this, 'l', 'turbo')">MAX BOOST</button>
+                        <button class="mute-toggle-btn mute-off" id="mute-turbo-l" onclick="toggleCoreMute('l', 'turbo')">MUTE</button>
                     </div>
                     <div class="ch-control-row">
                         <div class="ch-indicator-label lbl-r">R</div>
                         <button class="action-toggle-btn r-active" id="turbo-btn-r" onclick="toggleDualMatrix(this, 'r', 'turbo')">MAX BOOST</button>
+                        <button class="mute-toggle-btn mute-off" id="mute-turbo-r" onclick="toggleCoreMute('r', 'turbo')">MUTE</button>
                     </div>
-                    <div class="dual-uv-container" data-uv-group="core">
-                        <div class="slot-uv-bar uv-l"><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
-                        <div class="slot-uv-bar uv-r"><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
+                    <div class="dual-uv-container" data-uv-group="turbo">
+                        <div class="slot-uv-bar uv-l"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
+                        <div class="slot-uv-bar uv-r"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
                     </div>
                 </div>
 
@@ -623,6 +666,7 @@
                             <div class="slider-meta-txt"><span>Freq</span><span id="hpf-txt-l">20 Hz</span></div>
                             <input type="range" class="slider-l" id="hpf-slider-l" min="20" max="400" value="20">
                         </div>
+                        <button class="mute-toggle-btn mute-off" id="mute-hpf-l" onclick="toggleCoreMute('l', 'hpf')">MUTE</button>
                     </div>
                     <div class="ch-control-row">
                         <div class="ch-indicator-label lbl-r">R</div>
@@ -630,6 +674,11 @@
                             <div class="slider-meta-txt"><span>Freq</span><span id="hpf-txt-r">20 Hz</span></div>
                             <input type="range" class="slider-r" id="hpf-slider-r" min="20" max="400" value="20">
                         </div>
+                        <button class="mute-toggle-btn mute-off" id="mute-hpf-r" onclick="toggleCoreMute('r', 'hpf')">MUTE</button>
+                    </div>
+                    <div class="dual-uv-container" data-uv-group="hpf">
+                        <div class="slot-uv-bar uv-l"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
+                        <div class="slot-uv-bar uv-r"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
                     </div>
                 </div>
 
@@ -644,6 +693,7 @@
                             <div class="slider-meta-txt"><span>Freq</span><span id="lpf-txt-l">20.0 kHz</span></div>
                             <input type="range" class="slider-l" id="lpf-slider-l" min="2000" max="20000" value="20000">
                         </div>
+                        <button class="mute-toggle-btn mute-off" id="mute-lpf-l" onclick="toggleCoreMute('l', 'lpf')">MUTE</button>
                     </div>
                     <div class="ch-control-row">
                         <div class="ch-indicator-label lbl-r">R</div>
@@ -651,6 +701,11 @@
                             <div class="slider-meta-txt"><span>Freq</span><span id="lpf-txt-r">20.0 kHz</span></div>
                             <input type="range" class="slider-r" id="lpf-slider-r" min="2000" max="20000" value="20000">
                         </div>
+                        <button class="mute-toggle-btn mute-off" id="mute-lpf-r" onclick="toggleCoreMute('r', 'lpf')">MUTE</button>
+                    </div>
+                    <div class="dual-uv-container" data-uv-group="lpf">
+                        <div class="slot-uv-bar uv-l"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
+                        <div class="slot-uv-bar uv-r"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
                     </div>
                 </div>
 
@@ -668,6 +723,7 @@
                             <option value="BW24">Butterworth 24dB</option>
                             <option value="BS">Bessel Linear Phase</option>
                         </select>
+                        <button class="mute-toggle-btn mute-off" id="mute-slope-l" onclick="toggleCoreMute('l', 'slope')">MUTE</button>
                     </div>
                     <div class="ch-control-row">
                         <div class="ch-indicator-label lbl-r">R</div>
@@ -678,6 +734,11 @@
                             <option value="BW24">Butterworth 24dB</option>
                             <option value="BS">Bessel Linear Phase</option>
                         </select>
+                        <button class="mute-toggle-btn mute-off" id="mute-slope-r" onclick="toggleCoreMute('r', 'slope')">MUTE</button>
+                    </div>
+                    <div class="dual-uv-container" data-uv-group="slope">
+                        <div class="slot-uv-bar uv-l"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
+                        <div class="slot-uv-bar uv-r"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
                     </div>
                 </div>
 
@@ -687,17 +748,19 @@
                         <span class="slot-index">F45</span>
                     </div>
                     <div class="ch-control-row row-compact">
-                        <span style="color:#efebf5; font-size:9px; width:100%">Low-Mid (Plak-Kentrung) [250Hz]</span>
+                        <span style="color:#efebf5; font-size:9px; width:80%">Low-Mid (Plak-Kentrung) [250Hz]</span>
                     </div>
                     <div class="ch-control-row">
                         <div class="ch-indicator-label lbl-l">L</div>
                         <div class="matrix-slider-pack"><input type="range" class="slider-l" id="peq-lm-g-l" min="-12" max="12" value="0" step="0.5"></div>
                         <div class="matrix-slider-pack"><input type="range" class="slider-l" id="peq-lm-q-l" min="0.5" max="10" value="1.2" step="0.1" title="Q-Factor"></div>
+                        <button class="mute-toggle-btn mute-off" id="mute-peq-l" onclick="toggleCoreMute('l', 'peq')">MUTE</button>
                     </div>
                     <div class="ch-control-row">
                         <div class="ch-indicator-label lbl-r">R</div>
                         <div class="matrix-slider-pack"><input type="range" class="slider-r" id="peq-lm-g-r" min="-12" max="12" value="0" step="0.5"></div>
                         <div class="matrix-slider-pack"><input type="range" class="slider-r" id="peq-lm-q-r" min="0.5" max="10" value="1.2" step="0.1" title="Q-Factor"></div>
+                        <button class="mute-toggle-btn mute-off" id="mute-peq-r" onclick="toggleCoreMute('r', 'peq')">MUTE</button>
                     </div>
                     <div class="ch-control-row row-compact">
                         <span style="color:#efebf5; font-size:9px; width:100%">Mid-Vocal (Lantang) [2.2kHz]</span>
@@ -725,6 +788,10 @@
                         <div class="matrix-slider-pack"><input type="range" class="slider-r" id="peq-ht-g-r" min="-12" max="12" value="0" step="0.5"></div>
                         <div class="matrix-slider-pack"><input type="range" class="slider-r" id="peq-ht-q-r" min="0.5" max="10" value="1.0" step="0.1" title="Q-Factor"></div>
                     </div>
+                    <div class="dual-uv-container" data-uv-group="peq">
+                        <div class="slot-uv-bar uv-l"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
+                        <div class="slot-uv-bar uv-r"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
+                    </div>
                 </div>
 
                 <div class="menu-slot-card" id="card-deq">
@@ -735,15 +802,17 @@
                     <div class="ch-control-row">
                         <div class="ch-indicator-label lbl-l">L</div>
                         <button class="action-toggle-btn" id="deq-btn-l" onclick="toggleDualMatrix(this, 'l', 'deq')">DEQ L OFF</button>
+                        <button class="mute-toggle-btn mute-off" id="mute-deq-l" onclick="toggleCoreMute('l', 'deq')">MUTE</button>
                     </div>
                     <div class="ch-control-row">
                         <div class="ch-indicator-label lbl-r">R</div>
                         <button class="action-toggle-btn" id="deq-btn-r" onclick="toggleDualMatrix(this, 'r', 'deq')">DEQ R OFF</button>
+                        <button class="mute-toggle-btn mute-off" id="mute-deq-r" onclick="toggleCoreMute('r', 'deq')">MUTE</button>
                     </div>
-                </div>
-
-                <div class="menu-slot-card active" id="card-linkwitz" style="display:none;">
-                    <button id="lr-btn-l" onclick=""></button><button id="lr-btn-r" onclick=""></button>
+                    <div class="dual-uv-container" data-uv-group="deq">
+                        <div class="slot-uv-bar uv-l"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
+                        <div class="slot-uv-bar uv-r"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
+                    </div>
                 </div>
 
                 <div class="menu-slot-card" id="card-phase">
@@ -754,10 +823,16 @@
                     <div class="ch-control-row">
                         <div class="ch-indicator-label lbl-l">L</div>
                         <button class="action-toggle-btn" id="phase-btn-l" onclick="toggleDualMatrix(this, 'l', 'phase')">0 DEG</button>
+                        <button class="mute-toggle-btn mute-off" id="mute-phase-l" onclick="toggleCoreMute('l', 'phase')">MUTE</button>
                     </div>
                     <div class="ch-control-row">
                         <div class="ch-indicator-label lbl-r">R</div>
                         <button class="action-toggle-btn" id="phase-btn-r" onclick="toggleDualMatrix(this, 'r', 'phase')">0 DEG</button>
+                        <button class="mute-toggle-btn mute-off" id="mute-phase-r" onclick="toggleCoreMute('r', 'phase')">MUTE</button>
+                    </div>
+                    <div class="dual-uv-container" data-uv-group="phase">
+                        <div class="slot-uv-bar uv-l"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
+                        <div class="slot-uv-bar uv-r"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
                     </div>
                 </div>
 
@@ -769,14 +844,16 @@
                     <div class="ch-control-row">
                         <div class="ch-indicator-label lbl-l">L</div>
                         <div class="matrix-slider-pack"><input type="range" class="slider-l" id="gain-slider-l" min="0" max="150" value="100"></div>
+                        <button class="mute-toggle-btn mute-off" id="mute-gain-l" onclick="toggleCoreMute('l', 'gain')">MUTE</button>
                     </div>
                     <div class="ch-control-row">
                         <div class="ch-indicator-label lbl-r">R</div>
                         <div class="matrix-slider-pack"><input type="range" class="slider-r" id="gain-slider-r" min="0" max="150" value="100"></div>
+                        <button class="mute-toggle-btn mute-off" id="mute-gain-r" onclick="toggleCoreMute('r', 'gain')">MUTE</button>
                     </div>
-                    <div class="dual-uv-container" data-uv-group="all">
-                        <div class="slot-uv-bar uv-l"><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
-                        <div class="slot-uv-bar uv-r"><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
+                    <div class="dual-uv-container" data-uv-group="gain">
+                        <div class="slot-uv-bar uv-l"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
+                        <div class="slot-uv-bar uv-r"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
                     </div>
                 </div>
 
@@ -788,10 +865,16 @@
                     <div class="ch-control-row">
                         <div class="ch-indicator-label lbl-l">L</div>
                         <button class="action-toggle-btn" id="harmonic-btn-l" onclick="toggleDualMatrix(this, 'l', 'harmonic')">XTREME OFF</button>
+                        <button class="mute-toggle-btn mute-off" id="mute-harmonic-l" onclick="toggleCoreMute('l', 'harmonic')">MUTE</button>
                     </div>
                     <div class="ch-control-row">
                         <div class="ch-indicator-label lbl-r">R</div>
                         <button class="action-toggle-btn" id="harmonic-btn-r" onclick="toggleDualMatrix(this, 'r', 'harmonic')">XTREME OFF</button>
+                        <button class="mute-toggle-btn mute-off" id="mute-harmonic-r" onclick="toggleCoreMute('r', 'harmonic')">MUTE</button>
+                    </div>
+                    <div class="dual-uv-container" data-uv-group="harmonic">
+                        <div class="slot-uv-bar uv-l"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
+                        <div class="slot-uv-bar uv-r"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
                     </div>
                 </div>
 
@@ -803,14 +886,16 @@
                     <div class="ch-control-row">
                         <div class="ch-indicator-label lbl-l">L</div>
                         <button class="action-toggle-btn" id="sultan-btn-l" onclick="toggleDualMatrix(this, 'l', 'sultan')">L-OFF</button>
+                        <button class="mute-toggle-btn mute-off" id="mute-sultan-l" onclick="toggleCoreMute('l', 'sultan')">MUTE</button>
                     </div>
                     <div class="ch-control-row">
                         <div class="ch-indicator-label lbl-r">R</div>
                         <button class="action-toggle-btn" id="sultan-btn-r" onclick="toggleDualMatrix(this, 'r', 'sultan')">R-OFF</button>
+                        <button class="mute-toggle-btn mute-off" id="mute-sultan-r" onclick="toggleCoreMute('r', 'sultan')">MUTE</button>
                     </div>
                     <div class="dual-uv-container" data-uv-group="bass">
-                        <div class="slot-uv-bar uv-l"><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
-                        <div class="slot-uv-bar uv-r"><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
+                        <div class="slot-uv-bar uv-l"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
+                        <div class="slot-uv-bar uv-r"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
                     </div>
                 </div>
 
@@ -822,10 +907,16 @@
                     <div class="ch-control-row">
                         <div class="ch-indicator-label lbl-l">L</div>
                         <button class="action-toggle-btn" id="vocal-btn-l" onclick="toggleDualMatrix(this, 'l', 'vocal')">BOOST OFF</button>
+                        <button class="mute-toggle-btn mute-off" id="mute-vocal-l" onclick="toggleCoreMute('l', 'vocal')">MUTE</button>
                     </div>
                     <div class="ch-control-row">
                         <div class="ch-indicator-label lbl-r">R</div>
                         <button class="action-toggle-btn" id="vocal-btn-r" onclick="toggleDualMatrix(this, 'r', 'vocal')">BOOST OFF</button>
+                        <button class="mute-toggle-btn mute-off" id="mute-vocal-r" onclick="toggleCoreMute('r', 'vocal')">MUTE</button>
+                    </div>
+                    <div class="dual-uv-container" data-uv-group="vocal">
+                        <div class="slot-uv-bar uv-l"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
+                        <div class="slot-uv-bar uv-r"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
                     </div>
                 </div>
 
@@ -837,10 +928,16 @@
                     <div class="ch-control-row">
                         <div class="ch-indicator-label lbl-l">L</div>
                         <button class="action-toggle-btn" id="echo-btn-l" onclick="toggleDualMatrix(this, 'l', 'echo')">PSRAM OFF</button>
+                        <button class="mute-toggle-btn mute-off" id="mute-echo-l" onclick="toggleCoreMute('l', 'echo')">MUTE</button>
                     </div>
                     <div class="ch-control-row">
                         <div class="ch-indicator-label lbl-r">R</div>
                         <button class="action-toggle-btn" id="echo-btn-r" onclick="toggleDualMatrix(this, 'r', 'echo')">PSRAM OFF</button>
+                        <button class="mute-toggle-btn mute-off" id="mute-echo-r" onclick="toggleCoreMute('r', 'echo')">MUTE</button>
+                    </div>
+                    <div class="dual-uv-container" data-uv-group="echo">
+                        <div class="slot-uv-bar uv-l"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
+                        <div class="slot-uv-bar uv-r"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
                     </div>
                 </div>
 
@@ -855,10 +952,12 @@
                     <div class="ch-control-row">
                         <div class="ch-indicator-label lbl-l">L</div>
                         <div class="matrix-slider-pack"><input type="range" class="slider-l" id="limit-thres-l" min="-24" max="0" value="-10" step="0.5"></div>
+                        <button class="mute-toggle-btn mute-off" id="mute-limiter-l" onclick="toggleCoreMute('l', 'limiter')">MUTE</button>
                     </div>
                     <div class="ch-control-row">
                         <div class="ch-indicator-label lbl-r">R</div>
                         <div class="matrix-slider-pack"><input type="range" class="slider-r" id="limit-thres-r" min="-24" max="0" value="-10" step="0.5"></div>
+                        <button class="mute-toggle-btn mute-off" id="mute-limiter-r" onclick="toggleCoreMute('r', 'limiter')">MUTE</button>
                     </div>
                     <div class="ch-control-row">
                         <div class="ch-indicator-label lbl-l">L</div>
@@ -867,6 +966,10 @@
                     <div class="ch-control-row">
                         <div class="ch-indicator-label lbl-r">R</div>
                         <button class="action-toggle-btn r-active" id="limiter-btn-r" onclick="toggleDualMatrix(this, 'r', 'limiter')">GUARDING</button>
+                    </div>
+                    <div class="dual-uv-container" data-uv-group="limiter">
+                        <div class="slot-uv-bar uv-l"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
+                        <div class="slot-uv-bar uv-r"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
                     </div>
                 </div>
 
@@ -878,10 +981,16 @@
                     <div class="ch-control-row">
                         <div class="ch-indicator-label lbl-l">L</div>
                         <div class="matrix-slider-pack"><input type="range" class="slider-l" id="sub-limit-slider-l" min="10" max="100" value="100" title="Atur sensitivitas compressor bass"></div>
+                        <button class="mute-toggle-btn mute-off" id="mute-sublimit-l" onclick="toggleCoreMute('l', 'sublimit')">MUTE</button>
                     </div>
                     <div class="ch-control-row">
                         <div class="ch-indicator-label lbl-r">R</div>
                         <div class="matrix-slider-pack"><input type="range" class="slider-r" id="sub-limit-slider-r" min="10" max="100" value="100" title="Atur sensitivitas compressor bass"></div>
+                        <button class="mute-toggle-btn mute-off" id="mute-sublimit-r" onclick="toggleCoreMute('r', 'sublimit')">MUTE</button>
+                    </div>
+                    <div class="dual-uv-container" data-uv-group="sublimit">
+                        <div class="slot-uv-bar uv-l"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
+                        <div class="slot-uv-bar uv-r"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
                     </div>
                 </div>
 
@@ -893,10 +1002,37 @@
                     <div class="ch-control-row">
                         <div class="ch-indicator-label lbl-l">L</div>
                         <button class="action-toggle-btn l-active" id="antipop-btn-l" onclick="toggleDualMatrix(this, 'l', 'antipop')">SECURE ON</button>
+                        <button class="mute-toggle-btn mute-off" id="mute-antipop-l" onclick="toggleCoreMute('l', 'antipop')">MUTE</button>
                     </div>
                     <div class="ch-control-row">
                         <div class="ch-indicator-label lbl-r">R</div>
                         <button class="action-toggle-btn r-active" id="antipop-btn-r" onclick="toggleDualMatrix(this, 'r', 'antipop')">SECURE ON</button>
+                        <button class="mute-toggle-btn mute-off" id="mute-antipop-r" onclick="toggleCoreMute('r', 'antipop')">MUTE</button>
+                    </div>
+                    <div class="dual-uv-container" data-uv-group="antipop">
+                        <div class="slot-uv-bar uv-l"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
+                        <div class="slot-uv-bar uv-r"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
+                    </div>
+                </div>
+
+                <div class="menu-slot-card active" id="card-combine">
+                    <div class="slot-header">
+                        <span class="slot-title">System Coupling</span>
+                        <span class="slot-index">F301++</span>
+                    </div>
+                    <div class="ch-control-row">
+                        <div class="ch-indicator-label lbl-l">L</div>
+                        <button class="action-toggle-btn l-active" id="combine-btn-l" onclick="toggleDualMatrix(this, 'l', 'syscombine')">COMBINE L</button>
+                        <button class="mute-toggle-btn mute-off" id="mute-combine-l" onclick="toggleCoreMute('l', 'syscombine')">MUTE</button>
+                    </div>
+                    <div class="ch-control-row">
+                        <div class="ch-indicator-label lbl-r">R</div>
+                        <button class="action-toggle-btn r-active" id="combine-btn-r" onclick="toggleDualMatrix(this, 'r', 'syscombine')">COMBINE R</button>
+                        <button class="mute-toggle-btn mute-off" id="mute-combine-r" onclick="toggleCoreMute('r', 'syscombine')">MUTE</button>
+                    </div>
+                    <div class="dual-uv-container" data-uv-group="combine">
+                        <div class="slot-uv-bar uv-l"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
+                        <div class="slot-uv-bar uv-r"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
                     </div>
                 </div>
 
@@ -910,21 +1046,6 @@
                     </div>
                 </div>
 
-                <div class="menu-slot-card active" id="card-combine">
-                    <div class="slot-header">
-                        <span class="slot-title">System Coupling</span>
-                        <span class="slot-index">F301++</span>
-                    </div>
-                    <div class="ch-control-row">
-                        <div class="ch-indicator-label lbl-l">L</div>
-                        <button class="action-toggle-btn l-active" id="combine-btn-l" onclick="toggleDualMatrix(this, 'l', 'syscombine')">COMBINE L</button>
-                    </div>
-                    <div class="ch-control-row">
-                        <div class="ch-indicator-label lbl-r">R</div>
-                        <button class="action-toggle-btn r-active" id="combine-btn-r" onclick="toggleDualMatrix(this, 'r', 'syscombine')">COMBINE R</button>
-                    </div>
-                </div>
-
             </div>
         </div>
     </div>
@@ -933,6 +1054,7 @@
         <div class="vu-row">
             <div class="vu-label" style="color:var(--violet-glow)">VU L</div>
             <div class="vu-meter-main" id="vu-left">
+                <div class="vu-segment vu-active-indicator"></div>
                 <div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div>
                 <div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div>
                 <div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div>
@@ -947,6 +1069,7 @@
         <div class="vu-row">
             <div class="vu-label" style="color:var(--cyan-ch2)">VU R</div>
             <div class="vu-meter-main" id="vu-right">
+                <div class="vu-segment vu-active-indicator"></div>
                 <div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div>
                 <div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div>
                 <div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div>
@@ -986,6 +1109,9 @@
         let sultanL, vocalL, harmonicL, gainL, phaseL, limiterL, antiPopL, deqFilterL;
         let sultanR, vocalR, harmonicR, gainR, phaseR, limiterR, antiPopR, deqFilterR;
 
+        // NEW INDEPENDENT CORE MUTE GAIN NODES FOR SEPARATE CONTROL MUTES
+        let muteNodesL = {}, muteNodesR = {};
+
         // DYNAMIC ATTACK/RELEASE DEQ CALCULATOR VARIABLES
         let deqCurrentGainL = 0;
         let deqCurrentGainR = 0;
@@ -1004,9 +1130,16 @@
         let fileSourceNode = null;
         let activeInputType = null; 
 
+        // Runtimes storage matrix config states mapping table
         let channelParams = {
             l: { core: true, turbo: true, phase: false, harmonic: false, sultan: false, vocal: false, echo: false, limiter: true, antipop: true, syscombine: true, deq: false, slope: 'LR24' },
             r: { core: true, turbo: true, phase: false, harmonic: false, sultan: false, vocal: false, echo: false, limiter: true, antipop: true, syscombine: true, deq: false, slope: 'LR24' }
+        };
+
+        // NEW CORE COMPREHENSIVE獨立 MUTING STATE STORAGE MAP
+        let coreMuteStates = {
+            l: { core: false, turbo: false, hpf: false, lpf: false, slope: false, peq: false, deq: false, phase: false, gain: false, harmonic: false, sultan: false, vocal: false, echo: false, limiter: false, sublimit: false, antipop: false, syscombine: false },
+            r: { core: false, turbo: false, hpf: false, lpf: false, slope: false, peq: false, deq: false, phase: false, gain: false, harmonic: false, sultan: false, vocal: false, echo: false, limiter: false, sublimit: false, antipop: false, syscombine: false }
         };
 
         function resizeCanvases() {
@@ -1136,6 +1269,13 @@
             dataArrayL = new Uint8Array(bufferLength);
             dataArrayR = new Uint8Array(bufferLength);
 
+            // INITIALIZE IN-LINE INDEPENDENT GAIN MUTE NODES FOR EACH FILTER STAGE
+            const coreStages = ['core', 'turbo', 'hpf', 'lpf', 'slope', 'peq', 'deq', 'phase', 'gain', 'harmonic', 'sultan', 'vocal', 'echo', 'limiter', 'sublimit', 'antipop', 'syscombine'];
+            coreStages.forEach(stage => {
+                muteNodesL[stage] = audioCtx.createGain(); muteNodesL[stage].gain.setValueAtTime(1.0, audioCtx.currentTime);
+                muteNodesR[stage] = audioCtx.createGain(); muteNodesR[stage].gain.setValueAtTime(1.0, audioCtx.currentTime);
+            });
+
             // MULTI-STAGE SLOPE CASCADING GENERATOR (4 NODES PER ROUTE FOR 48dB CORES)
             for(let i=0; i<4; i++){
                 let hL = audioCtx.createBiquadFilter(); hL.type = "highpass"; hpfLNodes.push(hL);
@@ -1203,57 +1343,108 @@
             refreshFilterFrequencies('l');
             refreshFilterFrequencies('r');
 
-            // DISCRETE CONNECTIONS FOR CHANNEL LEFT
+            // DISCRETE CONNECTIONS FOR CHANNEL LEFT WITH CASCADE MUTE INTERCEPTIONS
             streamNode.connect(splitterNode);
-            splitterNode.connect(hpfLNodes[0], 0);
+            splitterNode.connect(muteNodesL['core'], 0);
             
-            // Cascade HPF Filters
+            muteNodesL['core'].connect(hpfLNodes[0]);
             for(let i=0; i<3; i++) hpfLNodes[i].connect(hpfLNodes[i+1]);
-            hpfLNodes[3].connect(lpfLNodes[0]);
+            hpfLNodes[3].connect(muteNodesL['hpf']);
             
-            // Cascade LPF Filters
+            muteNodesL['hpf'].connect(lpfLNodes[0]);
             for(let i=0; i<3; i++) lpfLNodes[i].connect(lpfLNodes[i+1]);
+            lpfLNodes[3].connect(muteNodesL['lpf']);
             
-            // Connect PEQ Blocks in Series (Cascade)
-            lpfLNodes[3].connect(peqLML);
+            muteNodesL['lpf'].connect(muteNodesL['slope']);
+            muteNodesL['slope'].connect(peqLML);
+            
             peqLML.connect(peqMVL);
             peqMVL.connect(peqHTL);
-            peqHTL.connect(deqFilterL);
+            peqHTL.connect(muteNodesL['peq']);
             
-            deqFilterL.connect(sultanL);
-            sultanL.connect(vocalL);
-            vocalL.connect(harmonicL);
+            muteNodesL['peq'].connect(deqFilterL);
+            deqFilterL.connect(muteNodesL['deq']);
+            
+            muteNodesL['deq'].connect(sultanL);
+            sultanL.connect(muteNodesL['sultan']);
+            
+            muteNodesL['sultan'].connect(vocalL);
+            vocalL.connect(muteNodesL['vocal']);
+            
+            muteNodesL['vocal'].connect(harmonicL);
             wetGainL.connect(harmonicL);
-            harmonicL.connect(phaseL);
-            phaseL.connect(limiterL);
-            limiterL.connect(antiPopL);
-            antiPopL.connect(gainL);
-            gainL.connect(analyserL);
+            
+            harmonicL.connect(muteNodesL['harmonic']);
+            muteNodesL['harmonic'].connect(muteNodesL['turbo']);
+            
+            muteNodesL['turbo'].connect(muteNodesL['echo']);
+            muteNodesL['echo'].connect(phaseL);
+            
+            phaseL.connect(muteNodesL['phase']);
+            muteNodesL['phase'].connect(limiterL);
+            
+            limiterL.connect(muteNodesL['limiter']);
+            muteNodesL['limiter'].connect(muteNodesL['sublimit']);
+            
+            muteNodesL['sublimit'].connect(antiPopL);
+            antiPopL.connect(muteNodesL['antipop']);
+            
+            muteNodesL['antipop'].connect(gainL);
+            gainL.connect(muteNodesL['syscombine']);
+            
+            muteNodesL['syscombine'].connect(analyserL);
             analyserL.connect(mergerNode, 0, 0);
 
-            // DISCRETE CONNECTIONS FOR CHANNEL RIGHT
+            // DISCRETE CONNECTIONS FOR CHANNEL RIGHT WITH CASCADE MUTE INTERCEPTIONS
             let inputChannelIndex = (streamNode.channelCount > 1) ? 1 : 0;
-            splitterNode.connect(hpfRNodes[0], inputChannelIndex);
+            splitterNode.connect(muteNodesR['core'], inputChannelIndex);
             
+            muteNodesR['core'].connect(hpfRNodes[0]);
             for(let i=0; i<3; i++) hpfRNodes[i].connect(hpfRNodes[i+1]);
-            hpfRNodes[3].connect(lpfRNodes[0]);
+            hpfRNodes[3].connect(muteNodesR['hpf']);
             
+            muteNodesR['hpf'].connect(lpfRNodes[0]);
             for(let i=0; i<3; i++) lpfRNodes[i].connect(lpfRNodes[i+1]);
+            lpfRNodes[3].connect(muteNodesR['lpf']);
             
-            lpfRNodes[3].connect(peqLMR);
+            muteNodesR['lpf'].connect(muteNodesR['slope']);
+            muteNodesR['slope'].connect(peqLMR);
+            
             peqLMR.connect(peqMVR);
             peqMVR.connect(peqHTR);
-            peqHTR.connect(deqFilterR);
+            peqHTR.connect(muteNodesR['peq']);
             
-            deqFilterR.connect(sultanR);
-            sultanR.connect(vocalR);
+            muteNodesR['peq'].connect(deqFilterR);
+            deqFilterR.connect(muteNodesR['deq']);
+            
+            muteNodesR['deq'].connect(sultanR);
+            sultanR.connect(muteNodesR['sultan']);
+            
+            muteNodesR['sultan'].connect(vocalR);
+            vocalR.connect(muteNodesR['vocal']);
+            
             vocalR.connect(harmonicR);
             wetGainR.connect(harmonicR);
-            harmonicR.connect(phaseR);
-            phaseR.connect(limiterR);
-            limiterR.connect(antiPopR);
-            antiPopR.connect(gainR);
-            gainR.connect(analyserR);
+            
+            harmonicR.connect(muteNodesR['harmonic']);
+            muteNodesR['harmonic'].connect(muteNodesR['turbo']);
+            
+            muteNodesR['turbo'].connect(muteNodesR['echo']);
+            muteNodesR['echo'].connect(phaseR);
+            
+            phaseR.connect(muteNodesR['phase']);
+            muteNodesR['phase'].connect(limiterR);
+            
+            limiterR.connect(muteNodesR['limiter']);
+            muteNodesR['limiter'].connect(muteNodesR['sublimit']);
+            
+            muteNodesR['sublimit'].connect(antiPopR);
+            antiPopR.connect(muteNodesR['antipop']);
+            
+            muteNodesR['antipop'].connect(gainR);
+            gainR.connect(muteNodesR['syscombine']);
+            
+            muteNodesR['syscombine'].connect(analyserR);
             analyserR.connect(mergerNode, 0, 1);
 
             mergerNode.connect(audioCtx.destination);
@@ -1265,8 +1456,8 @@
             limiter.threshold.setValueAtTime(thresholdValue, audioCtx.currentTime);
             limiter.knee.setValueAtTime(10, audioCtx.currentTime); 
             limiter.ratio.setValueAtTime(20, audioCtx.currentTime); 
-            limiter.attack.setValueAtTime(0.001, audioCtx.currentTime); // 1ms Attack Speed
-            limiter.release.setValueAtTime(0.15, audioCtx.currentTime); // 150ms Release Time
+            limiter.attack.setValueAtTime(0.001, audioCtx.currentTime); 
+            limiter.release.setValueAtTime(0.15, audioCtx.currentTime); 
         }
 
         function makePhaseCurve(invert) {
@@ -1287,15 +1478,14 @@
             let lNodes = (ch === 'l') ? lpfLNodes : lpfRNodes;
             let slope = channelParams[ch].slope;
 
-            // SLOPE COEFFICIENT CONTROLLER ALGORITHMS
             hNodes.forEach((node, idx) => {
                 node.frequency.setValueAtTime(hpfVal, audioCtx.currentTime);
                 if (slope === 'BW12' || slope === 'BS') {
                     node.Q.setValueAtTime(0.707, audioCtx.currentTime);
                 } else if (slope === 'LR24') {
-                    node.Q.setValueAtTime(0.707, audioCtx.currentTime); // Double flat cascade linkwitz
+                    node.Q.setValueAtTime(0.707, audioCtx.currentTime); 
                 } else {
-                    node.Q.setValueAtTime(1.2, audioCtx.currentTime); // Hard Butterworth/LR48 edge
+                    node.Q.setValueAtTime(1.2, audioCtx.currentTime); 
                 }
             });
 
@@ -1317,7 +1507,32 @@
             refreshFilterFrequencies(ch);
         }
 
-        // PARAMETRIC EQ SLIDER RUNTIME LISTENERS
+        // NEW CORE INTERFACE CONTROL INDEPENDENT MUTE TOGGLE LOGGER LOGIC
+        function toggleCoreMute(ch, type) {
+            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+            
+            let isMuted = !coreMuteStates[ch][type];
+            coreMuteStates[ch][type] = isMuted;
+            
+            const btn = document.getElementById(`mute-${type}-${ch}`);
+            if (btn) {
+                if (isMuted) {
+                    btn.className = "mute-toggle-btn mute-on";
+                } else {
+                    btn.className = "mute-toggle-btn mute-off";
+                }
+            }
+
+            if (isEngineBuilt) {
+                let targetNode = (ch === 'l') ? muteNodesL[type] : muteNodesR[type];
+                if (targetNode) {
+                    // Smooth linear ramp response calculation to avoid digital clipping pop noises
+                    let gainValue = isMuted ? 0.0 : 1.0;
+                    targetNode.gain.setTargetAtTime(gainValue, audioCtx.currentTime, 0.01);
+                }
+            }
+        }
+
         function attachPeqListeners(id, node, param) {
             document.getElementById(id).addEventListener('input', function() {
                 if(!isEngineBuilt) return;
@@ -1344,7 +1559,6 @@
             if(gainR && channelParams.r.core) gainR.gain.setValueAtTime(parseFloat(this.value)/100, audioCtx.currentTime); 
         });
 
-        // LIVE COMPRESSOR THRESHOLD BINDERS
         document.getElementById('limit-thres-l').addEventListener('input', function() {
             if(limiterL) limiterL.threshold.setValueAtTime(parseFloat(this.value), audioCtx.currentTime);
         });
@@ -1355,7 +1569,7 @@
         document.getElementById('sub-limit-slider-l').addEventListener('input', function() {
             if(!isEngineBuilt) return;
             let val = parseFloat(this.value) / 100;
-            limiterL.ratio.setValueAtTime(4 + (16 * (1 - val)), audioCtx.currentTime); // Dynamic compression optimization
+            limiterL.ratio.setValueAtTime(4 + (16 * (1 - val)), audioCtx.currentTime); 
         });
         document.getElementById('sub-limit-slider-r').addEventListener('input', function() {
             if(!isEngineBuilt) return;
@@ -1472,7 +1686,6 @@
             drawIndividualGraph(ctxL, canvasL, dataArrayL, '#8a2be2', 'l', deqCurrentGainL);
             drawIndividualGraph(ctxR, canvasR, dataArrayR, '#00bfff', 'r', deqCurrentGainR);
 
-            // HARDWARE ATTACK DETECTION FOR REALTIME LIMIT LIGHT OVERLAYS
             let reductionL = 0, reductionR = 0;
             if(limiterL && typeof limiterL.reduction === 'number') reductionL = limiterL.reduction; 
             else if (limiterL && limiterL.reduction && typeof limiterL.reduction.value === 'number') reductionL = limiterL.reduction.value;
@@ -1483,15 +1696,17 @@
             processLedLimitVisuals('l', reductionL);
             processLedLimitVisuals('r', reductionR);
 
-            let lvL = Math.min(20, Math.floor((avgL / 115) * 20));
-            let lvR = Math.min(20, Math.floor((avgR / 115) * 20));
-            renderVUBars('vu-left', lvL);
-            renderVUBars('vu-right', lvR);
+            // RENDER FOOTER VU METERS (Perhatikan penggeseran indeks karena indeks 0 digunakan kotak biru)
+            let lvL = Math.min(19, Math.floor((avgL / 115) * 19));
+            let lvR = Math.min(19, Math.floor((avgR / 115) * 19));
+            renderMainVUBars('vu-left', lvL);
+            renderMainVUBars('vu-right', lvR);
 
-            // PROCESS GAIN REDUCTION (GR) METERS
+            // PROCESS MASTER GAIN REDUCTION (GR) METERS
             renderGRBars('gr-left', reductionL);
             renderGRBars('gr-right', reductionR);
 
+            // PROCESS SEPARATE CARD MATRIX CONTROL INDEPENDENT VU INDICATION ENGINE
             processDualMatrixUV(bL, bR, mL, mR, tL, tR, avgL, avgR);
         }
 
@@ -1501,17 +1716,15 @@
                 if(ch === 'l') deqCurrentGainL = 0; else deqCurrentGainR = 0;
                 return;
             }
-            // SULTAN LOUDNESS SAFETY LOGIC: Musik pelan = Bass boost empuk, Musik kencang = Bass reduksi otomatis
             let targetGain = 0;
             if(bassLevel < 45) {
-                targetGain = 10; // Boost Bass di volume pelan
+                targetGain = 10; 
             } else if(bassLevel < 90) {
-                targetGain = 12 * (1 - (bassLevel - 45) / 45); // Smoothing downward linear curve
+                targetGain = 12 * (1 - (bassLevel - 45) / 45); 
             } else {
-                targetGain = -8; // Potong bass drastis saat badai sinyal agar tidak menjebol subwoofer
+                targetGain = -8; 
             }
             
-            // Apply Attack/Release Smoothing Response time coefficients
             if(ch === 'l') {
                 deqCurrentGainL += (targetGain - deqCurrentGainL) * 0.15;
                 deqNode.gain.setValueAtTime(deqCurrentGainL, audioCtx.currentTime);
@@ -1548,7 +1761,6 @@
             let cutOffX_LPF = w - ((20000 - parseInt(lpfVal)) / 18000) * (w * 0.45) - 10;
 
             ctx.beginPath(); 
-            // MODAL GRAPH VISUAL COEFFS FOR MULTI-SLOPE REPRESENTATIONS
             if(slope === 'LR48' || slope === 'BW24') ctx.lineWidth = 3.5;
             else if(slope === 'BS') ctx.lineWidth = 1.0;
             else ctx.lineWidth = 2.0;
@@ -1556,18 +1768,16 @@
             ctx.strokeStyle = '#ffffff';
             ctx.moveTo(0, h - 4);
 
-            // DYNAMIC CURVATURE MODELING BASED ON REAL ACTIVE INTEGRATIONS
             let bassCurveY = (h - 25) - (activeDeqGain * 2);
             ctx.lineTo(cutOffX_HPF * 0.3, h - 4);
             ctx.quadraticCurveTo(cutOffX_HPF * 0.7, h - 4, cutOffX_HPF, bassCurveY);
             
-            // Dynamic bending for PEQ nodes center visuals
             let midX = (cutOffX_HPF + cutOffX_LPF) / 2;
             ctx.lineTo(midX, bassCurveY + 5);
             ctx.lineTo(cutOffX_LPF, 20);
             
             if(slope === 'LR48') {
-                ctx.quadraticCurveTo((w + cutOffX_LPF) * 0.5, h, w, h - 2); // Tebing curam 48dB
+                ctx.quadraticCurveTo((w + cutOffX_LPF) * 0.5, h, w, h - 2); 
             } else {
                 ctx.quadraticCurveTo((w + cutOffX_LPF) * 0.5, h - 4, w, h - 4);
             }
@@ -1577,14 +1787,17 @@
             ctx.fillStyle = '#e74c3c'; ctx.beginPath(); ctx.arc(cutOffX_LPF, 20, 4, 0, 2*Math.PI); ctx.fill();
         }
 
-        function renderVUBars(id, count) {
+        // RENDER SYSTEM LOGIC FOR MASTER MAIN OUTPUT FOOTER VU METERS
+        function renderMainVUBars(id, count) {
             const el = document.getElementById(id);
             const segs = el.getElementsByClassName('vu-segment');
-            for(let i = 0; i < segs.length; i++) {
+            // Catatan: Indeks 0 (segs[0]) adalah kotak biru indikator ACTIVE statis solid.
+            for(let i = 1; i < segs.length; i++) {
                 segs[i].className = 'vu-segment';
-                if(i < count) {
-                    if(i < 12) segs[i].classList.add('green-on');
-                    else if(i < 17) segs[i].classList.add('yellow-on');
+                // Jika level sinyal melampaui rentangnya, nyalakan baris LED
+                if((i - 1) < count) {
+                    if(i < 13) segs[i].classList.add('green-on');
+                    else if(i < 18) segs[i].classList.add('yellow-on');
                     else segs[i].classList.add('red-on');
                 }
             }
@@ -1593,19 +1806,18 @@
         function renderGRBars(id, reductionDb) {
             const el = document.getElementById(id);
             const segs = el.getElementsByClassName('gr-segment');
-            // Nilai reductionDb berkisar antara 0dB s/d -20dB atau lebih kecil
             let absRed = Math.abs(reductionDb);
-            let activeSegmentsCount = Math.min(10, Math.floor(absRed / 2)); // Tiap led mewakili 2dB reduksi
+            let activeSegmentsCount = Math.min(10, Math.floor(absRed / 2)); 
 
             for(let i = 0; i < segs.length; i++) {
                 segs[i].className = 'gr-segment';
-                // GR meter berjalan terbalik dari kanan ke kiri atau dari atas ke bawah
                 if(i < activeSegmentsCount) {
                     segs[i].classList.add('gr-on');
                 }
             }
         }
 
+        // DYNAMIC RENDERING PROCESS FOR ALL CORE MATRIX CONTROLS EMBEDDED VU METERS
         function processDualMatrixUV(bL, bR, mL, mR, tL, tR, aL, aR) {
             const containers = document.querySelectorAll('.dual-uv-container');
             containers.forEach(container => {
@@ -1614,13 +1826,25 @@
                 const dotsR = container.querySelector('.uv-r').getElementsByClassName('uv-dot');
 
                 let targetL = aL, targetR = aR;
-                if(group === 'bass') { targetL = bL; targetR = bR; }
-                else if(group === 'mid') { targetL = mL; targetR = mR; }
-                else if(group === 'treble') { targetL = tL; targetR = tR; }
-                else if(group === 'core') { targetL = aL * 0.7 + (Math.random() * 15); targetR = aR * 0.7 + (Math.random() * 15); }
+                
+                // Distribusi respon frekuensi yang dipetakan secara spesifik per core matrix
+                if(group === 'bass' || group === 'deq') { targetL = bL; targetR = bR; }
+                else if(group === 'peq' || group === 'vocal' || group === 'slope') { targetL = mL; targetR = mR; }
+                else if(group === 'turbo' || group === 'harmonic') { targetL = tL; targetR = tR; }
+                else if(group === 'hpf' || group === 'lpf' || group === 'phase' || group === 'gain' || group === 'echo' || group === 'limiter' || group === 'sublimit' || group === 'antipop' || group === 'combine') { 
+                    targetL = aL; targetR = aR; 
+                } else if(group === 'core') { 
+                    targetL = aL * 0.85 + (Math.random() * 10); targetR = aR * 0.85 + (Math.random() * 10); 
+                }
 
-                let litL = Math.floor((targetL / 130) * dotsL.length);
-                let litR = Math.floor((targetR / 130) * dotsR.length);
+                // Pengurangan 1 titik baris karena dot ke-0 adalah Blue Active Indicator
+                let maxSignalDots = dotsL.length - 1; 
+                let litL = Math.floor((targetL / 140) * maxSignalDots);
+                let litR = Math.floor((targetR / 140) * maxSignalDots);
+
+                // Check muting states: Jika core di-mute, matikan signal bar (kecuali kotak biru)
+                if (coreMuteStates.l[group]) litL = 0;
+                if (coreMuteStates.r[group]) litR = 0;
 
                 applyDotsColor(dotsL, litL);
                 applyDotsColor(dotsR, litR);
@@ -1628,8 +1852,9 @@
         }
 
         function applyDotsColor(dots, count) {
-            for(let i = 0; i < dots.length; i++) {
-                if(i < count) {
+            // Indeks 0 diabaikan/dilewati karena dipertahankan sebagai warna Biru Active secara permanen
+            for(let i = 1; i < dots.length; i++) {
+                if((i - 1) < count) {
                     if(i === dots.length - 1) dots[i].style.backgroundColor = 'var(--led-red)';
                     else if(i >= dots.length - 2) dots[i].style.backgroundColor = 'var(--led-yellow)';
                     else dots[i].style.backgroundColor = 'var(--led-green)';
