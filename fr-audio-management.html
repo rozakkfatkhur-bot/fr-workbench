@@ -460,17 +460,46 @@
                         <i class="fa-solid fa-sliders"></i> <span id="src-mode-text">AUTO</span>
                     </button>
                 </div>
-                <div class="audio-input-box" style="margin-top:10px; border-color: #f1c40f;">
-    <label style="color: #f1c40f;"><i class="fa-solid fa-file-audio"></i> FILE PLAYER LOCAL (MP3/WAV)</label>
-    <input type="file" id="audio-file-input" accept="audio/*" style="width:100%; color:#fff; font-size:10px; margin-bottom:5px;">
-    
-    <button id="btn-play-file" class="stream-active-btn" style="width:100%; margin-top:5px; background: #2ecc71;">
-        <i class="fa-solid fa-play"></i> PLAY AUDIO FILE
-    </button>
-    
-    <audio id="hidden-audio-player" style="display:none;"></audio>
-    <div class="stream-status-indicator" id="file-status">Status: Standby. Pilih file, lalu tekan Play.</div>
+                <div class="audio-input-box" style="margin-top: 10px;">
+    <label for="audio-upload" style="color: #bc13fe; cursor: pointer;">
+        <i class="fa-solid fa-file-audio"></i> LOAD LOKAL FILE AUDIO
+    </label>
+    <input type="file" id="audio-upload" accept="audio/*" style="display: none;" onchange="loadAudioFile(this)">
+    <div id="file-status" style="font-size: 9px; color: var(--text-muted); margin-top: 5px;">Belum ada file dipilih</div>
 </div>
+
+<script>
+    // FUNGSI LOAD FILE AUDIO
+    function loadAudioFile(input) {
+        if (input.files && input.files[0]) {
+            const file = input.files[0];
+            document.getElementById('file-status').innerText = "Memuat: " + file.name;
+            
+            // Inisialisasi AudioContext jika belum ada
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                audioCtx.decodeAudioData(e.target.result, function(buffer) {
+                    const source = audioCtx.createBufferSource();
+                    source.buffer = buffer;
+                    
+                    // Hubungkan ke engine pemrosesan yang sudah ada (splitterNode)
+                    if (!isEngineBuilt) buildDiscreteEngine(); 
+                    
+                    // Ganti streamNode dengan bufferSource
+                    source.connect(splitterNode);
+                    source.start(0);
+                    
+                    document.getElementById('file-status').innerText = "Status: Memainkan " + file.name;
+                });
+            };
+            reader.readAsArrayBuffer(file);
+        }
+    }
+</script>
 
                 <div class="stream-status-indicator" id="stream-status">Status: Menunggu aktivasi... Gunakan tombol AUTO untuk memilih mode.</div>
             </div>
