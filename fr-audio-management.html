@@ -158,6 +158,12 @@
             text-shadow: 0 0 5px rgba(0,191,255,0.3);
         }
 
+        .capture-controls-wrapper {
+            display: flex;
+            gap: 6px;
+            width: 100%;
+        }
+
         .stream-active-btn {
             background: linear-gradient(135deg, #0099cc, var(--violet-main));
             color: white;
@@ -167,12 +173,30 @@
             font-weight: bold;
             border-radius: 6px;
             cursor: pointer;
-            width: 100%;
+            flex: 4;
             box-shadow: 0 0 8px rgba(138, 43, 226, 0.4);
             transition: all 0.3s ease;
         }
 
-        .stream-active-btn:active {
+        .stream-source-btn {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #fff;
+            font-size: 11px;
+            border-radius: 6px;
+            cursor: pointer;
+            flex: 1;
+            transition: all 0.2s;
+        }
+
+        .stream-source-btn.active-src {
+            background: #f1c40f;
+            color: #000;
+            border-color: #fff;
+            box-shadow: 0 0 8px rgba(241,196,15,0.4);
+        }
+
+        .stream-active-btn:active, .stream-source-btn:active {
             transform: scale(0.98);
         }
 
@@ -181,6 +205,7 @@
             font-size: 9px;
             color: var(--text-muted);
             font-family: monospace;
+            line-height: 1.3;
         }
 
         /* RIGHT SIDE - 16 CORE BLOCKS INDEPENDENT MATRIX */
@@ -429,8 +454,13 @@
 
             <div class="audio-input-box">
                 <label><i class="fa-solid fa-radio"></i> LIVE SMARTPHONE AUDIO CAPTURE LINK</label>
-                <button class="stream-active-btn" id="start-stream-btn" onclick="initLiveAudioCapture()"><i class="fa-solid fa-play"></i> HUBUNGKAN KE SISTEM AUDIO HP</button>
-                <div class="stream-status-indicator" id="stream-status">Status: Menunggu aktivasi... Putar musik di background sekarang.</div>
+                <div class="capture-controls-wrapper">
+                    <button class="stream-active-btn" id="start-stream-btn" onclick="initLiveAudioCapture()"><i class="fa-solid fa-play"></i> HUBUNGKAN AUDIO HP</button>
+                    <button class="stream-source-btn" id="src-toggle-btn" onclick="toggleAudioSourceMode()" title="Ganti Mode Tangkap (Sistem / Mic)">
+                        <i class="fa-solid fa-sliders"></i> <span id="src-mode-text">AUTO</span>
+                    </button>
+                </div>
+                <div class="stream-status-indicator" id="stream-status">Status: Menunggu aktivasi... Gunakan tombol AUTO untuk memilih mode.</div>
             </div>
 
             <div style="font-size: 10px; background: rgba(255,255,255,0.02); padding: 8px; border-radius: 6px; color: var(--text-muted);">
@@ -776,6 +806,8 @@
         const cpuTempEl = document.getElementById('cpu-temp');
         const voltEl = document.getElementById('volt-monitor');
         const streamStatusEl = document.getElementById('stream-status');
+        const srcToggleBtn = document.getElementById('src-toggle-btn');
+        const srcModeText = document.getElementById('src-mode-text');
         
         const canvasL = document.getElementById('displayCanvasL');
         const canvasR = document.getElementById('displayCanvasR');
@@ -797,6 +829,9 @@
 
         let dataArrayL, dataArrayR, bufferLength;
         let isEngineBuilt = false;
+        
+        // Mode Tangkap: 'auto' (Sistem, fallback ke mic), 'system' (wajib internal), 'mic' (murni mic HP)
+        let captureMode = 'auto'; 
 
         let channelParams = {
             l: { core: true, turbo: true, linkwitz: true, phase: false, harmonic: false, sultan: false, vocal: false, echo: false, limiter: true, antipop: true, syscombine: true },
@@ -810,36 +845,102 @@
         window.addEventListener('resize', resizeCanvases);
         resizeCanvases();
 
+        // FUNGSI GANTI MODE TANGKAP MANUAL
+        function toggleAudioSourceMode() {
+            if(isEngineBuilt) return; // Kunci jika engine sudah berjalan
+            
+            if (captureMode === 'auto') {
+                captureMode = 'system';
+                srcToggleBtn.className = "stream-source-btn active-src";
+                srcModeText.innerText = "SYS-ONLY";
+                streamStatusEl.innerText = "Mode: Dipaksa Sistem Audio Internal. Beberapa browser HP mungkin menolak.";
+            } else if (captureMode === 'system') {
+                captureMode = 'mic';
+                srcToggleBtn.className = "stream-source-btn active-src";
+                srcToggleBtn.style.background = "#2ecc71";
+                srcModeText.innerText = "MIC-HP";
+                streamStatusEl.innerText = "Mode: Dipaksa Perekaman via Mikrofon HP (Aman untuk semua Android).";
+            } else {
+                captureMode = 'auto';
+                srcToggleBtn.className = "stream-source-btn";
+                srcToggleBtn.style.background = "";
+                srcModeText.innerText = "AUTO";
+                streamStatusEl.innerText = "Mode: Otomatis mencari Audio Sistem. Jika gagal, otomatis ganti ke Mic.";
+            }
+        }
+
         // -------------------------------------------------------------
-        // PEMBARUAN UTAMA: CAPTURE AUDIO INTERNAL SMARTPHONE VIA LOOPBACK
+        // PEMBARUAN UTAMA: ENGINE PENANGKAP MULTI-SOURCE DENGAN AUTOFALLBACK
         // -------------------------------------------------------------
         async function initLiveAudioCapture() {
             if (isEngineBuilt) return;
             
-            streamStatusEl.innerText = "Membuka sistem Sink... Pilih tab/aplikasi audio Anda.";
+            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+            audioCtx = new AudioContextClass();
+            let mediaStream = null;
+
+            // Jika dipaksa menggunakan MIC HP murni
+            if (captureMode === 'mic') {
+                mediaStream = await startMicStream();
+            } 
+            // Jika memilih AUTO atau SYSTEM-ONLY
+            else {
+                try {
+                    streamStatusEl.innerText = "Membuka sistem Sink... Pilih aplikasi/tab musik Anda.";
+                    mediaStream = await navigator.mediaDevices.getDisplayMedia({
+                        video: { displaySurface: "browser" },
+                        audio: {
+                            echoCancellation: false,
+                            noiseSuppression: false,
+                            autoGainControl: false
+                        }
+                    });
+                    streamStatusEl.innerText = "Status: Terhubung via Loopback Internal!";
+                } catch (err) {
+                    console.warn("Internal loopback diblokir browser HP:", err);
+                    
+                    if (captureMode === 'auto') {
+                        streamStatusEl.innerText = "Akses Sistem diblokir Chrome Mobile. Mengalihkan otomatis ke Mikrofon HP...";
+                        mediaStream = await startMicStream();
+                    } else {
+                        streamStatusEl.innerText = "Gagal menyambung. Mode SYS-ONLY ditolak oleh sistem operasi Android.";
+                        return;
+                    }
+                }
+            }
+
+            if (mediaStream) {
+                try {
+                    streamNode = audioCtx.createMediaStreamSource(mediaStream);
+                    buildDiscreteEngine();
+                    
+                    document.getElementById('start-stream-btn').innerHTML = `<i class="fa-solid fa-circle-check"></i> FR-ENGINE ONLINE`;
+                    document.getElementById('start-stream-btn').style.background = "#bc13fe";
+                    srcToggleBtn.disabled = true; // Kunci switch source saat live
+                } catch(e) {
+                    console.error(e);
+                    streamStatusEl.innerText = "Kritis: Gagal menyusun sirkuit routing node!";
+                }
+            }
+        }
+
+        // Jalur Fungsi Penangkap Mic HP
+        async function startMicStream() {
             try {
-                // Mengambil streaming audio dari sistem internal perangkat tanpa mic bocor
-                const mediaStream = await navigator.mediaDevices.getDisplayMedia({
-                    video: { displaySurface: "browser" }, // Trick kompatibilitas mobile browser
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: false,
                     audio: {
-                        echoCancellation: false,
-                        noiseSuppression: false,
-                        autoGainControl: false
+                        echoCancellation: false,  // Matikan agar bass musik speaker tidak disaring dianggap noise
+                        noiseSuppression: false,   // Pertahankan detail high/treble
+                        autoGainControl: false     // Amplitudo gain murni dari luar
                     }
                 });
-
-                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-                audioCtx = new AudioContextClass();
-                
-                streamNode = audioCtx.createMediaStreamSource(mediaStream);
-                buildDiscreteEngine();
-                
-                document.getElementById('start-stream-btn').innerHTML = `<i class="fa-solid fa-circle-check"></i> ENGINE SYSTEM CONNECTED`;
-                document.getElementById('start-stream-btn').style.background = "#2ecc71";
-                streamStatusEl.innerText = "Status: Terhubung! Putar Spotify/YouTube Anda, sistem siap mengontrol penuh.";
-            } catch (err) {
-                console.error(err);
-                streamStatusEl.innerText = "Gagal menyambung. Pastikan izin berbagi audio diaktifkan!";
+                streamStatusEl.innerText = "Status: Terhubung murni via Mikrofon HP! Dekatkan HP ke sumber suara musik.";
+                return stream;
+            } catch(e) {
+                console.error(e);
+                streamStatusEl.innerText = "Akses gagal. Pastikan izin Mikrofon pada pengaturan Chrome HP sudah Aktif!";
+                return null;
             }
         }
 
@@ -862,20 +963,19 @@
             gainL = audioCtx.createGain(); gainL.gain.value = parseFloat(document.getElementById('gain-slider-l').value) / 100;
 
             // --- STRUKTUR BARU REVERB + MULTI-TAP ECHO (CH-L) ---
-            delayL1 = audioCtx.createDelay(1.0); delayL1.delayTime.value = 0.38; // Pantulan Utama (BPM Sync)
-            delayL2 = audioCtx.createDelay(1.0); delayL2.delayTime.value = 0.52; // Multi-tap cross feedback
+            delayL1 = audioCtx.createDelay(1.0); delayL1.delayTime.value = 0.38; 
+            delayL2 = audioCtx.createDelay(1.0); delayL2.delayTime.value = 0.52; 
             feedbackL1 = audioCtx.createGain(); feedbackL1.gain.value = 0;
             feedbackL2 = audioCtx.createGain(); feedbackL2.gain.value = 0;
-            filterL = audioCtx.createBiquadFilter(); filterL.type = "lowpass"; filterL.frequency.value = 3500; // Meredam teriakan melengking (HF Damping)
+            filterL = audioCtx.createBiquadFilter(); filterL.type = "lowpass"; filterL.frequency.value = 3500; 
             wetGainL = audioCtx.createGain(); wetGainL.gain.value = 0;
 
-            // Wiring internal sirkuit Echo Reverb L
             vocalL.connect(delayL1);
             delayL1.connect(feedbackL1);
             feedbackL1.connect(delayL2);
             delayL2.connect(feedbackL2);
             feedbackL2.connect(filterL);
-            filterL.connect(delayL1); // Close Loop Feedback
+            filterL.connect(delayL1); 
             filterL.connect(wetGainL);
 
             // ================== SIRKUIT FILTERS CH-R ==================
@@ -894,7 +994,6 @@
             filterR = audioCtx.createBiquadFilter(); filterR.type = "lowpass"; filterR.frequency.value = 3500;
             wetGainR = audioCtx.createGain(); wetGainR.gain.value = 0;
 
-            // Wiring internal sirkuit Echo Reverb R
             vocalR.connect(delayR1);
             delayR1.connect(feedbackR1);
             feedbackR1.connect(delayR2);
@@ -912,7 +1011,6 @@
             lpfL.connect(sultanL);
             sultanL.connect(vocalL);
             
-            // Menggabungkan sinyal vokal bersih dan vokal basah (Echo) ke keluaran
             vocalL.connect(harmonicL);
             wetGainL.connect(harmonicL); 
             
@@ -921,7 +1019,9 @@
             analyserL.connect(mergerNode, 0, 0);
 
             // Saluran Kanan (R)
-            splitterNode.connect(hpfR, 1);
+            // Jika mic HP murni mono, otomatis duplikasi input ke R hpfR
+            let inputChannelIndex = (streamNode.channelCount > 1) ? 1 : 0;
+            splitterNode.connect(hpfR, inputChannelIndex);
             hpfR.connect(lpfR);
             lpfR.connect(sultanR);
             sultanR.connect(vocalR);
@@ -1005,10 +1105,9 @@
                 nodeHpf.Q.setValueAtTime(qVal, audioCtx.currentTime);
                 nodeLpf.Q.setValueAtTime(qVal, audioCtx.currentTime);
 
-                // SIMULASI AKUSTIK RUANG: JIKA PARAMETER ECHO AKTIF (OPTIMALISASI DSP)
                 if(channelParams[ch].echo) {
-                    wetNode.gain.setValueAtTime(0.65, audioCtx.currentTime); // Gain efek basah yang tebal
-                    fbNode1.gain.setValueAtTime(0.70, audioCtx.currentTime); // Feedback panjang berlapis
+                    wetNode.gain.setValueAtTime(0.65, audioCtx.currentTime); 
+                    fbNode1.gain.setValueAtTime(0.70, audioCtx.currentTime); 
                     fbNode2.gain.setValueAtTime(0.55, audioCtx.currentTime);
                 } else {
                     wetNode.gain.setValueAtTime(0, audioCtx.currentTime);
