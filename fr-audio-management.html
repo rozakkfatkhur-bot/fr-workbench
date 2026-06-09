@@ -467,38 +467,20 @@
     <input type="file" id="audio-upload" accept="audio/*" style="display: none;" onchange="loadAudioFile(this)">
     <div id="file-status" style="font-size: 9px; color: var(--text-muted); margin-top: 5px;">Belum ada file dipilih</div>
 </div>
+<div class="audio-input-box">
+    <label for="audio-upload" style="color: #00bfff; cursor: pointer;">
+        <i class="fa-solid fa-folder-open"></i> PILIH FILE AUDIO (MP3/WAV)
+    </label>
+    <input type="file" id="audio-upload" accept="audio/*" style="display: none;" onchange="prepareAudioFile(this)">
+    
+    <div class="capture-controls-wrapper" style="margin-top: 10px;">
+        <button class="stream-active-btn" id="play-file-btn" onclick="togglePlayback()" disabled>
+            <i class="fa-solid fa-play" id="play-icon"></i> PUTAR MUSIK
+        </button>
+    </div>
+    <div class="stream-status-indicator" id="file-status">Belum ada file dipilih...</div>
+</div>
 
-<script>
-    // FUNGSI LOAD FILE AUDIO
-    function loadAudioFile(input) {
-        if (input.files && input.files[0]) {
-            const file = input.files[0];
-            document.getElementById('file-status').innerText = "Memuat: " + file.name;
-            
-            // Inisialisasi AudioContext jika belum ada
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                audioCtx.decodeAudioData(e.target.result, function(buffer) {
-                    const source = audioCtx.createBufferSource();
-                    source.buffer = buffer;
-                    
-                    // Hubungkan ke engine pemrosesan yang sudah ada (splitterNode)
-                    if (!isEngineBuilt) buildDiscreteEngine(); 
-                    
-                    // Ganti streamNode dengan bufferSource
-                    source.connect(splitterNode);
-                    source.start(0);
-                    
-                    document.getElementById('file-status').innerText = "Status: Memainkan " + file.name;
-                });
-            };
-            reader.readAsArrayBuffer(file);
-        }
-    }
 </script>
 
                 <div class="stream-status-indicator" id="stream-status">Status: Menunggu aktivasi... Gunakan tombol AUTO untuk memilih mode.</div>
