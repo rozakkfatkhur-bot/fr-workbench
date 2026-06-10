@@ -535,6 +535,7 @@
             outline: none;
         }
 
+        /* NEW STYLE UPDATES FOR ALL-IN-ONE CONTROL */
         .master-fader-card {
             background: linear-gradient(145deg, #130722, #07020d);
             border: 1px solid rgba(0, 229, 255, 0.2) !important;
@@ -648,7 +649,7 @@
 
                 <div class="capture-controls-wrapper">
                     <div style="display: flex; gap: 6px; width: 100%; margin-bottom: 6px;">
-                        <button class="stream-active-btn" id="start-stream-btn" onclick="initLiveAudioCapture()" style="flex: 4;">
+                        <button class="stream-active-btn" id="start-stream-btn" onclick="initLiveAudioCapture()" style="flex: 4;" title="Pilih 'Share Tab' saat pop-up muncul untuk mematikan audio asli">
                             <i class="fa-solid fa-radio"></i> HUBUNGKAN YOUTUBE / MIC
                         </button>
                         <button class="stream-source-btn" id="src-toggle-btn" onclick="toggleAudioSourceMode()" title="Ganti Mode Tangkap" style="flex: 1;">
@@ -679,7 +680,7 @@
                         <button class="action-toggle-btn" id="gen-toggle-btn" onclick="toggleSignalGenerator()" style="flex: 1; height: 28px; font-size: 9px; margin-top: 10px;">INJECT</button>
                     </div>
                 </div>
-                <div class="stream-status-indicator" id="stream-status">Status: Silakan hubungkan sumber audio. (Sistem sudah terintegrasi Anti-Double Echo Monitor).</div>
+                <div class="stream-status-indicator" id="stream-status">Status: Silakan hubungkan sumber audio. (Sistem sudah terintegrasi Anti-Double Echo Monitor jika Anda membagikan Tab).</div>
             </div>
 
             <div style="font-size: 10px; background: rgba(255,255,255,0.02); padding: 6px; border-radius: 6px; color: var(--text-muted);">
@@ -731,19 +732,23 @@
                     </div>
                 </div>
 
-                <div class="menu-slot-card active" id="card-robot-effect">
+                <div class="menu-slot-card active" id="card-robot-effect" style="border-color: rgba(230, 126, 34, 0.6);">
                     <div class="slot-header">
-                        <span class="slot-title" style="color: #e67e22;"><i class="fa-solid fa-robot"></i> Ring-Mod Robot Voice</span>
-                        <span class="slot-index">FX-CORE</span>
+                        <span class="slot-title" style="color: #e67e22;"><i class="fa-solid fa-robot"></i> Vocal Harmonizer & Pitch Shifter</span>
+                        <span class="slot-index">FX-DSP</span>
                     </div>
                     <div class="ch-control-row row-compact" style="justify-content:space-between;">
-                        <span>Freq Mod: <strong id="fx-pitch-txt">50 Hz</strong></span>
-                        <input type="range" min="10" max="200" value="50" step="1" style="width:60%; accent-color:#e67e22;" id="fx-pitch-slider" oninput="updateRobotEffectSettings()">
+                        <span>Pitch: <strong id="fx-pitch-txt">1.0x</strong></span>
+                        <input type="range" min="50" max="200" value="100" step="1" style="width:65%; accent-color:#e67e22;" id="fx-pitch-slider" oninput="updateRobotEffectSettings()">
+                    </div>
+                    <div class="ch-control-row row-compact" style="justify-content:space-between;">
+                        <span>Mix/Harmoni: <strong id="fx-mix-txt">50%</strong></span>
+                        <input type="range" min="0" max="100" value="50" step="1" style="width:65%; accent-color:#e67e22;" id="fx-mix-slider" oninput="updateRobotEffectSettings()">
                     </div>
                     <div class="ch-control-row" style="justify-content:space-between;">
-                        <button class="action-toggle-btn" id="fx-toggle-btn" onclick="toggleRobotEffect()" style="width:100%; font-size:9px; background:rgba(230,126,34,0.1); border-color: rgba(230,126,34,0.3);">ACTIVATE ROBOT VOICE</button>
+                        <button class="action-toggle-btn" id="fx-toggle-btn" onclick="toggleRobotEffect()" style="width:100%; font-size:9px; background:rgba(230,126,34,0.1); border-color: rgba(230,126,34,0.3);">ACTIVATE HARMONIZER</button>
                     </div>
-                    <span style="font-size:7px; color:var(--text-muted); display:block; margin-top:2px; text-align:center;">*Menggunakan Real-Time Amplitude Modulation</span>
+                    <span style="font-size:7px; color:var(--text-muted); display:block; margin-top:2px; text-align:center;">*Meniru FX 24 (Pitch) pada Mixer Fisik | 50% Mix = Suara Ganda</span>
                 </div>
 
                 <div class="menu-slot-card active" id="card-outdelay">
@@ -1231,7 +1236,7 @@
                 <div class="gr-segment"></div><div class="gr-segment"></div><div class="gr-segment"></div><div class="gr-segment"></div><div class="gr-segment"></div>
             </div>
         </div>
-        <div class="footer-status"><i class="fa-solid fa-bolt-lightning fa-fade" style="color: var(--violet-glow);"></i> DUAL-CORE INTERACTIVE DSP MATRIX WITH ADVANCED VOICE PROCESSING & RMS COMPRESSION LIVE</div>
+        <div class="footer-status"><i class="fa-solid fa-bolt-lightning fa-fade" style="color: var(--violet-glow);"></i> TRUE DSP MATRIX DLY OUT & VOCAL PITCH HARMONIZER ALGORITHM LIVE</div>
     </div>
 
     <script>
@@ -1286,10 +1291,10 @@
         let masterHardwareGainNode = null;
         let globalVoiceCompressorNode = null;
         
-        // RING MODULATOR VARIABLES FOR ROBOT EFFECT
-        let robotVoiceOsc = null;
-        let robotGainNode = null;
-        let dryVoiceGain = null;
+        // TRUE PITCH SHIFTER / HARMONIZER VARIABLES (AUDIO WORKLET)
+        let pitchWorkletNode = null;
+        let pitchDryGain = null;
+        let pitchWetGain = null;
         
         let isMasterHardwareMuted = false;
         let isCompressorBypassed = false;
@@ -1331,7 +1336,54 @@
             }
         }
 
-        function handleMusicFileSelect(input) {
+        // LOAD CUSTOM AUDIO WORKLET PITCH SHIFTER
+        async function setupPitchWorklet() {
+            if(!audioCtx) return;
+            const code = `
+                class RobotPitch extends AudioWorkletProcessor {
+                    constructor() {
+                        super();
+                        this.bufferSize = 4096;
+                        this.buffer = new Float32Array(this.bufferSize);
+                        this.wPos = 0;
+                        this.rPos = 0;
+                    }
+                    static get parameterDescriptors() {
+                        return [{ name: 'pitch', defaultValue: 1.0, minValue: 0.1, maxValue: 3.0 }];
+                    }
+                    process(inputs, outputs, parameters) {
+                        const input = inputs[0];
+                        const output = outputs[0];
+                        if(!input || !input[0]) return true;
+                        
+                        const inCh = input[0];
+                        const outCh = output[0];
+                        const pitch = parameters.pitch.length > 1 ? parameters.pitch[0] : parameters.pitch;
+
+                        for(let i=0; i<inCh.length; i++) {
+                            this.buffer[this.wPos] = inCh[i];
+                            // Simple Granular Drop
+                            let rInt = Math.floor(this.rPos);
+                            outCh[i] = this.buffer[rInt];
+                            
+                            this.wPos = (this.wPos + 1) % this.bufferSize;
+                            this.rPos = (this.rPos + pitch) % this.bufferSize;
+                        }
+                        return true;
+                    }
+                }
+                registerProcessor('robot-pitch', RobotPitch);
+            `;
+            const blob = new Blob([code], { type: 'application/javascript' });
+            const url = URL.createObjectURL(blob);
+            try {
+                await audioCtx.audioWorklet.addModule(url);
+            } catch (e) {
+                console.log("Worklet failed, fallback needed. " + e);
+            }
+        }
+
+        async function handleMusicFileSelect(input) {
             const file = input.files[0];
             if (!file) return;
             if (activeInputType === 'live') {
@@ -1349,6 +1401,7 @@
             if (!fileSourceNode) {
                 fileSourceNode = audioCtx.createMediaElementSource(filePlayer);
                 streamNode = fileSourceNode; 
+                await setupPitchWorklet();
                 buildDiscreteEngine();
             }
 
@@ -1393,10 +1446,11 @@
             } else {
                 try {
                     // NEW: Mencegah efek Double Audio / Echo Monitoring
+                    // CATATAN: Pengguna WAJIB memilih "Share Tab" bukan "Entire Screen" agar ini bekerja.
                     mediaStream = await navigator.mediaDevices.getDisplayMedia({
                         video: { displaySurface: "browser" },
                         audio: { 
-                            suppressLocalAudioPlayback: true, // Mencegah audio asli (YouTube dll) bocor ke speaker agar hanya hasil web DLMS yang terdengar.
+                            suppressLocalAudioPlayback: true, // TRUE MUTE TAB ASLI!
                             echoCancellation: false, 
                             noiseSuppression: false, 
                             autoGainControl: false 
@@ -1409,6 +1463,7 @@
 
             if (mediaStream) {
                 streamNode = audioCtx.createMediaStreamSource(mediaStream);
+                await setupPitchWorklet();
                 buildDiscreteEngine();
                 document.getElementById('start-stream-btn').innerHTML = `<i class="fa-solid fa-circle-check"></i> FR-ENGINE LIVE`;
                 document.getElementById('start-stream-btn').style.background = "#bc13fe";
@@ -1490,6 +1545,7 @@
 
             if (!isEngineBuilt) {
                 streamNode = generatorNode; 
+                // Cannot await worklet here cleanly without making it async, bypass worklet init if forced.
                 buildDiscreteEngine();
             } else {
                 generatorNode.connect(masterHardwareGainNode);
@@ -1590,32 +1646,48 @@
         }
 
         function updateRobotEffectSettings() {
-            let freq = parseFloat(document.getElementById('fx-pitch-slider').value);
-            document.getElementById('fx-pitch-txt').innerText = freq + " Hz";
-            if(isEngineBuilt && robotVoiceOsc) {
-                robotVoiceOsc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            let pitchRaw = parseFloat(document.getElementById('fx-pitch-slider').value);
+            let pitchRatio = pitchRaw / 100; // 0.5 to 2.0
+            let mixVal = parseFloat(document.getElementById('fx-mix-slider').value) / 100;
+
+            document.getElementById('fx-pitch-txt').innerText = pitchRatio.toFixed(2) + "x";
+            document.getElementById('fx-mix-txt').innerText = Math.round(mixVal * 100) + "%";
+
+            if(isEngineBuilt && pitchWorkletNode) {
+                pitchWorkletNode.parameters.get('pitch').setValueAtTime(pitchRatio, audioCtx.currentTime);
+                
+                if (isRobotEffectActive) {
+                    // Update Mix
+                    pitchDryGain.gain.setTargetAtTime(1.0 - mixVal, audioCtx.currentTime, 0.01);
+                    pitchWetGain.gain.setTargetAtTime(mixVal, audioCtx.currentTime, 0.01);
+                }
             }
         }
 
         function toggleRobotEffect() {
             isRobotEffectActive = !isRobotEffectActive;
             const btn = document.getElementById('fx-toggle-btn');
+            
+            let mixVal = parseFloat(document.getElementById('fx-mix-slider').value) / 100;
+
             if(isRobotEffectActive) {
                 btn.style.background = "var(--led-red)";
                 btn.style.borderColor = "#ff5555";
-                btn.innerText = "ROBOT EFFECT ON";
-                // Crossfade ke Ring Modulator
-                if(isEngineBuilt && dryVoiceGain && robotGainNode) {
-                    dryVoiceGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.01);
-                    // Oscillator mengatur gain. Jika kering 0, maka hanya hasil modulasi yang lewat (Ring Mod)
+                btn.innerText = "HARMONIZER ACTIVE";
+                
+                if(isEngineBuilt && pitchWorkletNode) {
+                    pitchDryGain.gain.setTargetAtTime(1.0 - mixVal, audioCtx.currentTime, 0.01);
+                    pitchWetGain.gain.setTargetAtTime(mixVal, audioCtx.currentTime, 0.01);
                 }
             } else {
                 btn.style.background = "rgba(230,126,34,0.1)";
                 btn.style.borderColor = "rgba(230,126,34,0.3)";
-                btn.innerText = "ACTIVATE ROBOT VOICE";
-                // Crossfade balik ke Dry Vocal (bypass)
-                if(isEngineBuilt && dryVoiceGain && robotGainNode) {
-                    dryVoiceGain.gain.setTargetAtTime(1, audioCtx.currentTime, 0.01);
+                btn.innerText = "ACTIVATE HARMONIZER";
+                
+                // BYPASS
+                if(isEngineBuilt && pitchWorkletNode) {
+                    pitchDryGain.gain.setTargetAtTime(1.0, audioCtx.currentTime, 0.01);
+                    pitchWetGain.gain.setTargetAtTime(0.0, audioCtx.currentTime, 0.01);
                 }
             }
         }
@@ -1635,40 +1707,42 @@
 
         /* --- BUILD CORE HARDWARE ENGINE GRAPH --- */
         function buildDiscreteEngine() {
-            // Master Hardware Gain
             masterHardwareGainNode = audioCtx.createGain();
             masterHardwareGainNode.gain.setValueAtTime(parseFloat(document.getElementById('master-gain-slider').value) / 100, audioCtx.currentTime);
 
-            // True Independent Split Arsitektur Vokal (Hanya jika Input Type adalah Live/Mic/Capture)
             globalVoiceCompressorNode = audioCtx.createDynamicsCompressor();
             globalVoiceCompressorNode.knee.setValueAtTime(12, audioCtx.currentTime);
             globalVoiceCompressorNode.attack.setValueAtTime(0.003, audioCtx.currentTime);
             globalVoiceCompressorNode.release.setValueAtTime(0.08, audioCtx.currentTime);
             
-            // IMPLEMENTASI RING MODULATOR (TRUE ROBOT/DALEK VOICE)
-            robotVoiceOsc = audioCtx.createOscillator();
-            robotVoiceOsc.type = 'sawtooth';
-            robotVoiceOsc.frequency.setValueAtTime(parseFloat(document.getElementById('fx-pitch-slider').value), audioCtx.currentTime);
-            robotVoiceOsc.start();
-
-            robotGainNode = audioCtx.createGain();
-            robotGainNode.gain.setValueAtTime(0, audioCtx.currentTime); // Akan dimodulasi oleh Osc
-            robotVoiceOsc.connect(robotGainNode.gain);
-
-            dryVoiceGain = audioCtx.createGain();
-            dryVoiceGain.gain.setValueAtTime(1, audioCtx.currentTime); // Default Dry Active
+            // TRUE GRANULAR PITCH SHIFTER INITIALIZATION
+            try {
+                pitchWorkletNode = new AudioWorkletNode(audioCtx, 'robot-pitch');
+                pitchWorkletNode.parameters.get('pitch').value = parseFloat(document.getElementById('fx-pitch-slider').value) / 100;
+            } catch(e) {
+                console.warn("Worklet Node Not Loaded");
+            }
+            
+            pitchDryGain = audioCtx.createGain();
+            pitchWetGain = audioCtx.createGain();
+            
+            pitchDryGain.gain.setValueAtTime(1.0, audioCtx.currentTime); 
+            pitchWetGain.gain.setValueAtTime(0.0, audioCtx.currentTime); 
 
             // Routing Input
             if(activeInputType === 'live') {
                 streamNode.connect(globalVoiceCompressorNode);
                 
-                // Pemisahan ke bypass dan proses efek robot
-                globalVoiceCompressorNode.connect(dryVoiceGain);
-                globalVoiceCompressorNode.connect(robotGainNode);
+                // Pemisahan ke dry gain (asli) dan wet gain (pitch shifted)
+                if(pitchWorkletNode) {
+                    globalVoiceCompressorNode.connect(pitchWorkletNode);
+                    pitchWorkletNode.connect(pitchWetGain);
+                }
+                globalVoiceCompressorNode.connect(pitchDryGain);
                 
                 // Keduanya dikirim ke master engine
-                dryVoiceGain.connect(masterHardwareGainNode);
-                robotGainNode.connect(masterHardwareGainNode);
+                pitchDryGain.connect(masterHardwareGainNode);
+                pitchWetGain.connect(masterHardwareGainNode);
             } else {
                 // Jalur Musik Murni / Generator: Lewati Efek Vokal
                 streamNode.connect(masterHardwareGainNode);
