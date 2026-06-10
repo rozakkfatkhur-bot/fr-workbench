@@ -162,18 +162,11 @@
             transition: all 0.1s;
         }
 
-        /* FITUR LIMIT KEDIP-KEDIP OPTIMAL */
         .badge-led.active-limit {
             background: var(--led-red);
             color: #fff;
             text-shadow: 0 0 5px #ff0000;
             box-shadow: 0 0 8px #e74c3c;
-            animation: limitBlink 0.3s infinite alternate;
-        }
-
-        @keyframes limitBlink {
-            0% { opacity: 1; background: var(--led-red); box-shadow: 0 0 12px #ff0000; }
-            100% { opacity: 0.4; background: #7f0000; box-shadow: 0 0 0px transparent; }
         }
 
         .audio-input-box {
@@ -1476,6 +1469,8 @@
             vocalL.connect(delayL1); delayL1.connect(feedbackL1); feedbackL1.connect(delayL2); delayL2.connect(feedbackL2); feedbackL2.connect(filterL); filterL.connect(delayL1); filterL.connect(wetGainL);
             vocalR.connect(delayR1); delayR1.connect(feedbackR1); feedbackR1.connect(delayR2); delayR2.connect(feedbackR2); feedbackR2.connect(filterR); filterR.connect(delayR1); filterR.connect(wetGainR);
 
+            // [UPGRADE] Panggil sinkronisasi awal nilai PEQ dari sliders ke Audio Node
+            syncAllSlidersToNodes();
             refreshFilterFrequencies('l');
             refreshFilterFrequencies('r');
 
@@ -1654,6 +1649,24 @@
             }
         }
 
+        // [UPGRADE] Fungsi sinkronisasi runtime untuk memuat data slider ke AudioNode saat mesin siap
+        function syncAllSlidersToNodes() {
+            if(!isEngineBuilt) return;
+            peqLML.gain.setValueAtTime(parseFloat(document.getElementById('peq-lm-g-l').value), audioCtx.currentTime);
+            peqLML.Q.setValueAtTime(parseFloat(document.getElementById('peq-lm-q-l').value), audioCtx.currentTime);
+            peqMVL.gain.setValueAtTime(parseFloat(document.getElementById('peq-mv-g-l').value), audioCtx.currentTime);
+            peqMVL.Q.setValueAtTime(parseFloat(document.getElementById('peq-mv-q-l').value), audioCtx.currentTime);
+            peqHTL.gain.setValueAtTime(parseFloat(document.getElementById('peq-ht-g-l').value), audioCtx.currentTime);
+            peqHTL.Q.setValueAtTime(parseFloat(document.getElementById('peq-ht-q-l').value), audioCtx.currentTime);
+
+            peqLMR.gain.setValueAtTime(parseFloat(document.getElementById('peq-lm-g-r').value), audioCtx.currentTime);
+            peqLMR.Q.setValueAtTime(parseFloat(document.getElementById('peq-lm-q-r').value), audioCtx.currentTime);
+            peqMVR.gain.setValueAtTime(parseFloat(document.getElementById('peq-mv-g-r').value), audioCtx.currentTime);
+            peqMVR.Q.setValueAtTime(parseFloat(document.getElementById('peq-mv-q-r').value), audioCtx.currentTime);
+            peqHTR.gain.setValueAtTime(parseFloat(document.getElementById('peq-ht-g-r').value), audioCtx.currentTime);
+            peqHTR.Q.setValueAtTime(parseFloat(document.getElementById('peq-ht-q-r').value), audioCtx.currentTime);
+        }
+
         function attachPeqListeners(id, node, param) {
             const el = document.getElementById(id);
             if(el) {
@@ -1774,7 +1787,7 @@
                     if(!channelParams[ch].core) { nGain.gain.setValueAtTime(0, audioCtx.currentTime); } 
                     else if(!channelParams[ch].syscombine) { nGain.gain.setValueAtTime(0.2, audioCtx.currentTime); } 
                     else {
-                        let sldGain = parseFloat(document.getElementById('gain-slider-' + ch).value) / 100;
+                        let sldGain = parseFloat(document.getElementById('gain-slider' + ch).value) / 100;
                         nGain.gain.setValueAtTime(sldGain, audioCtx.currentTime);
                     }
                 }
@@ -1809,12 +1822,14 @@
             drawIndividualGraph(ctxL, canvasL, dataArrayL, '#9b51e0', 'l', deqCurrentGainL);
             drawIndividualGraph(ctxR, canvasR, dataArrayR, '#00e5ff', 'r', deqCurrentGainR);
 
+            // [UPGRADE] Perbaikan pembacaan AudioParam .value secara aman lintas browser
             let reductionL = 0, reductionR = 0;
-            if(limiterL && typeof limiterL.reduction === 'number') reductionL = limiterL.reduction; 
-            else if (limiterL && limiterL.reduction && typeof limiterL.reduction.value === 'number') reductionL = limiterL.reduction.value;
-            
-            if(limiterR && typeof limiterR.reduction === 'number') reductionR = limiterR.reduction;
-            else if (limiterR && limiterR.reduction && typeof limiterR.reduction.value === 'number') reductionR = limiterR.reduction.value;
+            if (limiterL) {
+                reductionL = (typeof limiterL.reduction === 'number') ? limiterL.reduction : (limiterL.reduction.value || 0);
+            }
+            if (limiterR) {
+                reductionR = (typeof limiterR.reduction === 'number') ? limiterR.reduction : (limiterR.reduction.value || 0);
+            }
 
             processLedLimitVisuals('l', reductionL);
             processLedLimitVisuals('r', reductionR);
