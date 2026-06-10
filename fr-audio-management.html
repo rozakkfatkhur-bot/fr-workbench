@@ -535,7 +535,6 @@
             outline: none;
         }
 
-        /* NEW STYLE UPDATES FOR ALL-IN-ONE CONTROL */
         .master-fader-card {
             background: linear-gradient(145deg, #130722, #07020d);
             border: 1px solid rgba(0, 229, 255, 0.2) !important;
@@ -650,7 +649,7 @@
                 <div class="capture-controls-wrapper">
                     <div style="display: flex; gap: 6px; width: 100%; margin-bottom: 6px;">
                         <button class="stream-active-btn" id="start-stream-btn" onclick="initLiveAudioCapture()" style="flex: 4;">
-                            <i class="fa-solid fa-radio"></i> HUBUNGKAN LIVE AUDIO / MIC
+                            <i class="fa-solid fa-radio"></i> HUBUNGKAN YOUTUBE / MIC
                         </button>
                         <button class="stream-source-btn" id="src-toggle-btn" onclick="toggleAudioSourceMode()" title="Ganti Mode Tangkap" style="flex: 1;">
                             <i class="fa-solid fa-sliders"></i> <span id="src-mode-text">AUTO</span>
@@ -680,7 +679,7 @@
                         <button class="action-toggle-btn" id="gen-toggle-btn" onclick="toggleSignalGenerator()" style="flex: 1; height: 28px; font-size: 9px; margin-top: 10px;">INJECT</button>
                     </div>
                 </div>
-                <div class="stream-status-indicator" id="stream-status">Status: Gunakan file musik lokal, live capture mikrofon, atau internal generator.</div>
+                <div class="stream-status-indicator" id="stream-status">Status: Silakan hubungkan sumber audio. (Sistem sudah terintegrasi Anti-Double Echo Monitor).</div>
             </div>
 
             <div style="font-size: 10px; background: rgba(255,255,255,0.02); padding: 6px; border-radius: 6px; color: var(--text-muted);">
@@ -734,17 +733,34 @@
 
                 <div class="menu-slot-card active" id="card-robot-effect">
                     <div class="slot-header">
-                        <span class="slot-title" style="color: #e67e22;"><i class="fa-solid fa-robot"></i> Vocal Robot Effect Engine</span>
+                        <span class="slot-title" style="color: #e67e22;"><i class="fa-solid fa-robot"></i> Ring-Mod Robot Voice</span>
                         <span class="slot-index">FX-CORE</span>
                     </div>
                     <div class="ch-control-row row-compact" style="justify-content:space-between;">
-                        <span>Pitch Factor: <strong id="fx-pitch-txt">1.0x</strong></span>
-                        <input type="range" min="5" max="20" value="10" step="1" style="width:60%; accent-color:#e67e22;" id="fx-pitch-slider" oninput="updateRobotEffectSettings()">
+                        <span>Freq Mod: <strong id="fx-pitch-txt">50 Hz</strong></span>
+                        <input type="range" min="10" max="200" value="50" step="1" style="width:60%; accent-color:#e67e22;" id="fx-pitch-slider" oninput="updateRobotEffectSettings()">
                     </div>
                     <div class="ch-control-row" style="justify-content:space-between;">
                         <button class="action-toggle-btn" id="fx-toggle-btn" onclick="toggleRobotEffect()" style="width:100%; font-size:9px; background:rgba(230,126,34,0.1); border-color: rgba(230,126,34,0.3);">ACTIVATE ROBOT VOICE</button>
                     </div>
-                    <span style="font-size:7px; color:var(--text-muted); display:block; margin-top:2px; text-align:center;">*Hanya berpengaruh ke Vokal / Mic, Musik tetap jernih murni</span>
+                    <span style="font-size:7px; color:var(--text-muted); display:block; margin-top:2px; text-align:center;">*Menggunakan Real-Time Amplitude Modulation</span>
+                </div>
+
+                <div class="menu-slot-card active" id="card-outdelay">
+                    <div class="slot-header">
+                        <span class="slot-title" style="color: #3498db;"><i class="fa-solid fa-clock"></i> Time Alignment (Delay L/R)</span>
+                        <span class="slot-index">DLY-OUT</span>
+                    </div>
+                    <div class="ch-control-row row-compact" style="justify-content:space-between;">
+                        <span style="color:var(--violet-glow); font-weight:bold;">L-Dly: <span id="dly-val-l" style="font-weight:normal; color:#fff;">0.0 ms</span></span>
+                        <input type="range" min="0" max="200" value="0" step="0.5" style="width:55%; accent-color:var(--violet-main);" id="dly-slider-l" oninput="updateOutputDelay('l')">
+                        <span id="dly-dist-l" style="font-size:8px; color:var(--text-muted); width: 25px; text-align:right;">0.0m</span>
+                    </div>
+                    <div class="ch-control-row row-compact" style="justify-content:space-between;">
+                        <span style="color:var(--cyan-ch2); font-weight:bold;">R-Dly: <span id="dly-val-r" style="font-weight:normal; color:#fff;">0.0 ms</span></span>
+                        <input type="range" min="0" max="200" value="0" step="0.5" style="width:55%; accent-color:var(--cyan-ch2);" id="dly-slider-r" oninput="updateOutputDelay('r')">
+                        <span id="dly-dist-r" style="font-size:8px; color:var(--text-muted); width: 25px; text-align:right;">0.0m</span>
+                    </div>
                 </div>
 
                 <div class="menu-slot-card active" id="card-core">
@@ -1240,6 +1256,9 @@
         let peqLMR, peqMVR, peqHTR;
         let sultanL, vocalL, harmonicL, gainL, phaseL, limiterL, antiPopL, deqFilterL;
         let sultanR, vocalR, harmonicR, gainR, phaseR, limiterR, antiPopR, deqFilterR;
+        
+        // NEW: Output Delay Nodes
+        let outDelayNodeL, outDelayNodeR;
 
         let generatorNode = null;
         let isGeneratorInjecting = false;
@@ -1266,8 +1285,11 @@
         /* --- ADVANCED CORE NODE INTEGRATIONS --- */
         let masterHardwareGainNode = null;
         let globalVoiceCompressorNode = null;
-        let robotVoiceBiquadNode = null;
-        let voicePitchWaveShaperNode = null;
+        
+        // RING MODULATOR VARIABLES FOR ROBOT EFFECT
+        let robotVoiceOsc = null;
+        let robotGainNode = null;
+        let dryVoiceGain = null;
         
         let isMasterHardwareMuted = false;
         let isCompressorBypassed = false;
@@ -1313,7 +1335,7 @@
             const file = input.files[0];
             if (!file) return;
             if (activeInputType === 'live') {
-                alert("Harap refresh halaman untuk mengubah input.");
+                alert("Harap refresh halaman untuk mengubah input ke mode pemutar file murni.");
                 return;
             }
 
@@ -1370,9 +1392,15 @@
                 mediaStream = await startMicStream();
             } else {
                 try {
+                    // NEW: Mencegah efek Double Audio / Echo Monitoring
                     mediaStream = await navigator.mediaDevices.getDisplayMedia({
                         video: { displaySurface: "browser" },
-                        audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+                        audio: { 
+                            suppressLocalAudioPlayback: true, // Mencegah audio asli (YouTube dll) bocor ke speaker agar hanya hasil web DLMS yang terdengar.
+                            echoCancellation: false, 
+                            noiseSuppression: false, 
+                            autoGainControl: false 
+                        }
                     });
                 } catch (err) {
                     mediaStream = await startMicStream();
@@ -1562,20 +1590,11 @@
         }
 
         function updateRobotEffectSettings() {
-            let factor = parseFloat(document.getElementById('fx-pitch-slider').value) / 10;
-            document.getElementById('fx-pitch-txt').innerText = factor.toFixed(1) + "x";
-            if(isEngineBuilt && voicePitchWaveShaperNode) {
-                voicePitchWaveShaperNode.curve = makeRobotDistortionCurve(factor);
+            let freq = parseFloat(document.getElementById('fx-pitch-slider').value);
+            document.getElementById('fx-pitch-txt').innerText = freq + " Hz";
+            if(isEngineBuilt && robotVoiceOsc) {
+                robotVoiceOsc.frequency.setValueAtTime(freq, audioCtx.currentTime);
             }
-        }
-
-        function makeRobotDistortionCurve(factor) {
-            let n_samples = 44100, curve = new Float32Array(n_samples);
-            for (let i = 0; i < n_samples; ++i) {
-                let x = (i * 2) / n_samples - 1;
-                curve[i] = Math.sin(x * Math.PI * factor) * (1 / factor);
-            }
-            return curve;
         }
 
         function toggleRobotEffect() {
@@ -1585,18 +1604,32 @@
                 btn.style.background = "var(--led-red)";
                 btn.style.borderColor = "#ff5555";
                 btn.innerText = "ROBOT EFFECT ON";
-                if(isEngineBuilt && robotVoiceBiquadNode) {
-                    robotVoiceBiquadNode.frequency.setValueAtTime(450, audioCtx.currentTime);
-                    robotVoiceBiquadNode.Q.setValueAtTime(15, audioCtx.currentTime);
+                // Crossfade ke Ring Modulator
+                if(isEngineBuilt && dryVoiceGain && robotGainNode) {
+                    dryVoiceGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.01);
+                    // Oscillator mengatur gain. Jika kering 0, maka hanya hasil modulasi yang lewat (Ring Mod)
                 }
             } else {
                 btn.style.background = "rgba(230,126,34,0.1)";
                 btn.style.borderColor = "rgba(230,126,34,0.3)";
                 btn.innerText = "ACTIVATE ROBOT VOICE";
-                if(isEngineBuilt && robotVoiceBiquadNode) {
-                    robotVoiceBiquadNode.frequency.setValueAtTime(20000, audioCtx.currentTime);
-                    robotVoiceBiquadNode.Q.setValueAtTime(1, audioCtx.currentTime);
+                // Crossfade balik ke Dry Vocal (bypass)
+                if(isEngineBuilt && dryVoiceGain && robotGainNode) {
+                    dryVoiceGain.gain.setTargetAtTime(1, audioCtx.currentTime, 0.01);
                 }
+            }
+        }
+
+        /* --- OUTPUT DELAY / TIME ALIGNMENT UPDATE --- */
+        function updateOutputDelay(ch) {
+            let msValue = parseFloat(document.getElementById('dly-slider-' + ch).value);
+            document.getElementById('dly-val-' + ch).innerText = msValue.toFixed(1) + " ms";
+            // Hitungan kasar jarak suara: 1 ms ~ 0.34 meter
+            document.getElementById('dly-dist-' + ch).innerText = (msValue * 0.34).toFixed(1) + "m";
+            
+            if(isEngineBuilt) {
+                let delayNode = (ch === 'l') ? outDelayNodeL : outDelayNodeR;
+                delayNode.delayTime.setTargetAtTime(msValue / 1000.0, audioCtx.currentTime, 0.01);
             }
         }
 
@@ -1606,27 +1639,36 @@
             masterHardwareGainNode = audioCtx.createGain();
             masterHardwareGainNode.gain.setValueAtTime(parseFloat(document.getElementById('master-gain-slider').value) / 100, audioCtx.currentTime);
 
-            // True Independent Split Arsitektur Vokal (Hanya jika Input Type adalah Live/Mic)
+            // True Independent Split Arsitektur Vokal (Hanya jika Input Type adalah Live/Mic/Capture)
             globalVoiceCompressorNode = audioCtx.createDynamicsCompressor();
             globalVoiceCompressorNode.knee.setValueAtTime(12, audioCtx.currentTime);
             globalVoiceCompressorNode.attack.setValueAtTime(0.003, audioCtx.currentTime);
             globalVoiceCompressorNode.release.setValueAtTime(0.08, audioCtx.currentTime);
             
-            robotVoiceBiquadNode = audioCtx.createBiquadFilter();
-            robotVoiceBiquadNode.type = "peaking";
-            robotVoiceBiquadNode.frequency.setValueAtTime(20000, audioCtx.currentTime); // default bypass
-            robotVoiceBiquadNode.Q.setValueAtTime(1, audioCtx.currentTime);
+            // IMPLEMENTASI RING MODULATOR (TRUE ROBOT/DALEK VOICE)
+            robotVoiceOsc = audioCtx.createOscillator();
+            robotVoiceOsc.type = 'sawtooth';
+            robotVoiceOsc.frequency.setValueAtTime(parseFloat(document.getElementById('fx-pitch-slider').value), audioCtx.currentTime);
+            robotVoiceOsc.start();
 
-            voicePitchWaveShaperNode = audioCtx.createWaveShaper();
-            voicePitchWaveShaperNode.curve = makeRobotDistortionCurve(1.0);
+            robotGainNode = audioCtx.createGain();
+            robotGainNode.gain.setValueAtTime(0, audioCtx.currentTime); // Akan dimodulasi oleh Osc
+            robotVoiceOsc.connect(robotGainNode.gain);
+
+            dryVoiceGain = audioCtx.createGain();
+            dryVoiceGain.gain.setValueAtTime(1, audioCtx.currentTime); // Default Dry Active
 
             // Routing Input
             if(activeInputType === 'live') {
-                // Jalur Khusus Vokal: Beri Efek + Kompresor
                 streamNode.connect(globalVoiceCompressorNode);
-                globalVoiceCompressorNode.connect(robotVoiceBiquadNode);
-                robotVoiceBiquadNode.connect(voicePitchWaveShaperNode);
-                voicePitchWaveShaperNode.connect(masterHardwareGainNode);
+                
+                // Pemisahan ke bypass dan proses efek robot
+                globalVoiceCompressorNode.connect(dryVoiceGain);
+                globalVoiceCompressorNode.connect(robotGainNode);
+                
+                // Keduanya dikirim ke master engine
+                dryVoiceGain.connect(masterHardwareGainNode);
+                robotGainNode.connect(masterHardwareGainNode);
             } else {
                 // Jalur Musik Murni / Generator: Lewati Efek Vokal
                 streamNode.connect(masterHardwareGainNode);
@@ -1701,6 +1743,10 @@
             filterR = audioCtx.createBiquadFilter(); filterR.type = "lowpass"; filterR.frequency.value = 3000; 
             wetGainR = audioCtx.createGain(); wetGainR.gain.value = 0.0;
 
+            // INIT OUTPUT DELAY NODES
+            outDelayNodeL = audioCtx.createDelay(1.0); outDelayNodeL.delayTime.value = parseFloat(document.getElementById('dly-slider-l').value) / 1000.0;
+            outDelayNodeR = audioCtx.createDelay(1.0); outDelayNodeR.delayTime.value = parseFloat(document.getElementById('dly-slider-r').value) / 1000.0;
+
             vocalL.connect(delayL1); delayL1.connect(feedbackL1); feedbackL1.connect(delayL2); delayL2.connect(feedbackL2); feedbackL2.connect(filterL); filterL.connect(delayL1); filterL.connect(wetGainL);
             vocalR.connect(delayR1); delayR1.connect(feedbackR1); feedbackR1.connect(delayR2); delayR2.connect(feedbackR2); feedbackR2.connect(filterR); filterR.connect(delayR1); filterR.connect(wetGainR);
 
@@ -1710,6 +1756,7 @@
             // Connect Master Control Node to Processing Core Matrix Splitter
             masterHardwareGainNode.connect(splitterNode);
 
+            // ---------------- CHAIN CH L ----------------
             splitterNode.connect(muteNodesL['core'], 0);
             
             muteNodesL['core'].connect(hpfLNodes[0]);
@@ -1755,11 +1802,15 @@
             antiPopL.connect(muteNodesL['antipop']);
             
             muteNodesL['antipop'].connect(gainL);
-            gainL.connect(muteNodesL['syscombine']);
+            
+            // FINAL TIME ALIGNMENT CH L
+            gainL.connect(outDelayNodeL);
+            outDelayNodeL.connect(muteNodesL['syscombine']);
             
             muteNodesL['syscombine'].connect(analyserL);
             analyserL.connect(mergerNode, 0, 0);
 
+            // ---------------- CHAIN CH R ----------------
             let inputChannelIndex = (masterHardwareGainNode.channelCount > 1) ? 1 : 0;
             splitterNode.connect(muteNodesR['core'], inputChannelIndex);
             
@@ -1806,7 +1857,10 @@
             antiPopR.connect(muteNodesR['antipop']);
             
             muteNodesR['antipop'].connect(gainR);
-            gainR.connect(muteNodesR['syscombine']);
+
+            // FINAL TIME ALIGNMENT CH R
+            gainR.connect(outDelayNodeR);
+            outDelayNodeR.connect(muteNodesR['syscombine']);
             
             muteNodesR['syscombine'].connect(analyserR);
             analyserR.connect(mergerNode, 0, 1);
@@ -1817,6 +1871,8 @@
             // Trigger visual update awal
             updateCompressorSettings();
             updateRobotEffectSettings();
+            updateOutputDelay('l');
+            updateOutputDelay('r');
             
             renderSystemLoop();
         }
