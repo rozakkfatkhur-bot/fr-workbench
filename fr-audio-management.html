@@ -679,7 +679,7 @@
                         <button class="action-toggle-btn" id="gen-toggle-btn" onclick="toggleSignalGenerator()" style="flex: 1; height: 28px; font-size: 9px; margin-top: 10px;">INJECT</button>
                     </div>
                 </div>
-                <div class="stream-status-indicator" id="stream-status">Status: Silakan hubungkan sumber audio. (Sistem sudah terintegrasi Anti-Double Echo Monitor).</div>
+                <div class="stream-status-indicator" id="stream-status">Status: Silakan hubungkan sumber audio.</div>
             </div>
 
             <div style="font-size: 10px; background: rgba(255,255,255,0.02); padding: 6px; border-radius: 6px; color: var(--text-muted);">
@@ -814,7 +814,7 @@
                         <div class="ch-indicator-label lbl-l">L</div>
                         <div class="matrix-slider-pack">
                             <div class="slider-meta-txt"><span>Freq</span><span id="hpf-txt-l">15 Hz</span></div>
-                            <input type="range" class="slider-l" id="hpf-slider-l" min="15" max="1000" value="15">
+                            <input type="range" class="slider-l" id="hpf-slider-l" min="15" max="85000" value="15">
                         </div>
                         <button class="mute-toggle-btn mute-off" id="mute-hpf-l" onclick="toggleCoreMute('l', 'hpf')">MUTE</button>
                     </div>
@@ -822,7 +822,7 @@
                         <div class="ch-indicator-label lbl-r">R</div>
                         <div class="matrix-slider-pack">
                             <div class="slider-meta-txt"><span>Freq</span><span id="hpf-txt-r">15 Hz</span></div>
-                            <input type="range" class="slider-r" id="hpf-slider-r" min="15" max="1000" value="15">
+                            <input type="range" class="slider-r" id="hpf-slider-r" min="15" max="85000" value="15">
                         </div>
                         <button class="mute-toggle-btn mute-off" id="mute-hpf-r" onclick="toggleCoreMute('r', 'hpf')">MUTE</button>
                     </div>
@@ -1024,7 +1024,7 @@
                     </div>
                     <div class="dual-uv-container" data-uv-group="harmonic">
                         <div class="slot-uv-bar uv-l"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
-                        <div class="slot-uv-bar uv-r"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
+                        <div class="slot-uv-bar uv-r"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
                     </div>
                 </div>
 
@@ -1246,51 +1246,42 @@
         const ctxL = canvasL.getContext('2d');
         const ctxR = canvasR.getContext('2d');
 
-        let audioCtx, streamNode, splitterNode, mergerNode;
+        let audioCtx, splitterNode, mergerNode;
         let analyserL, analyserR;
 
-        let hpfLNodes = [], lpfLNodes = [];
-        let hpfRNodes = [], lpfRNodes = [];
+        // === INPUT NODES ===
+        let fileSourceNode = null;
+        let liveStreamNode = null;
+        let generatorNode = null;
+        let mainInputSelectorGain = null;
 
-        let peqLML, peqMVL, peqHTL;
-        let peqLMR, peqMVR, peqHTR;
+        // === PROSES NODES ===
+        let hpfLNodes = [], lpfLNodes = [], hpfRNodes = [], lpfRNodes = [];
+        let peqLML, peqMVL, peqHTL, peqLMR, peqMVR, peqHTR;
         let sultanL, vocalL, harmonicL, gainL, phaseL, limiterL, antiPopL, deqFilterL;
         let sultanR, vocalR, harmonicR, gainR, phaseR, limiterR, antiPopR, deqFilterR;
-
         let outDelayNodeL, outDelayNodeR;
+        let globalVoiceCompressorNode = null;
+        let robotVoiceOsc = null, robotGainNode = null, dryVoiceGain = null;
+        let masterHardwareGainNode = null;
 
-        let generatorNode = null;
-        let isGeneratorInjecting = false;
-        let globalPanicState = false;
-
-        let muteNodesL = {}, muteNodesR = {};
-
-        let deqCurrentGainL = 0;
-        let deqCurrentGainR = 0;
-
+        // === ECHO NODES ===
         let delayL1, delayL2, feedbackL1, feedbackL2, wetGainL, filterL;
         let delayR1, delayR2, feedbackR1, feedbackR2, wetGainR, filterR;
 
         let dataArrayL, dataArrayR, bufferLength;
         let isEngineBuilt = false;
         let captureMode = 'auto';
+        let activeInputType = null;
 
         const filePlayer = document.getElementById('audio-file-player');
         const playPauseBtn = document.getElementById('play-pause-btn');
         const uploadTriggerBtn = document.getElementById('upload-trigger-btn');
-        let fileSourceNode = null;
-        let activeInputType = null;
 
-        let masterHardwareGainNode = null;
-        let globalVoiceCompressorNode = null;
-
-        let robotVoiceOsc = null;
-        let robotGainNode = null;
-        let dryVoiceGain = null;
-
-        let isMasterHardwareMuted = false;
-        let isCompressorBypassed = false;
-        let isRobotEffectActive = false;
+        let muteNodesL = {}, muteNodesR = {};
+        let deqCurrentGainL = 0, deqCurrentGainR = 0;
+        let isGeneratorInjecting = false, globalPanicState = false;
+        let isMasterHardwareMuted = false, isCompressorBypassed = false, isRobotEffectActive = false;
 
         let channelParams = {
             l: { core: true, turbo: true, phase: false, harmonic: false, sultan: false, vocal: false, echo: false, limiter: true, antipop: true, syscombine: true, deq: false, slope: 'LR24' },
@@ -1308,6 +1299,289 @@
         }
         window.addEventListener('resize', resizeCanvases);
         resizeCanvases();
+
+        function initAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                buildDiscreteEngine();
+            }
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
+        function buildDiscreteEngine() {
+            mainInputSelectorGain = audioCtx.createGain();
+            mainInputSelectorGain.gain.setValueAtTime(1, audioCtx.currentTime);
+
+            masterHardwareGainNode = audioCtx.createGain();
+            masterHardwareGainNode.gain.setValueAtTime(parseFloat(document.getElementById('master-gain-slider').value) / 100, audioCtx.currentTime);
+
+            globalVoiceCompressorNode = audioCtx.createDynamicsCompressor();
+            globalVoiceCompressorNode.knee.setValueAtTime(12, audioCtx.currentTime);
+            globalVoiceCompressorNode.attack.setValueAtTime(0.003, audioCtx.currentTime);
+            globalVoiceCompressorNode.release.setValueAtTime(0.08, audioCtx.currentTime);
+            updateCompressorSettings();
+
+            robotVoiceOsc = audioCtx.createOscillator();
+            robotVoiceOsc.type = 'sawtooth';
+            robotVoiceOsc.frequency.setValueAtTime(parseFloat(document.getElementById('fx-pitch-slider').value), audioCtx.currentTime);
+            robotVoiceOsc.start();
+
+            robotGainNode = audioCtx.createGain();
+            robotGainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+            robotVoiceOsc.connect(robotGainNode);
+
+            dryVoiceGain = audioCtx.createGain();
+            dryVoiceGain.gain.setValueAtTime(1, audioCtx.currentTime);
+
+            mainInputSelectorGain.connect(globalVoiceCompressorNode);
+            globalVoiceCompressorNode.connect(dryVoiceGain);
+            globalVoiceCompressorNode.connect(robotGainNode.gain);
+            dryVoiceGain.connect(masterHardwareGainNode);
+            robotGainNode.connect(masterHardwareGainNode);
+
+            splitterNode = audioCtx.createChannelSplitter(2);
+            mergerNode = audioCtx.createChannelMerger(2);
+            masterHardwareGainNode.connect(splitterNode);
+
+            analyserL = audioCtx.createAnalyser(); analyserL.fftSize = 256;
+            analyserR = audioCtx.createAnalyser(); analyserR.fftSize = 256;
+            bufferLength = analyserL.frequencyBinCount;
+            dataArrayL = new Uint8Array(bufferLength);
+            dataArrayR = new Uint8Array(bufferLength);
+
+            const coreStages = ['core', 'turbo', 'hpf', 'lpf', 'slope', 'peq', 'deq', 'phase', 'gain', 'harmonic', 'sultan', 'vocal', 'echo', 'limiter', 'sublimit', 'antipop', 'syscombine'];
+            coreStages.forEach(stage => {
+                muteNodesL[stage] = audioCtx.createGain(); muteNodesL[stage].gain.setValueAtTime(1.0, audioCtx.currentTime);
+                muteNodesR[stage] = audioCtx.createGain(); muteNodesR[stage].gain.setValueAtTime(1.0, audioCtx.currentTime);
+            });
+
+            for(let i=0; i<8; i++){
+                let hL = audioCtx.createBiquadFilter(); hL.type = "highpass"; hpfLNodes.push(hL);
+                let lL = audioCtx.createBiquadFilter(); lL.type = "lowpass"; lpfLNodes.push(lL);
+                let hR = audioCtx.createBiquadFilter(); hR.type = "highpass"; hpfRNodes.push(hR);
+                let lR = audioCtx.createBiquadFilter(); lR.type = "lowpass"; lpfRNodes.push(lR);
+            }
+
+            peqLML = audioCtx.createBiquadFilter(); peqLML.type = "peaking"; peqLML.frequency.value = 250; peqLML.Q.value = 1.2;
+            peqMVL = audioCtx.createBiquadFilter(); peqMVL.type = "peaking"; peqMVL.frequency.value = 2200; peqMVL.Q.value = 1.5;
+            peqHTL = audioCtx.createBiquadFilter(); peqHTL.type = "peaking"; peqHTL.frequency.value = 8500; peqHTL.Q.value = 1.0;
+            peqLMR = audioCtx.createBiquadFilter(); peqLMR.type = "peaking"; peqLMR.frequency.value = 250; peqLMR.Q.value = 1.2;
+            peqMVR = audioCtx.createBiquadFilter(); peqMVR.type = "peaking"; peqMVR.frequency.value = 2200; peqMVR.Q.value = 1.5;
+            peqHTR = audioCtx.createBiquadFilter(); peqHTR.type = "peaking"; peqHTR.frequency.value = 8500; peqHTR.Q.value = 1.0;
+
+            deqFilterL = audioCtx.createBiquadFilter(); deqFilterL.type = "peaking"; deqFilterL.frequency.value = 60; deqFilterL.Q.value = 2.0;
+            deqFilterR = audioCtx.createBiquadFilter(); deqFilterR.type = "peaking"; deqFilterR.frequency.value = 60; deqFilterR.Q.value = 2.0;
+
+            sultanL = audioCtx.createBiquadFilter(); sultanL.type = "lowshelf"; sultanL.frequency.value = 85;
+            vocalL = audioCtx.createBiquadFilter(); vocalL.type = "peaking"; vocalL.frequency.value = 2200; vocalL.Q.value = 1.5;
+            harmonicL = audioCtx.createBiquadFilter(); harmonicL.type = "highshelf"; harmonicL.frequency.value = 12000;
+            sultanR = audioCtx.createBiquadFilter(); sultanR.type = "lowshelf"; sultanR.frequency.value = 85;
+            vocalR = audioCtx.createBiquadFilter(); vocalR.type = "peaking"; vocalR.frequency.value = 2200; vocalR.Q.value = 1.5;
+            harmonicR = audioCtx.createBiquadFilter(); harmonicR.type = "highshelf"; harmonicR.frequency.value = 12000;
+
+            phaseL = audioCtx.createWaveShaper(); phaseL.curve = makePhaseCurve(false);
+            phaseR = audioCtx.createWaveShaper(); phaseR.curve = makePhaseCurve(false);
+
+            limiterL = audioCtx.createDynamicsCompressor();
+            limiterR = audioCtx.createDynamicsCompressor();
+            configureLimiterHardware(limiterL, parseFloat(document.getElementById('limit-thres-l').value));
+            configureLimiterHardware(limiterR, parseFloat(document.getElementById('limit-thres-r').value));
+
+            antiPopL = audioCtx.createGain(); gainL = audioCtx.createGain(); gainL.gain.value = parseFloat(document.getElementById('gain-slider-l').value) / 100;
+            antiPopR = audioCtx.createGain(); gainR = audioCtx.createGain(); gainR.gain.value = parseFloat(document.getElementById('gain-slider-r').value) / 100;
+
+            delayL1 = audioCtx.createDelay(1.0); delayL1.delayTime.value = 0.35;
+            delayL2 = audioCtx.createDelay(1.0); delayL2.delayTime.value = 0.48;
+            feedbackL1 = audioCtx.createGain(); feedbackL2 = audioCtx.createGain();
+            filterL = audioCtx.createBiquadFilter(); filterL.type = "lowpass"; filterL.frequency.value = 3000;
+            wetGainL = audioCtx.createGain();
+
+            delayR1 = audioCtx.createDelay(1.0); delayR1.delayTime.value = 0.38;
+            delayR2 = audioCtx.createDelay(1.0); delayR2.delayTime.value = 0.52;
+            feedbackR1 = audioCtx.createGain(); feedbackR2 = audioCtx.createGain();
+            filterR = audioCtx.createBiquadFilter(); filterR.type = "lowpass"; filterR.frequency.value = 3000;
+            wetGainR = audioCtx.createGain();
+
+            outDelayNodeL = audioCtx.createDelay(1.0); outDelayNodeL.delayTime.value = parseFloat(document.getElementById('dly-slider-l').value) / 1000.0;
+            outDelayNodeR = audioCtx.createDelay(1.0); outDelayNodeR.delayTime.value = parseFloat(document.getElementById('dly-slider-r').value) / 1000.0;
+
+            vocalL.connect(delayL1); delayL1.connect(feedbackL1); feedbackL1.connect(delayL2); delayL2.connect(feedbackL2); feedbackL2.connect(filterL); filterL.connect(delayL1); filterL.connect(wetGainL);
+            vocalR.connect(delayR1); delayR1.connect(feedbackR1); feedbackR1.connect(delayR2); delayR2.connect(feedbackR2); feedbackR2.connect(filterR); filterR.connect(delayR1); filterR.connect(wetGainR);
+
+            refreshFilterFrequencies('l');
+            refreshFilterFrequencies('r');
+
+            splitterNode.connect(muteNodesL['core'], 0);
+            let chainL = muteNodesL['core'];
+            chainL = connectFilterChain(chainL, hpfLNodes, 'l', 'hpf');
+            chainL = connectFilterChain(chainL, lpfLNodes, 'l', 'lpf');
+            chainL = chainL.connect(peqLML).connect(peqMVL).connect(peqHTL).connect(muteNodesL['peq']);
+            chainL = chainL.connect(deqFilterL).connect(muteNodesL['deq']);
+            chainL = chainL.connect(sultanL).connect(muteNodesL['sultan']);
+            chainL = chainL.connect(vocalL).connect(muteNodesL['vocal']);
+            chainL.connect(harmonicL); wetGainL.connect(harmonicL);
+            chainL = harmonicL.connect(muteNodesL['harmonic']).connect(muteNodesL['turbo']).connect(muteNodesL['echo']);
+            chainL = chainL.connect(phaseL).connect(muteNodesL['phase']);
+            chainL = chainL.connect(limiterL).connect(muteNodesL['limiter']).connect(muteNodesL['sublimit']);
+            chainL = chainL.connect(antiPopL).connect(muteNodesL['antipop']);
+            chainL = chainL.connect(gainL).connect(outDelayNodeL).connect(muteNodesL['syscombine']);
+            chainL.connect(analyserL);
+            analyserL.connect(mergerNode, 0, 0);
+
+            splitterNode.connect(muteNodesR['core'], 1);
+            let chainR = muteNodesR['core'];
+            chainR = connectFilterChain(chainR, hpfRNodes, 'r', 'hpf');
+            chainR = connectFilterChain(chainR, lpfRNodes, 'r', 'lpf');
+            chainR = chainR.connect(peqLMR).connect(peqMVR).connect(peqHTR).connect(muteNodesR['peq']);
+            chainR = chainR.connect(deqFilterR).connect(muteNodesR['deq']);
+            chainR = chainR.connect(sultanR).connect(muteNodesR['sultan']);
+            chainR = chainR.connect(vocalR).connect(muteNodesR['vocal']);
+            chainR.connect(harmonicR); wetGainR.connect(harmonicR);
+            chainR = harmonicR.connect(muteNodesR['harmonic']).connect(muteNodesR['turbo']).connect(muteNodesR['echo']);
+            chainR = chainR.connect(phaseR).connect(muteNodesR['phase']);
+            chainR = chainR.connect(limiterR).connect(muteNodesR['limiter']).connect(muteNodesR['sublimit']);
+            chainR = chainR.connect(antiPopR).connect(muteNodesR['antipop']);
+            chainR = chainR.connect(gainR).connect(outDelayNodeR).connect(muteNodesR['syscombine']);
+            chainR.connect(analyserR);
+            analyserR.connect(mergerNode, 0, 1);
+
+            mergerNode.connect(audioCtx.destination);
+            isEngineBuilt = true;
+            attachAllListeners();
+            updateCompressorSettings();
+            updateRobotEffectSettings();
+            updateOutputDelay('l');
+            updateOutputDelay('r');
+            renderSystemLoop();
+        }
+
+        function connectFilterChain(input, nodes, ch, type) {
+            let slope = channelParams[ch].slope;
+            let count = 4;
+            if(slope === 'LR48') count = 8;
+            if(slope === 'BW12' || slope === 'BS') count = 2;
+
+            let chain = input.connect(nodes[0]);
+            for(let i=0; i<count-1; i++) chain = chain.connect(nodes[i+1]);
+            return chain.connect(muteNodesL[type]);
+        }
+
+        function handleMusicFileSelect(input) {
+            const file = input.files[0];
+            if (!file) return;
+            initAudioContext();
+            const fileURL = URL.createObjectURL(file);
+            filePlayer.src = fileURL;
+            if (fileSourceNode) fileSourceNode.disconnect();
+            fileSourceNode = audioCtx.createMediaElementSource(filePlayer);
+            switchActiveInput('file', fileSourceNode);
+            playPauseBtn.disabled = false;
+            playPauseBtn.style.opacity = "1";
+            uploadTriggerBtn.innerHTML = `<i class="fa-solid fa-circle-check"></i> TRACK READY`;
+            streamStatusEl.innerText = "Track loaded: " + file.name;
+        }
+
+        function toggleFilePlayback() {
+            if (activeInputType!== 'file') return;
+            if (filePlayer.paused) {
+                filePlayer.play();
+                playPauseBtn.innerHTML = `<i class="fa-solid fa-pause"></i>`;
+                streamStatusEl.innerText = "Memutar file musik...";
+            } else {
+                filePlayer.pause();
+                playPauseBtn.innerHTML = `<i class="fa-solid fa-play"></i>`;
+                streamStatusEl.innerText = "Musik dijeda.";
+            }
+        }
+
+        async function initLiveAudioCapture() {
+            initAudioContext();
+            let mediaStream = null;
+            try {
+                if (captureMode === 'mic') {
+                    mediaStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }, video: false });
+                } else {
+                    mediaStream = await navigator.mediaDevices.getDisplayMedia({
+                        video: { displaySurface: "browser" },
+                        audio: { suppressLocalAudioPlayback: true, echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+                    });
+                }
+            } catch (err) {
+                streamStatusEl.innerText = "Izin ditolak / gagal capture.";
+                return;
+            }
+            if (mediaStream) {
+                if (liveStreamNode) liveStreamNode.disconnect();
+                liveStreamNode = audioCtx.createMediaStreamSource(mediaStream);
+                switchActiveInput('live', liveStreamNode);
+                document.getElementById('start-stream-btn').innerHTML = `<i class="fa-solid fa-circle-check"></i> LIVE ACTIVE`;
+                srcToggleBtn.disabled = true;
+            }
+        }
+
+        function toggleSignalGenerator() {
+            initAudioContext();
+            const select = document.getElementById('test-signal-type');
+            const type = select.value;
+            const btn = document.getElementById('gen-toggle-btn');
+
+            if (isGeneratorInjecting) {
+                if (generatorNode) generatorNode.stop();
+                generatorNode = null;
+                isGeneratorInjecting = false;
+                btn.className = "action-toggle-btn";
+                btn.innerText = "INJECT";
+                if (activeInputType === 'generator') switchActiveInput(null, null);
+                return;
+            }
+
+            if (type === 'off') {
+                alert("Pilih tipe gelombang dulu!");
+                return;
+            }
+
+            if (type === 'sine') {
+                generatorNode = audioCtx.createOscillator();
+                generatorNode.type = 'sine';
+                generatorNode.frequency.setValueAtTime(1000, audioCtx.currentTime);
+            } else {
+                let bufferSize = 2 * audioCtx.sampleRate;
+                let noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                let output = noiseBuffer.getChannelData(0);
+                let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
+                for (let i = 0; i < bufferSize; i++) {
+                    let white = Math.random() * 2 - 1;
+                    if (type === 'pink') {
+                        b0 = 0.99886*b0 + white*0.0555179; b1 = 0.99332*b1 + white*0.0750759;
+                        b2 = 0.96900*b2 + white*0.1538520; b3 = 0.86650*b3 + white*0.3104856;
+                        b4 = 0.55000*b4 + white*0.5329522; b5 = -0.7616*b5 - white*0.0168980;
+                        output[i] = (b0+b1+b2+b3+b4+b5+b6+white*0.5362)*0.11; b6 = white*0.115926;
+                    } else {
+                        output[i] = white * 0.4;
+                    }
+                }
+                generatorNode = audioCtx.createBufferSource();
+                generatorNode.buffer = noiseBuffer;
+                generatorNode.loop = true;
+            }
+
+            switchActiveInput('generator', generatorNode);
+            generatorNode.start();
+            isGeneratorInjecting = true;
+            btn.className = "action-toggle-btn l-active";
+            btn.innerText = "INJECTING";
+        }
+
+        function switchActiveInput(type, node) {
+            if (mainInputSelectorGain.numberOfInputs > 0) {
+                mainInputSelectorGain.disconnect();
+            }
+            if (node) {
+                node.connect(mainInputSelectorGain);
+            }
+            activeInputType = type;
+            streamStatusEl.innerText = `Input aktif: ${type || 'none'}`;
+        }
 
         function toggleAudioSourceMode() {
             if(isEngineBuilt && activeInputType!== 'live') return;
@@ -1328,181 +1602,10 @@
             }
         }
 
-        function handleMusicFileSelect(input) {
-            const file = input.files[0];
-            if (!file) return;
-            if (activeInputType === 'live') {
-                alert("Harap refresh halaman untuk mengubah input ke mode pemutar file murni.");
-                return;
-            }
-
-            const fileURL = URL.createObjectURL(file);
-            filePlayer.src = fileURL;
-
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-
-            if (!fileSourceNode) {
-                fileSourceNode = audioCtx.createMediaElementSource(filePlayer);
-                streamNode = fileSourceNode;
-                buildDiscreteEngine();
-            }
-
-            activeInputType = 'file';
-            playPauseBtn.disabled = false;
-            playPauseBtn.style.opacity = "1";
-            playPauseBtn.style.background = "#2ecc71";
-            playPauseBtn.style.color = "#000";
-            uploadTriggerBtn.innerHTML = `<i class="fa-solid fa-circle-check"></i> TRACK READY`;
-            streamStatusEl.innerText = "Track loaded: " + file.name + ". Tekan tombol play!";
-        }
-
-        function toggleFilePlayback() {
-            if (!audioCtx || activeInputType!== 'file') return;
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-
-            if (filePlayer.paused) {
-                filePlayer.play();
-                playPauseBtn.innerHTML = `<i class="fa-solid fa-pause"></i>`;
-                playPauseBtn.style.background = "#e74c3c";
-                playPauseBtn.style.color = "#fff";
-                streamStatusEl.innerText = "Memutar file musik murni via DSP Matrix...";
-            } else {
-                filePlayer.pause();
-                playPauseBtn.innerHTML = `<i class="fa-solid fa-play"></i>`;
-                playPauseBtn.style.background = "#2ecc71";
-                playPauseBtn.style.color = "#000";
-                streamStatusEl.innerText = "Musik dijeda.";
-            }
-        }
-
-        async function initLiveAudioCapture() {
-            if (isEngineBuilt) return;
-            if (activeInputType === 'file') return;
-            activeInputType = 'live';
-
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            let mediaStream = null;
-
-            if (captureMode === 'mic') {
-                mediaStream = await startMicStream();
-            } else {
-                try {
-                    mediaStream = await navigator.mediaDevices.getDisplayMedia({
-                        video: { displaySurface: "browser" },
-                        audio: {
-                            suppressLocalAudioPlayback: true,
-                            echoCancellation: false,
-                            noiseSuppression: false,
-                            autoGainControl: false
-                        }
-                    });
-                } catch (err) {
-                    mediaStream = await startMicStream();
-                }
-            }
-
-            if (mediaStream) {
-                streamNode = audioCtx.createMediaStreamSource(mediaStream);
-                buildDiscreteEngine();
-                document.getElementById('start-stream-btn').innerHTML = `<i class="fa-solid fa-circle-check"></i> FR-ENGINE LIVE`;
-                document.getElementById('start-stream-btn').style.background = "#bc13fe";
-                srcToggleBtn.disabled = true;
-            }
-        }
-
-        async function startMicStream() {
-            try {
-                return await navigator.mediaDevices.getUserMedia({
-                    video: false,
-                    audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
-                });
-            } catch(e) {
-                streamStatusEl.innerText = "Izin mikrofon ditolak.";
-                return null;
-            }
-        }
-
-        function toggleSignalGenerator() {
-            const select = document.getElementById('test-signal-type');
-            const type = select.value;
-            const btn = document.getElementById('gen-toggle-btn');
-
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-
-            if (isGeneratorInjecting) {
-                if (generatorNode) {
-                    generatorNode.stop();
-                    generatorNode.disconnect();
-                    generatorNode = null;
-                }
-                isGeneratorInjecting = false;
-                btn.className = "action-toggle-btn";
-                btn.innerText = "INJECT";
-                streamStatusEl.innerText = "Signal generator dihentikan.";
-                return;
-            }
-
-            if (type === 'off') {
-                alert("Pilih tipe gelombang sinyal terlebih dahulu!");
-                return;
-            }
-
-            if (type === 'sine') {
-                generatorNode = audioCtx.createOscillator();
-                generatorNode.type = 'sine';
-                generatorNode.frequency.setValueAtTime(1000, audioCtx.currentTime);
-            } else if (type === 'white' || type === 'pink') {
-                let bufferSize = 2 * audioCtx.sampleRate,
-                    noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate),
-                    output = noiseBuffer.getChannelData(0);
-
-                let b0, b1, b2, b3, b4, b5, b6;
-                b0 = b1 = b2 = b3 = b4 = b5 = b6 = 0.0;
-
-                for (let i = 0; i < bufferSize; i++) {
-                    let white = Math.random() * 2 - 1;
-                    if (type === 'pink') {
-                        b0 = 0.99886 * b0 + white * 0.0555179;
-                        b1 = 0.99332 * b1 + white * 0.0750759;
-                        b2 = 0.96900 * b2 + white * 0.1538520;
-                        b3 = 0.86650 * b3 + white * 0.3104856;
-                        b4 = 0.55000 * b4 + white * 0.5329522;
-                        b5 = -0.7616 * b5 - white * 0.0168980;
-                        output[i] = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362;
-                        output[i] *= 0.11;
-                        b6 = white * 0.115926;
-                    } else {
-                        output[i] = white * 0.4;
-                    }
-                }
-                generatorNode = audioCtx.createBufferSource();
-                generatorNode.buffer = noiseBuffer;
-                generatorNode.loop = true;
-            }
-
-            if (!isEngineBuilt) {
-                streamNode = generatorNode;
-                buildDiscreteEngine();
-            } else {
-                generatorNode.connect(masterHardwareGainNode);
-            }
-
-            generatorNode.start();
-            isGeneratorInjecting = true;
-            btn.className = "action-toggle-btn l-active";
-            btn.innerText = "INJECTING";
-            streamStatusEl.innerText = `Menyuntikkan Sinyal Uji: ${type.toUpperCase()} langsung ke DSP Matrix Cores...`;
-        }
-
         function triggerGlobalPanicMute() {
             globalPanicState =!globalPanicState;
             const btn = document.getElementById('global-panic-btn');
             const txt = document.getElementById('panic-status-text');
-
             if(globalPanicState) {
                 btn.classList.add('activated');
                 txt.innerText = "SYSTEM MUTED";
@@ -1534,7 +1637,6 @@
             isMasterHardwareMuted =!isMasterHardwareMuted;
             const btn = document.getElementById('master-mute-trigger');
             const card = document.getElementById('card-master-mixer');
-
             if(isMasterHardwareMuted) {
                 btn.classList.add('muted-active');
                 btn.innerText = "MUTED";
@@ -1556,10 +1658,8 @@
         function updateCompressorSettings() {
             let thresh = parseFloat(document.getElementById('comp-threshold').value);
             let ratio = parseFloat(document.getElementById('comp-ratio').value);
-
             document.getElementById('comp-thresh-txt').innerText = thresh + " dB";
             document.getElementById('comp-ratio-txt').innerText = ratio + ":1";
-
             if(isEngineBuilt && globalVoiceCompressorNode &&!isCompressorBypassed) {
                 globalVoiceCompressorNode.threshold.setValueAtTime(thresh, audioCtx.currentTime);
                 globalVoiceCompressorNode.ratio.setValueAtTime(ratio, audioCtx.currentTime);
@@ -1569,7 +1669,6 @@
         function toggleCompressorBypass() {
             isCompressorBypassed =!isCompressorBypassed;
             const btn = document.getElementById('comp-bypass-btn');
-
             if(isCompressorBypassed) {
                 btn.className = "action-toggle-btn";
                 btn.innerText = "COMPRESSOR BYPASS";
@@ -1601,7 +1700,7 @@
                 btn.innerText = "ROBOT EFFECT ON";
                 if(isEngineBuilt && dryVoiceGain && robotGainNode) {
                     dryVoiceGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.01);
-                    robotGainNode.gain.setValueAtTime(1, audioCtx.currentTime);
+                    robotGainNode.gain.setValueAtTime(0.5, audioCtx.currentTime); // AM depth
                 }
             } else {
                 btn.style.background = "rgba(230,126,34,0.1)";
@@ -1618,235 +1717,10 @@
             let msValue = parseFloat(document.getElementById('dly-slider-' + ch).value);
             document.getElementById('dly-val-' + ch).innerText = msValue.toFixed(1) + " ms";
             document.getElementById('dly-dist-' + ch).innerText = (msValue * 0.34).toFixed(1) + "m";
-
             if(isEngineBuilt) {
                 let delayNode = (ch === 'l')? outDelayNodeL : outDelayNodeR;
                 delayNode.delayTime.setTargetAtTime(msValue / 1000.0, audioCtx.currentTime, 0.01);
             }
-        }
-
-        function buildDiscreteEngine() {
-            masterHardwareGainNode = audioCtx.createGain();
-            masterHardwareGainNode.gain.setValueAtTime(parseFloat(document.getElementById('master-gain-slider').value) / 100, audioCtx.currentTime);
-
-            globalVoiceCompressorNode = audioCtx.createDynamicsCompressor();
-            globalVoiceCompressorNode.knee.setValueAtTime(12, audioCtx.currentTime);
-            globalVoiceCompressorNode.attack.setValueAtTime(0.003, audioCtx.currentTime);
-            globalVoiceCompressorNode.release.setValueAtTime(0.08, audioCtx.currentTime);
-            updateCompressorSettings();
-
-            robotVoiceOsc = audioCtx.createOscillator();
-            robotVoiceOsc.type = 'sawtooth';
-            robotVoiceOsc.frequency.setValueAtTime(parseFloat(document.getElementById('fx-pitch-slider').value), audioCtx.currentTime);
-            robotVoiceOsc.start();
-
-            robotGainNode = audioCtx.createGain();
-            robotGainNode.gain.setValueAtTime(0, audioCtx.currentTime);
-            robotVoiceOsc.connect(robotGainNode.gain);
-
-            dryVoiceGain = audioCtx.createGain();
-            dryVoiceGain.gain.setValueAtTime(1, audioCtx.currentTime);
-
-            if(activeInputType === 'live') {
-                streamNode.connect(globalVoiceCompressorNode);
-                globalVoiceCompressorNode.connect(dryVoiceGain);
-                globalVoiceCompressorNode.connect(robotGainNode);
-                dryVoiceGain.connect(masterHardwareGainNode);
-                robotGainNode.connect(masterHardwareGainNode);
-            } else {
-                streamNode.connect(masterHardwareGainNode);
-            }
-
-            splitterNode = audioCtx.createChannelSplitter(2);
-            mergerNode = audioCtx.createChannelMerger(2);
-
-            analyserL = audioCtx.createAnalyser(); analyserL.fftSize = 256;
-            analyserR = audioCtx.createAnalyser(); analyserR.fftSize = 256;
-            bufferLength = analyserL.frequencyBinCount;
-            dataArrayL = new Uint8Array(bufferLength);
-            dataArrayR = new Uint8Array(bufferLength);
-
-            const coreStages = ['core', 'turbo', 'hpf', 'lpf', 'slope', 'peq', 'deq', 'phase', 'gain', 'harmonic', 'sultan', 'vocal', 'echo', 'limiter', 'sublimit', 'antipop', 'syscombine'];
-            coreStages.forEach(stage => {
-                muteNodesL[stage] = audioCtx.createGain(); muteNodesL[stage].gain.setValueAtTime(1.0, audioCtx.currentTime);
-                muteNodesR[stage] = audioCtx.createGain(); muteNodesR[stage].gain.setValueAtTime(1.0, audioCtx.currentTime);
-            });
-
-            for(let i=0; i<4; i++){
-                let hL = audioCtx.createBiquadFilter(); hL.type = "highpass"; hpfLNodes.push(hL);
-                let lL = audioCtx.createBiquadFilter(); lL.type = "lowpass"; lpfLNodes.push(lL);
-                let hR = audioCtx.createBiquadFilter(); hR.type = "highpass"; hpfRNodes.push(hR);
-                let lR = audioCtx.createBiquadFilter(); lR.type = "lowpass"; lpfRNodes.push(lR);
-            }
-
-            peqLML = audioCtx.createBiquadFilter(); peqLML.type = "peaking"; peqLML.frequency.value = 250; peqLML.gain.value = 0; peqLML.Q.value = 1.2;
-            peqMVL = audioCtx.createBiquadFilter(); peqMVL.type = "peaking"; peqMVL.frequency.value = 2200; peqMVL.gain.value = 0; peqMVL.Q.value = 1.5;
-            peqHTL = audioCtx.createBiquadFilter(); peqHTL.type = "peaking"; peqHTL.frequency.value = 8500; peqHTL.gain.value = 0; peqHTL.Q.value = 1.0;
-
-            peqLMR = audioCtx.createBiquadFilter(); peqLMR.type = "peaking"; peqLMR.frequency.value = 250; peqLMR.gain.value = 0; peqLMR.Q.value = 1.2;
-            peqMVR = audioCtx.createBiquadFilter(); peqMVR.type = "peaking"; peqMVR.frequency.value = 2200; peqMVR.gain.value = 0; peqMVR.Q.value = 1.5;
-            peqHTR = audioCtx.createBiquadFilter(); peqHTR.type = "peaking"; peqHTR.frequency.value = 8500; peqHTR.gain.value = 0; peqHTR.Q.value = 1.0;
-
-            deqFilterL = audioCtx.createBiquadFilter(); deqFilterL.type = "peaking"; deqFilterL.frequency.value = 60; deqFilterL.Q.value = 2.0; deqFilterL.gain.value = 0;
-            deqFilterR = audioCtx.createBiquadFilter(); deqFilterR.type = "peaking"; deqFilterR.frequency.value = 60; deqFilterR.Q.value = 2.0; deqFilterR.gain.value = 0;
-
-            sultanL = audioCtx.createBiquadFilter(); sultanL.type = "lowshelf"; sultanL.frequency.value = 85; sultanL.gain.value = 0;
-            vocalL = audioCtx.createBiquadFilter(); vocalL.type = "peaking"; vocalL.frequency.value = 2200; vocalL.gain.value = 0; vocalL.Q.value = 1.5;
-            harmonicL = audioCtx.createBiquadFilter(); harmonicL.type = "highshelf"; harmonicL.frequency.value = 12000; harmonicL.gain.value = 0;
-
-            sultanR = audioCtx.createBiquadFilter(); sultanR.type = "lowshelf"; sultanR.frequency.value = 85; sultanR.gain.value = 0;
-            vocalR = audioCtx.createBiquadFilter(); vocalR.type = "peaking"; vocalR.frequency.value = 2200; vocalR.gain.value = 0; vocalR.Q.value = 1.5;
-            harmonicR = audioCtx.createBiquadFilter(); harmonicR.type = "highshelf"; harmonicR.frequency.value = 12000; harmonicR.gain.value = 0;
-
-            phaseL = audioCtx.createWaveShaper(); phaseL.curve = makePhaseCurve(false);
-            phaseR = audioCtx.createWaveShaper(); phaseR.curve = makePhaseCurve(false);
-
-            limiterL = audioCtx.createDynamicsCompressor();
-            limiterR = audioCtx.createDynamicsCompressor();
-            configureLimiterHardware(limiterL, parseFloat(document.getElementById('limit-thres-l').value));
-            configureLimiterHardware(limiterR, parseFloat(document.getElementById('limit-thres-r').value));
-
-            antiPopL = audioCtx.createGain(); antiPopL.gain.value = 1.0;
-            gainL = audioCtx.createGain(); gainL.gain.value = parseFloat(document.getElementById('gain-slider-l').value) / 100;
-
-            antiPopR = audioCtx.createGain(); antiPopR.gain.value = 1.0;
-            gainR = audioCtx.createGain(); gainR.gain.value = parseFloat(document.getElementById('gain-slider-r').value) / 100;
-
-            delayL1 = audioCtx.createDelay(1.0); delayL1.delayTime.value = 0.35;
-            delayL2 = audioCtx.createDelay(1.0); delayL2.delayTime.value = 0.48;
-            feedbackL1 = audioCtx.createGain(); feedbackL1.gain.value = 0.0;
-            feedbackL2 = audioCtx.createGain(); feedbackL2.gain.value = 0.0;
-            filterL = audioCtx.createBiquadFilter(); filterL.type = "lowpass"; filterL.frequency.value = 3000;
-            wetGainL = audioCtx.createGain(); wetGainL.gain.value = 0.0;
-
-            delayR1 = audioCtx.createDelay(1.0); delayR1.delayTime.value = 0.38;
-            delayR2 = audioCtx.createDelay(1.0); delayR2.delayTime.value = 0.52;
-            feedbackR1 = audioCtx.createGain(); feedbackR1.gain.value = 0.0;
-            feedbackR2 = audioCtx.createGain(); feedbackR2.gain.value = 0.0;
-            filterR = audioCtx.createBiquadFilter(); filterR.type = "lowpass"; filterR.frequency.value = 3000;
-            wetGainR = audioCtx.createGain(); wetGainR.gain.value = 0.0;
-
-            outDelayNodeL = audioCtx.createDelay(1.0); outDelayNodeL.delayTime.value = parseFloat(document.getElementById('dly-slider-l').value) / 1000.0;
-            outDelayNodeR = audioCtx.createDelay(1.0); outDelayNodeR.delayTime.value = parseFloat(document.getElementById('dly-slider-r').value) / 1000.0;
-
-            vocalL.connect(delayL1); delayL1.connect(feedbackL1); feedbackL1.connect(delayL2); delayL2.connect(feedbackL2); feedbackL2.connect(filterL); filterL.connect(delayL1); filterL.connect(wetGainL);
-            vocalR.connect(delayR1); delayR1.connect(feedbackR1); feedbackR1.connect(delayR2); delayR2.connect(feedbackR2); feedbackR2.connect(filterR); filterR.connect(delayR1); filterR.connect(wetGainR);
-
-            refreshFilterFrequencies('l');
-            refreshFilterFrequencies('r');
-
-            masterHardwareGainNode.connect(splitterNode);
-
-            let inputChannelIndex = (masterHardwareGainNode.channelCount > 1)? 1 : 0;
-
-            splitterNode.connect(muteNodesL['core'], 0);
-            splitterNode.connect(muteNodesR['core'], inputChannelIndex);
-
-            muteNodesL['core'].connect(hpfLNodes[0]);
-            for(let i=0; i<3; i++) hpfLNodes[i].connect(hpfLNodes[i+1]);
-            hpfLNodes[3].connect(muteNodesL['hpf']);
-
-            muteNodesL['hpf'].connect(lpfLNodes[0]);
-            for(let i=0; i<3; i++) lpfLNodes[i].connect(lpfLNodes[i+1]);
-            lpfLNodes[3].connect(muteNodesL['lpf']);
-
-            muteNodesL['lpf'].connect(muteNodesL['slope']);
-            muteNodesL['slope'].connect(peqLML);
-
-            peqLML.connect(peqMVL);
-            peqMVL.connect(peqHTL);
-            peqHTL.connect(muteNodesL['peq']);
-
-            muteNodesL['peq'].connect(deqFilterL);
-            deqFilterL.connect(muteNodesL['deq']);
-
-            muteNodesL['deq'].connect(sultanL);
-            sultanL.connect(muteNodesL['sultan']);
-
-            muteNodesL['sultan'].connect(vocalL);
-            vocalL.connect(muteNodesL['vocal']);
-
-            vocalL.connect(harmonicL);
-            wetGainL.connect(harmonicL);
-
-            harmonicL.connect(muteNodesL['harmonic']);
-            muteNodesL['harmonic'].connect(muteNodesL['turbo']);
-
-            muteNodesL['turbo'].connect(muteNodesL['echo']);
-            muteNodesL['echo'].connect(phaseL);
-
-            phaseL.connect(muteNodesL['phase']);
-            muteNodesL['phase'].connect(limiterL);
-
-            limiterL.connect(muteNodesL['limiter']);
-            muteNodesL['limiter'].connect(muteNodesL['sublimit']);
-
-            muteNodesL['sublimit'].connect(antiPopL);
-            antiPopL.connect(muteNodesL['antipop']);
-
-            muteNodesL['antipop'].connect(gainL);
-            gainL.connect(outDelayNodeL);
-            outDelayNodeL.connect(muteNodesL['syscombine']);
-            muteNodesL['syscombine'].connect(analyserL);
-            analyserL.connect(mergerNode, 0, 0);
-
-            muteNodesR['core'].connect(hpfRNodes[0]);
-            for(let i=0; i<3; i++) hpfRNodes[i].connect(hpfRNodes[i+1]);
-            hpfRNodes[3].connect(muteNodesR['hpf']);
-
-            muteNodesR['hpf'].connect(lpfRNodes[0]);
-            for(let i=0; i<3; i++) lpfRNodes[i].connect(lpfRNodes[i+1]);
-            lpfRNodes[3].connect(muteNodesR['lpf']);
-
-            muteNodesR['lpf'].connect(muteNodesR['slope']);
-            muteNodesR['slope'].connect(peqLMR);
-
-            peqLMR.connect(peqMVR);
-            peqMVR.connect(peqHTR);
-            peqHTR.connect(muteNodesR['peq']);
-
-            muteNodesR['peq'].connect(deqFilterR);
-            deqFilterR.connect(muteNodesR['deq']);
-
-            muteNodesR['deq'].connect(sultanR);
-            sultanR.connect(muteNodesR['sultan']);
-
-            muteNodesR['sultan'].connect(vocalR);
-            vocalR.connect(muteNodesR['vocal']);
-
-            vocalR.connect(harmonicR);
-            wetGainR.connect(harmonicR);
-
-            harmonicR.connect(muteNodesR['harmonic']);
-            muteNodesR['harmonic'].connect(muteNodesR['turbo']);
-
-            muteNodesR['turbo'].connect(muteNodesR['echo']);
-            muteNodesR['echo'].connect(phaseR);
-
-            phaseR.connect(muteNodesR['phase']);
-            muteNodesR['phase'].connect(limiterR);
-
-            limiterR.connect(muteNodesR['limiter']);
-            muteNodesR['limiter'].connect(muteNodesR['sublimit']);
-
-            muteNodesR['sublimit'].connect(antiPopR);
-            antiPopR.connect(muteNodesR['antipop']);
-
-            muteNodesR['antipop'].connect(gainR);
-            gainR.connect(outDelayNodeR);
-            outDelayNodeR.connect(muteNodesR['syscombine']);
-            muteNodesR['syscombine'].connect(analyserR);
-            analyserR.connect(mergerNode, 0, 1);
-
-            mergerNode.connect(audioCtx.destination);
-            isEngineBuilt = true;
-
-            updateCompressorSettings();
-            updateRobotEffectSettings();
-            updateOutputDelay('l');
-            updateOutputDelay('r');
-
-            renderSystemLoop();
         }
 
         function configureLimiterHardware(limiter, thresholdValue) {
@@ -1874,7 +1748,7 @@
             } else {
                 document.getElementById('lpf-txt-'+ch).innerText = lpfVal + " Hz";
             }
-            document.getElementById('hpf-txt-'+ch).innerText = hpfVal + " Hz";
+            document.getElementById('hpf-txt-'+ch).innerText = hpfVal >= 1000? (hpfVal/1000).toFixed(1) + " kHz" : hpfVal + " Hz";
 
             let hNodes = (ch === 'l')? hpfLNodes : hpfRNodes;
             let lNodes = (ch === 'l')? lpfLNodes : lpfRNodes;
@@ -1903,16 +1777,13 @@
 
         function toggleCoreMute(ch, type) {
             if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-
             let isMuted =!coreMuteStates[ch][type];
             coreMuteStates[ch][type] = isMuted;
-
             const btn = document.getElementById(`mute-${type}-${ch}`);
             if (btn) {
                 if (isMuted) btn.className = "mute-toggle-btn mute-on";
                 else btn.className = "mute-toggle-btn mute-off";
             }
-
             if (isEngineBuilt) {
                 let targetNode = (ch === 'l')? muteNodesL[type] : muteNodesR[type];
                 if (targetNode) {
@@ -1933,42 +1804,44 @@
             }
         }
 
-        attachPeqListeners('peq-lm-g-l', peqLML, 'g'); attachPeqListeners('peq-lm-q-l', peqLML, 'q');
-        attachPeqListeners('peq-mv-g-l', peqMVL, 'g'); attachPeqListeners('peq-mv-q-l', peqMVL, 'q');
-        attachPeqListeners('peq-ht-g-l', peqHTL, 'g'); attachPeqListeners('peq-ht-q-l', peqHTL, 'q');
-        attachPeqListeners('peq-lm-g-r', peqLMR, 'g'); attachPeqListeners('peq-lm-q-r', peqLMR, 'q');
-        attachPeqListeners('peq-mv-g-r', peqMVR, 'g'); attachPeqListeners('peq-mv-q-r', peqMVR, 'q');
-        attachPeqListeners('peq-ht-g-r', peqHTR, 'g'); attachPeqListeners('peq-ht-q-r', peqHTR, 'q');
+        function attachAllListeners() {
+            attachPeqListeners('peq-lm-g-l', peqLML, 'g'); attachPeqListeners('peq-lm-q-l', peqLML, 'q');
+            attachPeqListeners('peq-mv-g-l', peqMVL, 'g'); attachPeqListeners('peq-mv-q-l', peqMVL, 'q');
+            attachPeqListeners('peq-ht-g-l', peqHTL, 'g'); attachPeqListeners('peq-ht-q-l', peqHTL, 'q');
+            attachPeqListeners('peq-lm-g-r', peqLMR, 'g'); attachPeqListeners('peq-lm-q-r', peqLMR, 'q');
+            attachPeqListeners('peq-mv-g-r', peqMVR, 'g'); attachPeqListeners('peq-mv-q-r', peqMVR, 'q');
+            attachPeqListeners('peq-ht-g-r', peqHTR, 'g'); attachPeqListeners('peq-ht-q-r', peqHTR, 'q');
 
-        document.getElementById('hpf-slider-l').addEventListener('input', function() { refreshFilterFrequencies('l'); });
-        document.getElementById('lpf-slider-l').addEventListener('input', function() { refreshFilterFrequencies('l'); });
-        document.getElementById('hpf-slider-r').addEventListener('input', function() { refreshFilterFrequencies('r'); });
-        document.getElementById('lpf-slider-r').addEventListener('input', function() { refreshFilterFrequencies('r'); });
+            document.getElementById('hpf-slider-l').addEventListener('input', function() { refreshFilterFrequencies('l'); });
+            document.getElementById('lpf-slider-l').addEventListener('input', function() { refreshFilterFrequencies('l'); });
+            document.getElementById('hpf-slider-r').addEventListener('input', function() { refreshFilterFrequencies('r'); });
+            document.getElementById('lpf-slider-r').addEventListener('input', function() { refreshFilterFrequencies('r'); });
 
-        document.getElementById('gain-slider-l').addEventListener('input', function() {
-            if(gainL && channelParams.l.core &&!globalPanicState) gainL.gain.setValueAtTime(parseFloat(this.value)/100, audioCtx.currentTime);
-        });
-        document.getElementById('gain-slider-r').addEventListener('input', function() {
-            if(gainR && channelParams.r.core &&!globalPanicState) gainR.gain.setValueAtTime(parseFloat(this.value)/100, audioCtx.currentTime);
-        });
+            document.getElementById('gain-slider-l').addEventListener('input', function() {
+                if(gainL && channelParams.l.core &&!globalPanicState) gainL.gain.setValueAtTime(parseFloat(this.value)/100, audioCtx.currentTime);
+            });
+            document.getElementById('gain-slider-r').addEventListener('input', function() {
+                if(gainR && channelParams.r.core &&!globalPanicState) gainR.gain.setValueAtTime(parseFloat(this.value)/100, audioCtx.currentTime);
+            });
 
-        document.getElementById('limit-thres-l').addEventListener('input', function() {
-            if(limiterL) limiterL.threshold.setValueAtTime(parseFloat(this.value), audioCtx.currentTime);
-        });
-        document.getElementById('limit-thres-r').addEventListener('input', function() {
-            if(limiterR) limiterR.threshold.setValueAtTime(parseFloat(this.value), audioCtx.currentTime);
-        });
+            document.getElementById('limit-thres-l').addEventListener('input', function() {
+                if(limiterL) limiterL.threshold.setValueAtTime(parseFloat(this.value), audioCtx.currentTime);
+            });
+            document.getElementById('limit-thres-r').addEventListener('input', function() {
+                if(limiterR) limiterR.threshold.setValueAtTime(parseFloat(this.value), audioCtx.currentTime);
+            });
 
-        document.getElementById('sub-limit-slider-l').addEventListener('input', function() {
-            if(!isEngineBuilt) return;
-            let val = parseFloat(this.value) / 100;
-            limiterL.ratio.setValueAtTime(4 + (16 * (1 - val)), audioCtx.currentTime);
-        });
-        document.getElementById('sub-limit-slider-r').addEventListener('input', function() {
-            if(!isEngineBuilt) return;
-            let val = parseFloat(this.value) / 100;
-            limiterR.ratio.setValueAtTime(4 + (16 * (1 - val)), audioCtx.currentTime);
-        });
+            document.getElementById('sub-limit-slider-l').addEventListener('input', function() {
+                if(!isEngineBuilt) return;
+                let val = parseFloat(this.value) / 100;
+                limiterL.ratio.setValueAtTime(4 + (16 * (1 - val)), audioCtx.currentTime);
+            });
+            document.getElementById('sub-limit-slider-r').addEventListener('input', function() {
+                if(!isEngineBuilt) return;
+                let val = parseFloat(this.value) / 100;
+                limiterR.ratio.setValueAtTime(4 + (16 * (1 - val)), audioCtx.currentTime);
+            });
+        }
 
         function toggleDualMatrix(btn, ch, type) {
             if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
@@ -2138,7 +2011,7 @@
             let lpfVal = document.getElementById('lpf-slider-' + ch).value;
             let slope = channelParams[ch].slope;
 
-            let cutOffX_HPF = ((parseInt(hpfVal) - 15) / 985) * (w * 0.35) + 10;
+            let cutOffX_HPF = ((parseInt(hpfVal) - 15) / 84985) * (w * 0.35) + 10;
             let cutOffX_LPF = w - ((85000 - parseInt(lpfVal)) / 84000) * (w * 0.45) - 10;
 
             ctx.beginPath();
@@ -2183,7 +2056,6 @@
             const segs = el.getElementsByClassName('gr-segment');
             let absRed = Math.abs(reductionDb);
             let activeSegmentsCount = Math.min(10, Math.floor(absRed / 2));
-
             for(let i = 0; i < segs.length; i++) {
                 segs[i].className = 'gr-segment';
                 if(i < activeSegmentsCount) segs[i].classList.add('gr-on');
@@ -2240,5 +2112,5 @@
             voltEl.innerText = (13.6 + Math.random() * 0.2).toFixed(1) + " VDC";
         }, 2500);
     </script>
-</bbody>
-</html>
+</body>
+    </html>
