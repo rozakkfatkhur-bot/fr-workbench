@@ -605,11 +605,10 @@
         let mergerNode = null;
 
         // Robot Voice Object Nodes
-        let ringModulatorL = null;
-        let ringModulatorR = null;
         let robotOsc = null;
-        let robotGainWetL = null, robotGainWetR = null;
-        let robotGainDryL = null, robotGainDryR = null;
+        let robotGainWet = null;
+        let robotGainDry = null;
+        let robotMixNode = null;
         let isRobotActive = false;
         let isCompActive = false;
 
@@ -639,10 +638,10 @@
 
             setupCanvases();
 
-            // Default internal oscillator generator (Simulator lagu YT / Testing)
+            // Default internal oscillator oscillator generator (Simulator lagu YT)
             audioSourceNode = audioCtx.createOscillator();
-            audioSourceNode.type = 'sawtooth';
-            audioSourceNode.frequency.setValueAtTime(120, audioCtx.currentTime); // Dibuat kaya suara synth bass biar EQ kerasa
+            audioSourceNode.type = 'sine';
+            audioSourceNode.frequency.setValueAtTime(320, audioCtx.currentTime);
             
             mainCompNode = audioCtx.createDynamicsCompressor();
             splitterNode = audioCtx.createChannelSplitter(2);
@@ -677,7 +676,7 @@
                 subPeakNodes[ch].threshold.setValueAtTime(-14, audioCtx.currentTime);
                 subPeakNodes[ch].ratio.setValueAtTime(5, audioCtx.currentTime);
 
-                // Anti Pop Filter Node (Dioptimasi untuk HPF/LPF 15-85kHz)
+                // Anti Pop Filter Node
                 antiPopNodes[ch] = audioCtx.createBiquadFilter();
                 antiPopNodes[ch].type = 'highpass';
                 antiPopNodes[ch].frequency.setValueAtTime(45, audioCtx.currentTime);
@@ -689,27 +688,6 @@
             // Matriks Penghubung Silang Saluran (Crossfeed Link Matrix F301)
             couplingNodes.crossLtoR = audioCtx.createGain();
             couplingNodes.crossRtoL = audioCtx.createGain();
-
-            // Inisialisasi Ring Modulator Robot Voice per Channel secara mandiri
-            robotOsc = audioCtx.createOscillator();
-            robotOsc.type = 'sine';
-            robotOsc.frequency.setValueAtTime(50, audioCtx.currentTime);
-
-            ringModulatorL = audioCtx.createGain();
-            ringModulatorR = audioCtx.createGain();
-            ringModulatorL.gain.setValueAtTime(0.0, audioCtx.currentTime);
-            ringModulatorR.gain.setValueAtTime(0.0, audioCtx.currentTime);
-
-            robotGainWetL = audioCtx.createGain(); robotGainWetR = audioCtx.createGain();
-            robotGainDryL = audioCtx.createGain(); robotGainDryR = audioCtx.createGain();
-
-            robotGainWetL.gain.setValueAtTime(0.0, audioCtx.currentTime);
-            robotGainWetR.gain.setValueAtTime(0.0, audioCtx.currentTime);
-            robotGainDryL.gain.setValueAtTime(1.0, audioCtx.currentTime);
-            robotGainDryR.gain.setValueAtTime(1.0, audioCtx.currentTime);
-
-            robotOsc.connect(ringModulatorL.gain);
-            robotOsc.connect(ringModulatorR.gain);
 
             // --- LINKING JALUR AUDIO KIRI (LEFT AUDIO PATHWAYS) ---
             splitterNode.connect(eqNodes.l.lm, 0);
@@ -745,26 +723,35 @@
             antiPopNodes.r.connect(muteGainNodes['pop_r']);
             muteGainNodes['pop_r'].connect(couplingNodes.r);
 
-            // --- SPLIT KE STRUKTUR ROBOT EFFECT PER CHANNEL ---
-            // Jalur Kiri ke Robot FX
-            couplingNodes.l.connect(robotGainDryL);
-            couplingNodes.l.connect(ringModulatorL);
-            ringModulatorL.connect(robotGainWetL);
+            // Integrasi Coupling Matrix (F301 Crossfeed)
+            couplingNodes.l.connect(mergerNode, 0, 0);
+            couplingNodes.l.connect(couplingNodes.crossLtoR);
+            couplingNodes.crossLtoR.connect(mergerNode, 0, 1);
 
-            // Jalur Kanan ke Robot FX
-            couplingNodes.r.connect(robotGainDryR);
-            couplingNodes.r.connect(ringModulatorR);
-            ringModulatorR.connect(robotGainWetR);
+            couplingNodes.r.connect(mergerNode, 0, 1);
+            couplingNodes.r.connect(couplingNodes.crossRtoL);
+            couplingNodes.crossRtoL.connect(mergerNode, 0, 0);
 
-            // Penggabungan wet/dry Robot ke Master Output Merger
-            robotGainDryL.connect(mergerNode, 0, 0);
-            robotGainWetL.connect(mergerNode, 0, 0);
+            // --- STRUKTUR MATRIKS AMALGAMASI EFEK ROBOT ---
+            robotGainDry = audioCtx.createGain();
+            robotGainWet = audioCtx.createGain();
+            robotMixNode = audioCtx.createGain();
             
-            robotGainDryR.connect(mergerNode, 0, 1);
-            robotGainWetR.connect(mergerNode, 0, 1);
+            robotOsc = audioCtx.createOscillator();
+            robotOsc.type = 'sawtooth';
+            robotOsc.frequency.setValueAtTime(50, audioCtx.currentTime);
 
-            // Integrasi Coupling Matrix (F301 Crossfeed) lewat output akhir merger
-            mergerNode.connect(audioCtx.destination);
+            let ringModulator = audioCtx.createGain();
+            ringModulator.gain.setValueAtTime(0.0, audioCtx.currentTime);
+            
+            robotOsc.connect(ringModulator.gain);
+            mergerNode.connect(robotGainDry);
+            mergerNode.connect(ringModulator);
+            ringModulator.connect(robotGainWet);
+
+            robotGainDry.connect(robotMixNode);
+            robotGainWet.connect(robotMixNode);
+            robotMixNode.connect(audioCtx.destination);
             
             audioSourceNode.start();
             robotOsc.start();
@@ -773,8 +760,7 @@
             document.getElementById('start-engine-btn').style.background = '#6d28d9';
             document.getElementById('start-engine-btn').innerText = "AUDIO ENGINE ONLINE (100% COMPLETE)";
 
-            // Sinkronisasi seluruh nilai UI Slider ke DSP Node saat start pertama kali
-            isCompActive = false; // Default bypass sesuai text awal UI
+            // Sinkronisasi seluruh nilai UI Slider ke DSP Node
             updateCompressor();
             updateRobotEffect();
             updateEQ();
@@ -801,6 +787,7 @@
             const btn = document.getElementById(`mute-${feature}-${ch}`);
             if (isMuted) {
                 btn.classList.add('muted');
+                // Menggunakan kurva eksponensial meluncur halus ke 0.0001 untuk melenyapkan noise kemresek YT tethering
                 muteGainNodes[key].gain.setValueAtTime(muteGainNodes[key].gain.value, audioCtx.currentTime);
                 muteGainNodes[key].gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.05);
             } else {
@@ -810,7 +797,7 @@
             }
         }
 
-        // 2. PERBAIKAN ROBOT EFFECT (Gema ganda tereliminasi & fader respon instan)
+        // 2. SOLUSI EFEK ROBOT DOBEL (Jalur Separasi Wet/Dry Balance)
         function toggleRobotEffect() {
             isRobotActive = !isRobotActive;
             const btn = document.getElementById('robot-toggle');
@@ -837,38 +824,32 @@
             if (isRobotActive) {
                 let wetVolume = mixPercent / 100;
                 let dryVolume = 1 - wetVolume;
-                
-                robotGainWetL.gain.setTargetAtTime(wetVolume, audioCtx.currentTime, 0.01);
-                robotGainWetR.gain.setTargetAtTime(wetVolume, audioCtx.currentTime, 0.01);
-                robotGainDryL.gain.setTargetAtTime(dryVolume, audioCtx.currentTime, 0.01);
-                robotGainDryR.gain.setTargetAtTime(dryVolume, audioCtx.currentTime, 0.01);
+                // Distribusi gain yang seimbang meredam delay gema ganda
+                robotGainWet.gain.linearRampToValueAtTime(wetVolume, audioCtx.currentTime + 0.02);
+                robotGainDry.gain.linearRampToValueAtTime(dryVolume, audioCtx.currentTime + 0.02);
             } else {
-                robotGainWetL.gain.setTargetAtTime(0.0, audioCtx.currentTime, 0.01);
-                robotGainWetR.gain.setTargetAtTime(0.0, audioCtx.currentTime, 0.01);
-                robotGainDryL.gain.setTargetAtTime(1.0, audioCtx.currentTime, 0.01);
-                robotGainDryR.gain.setTargetAtTime(1.0, audioCtx.currentTime, 0.01);
+                robotGainWet.gain.linearRampToValueAtTime(0.0, audioCtx.currentTime + 0.02);
+                robotGainDry.gain.linearRampToValueAtTime(1.0, audioCtx.currentTime + 0.02);
             }
         }
 
-        // 3. PERBAIKAN EQUALIZER (Batas Frekuensi Aman Hingga Kapasitas Soundcard Maksimal)
+        // 3. EXTENDED PARAMETRIC EQ FREQUENCY (15Hz s.d 85kHz)
         function updateEQ() {
             if (!isEngineRunning) return;
             const bands = ['lm', 'mv', 'ht'];
             const channels = ['l', 'r'];
-            
-            // Soundcard browser crash jika disuntik > 22kHz-24kHz. Kita batasi aman secara logic di DSP tanpa mengubah batas fader UI (15Hz-85kHz)
-            const maxSafeFreq = audioCtx.sampleRate / 2 - 100; 
+            const nyquistLimit = audioCtx.sampleRate / 2 - 50;
 
             channels.forEach(ch => {
                 bands.forEach(b => {
                     let freq = parseFloat(document.getElementById(`eq-${b}-freq-${ch}`).value);
                     let gain = parseFloat(document.getElementById(`eq-${b}-gain-${ch}`).value);
                     
-                    if (freq > maxSafeFreq) freq = maxSafeFreq; // Proteksi agar filter peaking tetap aktif bekerja bekerja
-                    if (freq < 15) freq = 15;
+                    // Proteksi otomatis anti-error jika frekuensi melompat melebihi kapasitas soundcard
+                    if (freq > nyquistLimit) freq = nyquistLimit;
 
-                    eqNodes[ch][b].frequency.setTargetAtTime(freq, audioCtx.currentTime, 0.01);
-                    eqNodes[ch][b].gain.setTargetAtTime(gain, audioCtx.currentTime, 0.01);
+                    eqNodes[ch][b].frequency.setValueAtTime(freq, audioCtx.currentTime);
+                    eqNodes[ch][b].gain.setValueAtTime(gain, audioCtx.currentTime);
                 });
             });
         }
@@ -893,7 +874,7 @@
                 let driveSlider = document.getElementById(`harm-drive-${ch}`).value;
                 let distortionValue = parseFloat(driveSlider);
                 if (xtremeStates[ch]) {
-                    distortionValue = distortionValue * 3.5 + 80;
+                    distortionValue = distortionValue * 3.5 + 80; // Overdrive saturasi jika mode xtreme aktif
                 }
                 harmonicNodes[ch].curve = makeDistortionCurve(distortionValue);
             });
@@ -922,7 +903,7 @@
             });
         }
 
-        // 6. ANTI-POP INFRASONIC PROTECTION (HPF & LPF 15Hz - 85kHz adjustment)
+        // 6. ANTI-POP INFRASONIC PROTECTION
         function toggleSecure(ch) {
             secureStates[ch] = !secureStates[ch];
             const btn = document.getElementById(`btn-secure-${ch}`);
@@ -943,7 +924,7 @@
                     let cutFreq = document.getElementById(`antipop-sens-${ch}`).value;
                     antiPopNodes[ch].frequency.setValueAtTime(parseFloat(cutFreq), audioCtx.currentTime);
                 } else {
-                    antiPopNodes[ch].frequency.setValueAtTime(10, audioCtx.currentTime);
+                    antiPopNodes[ch].frequency.setValueAtTime(10, audioCtx.currentTime); // Geser ke dasar di luar jangkauan telinga
                 }
             });
         }
@@ -971,7 +952,7 @@
             couplingNodes.crossRtoL.gain.setValueAtTime(combineStates.r ? depthR * 0.4 : 0.0, audioCtx.currentTime);
         }
 
-        // 8. PERBAIKAN CORE COMPRESSOR (Kini Mendengar Perubahan Bypass / Aktif Secara Akurat)
+        // 8. MASTER DYNAMICS COMPRESSOR UTAMA
         function toggleCompressor() {
             isCompActive = !isCompActive;
             const btn = document.getElementById('comp-toggle');
@@ -989,20 +970,14 @@
 
         function updateCompressor() {
             if (!isEngineRunning) return;
-            let thresholdValue = parseFloat(document.getElementById('comp-threshold').value);
-            let ratioValue = parseFloat(document.getElementById('comp-ratio').value);
+            let thresholdValue = document.getElementById('comp-threshold').value;
+            let ratioValue = document.getElementById('comp-ratio').value;
 
             document.getElementById('v-thresh-val').innerText = thresholdValue + " dB";
             document.getElementById('v-ratio-val').innerText = ratioValue + ":1";
 
-            if (isCompActive) {
-                mainCompNode.threshold.setTargetAtTime(thresholdValue, audioCtx.currentTime, 0.01);
-                mainCompNode.ratio.setTargetAtTime(ratioValue, audioCtx.currentTime, 0.01);
-            } else {
-                // Jika bypass, kembalikan ke setelan flat murni tanpa kompresi dinamis
-                mainCompNode.threshold.setTargetAtTime(0, audioCtx.currentTime, 0.01);
-                mainCompNode.ratio.setTargetAtTime(1, audioCtx.currentTime, 0.01);
-            }
+            mainCompNode.threshold.setValueAtTime(isCompActive ? thresholdValue : 0, audioCtx.currentTime);
+            mainCompNode.ratio.setValueAtTime(isCompActive ? ratioValue : 1, audioCtx.currentTime);
         }
 
         // ================= INPUT SOURCE UTILITY MATRIX =================
@@ -1016,15 +991,16 @@
             if (type === 'mic') {
                 navigator.mediaDevices.getUserMedia({ audio: true, video: false })
                 .then(stream => {
-                    if(audioSourceNode) { try { audioSourceNode.stop(); } catch(e){} audioSourceNode.disconnect(); }
+                    if(audioSourceNode) audioSourceNode.disconnect();
                     mediaElementSource = audioCtx.createMediaStreamSource(stream);
                     mediaElementSource.connect(mainCompNode);
                 }).catch(err => alert("Gagal mengakses microphone: " + err));
             } else {
+                // Balikkan ke Mode Simulator YT Internal Oscillator
                 if(mediaElementSource) mediaElementSource.disconnect();
                 audioSourceNode = audioCtx.createOscillator();
-                audioSourceNode.type = 'sawtooth';
-                audioSourceNode.frequency.setValueAtTime(150, audioCtx.currentTime);
+                audioSourceNode.type = 'sine';
+                audioSourceNode.frequency.setValueAtTime(350, audioCtx.currentTime);
                 audioSourceNode.connect(mainCompNode);
                 audioSourceNode.start();
             }
@@ -1041,7 +1017,7 @@
                 const audioEl = new Audio(audioURL);
                 audioEl.crossOrigin = "anonymous";
                 
-                if(audioSourceNode) { try { audioSourceNode.stop(); } catch(e){} audioSourceNode.disconnect(); }
+                if(audioSourceNode) audioSourceNode.disconnect();
                 
                 let fileSource = audioCtx.createMediaElementSource(audioEl);
                 fileSource.connect(mainCompNode);
@@ -1093,9 +1069,11 @@
         function startSystemTelemetry() {
             setInterval(() => {
                 if (!isEngineRunning) return;
+                // Live stats simulation baris atas panel
                 document.getElementById('cpu-temp').innerText = (40 + Math.random() * 4).toFixed(1) + " °C";
                 document.getElementById('sys-volt').innerText = (12.1 + Math.random() * 0.1).toFixed(2) + " V";
 
+                // Menyalakan pergerakan bar VU Meter indikator dinamis di bawah setiap modul
                 document.getElementById('vu-eq').style.width = (Math.random() * 40 + 45) + "%";
                 document.getElementById('vu-harm').style.width = (document.getElementById('harm-drive-l').value * 0.7 + Math.random() * 15) + "%";
                 document.getElementById('vu-subpeak').style.width = (document.getElementById('subpeak-link-l').value * 0.6 + Math.random() * 20) + "%";
