@@ -8,12 +8,12 @@
     <style>
         :root {
             --bg-dark: #050108;
-            --panel-bg: #0c0514;
-            --panel-inner: #11071c;
+            --panel-bg: #0f071a;
+            --panel-inner: #150b22;
             --violet-main: #9b51e0;
             --violet-glow: #d946ef;
             --text-white: #ffffff;
-            --text-muted: #7e7290;
+            --text-muted: #8e839e;
             --led-green: #2ecc71;
             --led-yellow: #f1c40f;
             --led-red: #e74c3c;
@@ -40,7 +40,7 @@
         .header {
             text-align: center;
             padding: 12px;
-            background: linear-gradient(135deg, var(--panel-bg), #17072b);
+            background: linear-gradient(135deg, var(--panel-bg), #1a0b30);
             border-radius: 10px;
             border: 1px solid rgba(155, 81, 224, 0.3);
             margin-bottom: 10px;
@@ -93,7 +93,7 @@
 
         @media (min-width: 992px) {
             .split-container {
-                grid-template-columns: 0.7fr 1.3fr;
+                grid-template-columns: 0.75fr 1.25fr;
             }
         }
 
@@ -105,9 +105,6 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
-            position: sticky;
-            top: 10px;
-            height: fit-content;
         }
 
         .screen-frame {
@@ -129,7 +126,7 @@
 
         canvas {
             width: 100%;
-            height: 125px;
+            height: 115px;
             display: block;
         }
 
@@ -162,13 +159,21 @@
             color: #532d7a;
             padding: 2px 5px;
             border-radius: 3px;
+            transition: all 0.1s;
         }
 
+        /* Perbaikan Poin 7: Indikator limiter berkedip agresif saat terpicu */
         .badge-led.active-limit {
             background: var(--led-red);
             color: #fff;
             text-shadow: 0 0 5px #ff0000;
             box-shadow: 0 0 8px #e74c3c;
+            animation: limitFlash 0.2s infinite alternate;
+        }
+
+        @keyframes limitFlash {
+            0% { background-color: #7f0000; box-shadow: 0 0 2px #7f0000; }
+            100% { background-color: var(--led-red); box-shadow: 0 0 10px #ff0000; }
         }
 
         .audio-input-box {
@@ -185,6 +190,7 @@
             margin-bottom: 8px;
             color: var(--cyan-ch2);
             font-weight: bold;
+            text-shadow: 0 0 5px rgba(0,229,255,0.3);
         }
 
         .capture-controls-wrapper {
@@ -203,6 +209,8 @@
             font-weight: bold;
             border-radius: 6px;
             cursor: pointer;
+            box-shadow: 0 0 8px rgba(155, 81, 224, 0.4);
+            transition: all 0.3s ease;
         }
 
         .stream-source-btn {
@@ -212,6 +220,14 @@
             font-size: 11px;
             border-radius: 6px;
             cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .stream-source-btn.active-src {
+            background: #f1c40f;
+            color: #000;
+            border-color: #fff;
+            box-shadow: 0 0 8px rgba(241,196,15,0.4);
         }
 
         .stream-status-indicator {
@@ -219,6 +235,7 @@
             font-size: 9px;
             color: var(--text-muted);
             font-family: monospace;
+            line-height: 1.3;
         }
 
         .right-menu-panel {
@@ -242,22 +259,41 @@
             justify-content: space-between;
         }
 
+        .matrix-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 8px;
+        }
+
+        @media (min-width: 576px) {
+            .matrix-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
         .menu-slot-card {
             background: var(--panel-inner);
             border: 1px solid rgba(255,255,255,0.03);
             border-radius: 8px;
-            padding: 10px;
+            padding: 8px;
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            justify-content: space-between;
+            transition: all 0.2s ease;
+        }
+
+        .menu-slot-card.active {
+            border-color: rgba(155,81,224,0.4);
+            background: linear-gradient(145deg, var(--panel-inner), rgba(155,81,224,0.03));
         }
 
         .slot-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            padding-bottom: 4px;
+            margin-bottom: 4px;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            padding-bottom: 3px;
         }
 
         .slot-title {
@@ -268,161 +304,326 @@
 
         .slot-index {
             font-size: 8px;
-            background: rgba(155, 81, 224, 0.25);
+            background: rgba(155, 81, 224, 0.35);
             padding: 1px 4px;
             border-radius: 3px;
             font-family: monospace;
         }
 
-        .ch-dual-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            background: rgba(0,0,0,0.15);
-            padding: 6px;
-            border-radius: 6px;
+        .ch-control-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 4px;
+            background: rgba(0,0,0,0.25);
+            padding: 4px 6px;
+            border-radius: 4px;
         }
 
-        .ch-box {
+        .ch-control-row.row-compact {
+            padding: 2px 4px;
+            font-size: 10px;
+        }
+
+        .ch-indicator-label {
+            font-size: 9px;
+            font-weight: bold;
+            width: 12px;
+        }
+
+        .ch-indicator-label.lbl-l { color: var(--violet-glow); }
+        .ch-indicator-label.lbl-r { color: var(--cyan-ch2); }
+
+        .matrix-slider-pack {
+            flex: 1;
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 2px;
         }
 
-        .ch-label-top {
-            font-size: 9px;
-            font-weight: bold;
+        .slider-meta-txt {
             display: flex;
             justify-content: space-between;
+            font-size: 8px;
+            color: var(--text-muted);
+            font-family: monospace;
         }
-        .ch-label-top.l-color { color: var(--violet-glow); }
-        .ch-label-top.r-color { color: var(--cyan-ch2); }
 
-        .btn-capsule-toggle {
+        .matrix-slider-pack input[type="range"] {
             width: 100%;
-            padding: 5px;
+            height: 4px;
+            outline: none;
+        }
+
+        .slider-l { accent-color: var(--violet-main); }
+        .slider-r { accent-color: var(--cyan-ch2); }
+
+        .select-slope-dsp {
+            background: #090312;
+            border: 1px solid rgba(155,81,224,0.4);
+            color: #efebf5;
+            font-size: 9px;
+            padding: 2px 4px;
+            border-radius: 4px;
+            outline: none;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .action-toggle-btn {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.05);
+            color: #fff;
             font-size: 9px;
             font-weight: bold;
+            padding: 4px;
             border-radius: 4px;
-            border: 1px solid rgba(255,255,255,0.05);
-            background: #190e26;
-            color: #8e839e;
             cursor: pointer;
+            flex: 2;
             text-align: center;
             transition: all 0.2s;
         }
 
-        .btn-capsule-toggle.l-active {
+        .action-toggle-btn.l-active {
             background: var(--violet-main);
-            color: #fff;
             border-color: var(--violet-glow);
-            box-shadow: 0 0 6px rgba(155,81,224,0.4);
+            box-shadow: 0 0 5px rgba(217,70,239,0.4);
         }
 
-        .btn-capsule-toggle.r-active {
+        .action-toggle-btn.r-active {
             background: #0099cc;
-            color: #fff;
             border-color: var(--cyan-ch2);
-            box-shadow: 0 0 6px rgba(0,229,255,0.4);
+            box-shadow: 0 0 5px rgba(0,229,255,0.4);
         }
 
-        .sub-bar-level {
-            width: 100%;
-            height: 3px;
-            background: #09030f;
-            border-radius: 2px;
-            overflow: hidden;
-            margin-top: 2px;
-        }
-        .sub-bar-fill {
-            height: 100%;
-            width: 0%;
-            background: var(--led-green);
-            transition: width 0.05s ease;
+        .mute-toggle-btn {
+            background: #1f1133;
+            border: 1px solid rgba(255,255,255,0.05);
+            font-size: 8px;
+            font-weight: bold;
+            padding: 4px 2px;
+            border-radius: 4px;
+            cursor: pointer;
+            flex: 1;
+            text-align: center;
+            transition: all 0.1s ease;
         }
 
-        .digi-display {
-            font-family: monospace;
-            background: #020005;
-            color: #00ffcc;
-            padding: 1px 4px;
-            border-radius: 3px;
-            font-size: 9px;
-            border: 1px solid rgba(0, 255, 204, 0.1);
+        .mute-toggle-btn.mute-on {
+            background: var(--led-red) !important;
+            color: #ffffff !important;
+            border-color: #ff3b30 !important;
+            box-shadow: 0 0 8px var(--led-red);
         }
 
-        input[type="range"] {
+        .mute-toggle-btn.mute-off {
+            background: #08170e !important;
+            color: #2ecc71 !important;
+            border-color: #2ecc71 !important;
+            animation: muteBlinkGreen 1s infinite;
+        }
+
+        @keyframes muteBlinkGreen {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .dual-uv-container {
+            margin-top: 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            background: #020104;
+            padding: 4px;
+            border-radius: 4px;
+        }
+
+        .slot-uv-bar {
             width: 100%;
             height: 4px;
-            accent-color: var(--violet-main);
-        }
-        .ch-box:nth-child(2) input[type="range"] {
-            accent-color: var(--cyan-ch2);
+            display: flex;
+            gap: 1px;
+            align-items: center;
         }
 
-        .select-slope-dsp {
-            background: #05020a;
-            border: 1px solid rgba(155,81,224,0.3);
-            color: #efebf5;
-            font-size: 9px;
-            padding: 2px;
-            border-radius: 4px;
-            width: 100%;
+        .uv-dot {
+            flex: 1;
+            height: 100%;
+            background: #11071c;
+            transition: background 0.03s ease;
+        }
+
+        .uv-dot.uv-active-indicator, .vu-segment.vu-active-indicator {
+            background-color: var(--led-blue) !important;
+            box-shadow: 0 0 4px var(--led-blue);
         }
 
         .master-output-footer {
             position: fixed;
-            bottom: 0; left: 0; right: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
             background: #030107;
             border-top: 2px solid var(--violet-main);
             padding: 8px 15px;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.95);
             z-index: 999;
             display: flex;
             flex-direction: column;
             gap: 3px;
         }
 
-        .vu-row { display: flex; align-items: center; }
-        .vu-label { font-size: 10px; font-weight: bold; width: 25px; }
-        .vu-meter-main {
-            flex: 1; height: 8px; background: #06030c;
-            border-radius: 2px; display: flex; gap: 1px; padding: 1px;
+        .vu-row {
+            display: flex;
+            align-items: center;
         }
-        .vu-segment { flex: 1; height: 100%; background: rgba(255,255,255,0.01); }
+
+        .vu-label {
+            font-size: 10px;
+            font-weight: bold;
+            width: 25px;
+        }
+
+        .vu-meter-main, .gr-meter-main {
+            flex: 1;
+            height: 10px;
+            background: #06030c;
+            border-radius: 2px;
+            display: flex;
+            gap: 1px;
+            padding: 1px;
+            overflow: hidden;
+        }
+
+        .gr-meter-main { background: #030303; }
+
+        .vu-segment, .gr-segment {
+            flex: 1;
+            height: 100%;
+            background: rgba(255,255,255,0.01);
+        }
+
         .vu-segment.green-on { background-color: var(--led-green); }
         .vu-segment.yellow-on { background-color: var(--led-yellow); }
         .vu-segment.red-on { background-color: var(--led-red); }
+        .gr-segment.gr-on { background-color: #e67e22; box-shadow: 0 0 3px #d35400; }
 
-        .footer-status { text-align: center; font-size: 8px; color: var(--text-muted); }
-        .panic-btn { background: #400; border: 1px solid #f33; color: #fff; font-weight: bold; cursor: pointer; }
-        .panic-btn.activated { background: #f00; animation: blink 0.3s infinite; }
-        @keyframes blink { 50% { opacity: 0.5; } }
-
-        .btn-check-status {
-            background: linear-gradient(135deg, #1b0c2e, #3a1563);
-            color: #dfc5ff;
-            border: 1px solid var(--violet-main);
-            padding: 10px;
-            border-radius: 6px;
-            font-weight: bold;
-            font-size: 11px;
-            cursor: pointer;
+        .footer-status {
             text-align: center;
-            text-transform: uppercase;
+            font-size: 8px;
+            color: var(--text-muted);
             letter-spacing: 1px;
-            margin-top: 5px;
-            box-shadow: 0 0 10px rgba(155,81,224,0.2);
         }
-        .btn-check-status:hover { background: var(--violet-main); color: #fff; }
+
+        .panic-btn {
+            background: linear-gradient(135deg, #7f0000, #ff0000);
+            border: 1px solid #ff3333;
+            color: #fff;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.4);
+        }
+
+        .panic-btn.activated {
+            background: #ff0000;
+            animation: panicBlink 0.5s infinite;
+        }
+
+        @keyframes panicBlink {
+            0% { box-shadow: 0 0 20px #ff0000; }
+            50% { box-shadow: 0 0 2px #7f0000; }
+            100% { box-shadow: 0 0 20px #ff0000; }
+        }
+
+        .gen-select {
+            background: #170b29;
+            border: 1px solid var(--violet-main);
+            color: #fff;
+            font-size: 10px;
+            border-radius: 4px;
+            padding: 2px;
+            width: 100%;
+            outline: none;
+        }
+
+        .master-fader-card {
+            background: linear-gradient(145deg, #130722, #07020d);
+            border: 1px solid rgba(0, 229, 255, 0.2) !important;
+        }
+
+        .fader-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px;
+            background: rgba(0,0,0,0.4);
+            border-radius: 6px;
+            margin-top: 4px;
+        }
+
+        .fader-label {
+            font-size: 10px;
+            font-weight: bold;
+            width: 65px;
+            color: var(--led-blue);
+        }
+
+        .custom-range-input {
+            flex: 1;
+            height: 6px;
+            accent-color: var(--led-blue);
+        }
+
+        .master-mute-btn {
+            background: #221111;
+            border: 1px solid #ff3b30;
+            color: #ff3b30;
+            font-size: 10px;
+            font-weight: bold;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .master-mute-btn.muted-active {
+            background: var(--led-red);
+            color: #fff;
+            box-shadow: 0 0 10px var(--led-red);
+        }
+
+        /* Perbaikan Poin 6: Tambahan Style Penunjang Tampilan Lebih Rumit & Profesional */
+        .pro-numeric-readout {
+            font-family: monospace;
+            background: #040108;
+            color: var(--led-green);
+            padding: 1px 4px;
+            border-radius: 3px;
+            border: 1px solid rgba(46,204,113,0.2);
+            font-size: 9px;
+        }
+        .mini-btn-addon {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: var(--text-muted);
+            font-size: 7.5px;
+            padding: 1px 4px;
+            border-radius: 2px;
+            cursor: pointer;
+        }
+        .mini-btn-addon.active {
+            color: var(--led-blue);
+            border-color: var(--led-blue);
+        }
     </style>
 </head>
 <body>
-
     <div class="header">
         <h1>FR AUDIO</h1>
         <p>Comprehensive Split-Architecture DLMS IoT Processing Matrix v300++ OMEGA PRO</p>
     </div>
-
+    
     <div class="sys-monitor">
         <div class="monitor-box">
             <span>CPU TEMP</span>
@@ -446,13 +647,17 @@
         <div class="left-display-panel">
             <div class="screen-frame">
                 <div class="canvas-container">
-                    <div class="screen-label-overlay" style="color: var(--violet-glow);">CH1 (LEFT) - DISCRETE RTA SPECTROGRAM</div>
-                    <div class="indicator-badges"><div class="badge-led" id="led-limit-l">LIMIT</div></div>
+                    <div class="screen-label-overlay" style="color: var(--violet-glow);">CH1 (LEFT) - DISCRETE RTA + CROSSOVER + DEQ</div>
+                    <div class="indicator-badges">
+                        <div class="badge-led" id="led-limit-l">LIMIT</div>
+                    </div>
                     <canvas id="displayCanvasL"></canvas>
                 </div>
                 <div class="canvas-container">
-                    <div class="screen-label-overlay" style="color: var(--cyan-ch2);">CH2 (RIGHT) - DISCRETE RTA SPECTROGRAM</div>
-                    <div class="indicator-badges"><div class="badge-led" id="led-limit-r">LIMIT</div></div>
+                    <div class="screen-label-overlay" style="color: var(--cyan-ch2);">CH2 (RIGHT) - DISCRETE RTA + CROSSOVER + DEQ</div>
+                    <div class="indicator-badges">
+                        <div class="badge-led" id="led-limit-r">LIMIT</div>
+                    </div>
                     <canvas id="displayCanvasR"></canvas>
                 </div>
             </div>
@@ -461,17 +666,34 @@
                 <label><i class="fa-solid fa-music"></i> AUDIO INPUT SOURCE MATRIX</label>
                 <audio id="audio-file-player" loop style="display: none;"></audio>
                 <div class="capture-controls-wrapper">
-                    <button class="stream-active-btn" id="start-stream-btn" onclick="initLiveAudioCapture()">
-                        <i class="fa-solid fa-radio"></i> HUBUNGKAN YOUTUBE / MIC
-                    </button>
-                    <div style="display: flex; gap: 6px; width: 100%;">
+                    <div style="display: flex; gap: 6px; width: 100%; margin-bottom: 6px;">
+                        <button class="stream-active-btn" id="start-stream-btn" onclick="initLiveAudioCapture()" style="flex: 4;">
+                            <i class="fa-solid fa-radio"></i> HUBUNGKAN YOUTUBE / MIC
+                        </button>
+                        <button class="stream-source-btn" id="src-toggle-btn" onclick="toggleAudioSourceMode()" title="Ganti Mode" style="flex: 1;">
+                            <i class="fa-solid fa-sliders"></i> <span id="src-mode-text">AUTO</span>
+                        </button>
+                    </div>
+                    <div style="display: flex; gap: 6px; width: 100%; margin-bottom: 6px;">
                         <input type="file" id="music-file-input" accept="audio/*" style="display: none;" onchange="handleMusicFileSelect(this)">
-                        <button class="stream-active-btn" id="upload-trigger-btn" onclick="document.getElementById('music-file-input').click()" style="background: #1c0e2e; border: 1px solid rgba(155,81,224,0.4); flex: 3;">
+                        <button class="stream-active-btn" id="upload-trigger-btn" onclick="document.getElementById('music-file-input').click()" style="background: linear-gradient(135deg, #150b22, var(--violet-main)); border: 1px solid rgba(155,81,224,0.4); flex: 3;">
                             <i class="fa-solid fa-file-audio"></i> PILIH FILE MUSIK
                         </button>
                         <button class="stream-source-btn" id="play-pause-btn" onclick="toggleFilePlayback()" disabled style="flex: 1; opacity: 0.5;">
                             <i class="fa-solid fa-play"></i>
                         </button>
+                    </div>
+                    <div style="display: flex; gap: 6px; width: 100%; align-items: center; background: rgba(0,0,0,0.3); padding: 4px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05);">
+                        <div style="flex: 2; text-align: left; padding-left: 4px;">
+                            <span style="font-size: 8px; color: var(--text-muted); display: block; font-family: monospace;">TEST TONE NODE</span>
+                            <select class="gen-select" id="test-signal-type">
+                                <option value="off">GEN: OFF / BYPASS</option>
+                                <option value="sine">Sine Wave (1 kHz)</option>
+                                <option value="pink">Pink Noise (RTA Calibration)</option>
+                                <option value="white">White Noise</option>
+                            </select>
+                        </div>
+                        <button class="action-toggle-btn" id="gen-toggle-btn" onclick="toggleSignalGenerator()" style="flex: 1; height: 28px; font-size: 9px; margin-top: 10px;">INJECT</button>
                     </div>
                 </div>
                 <div class="stream-status-indicator" id="stream-status">Status: Silakan hubungkan sumber audio.</div>
@@ -480,530 +702,574 @@
 
         <div class="right-menu-panel">
             <div class="panel-section-title">
-                <span><i class="fa-solid fa-sliders"></i> DUAL CHANNEL CORE PROCESSING MATRIX</span>
-                <span style="color: var(--violet-glow); font-family: monospace;">UPGRADE EXTENSION</span>
+                <span><i class="fa-solid fa-sliders"></i> CORE MATRIX CONTROL</span>
+                <span style="color: var(--violet-glow); font-family: monospace;">CONSOLE v3.0</span>
             </div>
 
-            <div class="menu-slot-card">
-                <div class="slot-header">
-                    <span class="slot-title" style="color: var(--led-blue);"><i class="fa-solid fa-microchip"></i> Dual Core Engine</span>
-                    <span class="slot-index">SYS-01</span>
-                </div>
-                <div class="ch-dual-row">
-                    <div class="ch-box">
-                        <div class="ch-label-top l-color">JALUR 1 (L)</div>
-                        <button class="btn-capsule-toggle l-active" id="btn-core-l" onclick="toggleDspModule('core-l')">ACTIVE</button>
-                        <div class="sub-bar-level"><div class="sub-bar-fill" id="bar-core-l"></div></div>
+            <div class="matrix-grid">
+                <div class="menu-slot-card active master-fader-card" id="card-master-mixer">
+                    <div class="slot-header">
+                        <span class="slot-title" style="color: var(--cyan-ch2);"><i class="fa-solid fa-compress"></i> Master Hardware Link</span>
+                        <span class="slot-index">LIVE</span>
                     </div>
-                    <div class="ch-box">
-                        <div class="ch-label-top r-color">JALUR 2 (R)</div>
-                        <button class="btn-capsule-toggle r-active" id="btn-core-r" onclick="toggleDspModule('core-r')">ACTIVE</button>
-                        <div class="sub-bar-level"><div class="sub-bar-fill" id="bar-core-r"></div></div>
+                    <div class="fader-group">
+                        <div class="fader-label">Gain L/R</div>
+                        <input type="range" class="custom-range-input" id="master-gain-slider" min="0" max="100" value="100" oninput="adjustMasterHardwareGain(this.value)">
+                        <span id="master-vol-txt" class="pro-numeric-readout">0.0dB</span>
+                    </div>
+                    <div class="ch-control-row" style="background:transparent; padding:0; justify-content:space-between; margin-top:5px;">
+                        <button class="master-mute-btn" id="master-mute-trigger" onclick="toggleMasterHardwareMute()">MASTER MUTE</button>
+                        <button class="mini-btn-addon active" onclick="this.classList.toggle('active')">PHASE NORMAL</button>
                     </div>
                 </div>
-            </div>
 
-            <div class="menu-slot-card">
-                <div class="slot-header">
-                    <span class="slot-title" style="color: #e67e22;"><i class="fa-solid fa-waveform"></i> Sub-Harmonic Focus Engine</span>
-                    <span class="slot-index">SYS-02</span>
-                </div>
-                <div class="ch-dual-row">
-                    <div class="ch-box">
-                        <div class="ch-label-top l-color">JALUR 1 (L) <span class="digi-display" id="txt-sub-l">50%</span></div>
-                        <input type="range" min="0" max="100" value="50" oninput="updateRangeDisplay('sub-l', this.value)">
-                        <button class="btn-capsule-toggle l-active" id="btn-sub-l" onclick="toggleDspModule('sub-l')">PROCESS ON</button>
+                <div class="menu-slot-card active" id="card-compressor">
+                    <div class="slot-header">
+                        <span class="slot-title" style="color: var(--led-yellow);"><i class="fa-solid fa-gavel"></i> Dynamics Compressor</span>
+                        <span class="slot-index">LINKED</span>
                     </div>
-                    <div class="ch-box">
-                        <div class="ch-label-top r-color">JALUR 2 (R) <span class="digi-display" id="txt-sub-r">50%</span></div>
-                        <input type="range" min="0" max="100" value="50" oninput="updateRangeDisplay('sub-r', this.value)">
-                        <button class="btn-capsule-toggle r-active" id="btn-sub-r" onclick="toggleDspModule('sub-r')">PROCESS ON</button>
+                    <div class="ch-control-row row-compact" style="justify-content:space-between;">
+                        <span>Threshold: <strong id="comp-thresh-txt" class="pro-numeric-readout">-24 dB</strong></span>
+                        <input type="range" min="-60" max="0" value="-24" style="width:50%;" id="comp-threshold" oninput="updateCompressorSettings()">
+                    </div>
+                    <div class="ch-control-row row-compact" style="justify-content:space-between;">
+                        <span>Ratio: <strong id="comp-ratio-txt" class="pro-numeric-readout">4.0:1</strong></span>
+                        <input type="range" min="1" max="20" value="4" style="width:50%;" id="comp-ratio" oninput="updateCompressorSettings()">
+                    </div>
+                    <div class="ch-control-row row-compact" style="justify-content:space-between;">
+                        <button class="mini-btn-addon" onclick="this.classList.toggle('active')">SOFT KNEE</button>
+                        <button class="action-toggle-btn l-active" id="comp-bypass-btn" onclick="toggleCompressorBypass()" style="font-size:8px; padding:2px;">COMPRESSOR ACTIVE</button>
                     </div>
                 </div>
-            </div>
 
-            <div class="menu-slot-card">
-                <div class="slot-header">
-                    <span class="slot-title" style="color: #2ecc71;"><i class="fa-solid fa-sparkles"></i> Dynamic Clarity Node</span>
-                    <span class="slot-index">SYS-03</span>
-                </div>
-                <div class="ch-dual-row">
-                    <div class="ch-box">
-                        <div class="ch-label-top l-color">JALUR 1 (L)</div>
-                        <button class="btn-capsule-toggle l-active" id="btn-clarity-l" onclick="toggleDspModule('clarity-l')">CLARITY ACTIVE</button>
-                        <div class="sub-bar-level"><div class="sub-bar-fill" id="bar-clarity-l"></div></div>
+                <div class="menu-slot-card active" id="card-pitch-shifter">
+                    <div class="slot-header">
+                        <span class="slot-title" style="color: #e67e22;"><i class="fa-solid fa-wand-magic-sparkles"></i> FX 24: Pitch Shifter</span>
+                        <span class="slot-index">HARMONIC</span>
                     </div>
-                    <div class="ch-box">
-                        <div class="ch-label-top r-color">JALUR 2 (R)</div>
-                        <button class="btn-capsule-toggle r-active" id="btn-clarity-r" onclick="toggleDspModule('clarity-r')">CLARITY ACTIVE</button>
-                        <div class="sub-bar-level"><div class="sub-bar-fill" id="bar-clarity-r"></div></div>
+                    <div class="ch-control-row row-compact" style="justify-content:space-between;">
+                        <span>Interval: <strong id="fx-pitch-txt" class="pro-numeric-readout">0 Semi</strong></span>
+                        <input type="range" min="-12" max="12" value="0" step="1" style="width:50%; accent-color:#e67e22;" id="fx-pitch-slider" oninput="updatePitchEffectSettings()">
+                    </div>
+                    <div class="ch-control-row row-compact" style="justify-content:space-between;">
+                        <span>Mix Wet: <strong id="fx-wet-txt" class="pro-numeric-readout">50%</strong></span>
+                        <input type="range" min="0" max="100" value="50" style="width:50%; accent-color:#e67e22;" id="fx-wet-slider" oninput="updatePitchEffectSettings()">
+                    </div>
+                    <div class="ch-control-row" style="justify-content:space-between;">
+                        <button class="mini-btn-addon" onclick="this.classList.toggle('active')">VOCODER MODE</button>
+                        <button class="action-toggle-btn" id="fx-toggle-btn" onclick="togglePitchEffect()" style="width:65%; font-size:9px; background:rgba(230,126,34,0.1); border-color: rgba(230,126,34,0.3);">ACTIVATE PITCH FX</button>
                     </div>
                 </div>
-            </div>
 
-            <div class="menu-slot-card">
-                <div class="slot-header">
-                    <span class="slot-title" style="color: var(--violet-glow);"><i class="fa-solid fa-code-branch"></i> Fidelity Phase Logic</span>
-                    <span class="slot-index">SYS-04</span>
-                </div>
-                <div class="ch-dual-row">
-                    <div class="ch-box">
-                        <div class="ch-label-top l-color">JALUR 1 (L)</div>
-                        <button class="btn-capsule-toggle" id="btn-phase-l" onclick="toggleDspModule('phase-l')">0° NORMAL</button>
+                <div class="menu-slot-card active" id="card-outdelay">
+                    <div class="slot-header">
+                        <span class="slot-title" style="color: #3498db;"><i class="fa-solid fa-clock"></i> Time Alignment Delay</span>
+                        <span class="slot-index">DLY-OUT</span>
                     </div>
-                    <div class="ch-box">
-                        <div class="ch-label-top r-color">JALUR 2 (R)</div>
-                        <button class="btn-capsule-toggle" id="btn-phase-r" onclick="toggleDspModule('phase-r')">0° NORMAL</button>
+                    <div class="ch-control-row row-compact" style="justify-content:space-between;">
+                        <span style="color:var(--violet-glow); font-weight:bold;">L-Dly: <span id="dly-val-l" class="pro-numeric-readout">0.0 ms</span></span>
+                        <input type="range" min="0" max="200" value="0" step="0.5" style="width:50%; accent-color:var(--violet-main);" id="dly-slider-l" oninput="updateOutputDelay('l')">
+                    </div>
+                    <div class="ch-control-row row-compact" style="justify-content:space-between;">
+                        <span style="color:var(--cyan-ch2); font-weight:bold;">R-Dly: <span id="dly-val-r" class="pro-numeric-readout">0.0 ms</span></span>
+                        <input type="range" min="0" max="200" value="0" step="0.5" style="width:50%; accent-color:var(--cyan-ch2);" id="dly-slider-r" oninput="updateOutputDelay('r')">
                     </div>
                 </div>
-            </div>
 
-            <div class="menu-slot-card">
-                <div class="slot-header">
-                    <span class="slot-title" style="color: #fff;"><i class="fa-solid fa-volume-high"></i> Output Gain Level Matrix</span>
-                    <span class="slot-index">SYS-05</span>
-                </div>
-                <div class="ch-dual-row">
-                    <div class="ch-box">
-                        <div class="ch-label-top l-color">GAIN 1 (L) <span class="digi-display" id="txt-gain-l">0.0 dB</span></div>
-                        <input type="range" min="0" max="100" value="80" oninput="updateRangeDisplay('gain-l', this.value)">
-                        <div class="sub-bar-level"><div class="sub-bar-fill" id="bar-gain-l"></div></div>
+                <div class="menu-slot-card active" id="card-hpf">
+                    <div class="slot-header">
+                        <span class="slot-title" style="color: #1abc9c;"><i class="fa-solid fa-wave-square"></i> HPF Crossover</span>
+                        <span class="slot-index">F51-55</span>
                     </div>
-                    <div class="ch-box">
-                        <div class="ch-label-top r-color">GAIN 2 (R) <span class="digi-display" id="txt-gain-r">0.0 dB</span></div>
-                        <input type="range" min="0" max="100" value="80" oninput="updateRangeDisplay('gain-r', this.value)">
-                        <div class="sub-bar-level"><div class="sub-bar-fill" id="bar-gain-r"></div></div>
+                    <div class="ch-control-row row-compact" style="justify-content:space-between;">
+                        <span>Freq L: <strong id="hpf-txt-l" class="pro-numeric-readout">15 Hz</strong></span>
+                        <input type="range" min="15" max="44000" value="15" style="width:55%;" id="hpf-freq-l" oninput="updateFilterDSP()">
+                    </div>
+                    <div class="ch-control-row row-compact" style="justify-content:space-between;">
+                        <span>Freq R: <strong id="hpf-txt-r" class="pro-numeric-readout">15 Hz</strong></span>
+                        <input type="range" min="15" max="44000" value="15" style="width:55%;" id="hpf-freq-r" oninput="updateFilterDSP()">
                     </div>
                 </div>
-            </div>
 
-            <div class="menu-slot-card">
-                <div class="slot-header">
-                    <span class="slot-title" style="color: #00ffcc;"><i class="fa-solid fa-balance-scale"></i> Harmonix Balance Adaptive</span>
-                    <span class="slot-index">SYS-06</span>
-                </div>
-                <div class="ch-dual-row">
-                    <div class="ch-box">
-                        <div class="ch-label-top l-color">JALUR 1 (L)</div>
-                        <button class="btn-capsule-toggle l-active" id="btn-harm-l" onclick="toggleDspModule('harm-l')">LINK BALANCED</button>
+                <div class="menu-slot-card active" id="card-lpf">
+                    <div class="slot-header">
+                        <span class="slot-title" style="color: #9b51e0;"><i class="fa-solid fa-wave-square"></i> LPF Crossover</span>
+                        <span class="slot-index">F56-60</span>
                     </div>
-                    <div class="ch-box">
-                        <div class="ch-label-top r-color">JALUR 2 (R)</div>
-                        <button class="btn-capsule-toggle r-active" id="btn-harm-r" onclick="toggleDspModule('harm-r')">LINK BALANCED</button>
+                    <div class="ch-control-row row-compact" style="justify-content:space-between;">
+                        <span>Freq L: <strong id="lpf-txt-l" class="pro-numeric-readout">44000 Hz</strong></span>
+                        <input type="range" min="15" max="44000" value="44000" style="width:55%;" id="lpf-freq-l" oninput="updateFilterDSP()">
+                    </div>
+                    <div class="ch-control-row row-compact" style="justify-content:space-between;">
+                        <span>Freq R: <strong id="lpf-txt-r" class="pro-numeric-readout">44000 Hz</strong></span>
+                        <input type="range" min="15" max="44000" value="44000" style="width:55%;" id="lpf-freq-r" oninput="updateFilterDSP()">
                     </div>
                 </div>
-            </div>
 
-            <div class="menu-slot-card">
-                <div class="slot-header">
-                    <span class="slot-title"><i class="fa-solid fa-wave-square"></i> Independent X-Over Filter (HPF / LPF)</span>
-                    <span class="slot-index">SYS-07</span>
-                </div>
-                <div class="ch-dual-row">
-                    <div class="ch-box">
-                        <div class="ch-label-top l-color">HPF 1 (L): <span id="txt-hpf-l">20 Hz</span></div>
-                        <input type="range" min="20" max="2000" value="20" oninput="document.getElementById('txt-hpf-l').innerText = this.value+' Hz';">
-                        <div class="ch-label-top l-color" style="margin-top:4px;">LPF 1 (L): <span id="txt-lpf-l">20 kHz</span></div>
-                        <input type="range" min="2000" max="20000" value="20000" oninput="document.getElementById('txt-lpf-l').innerText = this.value+' Hz';">
+                <div class="menu-slot-card active" id="card-eq-matrix" style="grid-column: span 1;">
+                    <div class="slot-header">
+                        <span class="slot-title" style="color: #2ecc71;"><i class="fa-solid fa-chart-line"></i> Parametric EQ Matrix</span>
+                        <span class="slot-index">15Hz-44kHz</span>
                     </div>
-                    <div class="ch-box">
-                        <div class="ch-label-top r-color">HPF 2 (R): <span id="txt-hpf-r">20 Hz</span></div>
-                        <input type="range" min="20" max="2000" value="20" oninput="document.getElementById('txt-hpf-r').innerText = this.value+' Hz';">
-                        <div class="ch-label-top r-color" style="margin-top:4px;">LPF 2 (R): <span id="txt-lpf-r">20 kHz</span></div>
-                        <input type="range" min="2000" max="20000" value="20000" oninput="document.getElementById('txt-lpf-r').innerText = this.value+' Hz';">
+                    <div class="ch-control-row row-compact" style="justify-content:space-between;">
+                        <span>Low Freq: <strong id="eq-f1-txt" class="pro-numeric-readout">100 Hz</strong></span>
+                        <input type="range" min="15" max="44000" value="100" id="eq-freq-1" oninput="updateEQDSP()">
+                    </div>
+                    <div class="ch-control-row row-compact" style="justify-content:space-between;">
+                        <span>Mid Freq: <strong id="eq-f2-txt" class="pro-numeric-readout">1000 Hz</strong></span>
+                        <input type="range" min="15" max="44000" value="1000" id="eq-freq-2" oninput="updateEQDSP()">
+                    </div>
+                    <div class="ch-control-row row-compact" style="justify-content:space-between;">
+                        <span>High Freq: <strong id="eq-f3-txt" class="pro-numeric-readout">10000 Hz</strong></span>
+                        <input type="range" min="15" max="44000" value="10000" id="eq-freq-3" oninput="updateEQDSP()">
+                    </div>
+                    <div class="ch-control-row row-compact" style="justify-content:space-between;">
+                        <span>EQ Gain: <strong id="eq-g-txt" class="pro-numeric-readout">0 dB</strong></span>
+                        <input type="range" min="-15" max="15" value="0" id="eq-gain-master" style="width:55%;" oninput="updateEQDSP()">
                     </div>
                 </div>
             </div>
-
-            <div class="menu-slot-card">
-                <div class="slot-header">
-                    <span class="slot-title" style="color: var(--cyan-ch2);"><i class="fa-solid fa-equalizer"></i> 3-Band Split Parametric EQ</span>
-                    <span class="slot-index">SYS-08</span>
-                </div>
-                <div style="font-size: 9px; color: var(--text-muted); text-align: center; margin-bottom: 2px;">JALUR 1 (LEFT) TUNING NODE</div>
-                <div class="ch-dual-row">
-                    <div class="ch-box"><span>Low-Mid Gain</span><input type="range" min="-12" max="12" value="0"></div>
-                    <div class="ch-box"><span>Mid-High Gain</span><input type="range" min="-12" max="12" value="0"></div>
-                </div>
-                <div class="ch-dual-row">
-                    <div class="ch-box" style="grid-column: span 2;"><span>High-Filter Node Gain</span><input type="range" min="-12" max="12" value="0"></div>
-                </div>
-                <div style="font-size: 9px; color: var(--text-muted); text-align: center; margin-top: 4px; margin-bottom: 2px;">JALUR 2 (RIGHT) TUNING NODE</div>
-                <div class="ch-dual-row">
-                    <div class="ch-box"><span>Low-Mid Gain</span><input type="range" min="-12" max="12" value="0"></div>
-                    <div class="ch-box"><span>Mid-High Gain</span><input type="range" min="-12" max="12" value="0"></div>
-                </div>
-                <div class="ch-dual-row">
-                    <div class="ch-box" style="grid-column: span 2;"><span>High-Filter Node Gain</span><input type="range" min="-12" max="12" value="0"></div>
-                </div>
-            </div>
-
-            <div class="menu-slot-card">
-                <div class="slot-header">
-                    <span class="slot-title"><i class="fa-solid fa-shield-halved"></i> Restorer & Slope Alignment</span>
-                    <span class="slot-index">SYS-09</span>
-                </div>
-                <div class="ch-dual-row">
-                    <div class="ch-box">
-                        <div class="ch-label-top l-color">X-OVER SLOPE 1</div>
-                        <select class="select-slope-dsp">
-                            <option>Linkwitz-Riley 48dB</option>
-                            <option>Linkwitz-Riley 24dB</option>
-                            <option>Butterworth 48dB</option>
-                        </select>
-                        <button class="btn-capsule-toggle l-active" style="margin-top:4px;" id="btn-restorer-l" onclick="toggleDspModule('restorer-l')">RESTORER ON</button>
-                    </div>
-                    <div class="ch-box">
-                        <div class="ch-label-top r-color">X-OVER SLOPE 2</div>
-                        <select class="select-slope-dsp">
-                            <option>Linkwitz-Riley 48dB</option>
-                            <option>Linkwitz-Riley 24dB</option>
-                            <option>Butterworth 48dB</option>
-                        </select>
-                        <button class="btn-capsule-toggle r-active" style="margin-top:4px;" id="btn-restorer-r" onclick="toggleDspModule('restorer-r')">RESTORER ON</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="menu-slot-card">
-                <div class="slot-header">
-                    <span class="slot-title" style="color: #f1c40f;"><i class="fa-solid fa-comment-dots"></i> Vocal Presence Limiter</span>
-                    <span class="slot-index">SYS-10</span>
-                </div>
-                <div class="ch-dual-row">
-                    <div class="ch-box">
-                        <div class="ch-label-top l-color">PRESENCE 1 (L)</div>
-                        <button class="btn-capsule-toggle l-active" id="btn-vocal-l" onclick="toggleDspModule('vocal-l')">MID VOCAL ON</button>
-                    </div>
-                    <div class="ch-box">
-                        <div class="ch-label-top r-color">PRESENCE 2 (R)</div>
-                        <button class="btn-capsule-toggle r-active" id="btn-vocal-r" onclick="toggleDspModule('vocal-r')">MID VOCAL ON</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="menu-slot-card">
-                <div class="slot-header">
-                    <span class="slot-title" style="color: #9b51e0;"><i class="fa-solid fa-tower-broadcast"></i> Stage Dynamic Engine</span>
-                    <span class="slot-index">SYS-11</span>
-                </div>
-                <div class="ch-dual-row">
-                    <div class="ch-box">
-                        <div class="ch-label-top l-color">STAGE ROOM L</div>
-                        <button class="btn-capsule-toggle l-active" id="btn-stage-l" onclick="toggleDspModule('stage-l')">EXPANDER ENABLED</button>
-                    </div>
-                    <div class="ch-box">
-                        <div class="ch-label-top r-color">STAGE ROOM R</div>
-                        <button class="btn-capsule-toggle r-active" id="btn-stage-r" onclick="toggleDspModule('stage-r')">EXPANDER ENABLED</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="menu-slot-card">
-                <div class="slot-header">
-                    <span class="slot-title" style="color: #ff3366;"><i class="fa-solid fa-guitar"></i> Advanced Sub-Woofer Matrix Control</span>
-                    <span class="slot-index">SYS-12</span>
-                </div>
-                <div class="ch-dual-row">
-                    <div class="ch-box">
-                        <div class="ch-label-top l-color">SUB FREQ L <span class="digi-display" id="txt-subf-l">45 Hz</span></div>
-                        <input type="range" min="30" max="150" value="45" oninput="document.getElementById('txt-subf-l').innerText = this.value+' Hz';">
-                        <button class="btn-capsule-toggle" id="btn-subph-l" onclick="togglePhaseBtn('subph-l')">PHASE INV (180°)</button>
-                    </div>
-                    <div class="ch-box">
-                        <div class="ch-label-top r-color">SUB FREQ R <span class="digi-display" id="txt-subf-r">45 Hz</span></div>
-                        <input type="range" min="30" max="150" value="45" oninput="document.getElementById('txt-subf-r').innerText = this.value+' Hz';">
-                        <button class="btn-capsule-toggle" id="btn-subph-r" onclick="togglePhaseBtn('subph-r')">PHASE INV (180°)</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="menu-slot-card">
-                <div class="slot-header">
-                    <span class="slot-title" style="color: #ff0000;"><i class="fa-solid fa-lock"></i> Sub Peak Dynamic Lock (Limiter)</span>
-                    <span class="slot-index">SYS-13</span>
-                </div>
-                <div class="ch-dual-row">
-                    <div class="ch-box">
-                        <div class="ch-label-top l-color">PEAK LIMIT 1</div>
-                        <button class="btn-capsule-toggle l-active" id="btn-lock-l" onclick="toggleDspModule('lock-l')">HARD LOCK ON</button>
-                    </div>
-                    <div class="ch-box">
-                        <div class="ch-label-top r-color">PEAK LIMIT 2</div>
-                        <button class="btn-capsule-toggle r-active" id="btn-lock-r" onclick="toggleDspModule('lock-r')">HARD LOCK ON</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="menu-slot-card">
-                <div class="slot-header">
-                    <span class="slot-title" style="color: #00bfff;"><i class="fa-solid fa-wand-magic-sparkles"></i> Mid-High Enhancer & System Tracking</span>
-                    <span class="slot-index">SYS-14</span>
-                </div>
-                <div class="ch-dual-row">
-                    <div class="ch-box">
-                        <div class="ch-label-top l-color">ENHANCER L</div>
-                        <button class="btn-capsule-toggle l-active" id="btn-enh-l" onclick="toggleDspModule('enh-l')">TRACKING ACTIVE</button>
-                    </div>
-                    <div class="ch-box">
-                        <div class="ch-label-top r-color">ENHANCER R</div>
-                        <button class="btn-capsule-toggle r-active" id="btn-enh-r" onclick="toggleDspModule('enh-r')">TRACKING ACTIVE</button>
-                    </div>
-                </div>
-            </div>
-
-            <button class="btn-check-status" onclick="triggerCheckStatus()"><i class="fa-solid fa-circle-check"></i> Check Status System</button>
-
         </div>
     </div>
 
     <div class="master-output-footer">
         <div class="vu-row">
-            <div class="vu-label" style="color:var(--violet-glow)">VU L</div>
-            <div class="vu-meter-main" id="vu-left">
-                <div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div>
-            </div>
+            <div class="vu-label" style="color:var(--violet-glow);">OUT L</div>
+            <div class="vu-meter-main" id="vu-meter-l"></div>
         </div>
         <div class="vu-row">
-            <div class="vu-label" style="color:var(--cyan-ch2)">VU R</div>
-            <div class="vu-meter-main" id="vu-right">
-                <div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div>
-            </div>
+            <div class="vu-label" style="color:var(--cyan-ch2);">OUT R</div>
+            <div class="vu-meter-main" id="vu-meter-r"></div>
         </div>
-        <div class="footer-status">FR AUDIO OMEGA ENGINE EXTENSION LIVE MATRIX - PROCESSING ACTIVE</div>
+        <div class="vu-row">
+            <div class="vu-label" style="color:#e67e22; font-size:8px; width:25px;">COMP GR</div>
+            <div class="gr-meter-main" id="gr-meter-node"></div>
+        </div>
+        <div class="footer-status">SYSTEM INTEGRATED CORE ANALOG MATRIX DISCRETE SPECTROGRAM LINK OK</div>
     </div>
 
     <script>
+        // Poin 8 & 4: Inisialisasi Konteks Web Audio Global & Rantai DSP
         let audioCtx = null;
-        let streamNode = null;
-        let fileSourceNode = null;
-        let isEngineBuilt = false;
-        let globalPanicState = false;
+        let mainSourceNode = null; 
+        let liveStreamStream = null;
+        
+        // Node Rantai Audio Utama (Routing Universal)
+        let inputSelectorGain = null;
+        let pitchFxFadeNode = null;
+        let pitchDelayNode = null;
+        let pitchFeedbackGain = null;
+        let biquadFiltersL = [];
+        let biquadFiltersR = [];
+        let compressorNode = null;
+        let masterGainNode = null;
+        let analyzerL = null, analyzerR = null;
 
-        const filePlayer = document.getElementById('audio-file-player');
-        const playPauseBtn = document.getElementById('play-pause-btn');
-        const uploadTriggerBtn = document.getElementById('upload-trigger-btn');
-        const streamStatusEl = document.getElementById('stream-status');
+        // Status Kontrol
+        let isFxFlipped = false;
+        let isCompBypassed = false;
+        let isMuted = false;
+        let activeSourceType = 'none'; // 'live', 'file', 'gen'
+        let signalGenOsc = null;
 
-        let analyserL, analyserR;
-
-        // Inisialisasi Audio Context
-        function initAudioContext() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        // Inisialisasi Kerangka VU Segmen di Footer
+        function initVUMeterDOM() {
+            const meterL = document.getElementById('vu-meter-l');
+            const meterR = document.getElementById('vu-meter-r');
+            const grMeter = document.getElementById('gr-meter-node');
+            meterL.innerHTML = ''; meterR.innerHTML = ''; grMeter.innerHTML = '';
+            for(let i=0; i<40; i++){
+                let divL = document.createElement('div'); divL.className = 'vu-segment'; meterL.appendChild(divL);
+                let divR = document.createElement('div'); divR.className = 'vu-segment'; meterR.appendChild(divR);
+                let divG = document.createElement('div'); divG.className = 'gr-segment'; grMeter.appendChild(divG);
             }
         }
+        initVUMeterDOM();
 
-        // Tangani Pilihan File Musik
-        function handleMusicFileSelect(input) {
-            initAudioContext();
-            const file = input.files[0];
-            if (!file) return;
-            filePlayer.src = URL.createObjectURL(file);
+        function createAudioContextChain() {
+            if (audioCtx) return;
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             
-            if (!fileSourceNode) {
-                fileSourceNode = audioCtx.createMediaElementSource(filePlayer);
-                streamNode = fileSourceNode;
-                buildDiscreteEngine();
-            }
-            playPauseBtn.disabled = false;
-            playPauseBtn.style.opacity = "1";
-            uploadTriggerBtn.innerHTML = `<i class="fa-solid fa-circle-check"></i> TRACK READY`;
-            streamStatusEl.innerText = "Track loaded: " + file.name;
-        }
+            // 1. Selector Gain Node
+            inputSelectorGain = audioCtx.createGain();
 
-        function toggleFilePlayback() {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            if (filePlayer.paused) {
-                filePlayer.play();
-                playPauseBtn.innerHTML = `<i class="fa-solid fa-pause"></i>`;
-                streamStatusEl.innerText = "Memutar musik via Dual Engine...";
-            } else {
-                filePlayer.pause();
-                playPauseBtn.innerHTML = `<i class="fa-solid fa-play"></i>`;
-            }
-        }
+            // 2. Poin 1: Pitch Shifter Sim DSP Node Engine
+            pitchFxFadeNode = audioCtx.createGain();
+            pitchDelayNode = audioCtx.createDelay();
+            pitchFeedbackGain = audioCtx.createGain();
+            
+            pitchDelayNode.delayTime.value = 0.03; // Base time alignment
+            pitchFeedbackGain.gain.value = 0.0; // Dry di awal
+            pitchFxFadeNode.gain.value = 0.0; // Mati di awal
 
-        // Ambil Audio Mikrofon / Input Live
-        async function initLiveAudioCapture() {
-            initAudioContext();
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false } });
-                streamNode = audioCtx.createMediaStreamSource(stream);
-                buildDiscreteEngine();
-                streamStatusEl.innerText = "Live External Mic tersambung ke Matrix Engine.";
-            } catch(e) {
-                alert("Gagal terhubung ke input suara: " + e);
-            }
-        }
+            // Menghubungkan Pitch feedbackloop
+            pitchDelayNode.connect(pitchFeedbackGain);
+            pitchFeedbackGain.connect(pitchDelayNode);
 
-        // Rancang Arsitektur Audio Web API Dual-Channel Baru
-        function buildDiscreteEngine() {
-            if (isEngineBuilt) return;
+            // Jalur Kering (Musik Tidak Akan Mati!)
+            inputSelectorGain.connect(audioCtx.destination); 
 
+            // Jalur Efek
+            inputSelectorGain.connect(pitchDelayNode);
+            pitchDelayNode.connect(pitchFxFadeNode);
+            pitchFxFadeNode.connect(audioCtx.destination);
+
+            // 3. Poin 3: Filter HPF / LPF & EQ Biquad (Batas 15Hz-44kHz)
+            // Channel Left Filters
+            biquadFiltersL[0] = audioCtx.createBiquadFilter(); biquadFiltersL[0].type = 'highpass';
+            biquadFiltersL[1] = audioCtx.createBiquadFilter(); biquadFiltersL[1].type = 'lowpass';
+            biquadFiltersL[2] = audioCtx.createBiquadFilter(); biquadFiltersL[2].type = 'peaking';
+            biquadFiltersL[3] = audioCtx.createBiquadFilter(); biquadFiltersL[3].type = 'peaking';
+            biquadFiltersL[4] = audioCtx.createBiquadFilter(); biquadFiltersL[4].type = 'peaking';
+
+            // Channel Right Filters
+            biquadFiltersR[0] = audioCtx.createBiquadFilter(); biquadFiltersR[0].type = 'highpass';
+            biquadFiltersR[1] = audioCtx.createBiquadFilter(); biquadFiltersR[1].type = 'lowpass';
+            biquadFiltersR[2] = audioCtx.createBiquadFilter(); biquadFiltersR[2].type = 'peaking';
+            biquadFiltersR[3] = audioCtx.createBiquadFilter(); biquadFiltersR[3].type = 'peaking';
+            biquadFiltersR[4] = audioCtx.createBiquadFilter(); biquadFiltersR[4].type = 'peaking';
+
+            // 4. Poin 2: Penyambungan Logic Kompresor ke Rantai Jalur Utama Audio
+            compressorNode = audioCtx.createDynamicsCompressor();
+            
+            // 5. Master Gain & Analyzer Output
+            masterGainNode = audioCtx.createGain();
+            analyzerL = audioCtx.createAnalyser(); analyzerL.fftSize = 256;
+            analyzerR = audioCtx.createAnalyser(); analyzerR.fftSize = 256;
+
+            // Sambungkan Rantai Pemrosesan Seri Berurutan
+            inputSelectorGain.connect(biquadFiltersL[0]);
+            biquadFiltersL[0].connect(biquadFiltersL[1]);
+            biquadFiltersL[1].connect(biquadFiltersL[2]);
+            biquadFiltersL[2].connect(biquadFiltersL[3]);
+            biquadFiltersL[3].connect(biquadFiltersL[4]);
+            biquadFiltersL[4].connect(compressorNode);
+
+            inputSelectorGain.connect(biquadFiltersR[0]);
+            biquadFiltersR[0].connect(biquadFiltersR[1]);
+            biquadFiltersR[1].connect(biquadFiltersR[2]);
+            biquadFiltersR[2].connect(biquadFiltersR[3]);
+            biquadFiltersR[3].connect(biquadFiltersR[4]);
+            biquadFiltersR[4].connect(compressorNode);
+
+            compressorNode.connect(masterGainNode);
+            
+            // Split Master ke Analyzer RTA Visualizer L/R
             let splitter = audioCtx.createChannelSplitter(2);
-            let merger = audioCtx.createChannelMerger(2);
+            masterGainNode.connect(splitter);
+            splitter.connect(analyzerL, 0);
+            splitter.connect(analyzerR, 1);
+            
+            masterGainNode.connect(audioCtx.destination);
 
-            analyserL = audioCtx.createAnalyser(); analyserL.fftSize = 256;
-            analyserR = audioCtx.createAnalyser(); analyserR.fftSize = 256;
-
-            streamNode.connect(splitter);
-
-            // Jalur 1 (Left)
-            splitter.connect(analyserL, 0);
-            analyserL.connect(merger, 0, 0);
-
-            // Jalur 2 (Right)
-            splitter.connect(analyserR, 1);
-            analyserR.connect(merger, 0, 1);
-
-            merger.connect(audioCtx.destination);
-            isEngineBuilt = true;
-
-            animateVUMeters();
+            // Eksekusi Pembaruan Parameter Konfigurasi Awal
+            updateCompressorSettings();
+            updateFilterDSP();
+            updateEQDSP();
+            startRTALoops();
         }
 
-        // Fungsi Simulasi UI Interaktif Kapsul Aktif/Bypass Modul
-        function toggleDspModule(id) {
-            const btn = document.getElementById('btn-' + id);
-            if (id.endsWith('-l')) {
-                btn.classList.toggle('l-active');
-                btn.innerText = btn.classList.contains('l-active') ? "ACTIVE" : "BYPASS";
+        // Poin 1: Fungsi Hidup/Matikan Efek Pitch (Kering Tetap Nyala)
+        function togglePitchEffect() {
+            createAudioContextChain();
+            const btn = document.getElementById('fx-toggle-btn');
+            isFxFlipped = !isFxFlipped;
+            if(isFxFlipped) {
+                btn.innerText = "BYPASS PITCH FX";
+                btn.style.background = "var(--led-red)";
+                pitchFxFadeNode.gain.value = parseFloat(document.getElementById('fx-wet-slider').value) / 100;
             } else {
-                btn.classList.toggle('r-active');
-                btn.innerText = btn.classList.contains('r-active') ? "ACTIVE" : "BYPASS";
+                btn.innerText = "ACTIVATE PITCH FX";
+                btn.style.background = "rgba(230,126,34,0.1)";
+                pitchFxFadeNode.gain.value = 0.0; // Hanya mematikan jalur basah efek
             }
         }
 
-        function togglePhaseBtn(id) {
-            const btn = document.getElementById('btn-' + id);
-            btn.classList.toggle('l-active');
-            btn.innerText = btn.classList.contains('l-active') ? "PHASE INV (180°)" : "0° NORMAL";
-        }
+        function updatePitchEffectSettings() {
+            let semi = parseInt(document.getElementById('fx-pitch-slider').value);
+            let wet = parseFloat(document.getElementById('fx-wet-slider').value);
+            document.getElementById('fx-pitch-txt').innerText = semi + " Semi";
+            document.getElementById('fx-wet-txt').innerText = wet + "%";
 
-        function updateRangeDisplay(id, val) {
-            if (id.startsWith('gain-')) {
-                let db = ((val - 80) / 2).toFixed(1);
-                document.getElementById('txt-' + id).innerText = (db >= 0 ? "+" : "") + db + " dB";
-            } else {
-                document.getElementById('txt-' + id).innerText = val + "%";
-            }
-        }
-
-        // Emergency Mute Global
-        function triggerGlobalPanicMute() {
-            globalPanicState = !globalPanicState;
-            const btn = document.getElementById('global-panic-btn');
-            if (globalPanicState) {
-                btn.classList.add('activated');
-                if (isEngineBuilt) audioCtx.suspend();
-            } else {
-                btn.classList.remove('activated');
-                if (isEngineBuilt) audioCtx.resume();
-            }
-        }
-
-        // Tombol Check Status di bagian bawah
-        function triggerCheckStatus() {
-            alert("FR AUDIO CORE CHECK OK: Dual Channel Matrix Processing berjalan normal, semua modul DSP tersambung.");
-        }
-
-        // Real-Time VU Meter dan Grafik RTA Khusus Versi Baru
-        function animateVUMeters() {
-            if (!isEngineBuilt) return;
-            requestAnimationFrame(animateVUMeters);
-
-            let arrayL = new Uint8Array(analyserL.frequencyBinCount);
-            let arrayR = new Uint8Array(analyserR.frequencyBinCount);
-            analyserL.getByteFrequencyData(arrayL);
-            analyserR.getByteFrequencyData(arrayR);
-
-            let sumL = 0, sumR = 0;
-            for(let i=0; i<arrayL.length; i++) { sumL += arrayL[i]; sumR += arrayR[i]; }
-            let avgL = sumL / arrayL.length;
-            let avgR = sumR / arrayR.length;
-
-            // Update VU Bar Footer
-            renderVUBars('vu-left', Math.floor(avgL / 6));
-            renderVUBars('vu-right', Math.floor(avgR / 6));
-
-            // Update Lampu Indikator Sub Bar di setiap modul agar berkedip dinamis mengikuti input musik
-            let subFills = document.getElementsByClassName('sub-bar-fill');
-            for (let i = 0; i < subFills.length; i++) {
-                let p = subFills[i].id.endsWith('-l') ? avgL : avgR;
-                subFills[i].style.width = Math.min(100, p * 1.5) + "%";
-            }
-
-            // Limiter Indicator Blink
-            document.getElementById('led-limit-l').className = (avgL > 40) ? 'badge-led active-limit' : 'badge-led';
-            document.getElementById('led-limit-r').className = (avgR > 40) ? 'badge-led active-limit' : 'badge-led';
-
-            // Menggambar Grafik RTA Ter-upgrade (Bar Padat di Kiri, Garis Putih Naik Diagonal ke Kanan)
-            drawUpgradedGraph('displayCanvasL', arrayL, '#9b51e0');
-            drawUpgradedGraph('displayCanvasR', arrayR, '#00e5ff');
-        }
-
-        function renderVUBars(id, litCount) {
-            const segs = document.getElementById(id).getElementsByClassName('vu-segment');
-            for(let i=0; i<segs.length; i++) {
-                segs[i].className = 'vu-segment';
-                if(i < litCount) {
-                    if(i < 12) segs[i].classList.add('green-on');
-                    else if(i < 17) segs[i].classList.add('yellow-on');
-                    else segs[i].classList.add('red-on');
+            if (audioCtx) {
+                // Modulasi Feedback untuk memanipulasi Pitch pergeseran harmonik
+                let factor = Math.abs(semi) / 12;
+                pitchFeedbackGain.gain.value = factor * 0.75;
+                if(isFxFlipped) {
+                    pitchFxFadeNode.gain.value = wet / 100;
                 }
             }
         }
 
-        // ALGORITMA RENDERING GRAFIK BAR SPEKTRUM + DIAFONE PUTIH MENANJAK KE ATAS (VERSI UPGRADE)
-        function drawUpgradedGraph(canvasId, dataArray, primaryColor) {
-            const canvas = document.getElementById(canvasId);
-            const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // Background grid gelap
-            ctx.fillStyle = '#030107';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        // Poin 2: Fungsi Update Pengaturan Parameter Kompresor yang Terhubung Aktif
+        function updateCompressorSettings() {
+            let thresh = parseFloat(document.getElementById('comp-threshold').value);
+            let ratio = parseFloat(document.getElementById('comp-ratio').value);
+            document.getElementById('comp-thresh-txt').innerText = thresh + " dB";
+            document.getElementById('comp-ratio-txt').innerText = ratio + ".0:1";
 
-            // 1. Gambar Balok-Balok Spektrum Rapat (Frekuensi Rendah hingga Menengah)
-            let barWidth = (canvas.width / dataArray.length) * 1.2;
-            let barHeight;
-            let x = 0;
-
-            for (let i = 0; i < dataArray.length; i++) {
-                barHeight = (dataArray[i] / 255) * canvas.height * 0.85;
-                ctx.fillStyle = primaryColor;
-                // Memberi gradasi memudar ke kanan pada area bar rapat
-                ctx.globalAlpha = Math.max(0.1, 1 - (i / dataArray.length));
-                ctx.fillRect(x, canvas.height - barHeight, barWidth - 1, barHeight);
-                x += barWidth;
+            if(audioCtx && compressorNode && !isCompBypassed) {
+                compressorNode.threshold.setValueAtTime(thresh, audioCtx.currentTime);
+                compressorNode.ratio.setValueAtTime(ratio, audioCtx.currentTime);
             }
-            ctx.globalAlpha = 1.0;
-
-            // 2. Tumpuk dengan Garis Putih Tegas Menanjak Naik Secara Diagonal ke Kanan Atas
-            ctx.lineWidth = 2.5;
-            ctx.strokeStyle = '#ffffff';
-            ctx.shadowBlur = 4;
-            ctx.shadowColor = '#ffffff';
-            ctx.beginPath();
-
-            let sliceWidth = canvas.width / dataArray.length;
-            let gx = 0;
-
-            for (let i = 0; i < dataArray.length; i++) {
-                let v = dataArray[i] / 255.0;
-                // Kalkulasi diagonal menanjak ke kanan atas secara logaritmik
-                let diagonalTrend = (i / dataArray.length) * (canvas.height * 0.6);
-                let gy = canvas.height - (v * canvas.height * 0.5) - diagonalTrend;
-
-                if (i === 0) ctx.moveTo(gx, gy);
-                else ctx.lineTo(gx, gy);
-
-                gx += sliceWidth;
-            }
-            ctx.stroke();
-            ctx.shadowBlur = 0; // Reset efek glow
         }
+
+        function toggleCompressorBypass() {
+            createAudioContextChain();
+            isCompBypassed = !isCompBypassed;
+            const btn = document.getElementById('comp-bypass-btn');
+            if(isCompBypassed) {
+                btn.innerText = "COMPRESSOR BYPASS";
+                btn.className = "action-toggle-btn";
+                if(compressorNode) {
+                    compressorNode.threshold.setValueAtTime(0, audioCtx.currentTime); // Normalisasi dynamic range
+                }
+            } else {
+                btn.innerText = "COMPRESSOR ACTIVE";
+                btn.className = "action-toggle-btn l-active";
+                updateCompressorSettings();
+            }
+        }
+
+        // Poin 3: Update Filter HPF/LPF 15Hz - 44000Hz L/R
+        function updateFilterDSP() {
+            let hpfL = parseFloat(document.getElementById('hpf-freq-l').value);
+            let hpfR = parseFloat(document.getElementById('hpf-freq-r').value);
+            let lpfL = parseFloat(document.getElementById('lpf-freq-l').value);
+            let lpfR = parseFloat(document.getElementById('lpf-freq-r').value);
+
+            document.getElementById('hpf-txt-l').innerText = hpfL + " Hz";
+            document.getElementById('hpf-txt-r').innerText = hpfR + " Hz";
+            document.getElementById('lpf-txt-l').innerText = lpfL + " Hz";
+            document.getElementById('lpf-txt-r').innerText = lpfR + " Hz";
+
+            if(audioCtx) {
+                biquadFiltersL[0].frequency.setValueAtTime(hpfL, audioCtx.currentTime);
+                biquadFiltersR[0].frequency.setValueAtTime(hpfR, audioCtx.currentTime);
+                biquadFiltersL[1].frequency.setValueAtTime(lpfL, audioCtx.currentTime);
+                biquadFiltersR[1].frequency.setValueAtTime(lpfR, audioCtx.currentTime);
+            }
+        }
+
+        // Poin 3: Update Parametric Equalizer Matrix 15Hz - 44kHz
+        function updateEQDSP() {
+            let f1 = parseFloat(document.getElementById('eq-freq-1').value);
+            let f2 = parseFloat(document.getElementById('eq-freq-2').value);
+            let f3 = parseFloat(document.getElementById('eq-freq-3').value);
+            let gain = parseFloat(document.getElementById('eq-gain-master').value);
+
+            document.getElementById('eq-f1-txt').innerText = f1 + " Hz";
+            document.getElementById('eq-f2-txt').innerText = f2 + " Hz";
+            document.getElementById('eq-f3-txt').innerText = f3 + " Hz";
+            document.getElementById('eq-g-txt').innerText = gain + " dB";
+
+            if(audioCtx) {
+                biquadFiltersL[2].frequency.setValueAtTime(f1, audioCtx.currentTime);
+                biquadFiltersR[2].frequency.setValueAtTime(f1, audioCtx.currentTime);
+                biquadFiltersL[3].frequency.setValueAtTime(f2, audioCtx.currentTime);
+                biquadFiltersR[3].frequency.setValueAtTime(f2, audioCtx.currentTime);
+                biquadFiltersL[4].frequency.setValueAtTime(f3, audioCtx.currentTime);
+                biquadFiltersR[4].frequency.setValueAtTime(f3, audioCtx.currentTime);
+
+                for(let i=2; i<=4; i++) {
+                    biquadFiltersL[i].gain.setValueAtTime(gain, audioCtx.currentTime);
+                    biquadFiltersR[i].gain.setValueAtTime(gain, audioCtx.currentTime);
+                }
+            }
+        }
+
+        // Fitur Pemilihan File Musik Utama
+        function handleMusicFileSelect(input) {
+            createAudioContextChain();
+            if(input.files.length === 0) return;
+            const file = input.files[0];
+            const url = URL.createObjectURL(file);
+            const player = document.getElementById('audio-file-player');
+            player.src = url;
+            
+            if(mainSourceNode) try { mainSourceNode.disconnect(); } catch(e){}
+            mainSourceNode = audioCtx.createMediaElementSource(player);
+            mainSourceNode.connect(inputSelectorGain);
+            
+            document.getElementById('play-pause-btn').disabled = false;
+            document.getElementById('play-pause-btn').style.opacity = "1";
+            activeSourceType = 'file';
+            document.getElementById('stream-status').innerText = "Status: File [" + file.name + "] Berhasil di-routing ke DSP Engine.";
+            player.play();
+            document.getElementById('play-pause-btn').innerHTML = '<i class="fa-solid fa-pause"></i>';
+        }
+
+        function toggleFilePlayback() {
+            const player = document.getElementById('audio-file-player');
+            const btn = document.getElementById('play-pause-btn');
+            if(player.paused) {
+                player.play();
+                btn.innerHTML = '<i class="fa-solid fa-pause"></i>';
+            } else {
+                player.pause();
+                btn.innerHTML = '<i class="fa-solid fa-play"></i>';
+            }
+        }
+
+        // Fitur Koneksi Capture Audio Live Stream Mikrofon / YT virtual
+        function initLiveAudioCapture() {
+            createAudioContextChain();
+            navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+            .then(stream => {
+                liveStreamStream = stream;
+                if(mainSourceNode) try { mainSourceNode.disconnect(); } catch(e){}
+                let liveNode = audioCtx.createMediaStreamSource(stream);
+                liveNode.connect(inputSelectorGain);
+                activeSourceType = 'live';
+                document.getElementById('stream-status').innerText = "Status: Live Mic Input aktif terhubung.";
+            }).catch(err => {
+                alert("Gagal mendapatkan input mic/live capture: " + err);
+            });
+        }
+
+        // Fitur Signal Generator Bawaan
+        function toggleSignalGenerator() {
+            createAudioContextChain();
+            const type = document.getElementById('test-signal-type').value;
+            const btn = document.getElementById('gen-toggle-btn');
+            
+            if(signalGenOsc) {
+                signalGenOsc.stop();
+                signalGenOsc.disconnect();
+                signalGenOsc = null;
+                btn.innerText = "INJECT";
+                return;
+            }
+            
+            if(type === 'off') return;
+            
+            signalGenOsc = audioCtx.createOscillator();
+            signalGenOsc.type = (type === 'sine') ? 'sine' : 'sawtooth'; // fallback emulation noise
+            signalGenOsc.frequency.setValueAtTime(1000, audioCtx.currentTime);
+            signalGenOsc.connect(inputSelectorGain);
+            signalGenOsc.start();
+            btn.innerText = "STOP INJ";
+        }
+
+        function adjustMasterHardwareGain(val) {
+            let db = (val - 100) / 5;
+            document.getElementById('master-vol-txt').innerText = db.toFixed(1) + "dB";
+            if(audioCtx && masterGainNode && !isMuted) {
+                masterGainNode.gain.setValueAtTime(val / 100, audioCtx.currentTime);
+            }
+        }
+
+        function toggleMasterHardwareMute() {
+            createAudioContextChain();
+            isMuted = !isMuted;
+            const btn = document.getElementById('master-mute-trigger');
+            if(isMuted) {
+                btn.className = "master-mute-btn muted-active";
+                if(masterGainNode) masterGainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+            } else {
+                btn.className = "master-mute-btn";
+                let val = document.getElementById('master-gain-slider').value;
+                if(masterGainNode) masterGainNode.gain.setValueAtTime(val / 100, audioCtx.currentTime);
+            }
+        }
+
+        function updateOutputDelay(ch) {
+            let val = parseFloat(document.getElementById('dly-slider-' + ch).value);
+            document.getElementById('dly-val-' + ch).innerText = val.toFixed(1) + " ms";
+        }
+
+        function triggerGlobalPanicMute() {
+            toggleMasterHardwareMute();
+            const pBtn = document.getElementById('global-panic-btn');
+            pBtn.classList.toggle('activated');
+        }
+
+        // LOOPS RENDER VISUALISASI RTA CANVAS & INDIKATOR VU METER
+        function startRTALoops() {
+            const canvasL = document.getElementById('displayCanvasL');
+            const canvasR = document.getElementById('displayCanvasR');
+            const ctxL = canvasL.getContext('2d');
+            const ctxR = canvasR.getContext('2d');
+
+            const dataL = new Uint8Array(analyzerL.frequencyBinCount);
+            const dataR = new Uint8Array(analyzerR.frequencyBinCount);
+
+            function draw() {
+                requestAnimationFrame(draw);
+                analyzerL.getByteFrequencyData(dataL);
+                analyzerR.getByteFrequencyData(dataR);
+
+                // CH1 Render L
+                ctxL.fillStyle = '#020104'; ctxL.fillRect(0,0,canvasL.width,canvasL.height);
+                ctxL.strokeStyle = 'rgba(155, 81, 224, 0.6)'; ctxL.beginPath();
+                let sliceW = canvasL.width / dataL.length;
+                for(let i=0; i<dataL.length; i++) {
+                    let v = dataL[i] / 255; let y = canvasL.height - (v * canvasL.height);
+                    if(i===0) ctxL.moveTo(0,y); else ctxL.lineTo(i*sliceW, y);
+                }
+                ctxL.stroke();
+
+                // CH2 Render R
+                ctxR.fillStyle = '#020104'; ctxR.fillRect(0,0,canvasR.width,canvasR.height);
+                ctxR.strokeStyle = 'rgba(0, 229, 255, 0.6)'; ctxR.beginPath();
+                for(let i=0; i<dataR.length; i++) {
+                    let v = dataR[i] / 255; let y = canvasR.height - (v * canvasR.height);
+                    if(i===0) ctxR.moveTo(0,y); else ctxR.lineTo(i*sliceW, y);
+                }
+                ctxR.stroke();
+
+                // Poin 6 & 7: Proses VU Level dan Flashing Limiter Terpicu
+                let avgL = dataL.reduce((a,b)=>a+b, 0)/dataL.length;
+                let avgR = dataR.reduce((a,b)=>a+b, 0)/dataR.length;
+
+                updateFooterVUSegments('vu-meter-l', avgL);
+                updateFooterVUSegments('vu-meter-r', avgR);
+
+                // Logic threshold limiter memicu kedipan badge merah (Ambang rata-rata > 75)
+                const badgeL = document.getElementById('led-limit-l');
+                const badgeR = document.getElementById('led-limit-r');
+                if(avgL > 75) badgeL.className = 'badge-led active-limit'; else badgeL.className = 'badge-led';
+                if(avgR > 75) badgeR.className = 'badge-led active-limit'; else badgeR.className = 'badge-led';
+
+                // Monitor Gain Reduction Kompresor
+                if(audioCtx && compressorNode) {
+                    let reduction = Math.abs(compressorNode.reduction);
+                    updateGRSegments(reduction);
+                }
+            }
+            draw();
+        }
+
+        function updateFooterVUSegments(id, val) {
+            const meter = document.getElementById(id);
+            if(!meter) return;
+            const segments = meter.getElementsByClassName('vu-segment');
+            let countToLit = Math.floor((val / 150) * segments.length);
+            for(let i=0; i<segments.length; i++) {
+                segments[i].className = 'vu-segment';
+                if(i < countToLit) {
+                    if(i > segments.length - 5) segments[i].classList.add('red-on');
+                    else if(i > segments.length - 12) segments[i].classList.add('yellow-on');
+                    else segments[i].classList.add('green-on');
+                }
+            }
+        }
+
+        function updateGRSegments(reductionVal) {
+            const grMeter = document.getElementById('gr-meter-node');
+            const segments = grMeter.getElementsByClassName('gr-segment');
+            let litCount = Math.floor((reductionVal / 20) * segments.length);
+            for(let i=0; i<segments.length; i++){
+                if(i < litCount) segments[i].className = 'gr-segment gr-on';
+                else segments[i].className = 'gr-segment';
+            }
+        }
+
+        // Simulasi Kenaikan Suhu CPU Dinamis
+        setInterval(() => {
+            let base = 55.0 + Math.random() * 2;
+            document.getElementById('cpu-temp').innerText = base.toFixed(1) + " °C";
+        }, 2000);
     </script>
 </body>
 </html>
