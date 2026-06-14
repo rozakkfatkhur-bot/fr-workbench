@@ -12,13 +12,14 @@ html, body { height: 100%; margin: 0; overflow: auto; }
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Orbitron:wght@400;700;900&display=swap');
 
 :root {
-  --bg: #0a0a0f;
-  --surface: #12131a;
-  --accent: #00e5ff;
-  --accent2: #ff3d71;
-  --text: #e0e6ed;
-  --dim: #4a5568;
+  --bg: #0f0f12;         /* Dark Charcoal */
+  --surface: #1a1a1f;     /* Slate Grey */
+  --accent: #ff8c00;      /* Amber/Orange (sesuai referensi) */
+  --accent2: #ff4500;     /* Red-orange */
+  --text: #cfd8dc;        /* Muted off-white */
+  --dim: #78909c;         /* Industrial blue-grey */
 }
+
 
 * { box-sizing: border-box; }
 body { font-family: 'JetBrains Mono', monospace; background: var(--bg); color: var(--text); }
@@ -153,6 +154,17 @@ canvas { display: block; }
     <div class="flex items-center gap-3">
      <h1 id="consoleTitle" class="font-bold text-sm" style="font-family:'Orbitron',sans-serif; color:var(--accent);">AUDIO PROCESSING CONSOLE</h1><span class="led-uv"></span>
     </div>
+<div class="card">
+  <div class="flex items-center justify-between mb-1">
+     <span class="section-label">Compressor</span>
+     <!-- VU Meter container -->
+     <div class="flex gap-1 w-16 h-2 bg-black rounded">
+        <div id="compMeterL" class="w-1/2 bg-amber-500"></div>
+        <div id="compMeterR" class="w-1/2 bg-amber-500"></div>
+     </div>
+  </div>
+  <!-- Isi kontrol lainnya... -->
+</div>
     <div class="flex items-center gap-2"><span id="limitBadge" class="text-xs px-2 py-0.5 rounded bg-gray-800 text-gray-400 font-bold" style="font-family:'Orbitron',sans-serif;">LIMIT</span> <span class="digital-display" id="masterLevel">0.0 dB</span>
     </div>
    </div><!-- Source Controls -->
@@ -591,8 +603,28 @@ function initAudio() {
 }
 
 function buildChain(source) {
-  // Universal routing: source → analyser → pitch → EQ → HPF → LPF → delay → compressor → limiter → output → destination
-  source.connect(analyser);
+  // 1. Buat Splitter (ini membuat audio jadi L&R)
+  const splitter = ctx.createChannelSplitter(2);
+  const merger = ctx.createChannelMerger(2);
+  
+  source.connect(splitter);
+
+  // 2. Buat Efek untuk L dan R
+  const compL = ctx.createDynamicsCompressor();
+  const compR = ctx.createDynamicsCompressor();
+
+  // 3. Sambungkan ke splitter
+  splitter.connect(compL, 0); // Channel 0 ke L
+  splitter.connect(compR, 1); // Channel 1 ke R
+
+  // 4. Gabungkan kembali
+  compL.connect(merger, 0, 0);
+  compR.connect(merger, 0, 1);
+  
+  // 5. Sambungkan ke tujuan akhir
+  merger.connect(ctx.destination);
+}
+
 
   // Pitch section (parallel dry/wet)
   let pitchOut = ctx.createGain();
