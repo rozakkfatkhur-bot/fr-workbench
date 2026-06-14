@@ -1,2310 +1,1058 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FR AUDIO - True Independent Dual-Channel DLMS Processing Matrix v300++ OMEGA PRO</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root {
-            --bg-dark: #050108;
-            --panel-bg: #0f071a;
-            --panel-inner: #150b22;
-            --violet-main: #9b51e0;
-            --violet-glow: #d946ef;
-            --text-white: #ffffff;
-            --text-muted: #8e839e;
-            --led-green: #2ecc71;
-            --led-yellow: #f1c40f;
-            --led-red: #e74c3c;
-            --led-blue: #00bfff;
-            --cyan-ch2: #00e5ff;
-        }
+<!doctype html>
+<html lang="en" class="h-full">
+ <head><script src="/_sdk/telemetry_sdk.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Audio Processing Console</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <style>
+html, body { height: 100%; margin: 0; overflow: auto; }
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Orbitron:wght@400;700;900&display=swap');
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
+:root {
+  --bg: #0a0a0f;
+  --surface: #12131a;
+  --accent: #00e5ff;
+  --accent2: #ff3d71;
+  --text: #e0e6ed;
+  --dim: #4a5568;
+}
 
-        body {
-            background-color: var(--bg-dark);
-            color: var(--text-white);
-            padding: 10px;
-            padding-bottom: 160px;
-            overflow-x: hidden;
-        }
+* { box-sizing: border-box; }
+body { font-family: 'JetBrains Mono', monospace; background: var(--bg); color: var(--text); }
 
-        .header {
-            text-align: center;
-            padding: 12px;
-            background: linear-gradient(135deg, var(--panel-bg), #1a0b30);
-            border-radius: 10px;
-            border: 1px solid rgba(155, 81, 224, 0.3);
-            margin-bottom: 10px;
-        }
+.card {
+  background: var(--surface);
+  border: 1px solid #1e2030;
+  border-radius: 8px;
+  padding: 10px;
+  position: relative;
+  overflow: hidden;
+}
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  opacity: 0.6;
+}
 
-        .header h1 {
-            font-size: 22px;
-            letter-spacing: 3px;
-            text-shadow: 0 0 12px var(--violet-glow);
-            color: #fff;
-        }
+.led-uv {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #7c3aed;
+  box-shadow: 0 0 4px #7c3aed, 0 0 8px #7c3aed;
+  display: inline-block;
+  animation: ledPulse 2s infinite;
+}
+@keyframes ledPulse {
+  0%,100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
 
-        .header p {
-            font-size: 10px;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-        }
+.led-active {
+  background: #00ff88;
+  box-shadow: 0 0 4px #00ff88, 0 0 8px #00ff88;
+}
 
-        .sys-monitor {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 6px;
-            margin-bottom: 10px;
-        }
+.neon-flash {
+  animation: neonFlash 0.3s infinite alternate;
+}
+@keyframes neonFlash {
+  from { opacity: 1; text-shadow: 0 0 5px #ff0040, 0 0 10px #ff0040, 0 0 20px #ff0040; }
+  to { opacity: 0.4; text-shadow: none; }
+}
 
-        .monitor-box {
-            background: var(--panel-bg);
-            border: 1px solid rgba(255,255,255,0.04);
-            border-radius: 6px;
-            padding: 6px;
-            text-align: center;
-        }
+.btn-ctrl {
+  background: #1a1b2e;
+  border: 1px solid #2d3048;
+  color: var(--text);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 9px;
+  cursor: pointer;
+  font-family: 'JetBrains Mono', monospace;
+  transition: all 0.15s;
+}
+.btn-ctrl:hover { border-color: var(--accent); }
+.btn-ctrl.active { background: var(--accent); color: #000; border-color: var(--accent); }
 
-        .monitor-box span {
-            display: block;
-            font-size: 9px;
-            color: var(--text-muted);
-        }
+.fader {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  background: #1e2030;
+  border-radius: 2px;
+  outline: none;
+}
+.fader::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px; height: 12px;
+  background: var(--accent);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 0 4px var(--accent);
+}
+.fader::-moz-range-thumb {
+  width: 12px; height: 12px;
+  background: var(--accent);
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+}
 
-        .monitor-box strong {
-            font-size: 11px;
-        }
+.digital-display {
+  background: #000;
+  border: 1px solid #1e2030;
+  padding: 2px 6px;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 10px;
+  color: #00ff88;
+  border-radius: 3px;
+  min-width: 50px;
+  text-align: center;
+}
 
-        .split-container {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 12px;
-        }
+canvas { display: block; }
 
-        @media (min-width: 992px) {
-            .split-container {
-                grid-template-columns: 0.75fr 1.25fr;
-            }
-        }
+.section-label {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 8px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--dim);
+}
 
-        .left-display-panel {
-            background: var(--panel-bg);
-            border-radius: 12px;
-            border: 1px solid rgba(155, 81, 224, 0.25);
-            padding: 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
+.grid-console {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  padding: 8px;
+}
 
-        .screen-frame {
-            background: #020104;
-            border: 2px solid #1a0f2b;
-            border-radius: 8px;
-            padding: 5px;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .canvas-container {
-            position: relative;
-            background: #010002;
-            border: 1px solid rgba(255,255,255,0.02);
-            border-radius: 4px;
-        }
-
-        canvas {
-            width: 100%;
-            height: 115px;
-            display: block;
-        }
-
-        .screen-label-overlay {
-            position: absolute;
-            top: 4px;
-            left: 4px;
-            font-size: 8px;
-            font-family: monospace;
-            background: rgba(0,0,0,0.85);
-            padding: 2px 6px;
-            border-radius: 3px;
-            z-index: 10;
-        }
-
-        .indicator-badges {
-            position: absolute;
-            top: 4px;
-            right: 4px;
-            display: flex;
-            gap: 4px;
-            z-index: 10;
-        }
-
-        .badge-led {
-            font-size: 8px;
-            font-family: monospace;
-            font-weight: bold;
-            background: #1c0e2b;
-            color: #532d7a;
-            padding: 2px 5px;
-            border-radius: 3px;
-            transition: all 0.1s;
-        }
-
-        .badge-led.active-limit {
-            background: var(--led-red);
-            color: #fff;
-            text-shadow: 0 0 5px #ff0000;
-            box-shadow: 0 0 8px #e74c3c;
-        }
-
-        .audio-input-box {
-            background: var(--panel-inner);
-            border-radius: 8px;
-            padding: 12px;
-            border: 1px dashed rgba(155,81,224,0.5);
-            text-align: center;
-        }
-
-        .audio-input-box label {
-            display: block;
-            font-size: 12px;
-            margin-bottom: 8px;
-            color: var(--cyan-ch2);
-            font-weight: bold;
-            text-shadow: 0 0 5px rgba(0,229,255,0.3);
-        }
-
-        .capture-controls-wrapper {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            width: 100%;
-        }
-
-        .stream-active-btn {
-            background: linear-gradient(135deg, #00bfff, var(--violet-main));
-            color: white;
-            border: none;
-            padding: 10px 14px;
-            font-size: 11px;
-            font-weight: bold;
-            border-radius: 6px;
-            cursor: pointer;
-            box-shadow: 0 0 8px rgba(155, 81, 224, 0.4);
-            transition: all 0.3s ease;
-        }
-
-        .stream-source-btn {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            color: #fff;
-            font-size: 11px;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .stream-source-btn.active-src {
-            background: #f1c40f;
-            color: #000;
-            border-color: #fff;
-            box-shadow: 0 0 8px rgba(241,196,15,0.4);
-        }
-
-        .stream-status-indicator {
-            margin-top: 6px;
-            font-size: 9px;
-            color: var(--text-muted);
-            font-family: monospace;
-            line-height: 1.3;
-        }
-
-        .right-menu-panel {
-            background: var(--panel-bg);
-            border-radius: 12px;
-            border: 1px solid rgba(255,255,255,0.05);
-            padding: 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .panel-section-title {
-            font-size: 12px;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            padding-bottom: 5px;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .matrix-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 8px;
-        }
-
-        @media (min-width: 576px) {
-            .matrix-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        .menu-slot-card {
-            background: var(--panel-inner);
-            border: 1px solid rgba(255,255,255,0.03);
-            border-radius: 8px;
-            padding: 8px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            transition: all 0.2s ease;
-        }
-
-        .menu-slot-card.active {
-            border-color: rgba(155,81,224,0.4);
-            background: linear-gradient(145deg, var(--panel-inner), rgba(155,81,224,0.03));
-        }
-
-        .slot-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 4px;
-            border-bottom: 1px solid rgba(255,255,255,0.04);
-            padding-bottom: 3px;
-        }
-
-        .slot-title {
-            font-size: 11px;
-            font-weight: bold;
-            color: #efebf5;
-        }
-
-        .slot-index {
-            font-size: 8px;
-            background: rgba(155, 81, 224, 0.35);
-            padding: 1px 4px;
-            border-radius: 3px;
-            font-family: monospace;
-        }
-
-        .ch-control-row {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            margin-top: 4px;
-            background: rgba(0,0,0,0.25);
-            padding: 4px 6px;
-            border-radius: 4px;
-        }
-
-        .ch-control-row.row-compact {
-            padding: 2px 4px;
-            font-size: 10px;
-        }
-
-        .ch-indicator-label {
-            font-size: 9px;
-            font-weight: bold;
-            width: 12px;
-        }
-        .ch-indicator-label.lbl-l { color: var(--violet-glow); }
-        .ch-indicator-label.lbl-r { color: var(--cyan-ch2); }
-
-        .matrix-slider-pack {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-
-        .slider-meta-txt {
-            display: flex;
-            justify-content: space-between;
-            font-size: 8px;
-            color: var(--text-muted);
-            font-family: monospace;
-        }
-
-        .matrix-slider-pack input[type="range"] {
-            width: 100%;
-            height: 4px;
-            outline: none;
-        }
-        .slider-l { accent-color: var(--violet-main); }
-        .slider-r { accent-color: var(--cyan-ch2); }
-
-        .select-slope-dsp {
-            background: #090312;
-            border: 1px solid rgba(155,81,224,0.4);
-            color: #efebf5;
-            font-size: 9px;
-            padding: 2px 4px;
-            border-radius: 4px;
-            outline: none;
-            cursor: pointer;
-            width: 100%;
-        }
-
-        .action-toggle-btn {
-            background: rgba(255,255,255,0.06);
-            border: 1px solid rgba(255,255,255,0.05);
-            color: #fff;
-            font-size: 9px;
-            font-weight: bold;
-            padding: 4px;
-            border-radius: 4px;
-            cursor: pointer;
-            flex: 2;
-            text-align: center;
-            transition: all 0.2s;
-        }
-
-        .action-toggle-btn.l-active {
-            background: var(--violet-main);
-            border-color: var(--violet-glow);
-            box-shadow: 0 0 5px rgba(217,70,239,0.4);
-        }
-
-        .action-toggle-btn.r-active {
-            background: #0099cc;
-            border-color: var(--cyan-ch2);
-            box-shadow: 0 0 5px rgba(0,229,255,0.4);
-        }
-
-        .mute-toggle-btn {
-            background: #1f1133;
-            border: 1px solid rgba(255,255,255,0.05);
-            font-size: 8px;
-            font-weight: bold;
-            padding: 4px 2px;
-            border-radius: 4px;
-            cursor: pointer;
-            flex: 1;
-            text-align: center;
-            transition: all 0.1s ease;
-        }
-        .mute-toggle-btn.mute-on {
-            background: var(--led-red) !important;
-            color: #ffffff !important;
-            border-color: #ff3b30 !important;
-            box-shadow: 0 0 8px var(--led-red);
-        }
-        .mute-toggle-btn.mute-off {
-            background: #08170e !important;
-            color: #2ecc71 !important;
-            border-color: #2ecc71 !important;
-            animation: muteBlinkGreen 1s infinite;
-        }
-        @keyframes muteBlinkGreen {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
-        }
-
-        .dual-uv-container {
-            margin-top: 6px;
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-            background: #020104;
-            padding: 4px;
-            border-radius: 4px;
-        }
-
-        .slot-uv-bar {
-            width: 100%;
-            height: 4px;
-            display: flex;
-            gap: 1px;
-            align-items: center;
-        }
-
-        .uv-dot {
-            flex: 1;
-            height: 100%;
-            background: #11071c;
-            transition: background 0.03s ease;
-        }
-        
-        .uv-dot.uv-active-indicator, .vu-segment.vu-active-indicator {
-            background-color: var(--led-blue) !important;
-            box-shadow: 0 0 4px var(--led-blue);
-        }
-
-        .master-output-footer {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: #030107;
-            border-top: 2px solid var(--violet-main);
-            padding: 8px 15px;
-            box-shadow: 0 -4px 20px rgba(0,0,0,0.95);
-            z-index: 999;
-            display: flex;
-            flex-direction: column;
-            gap: 3px;
-        }
-
-        .vu-row {
-            display: flex;
-            align-items: center;
-        }
-
-        .vu-label {
-            font-size: 10px;
-            font-weight: bold;
-            width: 25px;
-        }
-
-        .vu-meter-main, .gr-meter-main {
-            flex: 1;
-            height: 10px;
-            background: #06030c;
-            border-radius: 2px;
-            display: flex;
-            gap: 1px;
-            padding: 1px;
-            overflow: hidden;
-        }
-
-        .gr-meter-main {
-            background: #030303;
-        }
-
-        .vu-segment, .gr-segment {
-            flex: 1;
-            height: 100%;
-            background: rgba(255,255,255,0.01);
-        }
-
-        .vu-segment.green-on { background-color: var(--led-green); }
-        .vu-segment.yellow-on { background-color: var(--led-yellow); }
-        .vu-segment.red-on { background-color: var(--led-red); }
-
-        .gr-segment.gr-on { background-color: #e67e22; box-shadow: 0 0 3px #d35400; }
-
-        .footer-status {
-            text-align: center;
-            font-size: 8px;
-            color: var(--text-muted);
-            letter-spacing: 1px;
-        }
-
-        .panic-btn {
-            background: linear-gradient(135deg, #7f0000, #ff0000);
-            border: 1px solid #ff3333;
-            color: #fff;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 0 10px rgba(255, 0, 0, 0.4);
-        }
-        .panic-btn.activated {
-            background: #ff0000;
-            animation: panicBlink 0.5s infinite;
-        }
-        @keyframes panicBlink {
-            0% { box-shadow: 0 0 20px #ff0000; }
-            50% { box-shadow: 0 0 2px #7f0000; }
-            100% { box-shadow: 0 0 20px #ff0000; }
-        }
-        .gen-select {
-            background: #170b29;
-            border: 1px solid var(--violet-main);
-            color: #fff;
-            font-size: 10px;
-            border-radius: 4px;
-            padding: 2px;
-            width: 100%;
-            outline: none;
-        }
-
-        .master-fader-card {
-            background: linear-gradient(145deg, #130722, #07020d);
-            border: 1px solid rgba(0, 229, 255, 0.2) !important;
-        }
-        .fader-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 6px;
-            background: rgba(0,0,0,0.4);
-            border-radius: 6px;
-            margin-top: 4px;
-        }
-        .fader-label {
-            font-size: 10px;
-            font-weight: bold;
-            width: 65px;
-            color: var(--led-blue);
-        }
-        .custom-range-input {
-            flex: 1;
-            height: 6px;
-            accent-color: var(--led-blue);
-        }
-        .master-mute-btn {
-            background: #221111;
-            border: 1px solid #ff3b30;
-            color: #ff3b30;
-            font-size: 10px;
-            font-weight: bold;
-            padding: 5px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .master-mute-btn.muted-active {
-            background: var(--led-red);
-            color: #fff;
-            box-shadow: 0 0 10px var(--led-red);
-        }
-
-        @media screen and (orientation: landscape) and (max-height: 520px) {
-            body { padding: 4px; padding-bottom: 60px; }
-            .header { padding: 4px; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center; }
-            .header h1 { font-size: 15px; letter-spacing: 1px; }
-            .header p { font-size: 8px; }
-            .sys-monitor { margin-bottom: 4px; gap: 4px; }
-            .monitor-box { padding: 2px; }
-            .monitor-box span { font-size: 8px; }
-            .monitor-box strong { font-size: 10px; }
-            .split-container { grid-template-columns: 0.8fr 1.2fr !important; gap: 6px !important; }
-            .left-display-panel { padding: 6px; gap: 4px; }
-            canvas { height: 65px; }
-            .matrix-grid { grid-template-columns: repeat(4, 1fr) !important; gap: 4px !important; }
-            .menu-slot-card { padding: 4px !important; }
-            .slot-title { font-size: 8.5px; }
-            .master-output-footer { padding: 3px 10px; }
-            .vu-meter-main, .gr-meter-main { height: 6px; }
-        }
-    </style>
-</head>
-<body>
-
-    <div class="header">
-        <h1>FR AUDIO</h1>
-        <p>Comprehensive Split-Architecture DLMS IoT Processing Matrix v300++ OMEGA PRO</p>
+@media (max-width: 1200px) {
+  .grid-console { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 800px) {
+  .grid-console { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 500px) {
+  .grid-console { grid-template-columns: 1fr; }
+}
+</style>
+  <style>body { box-sizing: border-box; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full">
+  <div id="app" class="h-full overflow-auto" style="background: var(--bg);"><!-- Header -->
+   <div class="flex items-center justify-between px-4 py-2 border-b border-gray-800">
+    <div class="flex items-center gap-3">
+     <h1 id="consoleTitle" class="font-bold text-sm" style="font-family:'Orbitron',sans-serif; color:var(--accent);">AUDIO PROCESSING CONSOLE</h1><span class="led-uv"></span>
     </div>
-
-    <div class="sys-monitor">
-        <div class="monitor-box">
-            <span>CPU TEMP</span>
-            <strong id="cpu-temp" style="color: #fff;">55.8 °C</strong>
-        </div>
-        <div class="monitor-box">
-            <span>SYS VOLT</span>
-            <strong id="volt-monitor" style="color: #fff;">13.8 VDC</strong>
-        </div>
-        <div class="monitor-box">
-            <span>LINK MODE</span>
-            <strong style="color: var(--led-green);">SYSTEM-CONTROL</strong>
-        </div>
-        <button class="monitor-box panic-btn" id="global-panic-btn" onclick="triggerGlobalPanicMute()">
-            <span><i class="fa-solid fa-triangle-exclamation"></i> EMERGENCY</span>
-            <strong id="panic-status-text">MUTE SYSTEM</strong>
-        </button>
+    <div class="flex items-center gap-2"><span id="limitBadge" class="text-xs px-2 py-0.5 rounded bg-gray-800 text-gray-400 font-bold" style="font-family:'Orbitron',sans-serif;">LIMIT</span> <span class="digital-display" id="masterLevel">0.0 dB</span>
     </div>
-
-    <div class="split-container">
-        
-        <div class="left-display-panel">
-            <div class="screen-frame">
-                <div class="canvas-container">
-                    <div class="screen-label-overlay" style="color: var(--violet-glow);">CH1 (LEFT) - DISCRETE RTA + CROSSOVER + DEQ</div>
-                    <div class="indicator-badges">
-                        <div class="badge-led" id="led-limit-l">LIMIT</div>
-                    </div>
-                    <canvas id="displayCanvasL"></canvas>
-                </div>
-                <div class="canvas-container">
-                    <div class="screen-label-overlay" style="color: var(--cyan-ch2);">CH2 (RIGHT) - DISCRETE RTA + CROSSOVER + DEQ</div>
-                    <div class="indicator-badges">
-                        <div class="badge-led" id="led-limit-r">LIMIT</div>
-                    </div>
-                    <canvas id="displayCanvasR"></canvas>
-                </div>
-            </div>
-
-            <div class="audio-input-box">
-                <label><i class="fa-solid fa-music"></i> AUDIO INPUT SOURCE MATRIX</label>
-                <audio id="audio-file-player" loop style="display: none;"></audio>
-
-                <div class="capture-controls-wrapper">
-                    <div style="display: flex; gap: 6px; width: 100%; margin-bottom: 6px;">
-                        <button class="stream-active-btn" id="start-stream-btn" onclick="initLiveAudioCapture()" style="flex: 4;">
-                            <i class="fa-solid fa-radio"></i> HUBUNGKAN YOUTUBE / MIC
-                        </button>
-                        <button class="stream-source-btn" id="src-toggle-btn" onclick="toggleAudioSourceMode()" title="Ganti Mode Tangkap" style="flex: 1;">
-                            <i class="fa-solid fa-sliders"></i> <span id="src-mode-text">AUTO</span>
-                        </button>
-                    </div>
-
-                    <div style="display: flex; gap: 6px; width: 100%; margin-bottom: 6px;">
-                        <input type="file" id="music-file-input" accept="audio/*" style="display: none;" onchange="handleMusicFileSelect(this)">
-                        <button class="stream-active-btn" id="upload-trigger-btn" onclick="document.getElementById('music-file-input').click()" style="background: linear-gradient(135deg, #150b22, var(--violet-main)); border: 1px solid rgba(155,81,224,0.4); flex: 3;">
-                            <i class="fa-solid fa-file-audio"></i> PILIH FILE MUSIK
-                        </button>
-                        <button class="stream-source-btn" id="play-pause-btn" onclick="toggleFilePlayback()" disabled style="flex: 1; opacity: 0.5;">
-                            <i class="fa-solid fa-play"></i>
-                        </button>
-                    </div>
-
-                    <div style="display: flex; gap: 6px; width: 100%; align-items: center; background: rgba(0,0,0,0.3); padding: 4px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05);">
-                        <div style="flex: 2; text-align: left; padding-left: 4px;">
-                            <span style="font-size: 8px; color: var(--text-muted); display: block; font-family: monospace;">TEST TONE NODE</span>
-                            <select class="gen-select" id="test-signal-type">
-                                <option value="off">GEN: OFF / BYPASS</option>
-                                <option value="sine">Sine Wave (1 kHz)</option>
-                                <option value="pink">Pink Noise (RTA Calibration)</option>
-                                <option value="white">White Noise</option>
-                            </select>
-                        </div>
-                        <button class="action-toggle-btn" id="gen-toggle-btn" onclick="toggleSignalGenerator()" style="flex: 1; height: 28px; font-size: 9px; margin-top: 10px;">INJECT</button>
-                    </div>
-                </div>
-                <div class="stream-status-indicator" id="stream-status">Status: Silakan hubungkan sumber audio. (Sistem sudah terintegrasi Anti-Double Echo Monitor).</div>
-            </div>
-
-            <div style="font-size: 10px; background: rgba(255,255,255,0.02); padding: 6px; border-radius: 6px; color: var(--text-muted);">
-                <span style="margin-right: 10px;"><i class="fa-solid fa-wifi"></i> AP: FR_AUDIO_DLMS_MEGA</span>
-                <span><i class="fa-solid fa-globe"></i> IP: 192.168.4.1</span>
-            </div>
-        </div>
-
-        <div class="right-menu-panel">
-            <div class="panel-section-title">
-                <span><i class="fa-solid fa-sliders"></i> CORE MATRIX CONTROL</span>
-                <span style="color: var(--violet-glow); font-family: monospace;">TRUE INTERACTIVE CONSOLE</span>
-            </div>
-
-            <div class="matrix-grid">
-                
-                <div class="menu-slot-card active master-fader-card" id="card-master-mixer">
-                    <div class="slot-header">
-                        <span class="slot-title" style="color: var(--cyan-ch2);"><i class="fa-solid fa-compress"></i> Master Digital Engine Control</span>
-                        <span class="slot-index">LIVE</span>
-                    </div>
-                    <div class="fader-group">
-                        <div class="fader-label">Stream Vol</div>
-                        <input type="range" class="custom-range-input" id="master-gain-slider" min="0" max="100" value="100" oninput="adjustMasterHardwareGain(this.value)">
-                        <span id="master-vol-txt" style="font-size:9px; width:25px; font-family:monospace;">0dB</span>
-                    </div>
-                    <div class="ch-control-row" style="background:transparent; padding:0; justify-content:space-between; margin-top:5px;">
-                        <button class="master-mute-btn" id="master-mute-trigger" onclick="toggleMasterHardwareMute()">MASTER MUTE</button>
-                        <span style="font-size: 8px; color: var(--text-muted); padding-top:4px;">WEB AUDIO CORE LINKED</span>
-                    </div>
-                </div>
-
-                <div class="menu-slot-card active" id="card-compressor">
-                    <div class="slot-header">
-                        <span class="slot-title" style="color: var(--led-yellow);"><i class="fa-solid fa-gavel"></i> Voice Dynamics Compressor</span>
-                        <span class="slot-index">F20-30</span>
-                    </div>
-                    <div class="ch-control-row row-compact" style="justify-content:space-between;">
-                        <span>Threshold: <strong id="comp-thresh-txt">-24 dB</strong></span>
-                        <input type="range" min="-60" max="0" value="-24" style="width:65%;" id="comp-threshold" oninput="updateCompressorSettings()">
-                    </div>
-                    <div class="ch-control-row row-compact" style="justify-content:space-between;">
-                        <span>Ratio: <strong id="comp-ratio-txt">4:1</strong></span>
-                        <input type="range" min="1" max="20" value="4" style="width:65%;" id="comp-ratio" oninput="updateCompressorSettings()">
-                    </div>
-                    <div class="ch-control-row row-compact" style="justify-content:space-between;">
-                        <span>Attack/Release</span>
-                        <button class="action-toggle-btn l-active" id="comp-bypass-btn" onclick="toggleCompressorBypass()" style="font-size:8px; padding:2px;">COMPRESSOR ACTIVE</button>
-                    </div>
-                </div>
-
-                <div class="menu-slot-card active" id="card-robot-effect">
-                    <div class="slot-header">
-                        <span class="slot-title" style="color: #e67e22;"><i class="fa-solid fa-robot"></i> Ring-Mod Robot Voice</span>
-                        <span class="slot-index">FX-CORE</span>
-                    </div>
-                    <div class="ch-control-row row-compact" style="justify-content:space-between;">
-                        <span>Freq Mod: <strong id="fx-pitch-txt">50 Hz</strong></span>
-                        <input type="range" min="10" max="200" value="50" step="1" style="width:60%; accent-color:#e67e22;" id="fx-pitch-slider" oninput="updateRobotEffectSettings()">
-                    </div>
-                    <div class="ch-control-row" style="justify-content:space-between;">
-                        <button class="action-toggle-btn" id="fx-toggle-btn" onclick="toggleRobotEffect()" style="width:100%; font-size:9px; background:rgba(230,126,34,0.1); border-color: rgba(230,126,34,0.3);">ACTIVATE ROBOT VOICE</button>
-                    </div>
-                    <span style="font-size:7px; color:var(--text-muted); display:block; margin-top:2px; text-align:center;">*Menggunakan Real-Time Amplitude Modulation</span>
-                </div>
-
-                <div class="menu-slot-card active" id="card-outdelay">
-                    <div class="slot-header">
-                        <span class="slot-title" style="color: #3498db;"><i class="fa-solid fa-clock"></i> Time Alignment (Delay L/R)</span>
-                        <span class="slot-index">DLY-OUT</span>
-                    </div>
-                    <div class="ch-control-row row-compact" style="justify-content:space-between;">
-                        <span style="color:var(--violet-glow); font-weight:bold;">L-Dly: <span id="dly-val-l" style="font-weight:normal; color:#fff;">0.0 ms</span></span>
-                        <input type="range" min="0" max="200" value="0" step="0.5" style="width:55%; accent-color:var(--violet-main);" id="dly-slider-l" oninput="updateOutputDelay('l')">
-                        <span id="dly-dist-l" style="font-size:8px; color:var(--text-muted); width: 25px; text-align:right;">0.0m</span>
-                    </div>
-                    <div class="ch-control-row row-compact" style="justify-content:space-between;">
-                        <span style="color:var(--cyan-ch2); font-weight:bold;">R-Dly: <span id="dly-val-r" style="font-weight:normal; color:#fff;">0.0 ms</span></span>
-                        <input type="range" min="0" max="200" value="0" step="0.5" style="width:55%; accent-color:var(--cyan-ch2);" id="dly-slider-r" oninput="updateOutputDelay('r')">
-                        <span id="dly-dist-r" style="font-size:8px; color:var(--text-muted); width: 25px; text-align:right;">0.0m</span>
-                    </div>
-                </div>
-
-                <div class="menu-slot-card active" id="card-core">
-                    <div class="slot-header">
-                        <span class="slot-title">Dual-Core Engine</span>
-                        <span class="slot-index">F1-5</span>
-                    </div>
-                    <div class="ch-control-row">
-                        <div class="ch-indicator-label lbl-l">L</div>
-                        <button class="action-toggle-btn l-active" id="core-btn-l" onclick="toggleDualMatrix(this, 'l', 'core')">CORE L ON</button>
-                        <button class="mute-toggle-btn mute-off" id="mute-core-l" onclick="toggleCoreMute('l', 'core')">MUTE</button>
-                    </div>
-                    <div class="ch-control-row">
-                        <div class="ch-indicator-label lbl-r">R</div>
-                        <button class="action-toggle-btn r-active" id="core-btn-r" onclick="toggleDualMatrix(this, 'r', 'core')">CORE R ON</button>
-                        <button class="mute-toggle-btn mute-off" id="mute-core-r" onclick="toggleCoreMute('r', 'core')">MUTE</button>
-                    </div>
-                    <div class="dual-uv-container" data-uv-group="core">
-                        <div class="slot-uv-bar uv-l"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
-                        <div class="slot-uv-bar uv-r"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
-                    </div>
-                </div>
-
-                <div class="menu-slot-card active" id="card-turbo">
-                    <div class="slot-header">
-                        <span class="slot-title">CPU 240MHz Turbo</span>
-                        <span class="slot-index">F6-10</span>
-                    </div>
-                    <div class="ch-control-row">
-                        <div class="ch-indicator-label lbl-l">L</div>
-                        <button class="action-toggle-btn l-active" id="turbo-btn-l" onclick="toggleDualMatrix(this, 'l', 'turbo')">MAX BOOST</button>
-                        <button class="mute-toggle-btn mute-off" id="mute-turbo-l" onclick="toggleCoreMute('l', 'turbo')">MUTE</button>
-                    </div>
-                    <div class="ch-control-row">
-                        <div class="ch-indicator-label lbl-r">R</div>
-                        <button class="action-toggle-btn r-active" id="turbo-btn-r" onclick="toggleDualMatrix(this, 'r', 'turbo')">MAX BOOST</button>
-                        <button class="mute-toggle-btn mute-off" id="mute-turbo-r" onclick="toggleCoreMute('r', 'turbo')">MUTE</button>
-                    </div>
-                    <div class="dual-uv-container" data-uv-group="turbo">
-                        <div class="slot-uv-bar uv-l"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
-                        <div class="slot-uv-bar uv-r"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
-                    </div>
-                </div>
-
-                <div class="menu-slot-card active" id="card-hpf">
-                    <div class="slot-header">
-                        <span class="slot-title">HPF / Low-Cut</span>
-                        <span class="slot-index">F51-55</span>
-                    </div>
-                    <div class="ch-control-row">
-                        <div class="ch-indicator-label lbl-l">L</div>
-                        <div class="matrix-slider-pack">
-                            <div class="slider-meta-txt"><span>Freq</span><span id="hpf-txt-l">20 Hz</span></div>
-                            <input type="range" class="slider-l" id="hpf-slider-l" min="20" max="400" value="20">
-                        </div>
-                        <button class="mute-toggle-btn mute-off" id="mute-hpf-l" onclick="toggleCoreMute('l', 'hpf')">MUTE</button>
-                    </div>
-                    <div class="ch-control-row">
-                        <div class="ch-indicator-label lbl-r">R</div>
-                        <div class="matrix-slider-pack">
-                            <div class="slider-meta-txt"><span>Freq</span><span id="hpf-txt-r">20 Hz</span></div>
-                            <input type="range" class="slider-r" id="hpf-slider-r" min="20" max="400" value="20">
-                        </div>
-                        <button class="mute-toggle-btn mute-off" id="mute-hpf-r" onclick="toggleCoreMute('r', 'hpf')">MUTE</button>
-                    </div>
-                    <div class="dual-uv-container" data-uv-group="hpf">
-                        <div class="slot-uv-bar uv-l"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
-                        <div class="slot-uv-bar uv-r"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
-                    </div>
-                </div>
-
-                <div class="menu-slot-card active" id="card-lpf">
-                    <div class="slot-header">
-                        <span class="slot-title">LPF / High-Cut</span>
-                        <span class="slot-index">F56-60</span>
-                    </div>
-                    <div class="ch-control-row">
-                        <div class="ch-indicator-label lbl-l">L</div>
-                        <div class="matrix-slider-pack">
-                            <div class="slider-meta-txt"><span>Freq</span><span id="lpf-txt-l">20.0 kHz</span></div>
-                            <input type="range" class="slider-l" id="lpf-slider-l" min="2000" max="20000" value="20000">
-                        </div>
-                        <button class="mute-toggle-btn mute-off" id="mute-lpf-l" onclick="toggleCoreMute('l', 'lpf')">MUTE</button>
-                    </div>
-                    <div class="ch-control-row">
-                        <div class="ch-indicator-label lbl-r">R</div>
-                        <div class="matrix-slider-pack">
-                            <div class="slider-meta-txt"><span>Freq</span><span id="lpf-txt-r">20.0 kHz</span></div>
-                            <input type="range" class="slider-r" id="lpf-slider-r" min="2000" max="20000" value="20000">
-                        </div>
-                        <button class="mute-toggle-btn mute-off" id="mute-lpf-r" onclick="toggleCoreMute('r', 'lpf')">MUTE</button>
-                    </div>
-                    <div class="dual-uv-container" data-uv-group="lpf">
-                        <div class="slot-uv-bar uv-l"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
-                        <div class="slot-uv-bar uv-r"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
-                    </div>
-                </div>
-
-                <div class="menu-slot-card active" id="card-slope">
-                    <div class="slot-header">
-                        <span class="slot-title">Crossover Slope Engine</span>
-                        <span class="slot-index">F40</span>
-                    </div>
-                    <div class="ch-control-row">
-                        <div class="ch-indicator-label lbl-l">L</div>
-                        <select class="select-slope-dsp" id="slope-select-l" onchange="updateSlopeFilter('l')">
-                            <option value="LR24">Linkwitz-Riley 24dB</option>
-                            <option value="LR48">Linkwitz-Riley 48dB</option>
-                            <option value="BW12">Butterworth 12dB</option>
-                            <option value="BW24">Butterworth 24dB</option>
-                            <option value="BS">Bessel Linear Phase</option>
-                        </select>
-                        <button class="mute-toggle-btn mute-off" id="mute-slope-l" onclick="toggleCoreMute('l', 'slope')">MUTE</button>
-                    </div>
-                    <div class="ch-control-row">
-                        <div class="ch-indicator-label lbl-r">R</div>
-                        <select class="select-slope-dsp" id="slope-select-r" onchange="updateSlopeFilter('r')">
-                            <option value="LR24">Linkwitz-Riley 24dB</option>
-                            <option value="LR48">Linkwitz-Riley 48dB</option>
-                            <option value="BW12">Butterworth 12dB</option>
-                            <option value="BW24">Butterworth 24dB</option>
-                            <option value="BS">Bessel Linear Phase</option>
-                        </select>
-                        <button class="mute-toggle-btn mute-off" id="mute-slope-r" onclick="toggleCoreMute('r', 'slope')">MUTE</button>
-                    </div>
-                    <div class="dual-uv-container" data-uv-group="slope">
-                        <div class="slot-uv-bar uv-l"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
-                        <div class="slot-uv-bar uv-r"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
-                    </div>
-                </div>
-
-                <div class="menu-slot-card active" id="card-peq">
-                    <div class="slot-header">
-                        <span class="slot-title" style="color: #3498db;">Parametric EQ Tuning</span>
-                        <span class="slot-index">F45</span>
-                    </div>
-                    <div class="ch-control-row row-compact">
-                        <span style="color:#efebf5; font-size:9px; width:80%">Low-Mid (Plak-Kentrung) [250Hz]</span>
-                    </div>
-                    <div class="ch-control-row">
-                        <div class="ch-indicator-label lbl-l">L</div>
-                        <div class="matrix-slider-pack"><input type="range" class="slider-l" id="peq-lm-g-l" min="-12" max="12" value="0" step="0.5"></div>
-                        <div class="matrix-slider-pack"><input type="range" class="slider-l" id="peq-lm-q-l" min="0.5" max="10" value="1.2" step="0.1" title="Q-Factor"></div>
-                        <button class="mute-toggle-btn mute-off" id="mute-peq-l" onclick="toggleCoreMute('l', 'peq')">MUTE</button>
-                    </div>
-                    <div class="ch-control-row">
-                        <div class="ch-indicator-label lbl-r">R</div>
-                        <div class="matrix-slider-pack"><input type="range" class="slider-r" id="peq-lm-g-r" min="-12" max="12" value="0" step="0.5"></div>
-                        <div class="matrix-slider-pack"><input type="range" class="slider-r" id="peq-lm-q-r" min="0.5" max="10" value="1.2" step="0.1" title="Q-Factor"></div>
-                        <button class="mute-toggle-btn mute-off" id="mute-peq-r" onclick="toggleCoreMute('r', 'peq')">MUTE</button>
-                    </div>
-                    <div class="ch-control-row row-compact">
-                        <span style="color:#efebf5; font-size:9px; width:100%">Mid-Vocal (Lantang) [2.2kHz]</span>
-                    </div>
-                    <div class="ch-control-row">
-                        <div class="ch-indicator-label lbl-l">L</div>
-                        <div class="matrix-slider-pack"><input type="range" class="slider-l" id="peq-mv-g-l" min="-12" max="12" value="0" step="0.5"></div>
-                        <div class="matrix-slider-pack"><input type="range" class="slider-l" id="peq-mv-q-l" min="0.5" max="10" value="1.5" step="0.1" title="Q-Factor"></div>
-                    </div>
-                    <div class="ch-control-row">
-                        <div class="ch-indicator-label lbl-r">R</div>
-                        <div class="matrix-slider-pack"><input type="range" class="slider-r" id="peq-mv-g-r" min="-12" max="12" value="0" step="0.5"></div>
-                        <div class="matrix-slider-pack"><input type="range" class="slider-r" id="peq-mv-q-r" min="0.5" max="10" value="1.5" step="0.1" title="Q-Factor"></div>
-                    </div>
-                    <div class="ch-control-row row-compact">
-                        <span style="color:#efebf5; font-size:9px; width:100%">High-Treble (Ces-Ces) [8.5kHz]</span>
-                    </div>
-                    <div class="ch-control-row">
-                        <div class="ch-indicator-label lbl-l">L</div>
-                        <div class="matrix-slider-pack"><input type="range" class="slider-l" id="peq-ht-g-l" min="-12" max="12" value="0" step="0.5"></div>
-                        <div class="matrix-slider-pack"><input type="range" class="slider-l" id="peq-ht-q-l" min="0.5" max="10" value="1.0" step="0.1" title="Q-Factor"></div>
-                    </div>
-                    <div class="ch-control-row">
-                        <div class="ch-indicator-label lbl-r">R</div>
-                        <div class="matrix-slider-pack"><input type="range" class="slider-r" id="peq-ht-g-r" min="-12" max="12" value="0" step="0.5"></div>
-                        <div class="matrix-slider-pack"><input type="range" class="slider-r" id="peq-ht-q-r" min="0.5" max="10" value="1.0" step="0.1" title="Q-Factor"></div>
-                    </div>
-                    <div class="dual-uv-container" data-uv-group="peq">
-                        <div class="slot-uv-bar uv-l"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
-                        <div class="slot-uv-bar uv-r"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
-                    </div>
-                </div>
-
-                <div class="menu-slot-card" id="card-deq">
-                    <div class="slot-header">
-                        <span class="slot-title" style="color:#1abc9c;">Dynamic EQ (60Hz Sub Guard)</span>
-                        <span class="slot-index">F48</span>
-                    </div>
-                    <div class="ch-control-row">
-                        <div class="ch-indicator-label lbl-l">L</div>
-                        <button class="action-toggle-btn" id="deq-btn-l" onclick="toggleDualMatrix(this, 'l', 'deq')">DEQ L OFF</button>
-                        <button class="mute-toggle-btn mute-off" id="mute-deq-l" onclick="toggleCoreMute('l', 'deq')">MUTE</button>
-                    </div>
-                    <div class="ch-control-row">
-                        <div class="ch-indicator-label lbl-r">R</div>
-                        <button class="action-toggle-btn" id="deq-btn-r" onclick="toggleDualMatrix(this, 'r', 'deq')">DEQ R OFF</button>
-                        <button class="mute-toggle-btn mute-off" id="mute-deq-r" onclick="toggleCoreMute('r', 'deq')">MUTE</button>
-                    </div>
-                    <div class="dual-uv-container" data-uv-group="deq">
-                        <div class="slot-uv-bar uv-l"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
-                        <div class="slot-uv-bar uv-r"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
-                    </div>
-                </div>
-
-                <div class="menu-slot-card" id="card-phase">
-                    <div class="slot-header">
-                        <span class="slot-title">Polarity / Phase Logic</span>
-                        <span class="slot-index">F71-80</span>
-                    </div>
-                    <div class="ch-control-row">
-                        <div class="ch-indicator-label lbl-l">L</div>
-                        <button class="action-toggle-btn" id="phase-btn-l" onclick="toggleDualMatrix(this, 'l', 'phase')">0 DEG (NORM)</button>
-                        <button class="mute-toggle-btn mute-off" id="mute-phase-l" onclick="toggleCoreMute('l', 'phase')">MUTE</button>
-                    </div>
-                    <div class="ch-control-row">
-                        <div class="ch-indicator-label lbl-r">R</div>
-                        <button class="action-toggle-btn" id="phase-btn-r" onclick="toggleDualMatrix(this, 'r', 'phase')">0 DEG (NORM)</button>
-                        <button class="mute-toggle-btn mute-off" id="mute-phase-r" onclick="toggleCoreMute('r', 'phase')">MUTE</button>
-                    </div>
-                    <div class="dual-uv-container" data-uv-group="phase">
-                        <div class="slot-uv-bar uv-l"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
-                        <div class="slot-uv-bar uv-r"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
-                    </div>
-                </div>
-
-                <div class="menu-slot-card active" id="card-gain">
-                    <div class="slot-header">
-                        <span class="slot-title">Output Gain</span>
-                        <span class="slot-index">F81-90</span>
-                    </div>
-                    <div class="ch-control-row">
-                        <div class="ch-indicator-label lbl-l">L</div>
-                        <div class="matrix-slider-pack"><input type="range" class="slider-l" id="gain-slider-l" min="0" max="150" value="100"></div>
-                        <button class="mute-toggle-btn mute-off" id="mute-gain-l" onclick="toggleCoreMute('l', 'gain')">MUTE</button>
-                    </div>
-                    <div class="ch-control-row">
-                        <div class="ch-indicator-label lbl-r">R</div>
-                        <div class="matrix-slider-pack"><input type="range" class="slider-r" id="gain-slider-r" min="0" max="150" value="100"></div>
-                        <button class="mute-toggle-btn mute-off" id="mute-gain-r" onclick="toggleCoreMute('r', 'gain')">MUTE</button>
-                    </div>
-                    <div class="dual-uv-container" data-uv-group="gain">
-                        <div class="slot-uv-bar uv-l"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
-                        <div class="slot-uv-bar uv-r"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
-                    </div>
-                </div>
-
-                <div class="menu-slot-card" id="card-harmonic">
-                    <div class="slot-header">
-                        <span class="slot-title">Harmonic Enhancer</span>
-                        <span class="slot-index">F91-100</span>
-                    </div>
-                    <div class="ch-control-row">
-                        <div class="ch-indicator-label lbl-l">L</div>
-                        <button class="action-toggle-btn" id="harmonic-btn-l" onclick="toggleDualMatrix(this, 'l', 'harmonic')">XTREME OFF</button>
-                        <button class="mute-toggle-btn mute-off" id="mute-harmonic-l" onclick="toggleCoreMute('l', 'harmonic')">MUTE</button>
-                    </div>
-                    <div class="ch-control-row">
-                        <div class="ch-indicator-label lbl-r">R</div>
-                        <button class="action-toggle-btn" id="harmonic-btn-r" onclick="toggleDualMatrix(this, 'r', 'harmonic')">XTREME OFF</button>
-                        <button class="mute-toggle-btn mute-off" id="mute-harmonic-r" onclick="toggleCoreMute('r', 'harmonic')">MUTE</button>
-                    </div>
-                    <div class="dual-uv-container" data-uv-group="harmonic">
-                        <div class="slot-uv-bar uv-l"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
-                        <div class="slot-uv-bar uv-r"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
-                    </div>
-                </div>
-
-                <div class="menu-slot-card" id="card-sultan">
-                    <div class="slot-header">
-                        <span class="slot-title" style="color: var(--violet-glow);">Sultan Sub-Bass GLOW</span>
-                        <span class="slot-index">F118</span>
-                    </div>
-                    <div class="ch-control-row">
-                        <div class="ch-indicator-label lbl-l">L</div>
-                        <button class="action-toggle-btn" id="sultan-btn-l" onclick="toggleDualMatrix(this, 'l', 'sultan')">L-OFF</button>
-                        <button class="mute-toggle-btn mute-off" id="mute-sultan-l" onclick="toggleCoreMute('l', 'sultan')">MUTE</button>
-                    </div>
-                    <div class="ch-control-row">
-                        <div class="ch-indicator-label lbl-r">R</div>
-                        <button class="action-toggle-btn" id="sultan-btn-r" onclick="toggleDualMatrix(this, 'r', 'sultan')">R-OFF</button>
-                        <button class="mute-toggle-btn mute-off" id="mute-sultan-r" onclick="toggleCoreMute('r', 'sultan')">MUTE</button>
-                    </div>
-                    <div class="dual-uv-container" data-uv-group="sultan">
-                        <div class="slot-uv-bar uv-l"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
-                        <div class="slot-uv-bar uv-r"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
-                    </div>
-                </div>
-
-                <div class="menu-slot-card" id="card-vocal">
-                    <div class="slot-header">
-                        <span class="slot-title">Vocal Presence</span>
-                        <span class="slot-index">F111-117</span>
-                    </div>
-                    <div class="ch-control-row">
-                        <div class="ch-indicator-label lbl-l">L</div>
-                        <button class="action-toggle-btn" id="vocal-btn-l" onclick="toggleDualMatrix(this, 'l', 'vocal')">BOOST OFF</button>
-                        <button class="mute-toggle-btn mute-off" id="mute-vocal-l" onclick="toggleCoreMute('l', 'vocal')">MUTE</button>
-                    </div>
-                    <div class="ch-control-row">
-                        <div class="ch-indicator-label lbl-r">R</div>
-                        <button class="action-toggle-btn" id="vocal-btn-r" onclick="toggleDualMatrix(this, 'r', 'vocal')">BOOST OFF</button>
-                        <button class="mute-toggle-btn mute-off" id="mute-vocal-r" onclick="toggleCoreMute('r', 'vocal')">MUTE</button>
-                    </div>
-                    <div class="dual-uv-container" data-uv-group="vocal">
-                        <div class="slot-uv-bar uv-l"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
-                        <div class="slot-uv-bar uv-r"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
-                    </div>
-                </div>
-
-                <div class="menu-slot-card" id="card-echo">
-                    <div class="slot-header">
-                        <span class="slot-title" style="color: #00bfff;">Stage Echo Engine</span>
-                        <span class="slot-index">F126-135</span>
-                    </div>
-                    <div class="ch-control-row">
-                        <div class="ch-indicator-label lbl-l">L</div>
-                        <button class="action-toggle-btn" id="echo-btn-l" onclick="toggleDualMatrix(this, 'l', 'echo')">PSRAM OFF</button>
-                        <button class="mute-toggle-btn mute-off" id="mute-echo-l" onclick="toggleCoreMute('l', 'echo')">MUTE</button>
-                    </div>
-                    <div class="ch-control-row">
-                        <div class="ch-indicator-label lbl-r">R</div>
-                        <button class="action-toggle-btn" id="echo-btn-r" onclick="toggleDualMatrix(this, 'r', 'echo')">PSRAM OFF</button>
-                        <button class="mute-toggle-btn mute-off" id="mute-echo-r" onclick="toggleCoreMute('r', 'echo')">MUTE</button>
-                    </div>
-                    <div class="dual-uv-container" data-uv-group="echo">
-                        <div class="slot-uv-bar uv-l"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
-                        <div class="slot-uv-bar uv-r"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
-                    </div>
-                </div>
-
-                <div class="menu-slot-card active" id="card-limiter">
-                    <div class="slot-header">
-                        <span class="slot-title" style="color:var(--led-red);">Advanced RMS Limiter</span>
-                        <span class="slot-index">F151-160</span>
-                    </div>
-                    <div class="ch-control-row row-compact">
-                        <span style="color:var(--text-muted); font-size:8px;">Threshold Control (-24dB s/d 0dB)</span>
-                    </div>
-                    <div class="ch-control-row">
-                        <div class="ch-indicator-label lbl-l">L</div>
-                        <div class="matrix-slider-pack"><input type="range" class="slider-l" id="limit-thres-l" min="-24" max="0" value="-10" step="0.5"></div>
-                        <button class="mute-toggle-btn mute-off" id="mute-limiter-l" onclick="toggleCoreMute('l', 'limiter')">MUTE</button>
-                    </div>
-                    <div class="ch-control-row">
-                        <div class="ch-indicator-label lbl-r">R</div>
-                        <div class="matrix-slider-pack"><input type="range" class="slider-r" id="limit-thres-r" min="-24" max="0" value="-10" step="0.5"></div>
-                        <button class="mute-toggle-btn mute-off" id="mute-limiter-r" onclick="toggleCoreMute('r', 'limiter')">MUTE</button>
-                    </div>
-                    <div class="ch-control-row">
-                        <div class="ch-indicator-label lbl-l">L</div>
-                        <button class="action-toggle-btn l-active" id="limiter-btn-l" onclick="toggleDualMatrix(this, 'l', 'limiter')">GUARDING</button>
-                    </div>
-                    <div class="ch-control-row">
-                        <div class="ch-indicator-label lbl-r">R</div>
-                        <button class="action-toggle-btn r-active" id="limiter-btn-r" onclick="toggleDualMatrix(this, 'r', 'limiter')">GUARDING</button>
-                    </div>
-                    <div class="dual-uv-container" data-uv-group="limiter">
-                        <div class="slot-uv-bar uv-l"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
-                        <div class="slot-uv-bar uv-r"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
-                    </div>
-                </div>
-
-                <div class="menu-slot-card" id="card-sublimit">
-                    <div class="slot-header">
-                        <span class="slot-title">Sub Peak Dynamic Link</span>
-                        <span class="slot-index">F161-170</span>
-                    </div>
-                    <div class="ch-control-row">
-                        <div class="ch-indicator-label lbl-l">L</div>
-                        <div class="matrix-slider-pack"><input type="range" class="slider-l" id="sub-limit-slider-l" min="10" max="100" value="100"></div>
-                        <button class="mute-toggle-btn mute-off" id="mute-sublimit-l" onclick="toggleCoreMute('l', 'sublimit')">MUTE</button>
-                    </div>
-                    <div class="ch-control-row">
-                        <div class="ch-indicator-label lbl-r">R</div>
-                        <div class="matrix-slider-pack"><input type="range" class="slider-r" id="sub-limit-slider-r" min="10" max="100" value="100"></div>
-                        <button class="mute-toggle-btn mute-off" id="mute-sublimit-r" onclick="toggleCoreMute('r', 'sublimit')">MUTE</button>
-                    </div>
-                    <div class="dual-uv-container" data-uv-group="sublimit">
-                        <div class="slot-uv-bar uv-l"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
-                        <div class="slot-uv-bar uv-r"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
-                    </div>
-                </div>
-
-                <div class="menu-slot-card active" id="card-antipop">
-                    <div class="slot-header">
-                        <span class="slot-title">Anti-Pop Protection</span>
-                        <span class="slot-index">F191-195</span>
-                    </div>
-                    <div class="ch-control-row">
-                        <div class="ch-indicator-label lbl-l">L</div>
-                        <button class="action-toggle-btn l-active" id="antipop-btn-l" onclick="toggleDualMatrix(this, 'l', 'antipop')">SECURE ON</button>
-                        <button class="mute-toggle-btn mute-off" id="mute-antipop-l" onclick="toggleCoreMute('l', 'antipop')">MUTE</button>
-                    </div>
-                    <div class="ch-control-row">
-                        <div class="ch-indicator-label lbl-r">R</div>
-                        <button class="action-toggle-btn r-active" id="antipop-btn-r" onclick="toggleDualMatrix(this, 'r', 'antipop')">SECURE ON</button>
-                        <button class="mute-toggle-btn mute-off" id="mute-antipop-r" onclick="toggleCoreMute('r', 'antipop')">MUTE</button>
-                    </div>
-                    <div class="dual-uv-container" data-uv-group="antipop">
-                        <div class="slot-uv-bar uv-l"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
-                        <div class="slot-uv-bar uv-r"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
-                    </div>
-                </div>
-
-                <div class="menu-slot-card active" id="card-combine">
-                    <div class="slot-header">
-                        <span class="slot-title">System Coupling</span>
-                        <span class="slot-index">F301++</span>
-                    </div>
-                    <div class="ch-control-row">
-                        <div class="ch-indicator-label lbl-l">L</div>
-                        <button class="action-toggle-btn l-active" id="combine-btn-l" onclick="toggleDualMatrix(this, 'l', 'syscombine')">COMBINE L</button>
-                        <button class="mute-toggle-btn mute-off" id="mute-combine-l" onclick="toggleCoreMute('l', 'syscombine')">MUTE</button>
-                    </div>
-                    <div class="ch-control-row">
-                        <div class="ch-indicator-label lbl-r">R</div>
-                        <button class="action-toggle-btn r-active" id="combine-btn-r" onclick="toggleDualMatrix(this, 'r', 'syscombine')">COMBINE R</button>
-                        <button class="mute-toggle-btn mute-off" id="mute-combine-r" onclick="toggleCoreMute('r', 'syscombine')">MUTE</button>
-                    </div>
-                    <div class="dual-uv-container" data-uv-group="syscombine">
-                        <div class="slot-uv-bar uv-l"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
-                        <div class="slot-uv-bar uv-r"><div class="uv-dot uv-active-indicator"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div><div class="uv-dot"></div></div>
-                    </div>
-                </div>
-
-                <div class="menu-slot-card" id="card-ota">
-                    <div class="slot-header">
-                        <span class="slot-title">OTA Update Node</span>
-                        <span class="slot-index">F227</span>
-                    </div>
-                    <div class="ch-control-row" style="padding: 2px 4px;">
-                        <button class="action-toggle-btn" style="width:100%; font-size: 8px; padding: 5px 2px;" onclick="checkOtaServer()"><i class="fa-solid fa-sync fa-spin"></i> CHECK DRIVER</button>
-                    </div>
-                </div>
-
-            </div>
-        </div>
+   </div><!-- Source Controls -->
+   <div class="flex items-center gap-2 px-4 py-2 border-b border-gray-800 flex-wrap"><span class="section-label">SOURCE:</span> <label class="btn-ctrl cursor-pointer"> <input type="file" accept="audio/*" id="fileInput" class="hidden"> 📁 Load File </label> <button class="btn-ctrl" id="micBtn">🎙️ Mic</button> <button class="btn-ctrl" id="toneBtn">〰️ Tone Gen</button>
+    <div class="flex items-center gap-1 ml-2"><span class="text-xs text-gray-500">Freq:</span> <input type="range" class="fader" style="width:80px;" id="toneFreq" min="15" max="44000" value="440"> <span class="digital-display" id="toneFreqDisp">440 Hz</span>
     </div>
-
-    <div class="master-output-footer">
-        <div class="vu-row">
-            <div class="vu-label" style="color:var(--violet-glow)">VU L</div>
-            <div class="vu-meter-main" id="vu-left">
-                <div class="vu-segment vu-active-indicator"></div>
-                <div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div>
-                <div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div>
-                <div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div>
-                <div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div>
-            </div>
-            <div class="vu-label" style="margin-left:8px; color:#e67e22; text-align:right;">GR L</div>
-            <div class="gr-meter-main" id="gr-left">
-                <div class="gr-segment"></div><div class="gr-segment"></div><div class="gr-segment"></div><div class="gr-segment"></div><div class="gr-segment"></div>
-                <div class="gr-segment"></div><div class="gr-segment"></div><div class="gr-segment"></div><div class="gr-segment"></div><div class="gr-segment"></div>
-            </div>
-        </div>
-        <div class="vu-row">
-            <div class="vu-label" style="color:var(--cyan-ch2)">VU R</div>
-            <div class="vu-meter-main" id="vu-right">
-                <div class="vu-segment vu-active-indicator"></div>
-                <div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div>
-                <div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div>
-                <div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div>
-                <div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div><div class="vu-segment"></div>
-            </div>
-            <div class="vu-label" style="margin-left:8px; color:#e67e22; text-align:right;">GR R</div>
-            <div class="gr-meter-main" id="gr-right">
-                <div class="gr-segment"></div><div class="gr-segment"></div><div class="gr-segment"></div><div class="gr-segment"></div><div class="gr-segment"></div>
-                <div class="gr-segment"></div><div class="gr-segment"></div><div class="gr-segment"></div><div class="gr-segment"></div><div class="gr-segment"></div>
-            </div>
-        </div>
-        <div class="footer-status"><i class="fa-solid fa-bolt-lightning fa-fade" style="color: var(--violet-glow);"></i> DUAL-CORE INTERACTIVE DSP MATRIX WITH ADVANCED VOICE PROCESSING & RMS COMPRESSION LIVE</div>
+    <div class="flex items-center gap-1 ml-2"><span class="text-xs text-gray-500">Wave:</span> <select id="toneWave" class="btn-ctrl" style="padding:2px 4px;"> <option value="sine">Sine</option> <option value="square">Square</option> <option value="sawtooth">Saw</option> <option value="triangle">Tri</option> </select>
+    </div><button class="btn-ctrl ml-auto" id="playBtn">▶ Play</button> <button class="btn-ctrl" id="stopBtn">⏹ Stop</button>
+   </div><!-- Main Grid -->
+   <div class="grid-console" id="mainGrid"><!-- RTA Canvas -->
+    <div class="card" style="grid-column: span 2; grid-row: span 2;">
+     <div class="flex items-center justify-between mb-1"><span class="section-label">Real-Time Analyzer</span> <span class="led-uv"></span>
+     </div>
+     <canvas id="rtaCanvas" width="500" height="200" style="width:100%;height:180px;border-radius:4px;background:#000;"></canvas>
+    </div><!-- Pitch Shifter -->
+    <div class="card">
+     <div class="flex items-center justify-between mb-1"><span class="section-label">Pitch Shifter</span>
+      <div class="flex items-center gap-1">
+       <span class="led-uv"></span><button class="btn-ctrl" id="pitchToggle">ON</button>
+      </div>
+     </div>
+     <div class="space-y-1">
+      <div class="flex items-center justify-between"><span class="text-xs text-gray-500">Shift</span> <span class="digital-display" id="pitchDisp">0 st</span>
+      </div><input type="range" class="fader" id="pitchShift" min="-12" max="12" value="0" step="0.5">
+      <div class="flex items-center justify-between"><span class="text-xs text-gray-500">Feedback</span> <span class="digital-display" id="pitchFbDisp">30%</span>
+      </div><input type="range" class="fader" id="pitchFeedback" min="0" max="95" value="30">
+      <div class="flex items-center justify-between"><span class="text-xs text-gray-500">Mix</span> <span class="digital-display" id="pitchMixDisp">50%</span>
+      </div><input type="range" class="fader" id="pitchMix" min="0" max="100" value="50">
+     </div>
+    </div><!-- Compressor -->
+    <div class="card">
+     <div class="flex items-center justify-between mb-1"><span class="section-label">Compressor</span>
+      <div class="flex items-center gap-1">
+       <span class="led-uv"></span><button class="btn-ctrl active" id="compToggle">ON</button>
+      </div>
+     </div>
+     <div class="space-y-1">
+      <div class="flex items-center justify-between">
+       <span class="text-xs text-gray-500">Threshold</span><span class="digital-display" id="compThDisp">-24 dB</span>
+      </div><input type="range" class="fader" id="compThreshold" min="-60" max="0" value="-24">
+      <div class="flex items-center justify-between">
+       <span class="text-xs text-gray-500">Ratio</span><span class="digital-display" id="compRatDisp">4:1</span>
+      </div><input type="range" class="fader" id="compRatio" min="1" max="20" value="4">
+      <div class="flex items-center justify-between">
+       <span class="text-xs text-gray-500">Attack</span><span class="digital-display" id="compAtkDisp">3 ms</span>
+      </div><input type="range" class="fader" id="compAttack" min="0" max="100" value="3">
+      <div class="flex items-center justify-between">
+       <span class="text-xs text-gray-500">Release</span><span class="digital-display" id="compRelDisp">250 ms</span>
+      </div><input type="range" class="fader" id="compRelease" min="10" max="1000" value="250">
+      <div class="flex items-center justify-between">
+       <span class="text-xs text-gray-500">Reduction</span><span class="digital-display" id="compRedDisp">0 dB</span>
+      </div>
+     </div>
+    </div><!-- EQ Section -->
+    <div class="card" style="grid-column: span 2;">
+     <div class="flex items-center justify-between mb-1"><span class="section-label">EQ Tuning Node (15Hz - 44kHz)</span>
+      <div class="flex items-center gap-1">
+       <span class="led-uv"></span><button class="btn-ctrl active" id="eqToggle">ON</button>
+      </div>
+     </div>
+     <div class="grid grid-cols-3 gap-2">
+      <div>
+       <div class="text-center text-xs text-gray-500 mb-1">
+        Low-Mid
+       </div>
+       <div class="flex items-center justify-between">
+        <span class="text-xs text-gray-600">Freq</span><span class="digital-display" id="eqLMFreqD">250 Hz</span>
+       </div><input type="range" class="fader" id="eqLMFreq" min="15" max="2000" value="250">
+       <div class="flex items-center justify-between mt-1">
+        <span class="text-xs text-gray-600">Gain</span><span class="digital-display" id="eqLMGainD">0 dB</span>
+       </div><input type="range" class="fader" id="eqLMGain" min="-12" max="12" value="0">
+       <div class="flex items-center justify-between mt-1">
+        <span class="text-xs text-gray-600">Q</span><span class="digital-display" id="eqLMQD">1.0</span>
+       </div><input type="range" class="fader" id="eqLMQ" min="0.1" max="10" value="1" step="0.1">
+      </div>
+      <div>
+       <div class="text-center text-xs text-gray-500 mb-1">
+        Mid-High
+       </div>
+       <div class="flex items-center justify-between">
+        <span class="text-xs text-gray-600">Freq</span><span class="digital-display" id="eqMHFreqD">2500 Hz</span>
+       </div><input type="range" class="fader" id="eqMHFreq" min="500" max="12000" value="2500">
+       <div class="flex items-center justify-between mt-1">
+        <span class="text-xs text-gray-600">Gain</span><span class="digital-display" id="eqMHGainD">0 dB</span>
+       </div><input type="range" class="fader" id="eqMHGain" min="-12" max="12" value="0">
+       <div class="flex items-center justify-between mt-1">
+        <span class="text-xs text-gray-600">Q</span><span class="digital-display" id="eqMHQD">1.0</span>
+       </div><input type="range" class="fader" id="eqMHQ" min="0.1" max="10" value="1" step="0.1">
+      </div>
+      <div>
+       <div class="text-center text-xs text-gray-500 mb-1">
+        High-Filter
+       </div>
+       <div class="flex items-center justify-between">
+        <span class="text-xs text-gray-600">Freq</span><span class="digital-display" id="eqHFFreqD">8000 Hz</span>
+       </div><input type="range" class="fader" id="eqHFFreq" min="2000" max="44000" value="8000">
+       <div class="flex items-center justify-between mt-1">
+        <span class="text-xs text-gray-600">Gain</span><span class="digital-display" id="eqHFGainD">0 dB</span>
+       </div><input type="range" class="fader" id="eqHFGain" min="-12" max="12" value="0">
+       <div class="flex items-center justify-between mt-1">
+        <span class="text-xs text-gray-600">Q</span><span class="digital-display" id="eqHFQD">1.0</span>
+       </div><input type="range" class="fader" id="eqHFQ" min="0.1" max="10" value="1" step="0.1">
+      </div>
+     </div>
+     <canvas id="eqCanvas" width="500" height="80" style="width:100%;height:60px;margin-top:6px;border-radius:4px;background:#000;"></canvas>
+    </div><!-- HPF/LPF Crossover -->
+    <div class="card">
+     <div class="flex items-center justify-between mb-1"><span class="section-label">HPF / LPF Crossover</span>
+      <div class="flex items-center gap-1">
+       <span class="led-uv"></span><button class="btn-ctrl active" id="filterToggle">ON</button>
+      </div>
+     </div>
+     <div class="space-y-1">
+      <div class="flex items-center justify-between">
+       <span class="text-xs text-gray-500">HPF</span><span class="digital-display" id="hpfDisp">15 Hz</span>
+      </div><input type="range" class="fader" id="hpfFreq" min="15" max="44000" value="15">
+      <div class="flex items-center justify-between">
+       <span class="text-xs text-gray-500">LPF</span><span class="digital-display" id="lpfDisp">44000 Hz</span>
+      </div><input type="range" class="fader" id="lpfFreq" min="15" max="44000" value="44000">
+     </div>
+     <canvas id="crossCanvas" width="200" height="50" style="width:100%;height:40px;margin-top:4px;border-radius:4px;background:#000;"></canvas>
+    </div><!-- Limiter -->
+    <div class="card">
+     <div class="flex items-center justify-between mb-1"><span class="section-label">Output Limiter</span>
+      <div class="flex items-center gap-1">
+       <span class="led-uv"></span><button class="btn-ctrl active" id="limiterToggle">ON</button>
+      </div>
+     </div>
+     <div class="space-y-1">
+      <div class="flex items-center justify-between">
+       <span class="text-xs text-gray-500">Ceiling</span><span class="digital-display" id="limCeilDisp">-0.3 dB</span>
+      </div><input type="range" class="fader" id="limCeiling" min="-12" max="0" value="-0.3" step="0.1">
+      <div class="flex items-center justify-between">
+       <span class="text-xs text-gray-500">Release</span><span class="digital-display" id="limRelDisp">50 ms</span>
+      </div><input type="range" class="fader" id="limRelease" min="1" max="500" value="50">
+     </div>
+     <canvas id="limiterCanvas" width="200" height="40" style="width:100%;height:35px;margin-top:4px;border-radius:4px;background:#000;"></canvas>
+    </div><!-- Delay -->
+    <div class="card">
+     <div class="flex items-center justify-between mb-1"><span class="section-label">Delay</span>
+      <div class="flex items-center gap-1">
+       <span class="led-uv"></span><button class="btn-ctrl" id="delayToggle">OFF</button>
+      </div>
+     </div>
+     <div class="space-y-1">
+      <div class="flex items-center justify-between">
+       <span class="text-xs text-gray-500">Time</span><span class="digital-display" id="delayTimeDisp">300 ms</span>
+      </div><input type="range" class="fader" id="delayTime" min="1" max="2000" value="300">
+      <div class="flex items-center justify-between">
+       <span class="text-xs text-gray-500">Feedback</span><span class="digital-display" id="delayFbDisp">40%</span>
+      </div><input type="range" class="fader" id="delayFeedback" min="0" max="95" value="40">
+      <div class="flex items-center justify-between">
+       <span class="text-xs text-gray-500">Mix</span><span class="digital-display" id="delayMixDisp">30%</span>
+      </div><input type="range" class="fader" id="delayMix" min="0" max="100" value="30">
+     </div>
+    </div><!-- Dual Core Engine -->
+    <div class="card">
+     <div class="flex items-center justify-between mb-1"><span class="section-label">Dual Core Engine</span>
+      <div class="flex items-center gap-1">
+       <span class="led-uv led-active"></span>
+      </div>
+     </div>
+     <div class="space-y-1">
+      <div class="flex items-center justify-between">
+       <span class="text-xs text-gray-500">Drive A</span><span class="digital-display" id="dceADisp">50%</span>
+      </div><input type="range" class="fader" id="dceA" min="0" max="100" value="50">
+      <div class="flex items-center justify-between">
+       <span class="text-xs text-gray-500">Drive B</span><span class="digital-display" id="dceBDisp">50%</span>
+      </div><input type="range" class="fader" id="dceB" min="0" max="100" value="50">
+      <div class="flex items-center justify-between">
+       <span class="text-xs text-gray-500">Blend</span><span class="digital-display" id="dceBldDisp">50%</span>
+      </div><input type="range" class="fader" id="dceBlend" min="0" max="100" value="50">
+     </div>
+    </div><!-- Sub-Harmonic Focus -->
+    <div class="card">
+     <div class="flex items-center justify-between mb-1"><span class="section-label">Sub-Harmonic Focus</span>
+      <div class="flex items-center gap-1">
+       <span class="led-uv"></span><button class="btn-ctrl" id="subHarmToggle">OFF</button>
+      </div>
+     </div>
+     <div class="space-y-1">
+      <div class="flex items-center justify-between">
+       <span class="text-xs text-gray-500">Level</span><span class="digital-display" id="shLvlDisp">0 dB</span>
+      </div><input type="range" class="fader" id="shLevel" min="-12" max="12" value="0">
+      <div class="flex items-center justify-between">
+       <span class="text-xs text-gray-500">Freq</span><span class="digital-display" id="shFreqDisp">60 Hz</span>
+      </div><input type="range" class="fader" id="shFreq" min="20" max="150" value="60">
+     </div>
+    </div><!-- Dynamic Clarity Node -->
+    <div class="card">
+     <div class="flex items-center justify-between mb-1"><span class="section-label">Dynamic Clarity Node</span>
+      <div class="flex items-center gap-1">
+       <span class="led-uv"></span><button class="btn-ctrl" id="dcnToggle">OFF</button>
+      </div>
+     </div>
+     <div class="space-y-1">
+      <div class="flex items-center justify-between">
+       <span class="text-xs text-gray-500">Clarity</span><span class="digital-display" id="dcnClrDisp">50%</span>
+      </div><input type="range" class="fader" id="dcnClarity" min="0" max="100" value="50">
+      <div class="flex items-center justify-between">
+       <span class="text-xs text-gray-500">Presence</span><span class="digital-display" id="dcnPresDisp">50%</span>
+      </div><input type="range" class="fader" id="dcnPresence" min="0" max="100" value="50">
+     </div>
+    </div><!-- Fidelity Phase Logic -->
+    <div class="card">
+     <div class="flex items-center justify-between mb-1"><span class="section-label">Fidelity Phase Logic</span>
+      <div class="flex items-center gap-1">
+       <span class="led-uv"></span><button class="btn-ctrl" id="fplToggle">OFF</button>
+      </div>
+     </div>
+     <div class="space-y-1">
+      <div class="flex items-center justify-between">
+       <span class="text-xs text-gray-500">Phase</span><span class="digital-display" id="fplPhDisp">0°</span>
+      </div><input type="range" class="fader" id="fplPhase" min="0" max="360" value="0">
+      <div class="flex items-center justify-between">
+       <span class="text-xs text-gray-500">Fidelity</span><span class="digital-display" id="fplFidDisp">100%</span>
+      </div><input type="range" class="fader" id="fplFidelity" min="0" max="100" value="100"> <button class="btn-ctrl" id="fplLock">🔒 Phase Lock</button>
+     </div>
+    </div><!-- Output Gain -->
+    <div class="card">
+     <div class="flex items-center justify-between mb-1"><span class="section-label">Output Gain</span>
+      <div class="flex items-center gap-1">
+       <span class="led-uv led-active"></span>
+      </div>
+     </div>
+     <div class="space-y-1">
+      <div class="flex items-center justify-between">
+       <span class="text-xs text-gray-500">Master</span><span class="digital-display" id="outGainDisp">0 dB</span>
+      </div><input type="range" class="fader" id="outGain" min="-60" max="12" value="0">
+      <div class="flex items-center justify-between">
+       <span class="text-xs text-gray-500">L/R Balance</span><span class="digital-display" id="outBalDisp">C</span>
+      </div><input type="range" class="fader" id="outBalance" min="-100" max="100" value="0">
+     </div>
+    </div><!-- Harmonix Balance -->
+    <div class="card">
+     <div class="flex items-center justify-between mb-1"><span class="section-label">Harmonix Balance</span>
+      <div class="flex items-center gap-1">
+       <span class="led-uv"></span><button class="btn-ctrl" id="hbToggle">OFF</button>
+      </div>
+     </div>
+     <div class="space-y-1">
+      <div class="flex items-center justify-between">
+       <span class="text-xs text-gray-500">Odd</span><span class="digital-display" id="hbOddDisp">50%</span>
+      </div><input type="range" class="fader" id="hbOdd" min="0" max="100" value="50">
+      <div class="flex items-center justify-between">
+       <span class="text-xs text-gray-500">Even</span><span class="digital-display" id="hbEvenDisp">50%</span>
+      </div><input type="range" class="fader" id="hbEven" min="0" max="100" value="50">
+     </div>
+    </div><!-- System Restorer -->
+    <div class="card">
+     <div class="flex items-center justify-between mb-1"><span class="section-label">System Restorer</span>
+      <div class="flex items-center gap-1">
+       <span class="led-uv"></span><button class="btn-ctrl" id="srToggle">OFF</button>
+      </div>
+     </div>
+     <div class="space-y-1">
+      <div class="flex items-center justify-between">
+       <span class="text-xs text-gray-500">Recovery</span><span class="digital-display" id="srRecDisp">50%</span>
+      </div><input type="range" class="fader" id="srRecovery" min="0" max="100" value="50">
+      <div class="flex items-center justify-between">
+       <span class="text-xs text-gray-500">Depth</span><span class="digital-display" id="srDepDisp">50%</span>
+      </div><input type="range" class="fader" id="srDepth" min="0" max="100" value="50">
+     </div>
+    </div><!-- Vocal Presence -->
+    <div class="card">
+     <div class="flex items-center justify-between mb-1"><span class="section-label">Vocal Presence</span>
+      <div class="flex items-center gap-1">
+       <span class="led-uv"></span><button class="btn-ctrl" id="vpToggle">OFF</button>
+      </div>
+     </div>
+     <div class="space-y-1">
+      <div class="flex items-center justify-between">
+       <span class="text-xs text-gray-500">Presence</span><span class="digital-display" id="vpPresDisp">50%</span>
+      </div><input type="range" class="fader" id="vpPresence" min="0" max="100" value="50">
+      <div class="flex items-center justify-between">
+       <span class="text-xs text-gray-500">Air</span><span class="digital-display" id="vpAirDisp">30%</span>
+      </div><input type="range" class="fader" id="vpAir" min="0" max="100" value="30">
+     </div>
+    </div><!-- Stage Dynamic Engine -->
+    <div class="card">
+     <div class="flex items-center justify-between mb-1"><span class="section-label">Stage Dynamic Engine</span>
+      <div class="flex items-center gap-1">
+       <span class="led-uv"></span><button class="btn-ctrl" id="sdeToggle">OFF</button>
+      </div>
+     </div>
+     <div class="space-y-1">
+      <div class="flex items-center justify-between">
+       <span class="text-xs text-gray-500">Width</span><span class="digital-display" id="sdeWidDisp">50%</span>
+      </div><input type="range" class="fader" id="sdeWidth" min="0" max="100" value="50">
+      <div class="flex items-center justify-between">
+       <span class="text-xs text-gray-500">Depth</span><span class="digital-display" id="sdeDepDisp">50%</span>
+      </div><input type="range" class="fader" id="sdeDepth" min="0" max="100" value="50">
+     </div>
+    </div><!-- Advanced Sub-Woofer Control -->
+    <div class="card">
+     <div class="flex items-center justify-between mb-1"><span class="section-label">Adv Sub-Woofer Control</span>
+      <div class="flex items-center gap-1">
+       <span class="led-uv"></span><button class="btn-ctrl" id="aswToggle">OFF</button>
+      </div>
+     </div>
+     <div class="space-y-1">
+      <div class="flex items-center justify-between">
+       <span class="text-xs text-gray-500">Cutoff</span><span class="digital-display" id="aswCutDisp">80 Hz</span>
+      </div><input type="range" class="fader" id="aswCutoff" min="20" max="200" value="80">
+      <div class="flex items-center justify-between">
+       <span class="text-xs text-gray-500">Level</span><span class="digital-display" id="aswLvlDisp">0 dB</span>
+      </div><input type="range" class="fader" id="aswLevel" min="-12" max="12" value="0"> <button class="btn-ctrl" id="aswPhase">⟲ Phase Invert: OFF</button>
+     </div>
+    </div><!-- Sub Peak Dynamic Lock -->
+    <div class="card">
+     <div class="flex items-center justify-between mb-1"><span class="section-label">Sub Peak Dynamic Lock</span>
+      <div class="flex items-center gap-1">
+       <span class="led-uv"></span><button class="btn-ctrl" id="spdlToggle">OFF</button>
+      </div>
+     </div>
+     <div class="space-y-1">
+      <div class="flex items-center justify-between">
+       <span class="text-xs text-gray-500">Lock Thresh</span><span class="digital-display" id="spdlThDisp">-6 dB</span>
+      </div><input type="range" class="fader" id="spdlThresh" min="-24" max="0" value="-6">
+      <div class="flex items-center justify-between">
+       <span class="text-xs text-gray-500">Hold</span><span class="digital-display" id="spdlHoldDisp">100 ms</span>
+      </div><input type="range" class="fader" id="spdlHold" min="10" max="500" value="100">
+     </div>
+    </div><!-- Mid-High Enhancer -->
+    <div class="card">
+     <div class="flex items-center justify-between mb-1"><span class="section-label">Mid-High Enhancer</span>
+      <div class="flex items-center gap-1">
+       <span class="led-uv"></span><button class="btn-ctrl" id="mheToggle">OFF</button>
+      </div>
+     </div>
+     <div class="space-y-1">
+      <div class="flex items-center justify-between">
+       <span class="text-xs text-gray-500">Enhance</span><span class="digital-display" id="mheEnhDisp">50%</span>
+      </div><input type="range" class="fader" id="mheEnhance" min="0" max="100" value="50">
+      <div class="flex items-center justify-between">
+       <span class="text-xs text-gray-500">Focus</span><span class="digital-display" id="mheFocDisp">5000 Hz</span>
+      </div><input type="range" class="fader" id="mheFocus" min="1000" max="20000" value="5000">
+     </div>
+    </div><!-- System Tracking -->
+    <div class="card">
+     <div class="flex items-center justify-between mb-1"><span class="section-label">System Tracking</span>
+      <div class="flex items-center gap-1">
+       <span class="led-uv led-active"></span>
+      </div>
+     </div>
+     <div class="space-y-1 text-xs">
+      <div class="flex justify-between">
+       <span class="text-gray-500">CPU Load</span><span class="digital-display" id="sysCpu">0%</span>
+      </div>
+      <div class="flex justify-between">
+       <span class="text-gray-500">Sample Rate</span><span class="digital-display" id="sysSR">48000</span>
+      </div>
+      <div class="flex justify-between">
+       <span class="text-gray-500">Buffer</span><span class="digital-display" id="sysBuf">256</span>
+      </div>
+      <div class="flex justify-between">
+       <span class="text-gray-500">Latency</span><span class="digital-display" id="sysLat">5.3 ms</span>
+      </div>
+      <div class="flex justify-between">
+       <span class="text-gray-500">Channels</span><span class="digital-display" id="sysCh">2</span>
+      </div>
+     </div>
     </div>
-
-    <script>
-        const cpuTempEl = document.getElementById('cpu-temp');
-        const voltEl = document.getElementById('volt-monitor');
-        const streamStatusEl = document.getElementById('stream-status');
-        const srcToggleBtn = document.getElementById('src-toggle-btn');
-        const srcModeText = document.getElementById('src-mode-text');
-        
-        const canvasL = document.getElementById('displayCanvasL');
-        const canvasR = document.getElementById('displayCanvasR');
-        const ctxL = canvasL.getContext('2d');
-        const ctxR = canvasR.getContext('2d');
-
-        let audioCtx, streamNode, splitterNode, mergerNode;
-        let analyserL, analyserR;
-        
-        let hpfLNodes = [], lpfLNodes = [];
-        let hpfRNodes = [], lpfRNodes = [];
-
-        let peqLML, peqMVL, peqHTL;
-        let peqLMR, peqMVR, peqHTR;
-        let sultanL, vocalL, harmonicL, gainL, phaseL, limiterL, antiPopL, deqFilterL;
-        let sultanR, vocalR, harmonicR, gainR, phaseR, limiterR, antiPopR, deqFilterR;
-        
-        // NEW: Output Delay Nodes
-        let outDelayNodeL, outDelayNodeR;
-
-        let generatorNode = null;
-        let isGeneratorInjecting = false;
-        let globalPanicState = false;
-
-        let muteNodesL = {}, muteNodesR = {};
-
-        let deqCurrentGainL = 0;
-        let deqCurrentGainR = 0;
-
-        let delayL1, delayL2, feedbackL1, feedbackL2, wetGainL, filterL;
-        let delayR1, delayR2, feedbackR1, feedbackR2, wetGainR, filterR;
-
-        let dataArrayL, dataArrayR, bufferLength;
-        let isEngineBuilt = false;
-        let captureMode = 'auto'; 
-
-        const filePlayer = document.getElementById('audio-file-player');
-        const playPauseBtn = document.getElementById('play-pause-btn');
-        const uploadTriggerBtn = document.getElementById('upload-trigger-btn');
-        let fileSourceNode = null;
-        let activeInputType = null; 
-
-        /* --- ADVANCED CORE NODE INTEGRATIONS --- */
-        let masterHardwareGainNode = null;
-        let globalVoiceCompressorNode = null;
-        
-        // RING MODULATOR VARIABLES FOR ROBOT EFFECT
-        let robotVoiceOsc = null;
-        let robotGainNode = null;
-        let dryVoiceGain = null;
-        
-        let isMasterHardwareMuted = false;
-        let isCompressorBypassed = false;
-        let isRobotEffectActive = false;
-
-        let channelParams = {
-            l: { core: true, turbo: true, phase: false, harmonic: false, sultan: false, vocal: false, echo: false, limiter: true, antipop: true, syscombine: true, deq: false, slope: 'LR24' },
-            r: { core: true, turbo: true, phase: false, harmonic: false, sultan: false, vocal: false, echo: false, limiter: true, antipop: true, syscombine: true, deq: false, slope: 'LR24' }
-        };
-
-        let coreMuteStates = {
-            l: { core: false, turbo: false, hpf: false, lpf: false, slope: false, peq: false, deq: false, phase: false, gain: false, harmonic: false, sultan: false, vocal: false, echo: false, limiter: false, sublimit: false, antipop: false, syscombine: false },
-            r: { core: false, turbo: false, hpf: false, lpf: false, slope: false, peq: false, deq: false, phase: false, gain: false, harmonic: false, sultan: false, vocal: false, echo: false, limiter: false, sublimit: false, antipop: false, syscombine: false }
-        };
-
-        function resizeCanvases() {
-            canvasL.width = canvasL.clientWidth; canvasL.height = canvasL.clientHeight;
-            canvasR.width = canvasR.clientWidth; canvasR.height = canvasR.clientHeight;
-        }
-        window.addEventListener('resize', resizeCanvases);
-        resizeCanvases();
-
-        function toggleAudioSourceMode() {
-            if(isEngineBuilt && activeInputType !== 'live') return; 
-            if (captureMode === 'auto') {
-                captureMode = 'system';
-                srcToggleBtn.className = "stream-source-btn active-src";
-                srcModeText.innerText = "SYS-ONLY";
-            } else if (captureMode === 'system') {
-                captureMode = 'mic';
-                srcToggleBtn.className = "stream-source-btn active-src";
-                srcToggleBtn.style.background = "#2ecc71";
-                srcModeText.innerText = "MIC-HP";
-            } else {
-                captureMode = 'auto';
-                srcToggleBtn.className = "stream-source-btn";
-                srcToggleBtn.style.background = "";
-                srcModeText.innerText = "AUTO";
-            }
-        }
-
-        function handleMusicFileSelect(input) {
-            const file = input.files[0];
-            if (!file) return;
-            if (activeInputType === 'live') {
-                alert("Harap refresh halaman untuk mengubah input ke mode pemutar file murni.");
-                return;
-            }
-
-            const fileURL = URL.createObjectURL(file);
-            filePlayer.src = fileURL;
-
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-
-            if (!fileSourceNode) {
-                fileSourceNode = audioCtx.createMediaElementSource(filePlayer);
-                streamNode = fileSourceNode; 
-                buildDiscreteEngine();
-            }
-
-            activeInputType = 'file';
-            playPauseBtn.disabled = false;
-            playPauseBtn.style.opacity = "1";
-            playPauseBtn.style.background = "#2ecc71";
-            playPauseBtn.style.color = "#000";
-            uploadTriggerBtn.innerHTML = `<i class="fa-solid fa-circle-check"></i> TRACK READY`;
-            streamStatusEl.innerText = "Track loaded: " + file.name + ". Tekan tombol play!";
-        }
-
-        function toggleFilePlayback() {
-            if (!audioCtx || activeInputType !== 'file') return;
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-
-            if (filePlayer.paused) {
-                filePlayer.play();
-                playPauseBtn.innerHTML = `<i class="fa-solid fa-pause"></i>`;
-                playPauseBtn.style.background = "#e74c3c";
-                playPauseBtn.style.color = "#fff";
-                streamStatusEl.innerText = "Memutar file musik murni via DSP Matrix...";
-            } else {
-                filePlayer.pause();
-                playPauseBtn.innerHTML = `<i class="fa-solid fa-play"></i>`;
-                playPauseBtn.style.background = "#2ecc71";
-                playPauseBtn.style.color = "#000";
-                streamStatusEl.innerText = "Musik dijeda.";
-            }
-        }
-
-        async function initLiveAudioCapture() {
-            if (isEngineBuilt) return;
-            if (activeInputType === 'file') return;
-            activeInputType = 'live';
-            
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            let mediaStream = null;
-
-            if (captureMode === 'mic') {
-                mediaStream = await startMicStream();
-            } else {
-                try {
-                    // NEW: Mencegah efek Double Audio / Echo Monitoring
-                    mediaStream = await navigator.mediaDevices.getDisplayMedia({
-                        video: { displaySurface: "browser" },
-                        audio: { 
-                            suppressLocalAudioPlayback: true, // Mencegah audio asli (YouTube dll) bocor ke speaker agar hanya hasil web DLMS yang terdengar.
-                            echoCancellation: false, 
-                            noiseSuppression: false, 
-                            autoGainControl: false 
-                        }
-                    });
-                } catch (err) {
-                    mediaStream = await startMicStream();
-                }
-            }
-
-            if (mediaStream) {
-                streamNode = audioCtx.createMediaStreamSource(mediaStream);
-                buildDiscreteEngine();
-                document.getElementById('start-stream-btn').innerHTML = `<i class="fa-solid fa-circle-check"></i> FR-ENGINE LIVE`;
-                document.getElementById('start-stream-btn').style.background = "#bc13fe";
-                srcToggleBtn.disabled = true; 
-            }
-        }
-
-        async function startMicStream() {
-            try {
-                return await navigator.mediaDevices.getUserMedia({
-                    video: false,
-                    audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
-                });
-            } catch(e) {
-                streamStatusEl.innerText = "Izin mikrofon ditolak.";
-                return null;
-            }
-        }
-
-        function toggleSignalGenerator() {
-            const select = document.getElementById('test-signal-type');
-            const type = select.value;
-            const btn = document.getElementById('gen-toggle-btn');
-
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-
-            if (isGeneratorInjecting) {
-                if (generatorNode) {
-                    generatorNode.stop();
-                    generatorNode.disconnect();
-                    generatorNode = null;
-                }
-                isGeneratorInjecting = false;
-                btn.className = "action-toggle-btn";
-                btn.innerText = "INJECT";
-                streamStatusEl.innerText = "Signal generator dihentikan.";
-                return;
-            }
-
-            if (type === 'off') {
-                alert("Pilih tipe gelombang sinyal terlebih dahulu!");
-                return;
-            }
-
-            if (type === 'sine') {
-                generatorNode = audioCtx.createOscillator();
-                generatorNode.type = 'sine';
-                generatorNode.frequency.setValueAtTime(1000, audioCtx.currentTime);
-            } else if (type === 'white' || type === 'pink') {
-                let bufferSize = 2 * audioCtx.sampleRate,
-                    noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate),
-                    output = noiseBuffer.getChannelData(0);
-                
-                let b0, b1, b2, b3, b4, b5, b6;
-                b0 = b1 = b2 = b3 = b4 = b5 = b6 = 0.0;
-
-                for (let i = 0; i < bufferSize; i++) {
-                    let white = Math.random() * 2 - 1;
-                    if (type === 'pink') {
-                        b0 = 0.99886 * b0 + white * 0.0555179;
-                        b1 = 0.99332 * b1 + white * 0.0750759;
-                        b2 = 0.96900 * b2 + white * 0.1538520;
-                        b3 = 0.86650 * b3 + white * 0.3104856;
-                        b4 = 0.55000 * b4 + white * 0.5329522;
-                        b5 = -0.7616 * b5 - white * 0.0168980;
-                        output[i] = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362;
-                        output[i] *= 0.11; 
-                        b6 = white * 0.115926;
-                    } else {
-                        output[i] = white * 0.4;
-                    }
-                }
-                generatorNode = audioCtx.createBufferSource();
-                generatorNode.buffer = noiseBuffer;
-                generatorNode.loop = true;
-            }
-
-            if (!isEngineBuilt) {
-                streamNode = generatorNode; 
-                buildDiscreteEngine();
-            } else {
-                generatorNode.connect(masterHardwareGainNode);
-            }
-
-            generatorNode.start();
-            isGeneratorInjecting = true;
-            btn.className = "action-toggle-btn l-active";
-            btn.innerText = "INJECTING";
-            streamStatusEl.innerText = `Menyuntikkan Sinyal Uji: ${type.toUpperCase()} langsung ke DSP Matrix Cores...`;
-        }
-
-        function triggerGlobalPanicMute() {
-            globalPanicState = !globalPanicState;
-            const btn = document.getElementById('global-panic-btn');
-            const txt = document.getElementById('panic-status-text');
-
-            if(globalPanicState) {
-                btn.classList.add('activated');
-                txt.innerText = "SYSTEM MUTED";
-                if(isEngineBuilt) {
-                    gainL.gain.setTargetAtTime(0, audioCtx.currentTime, 0.005);
-                    gainR.gain.setTargetAtTime(0, audioCtx.currentTime, 0.005);
-                }
-            } else {
-                btn.classList.remove('activated');
-                txt.innerText = "MUTE SYSTEM";
-                if(isEngineBuilt) {
-                    let sldGainL = parseFloat(document.getElementById('gain-slider-l').value) / 100;
-                    let sldGainR = parseFloat(document.getElementById('gain-slider-r').value) / 100;
-                    gainL.gain.setTargetAtTime(sldGainL, audioCtx.currentTime, 0.02);
-                    gainR.gain.setTargetAtTime(sldGainR, audioCtx.currentTime, 0.02);
-                }
-            }
-        }
-
-        /* --- MASTER HARDWARE INTERACTIVE CORES FUNCTION --- */
-        function adjustMasterHardwareGain(value) {
-            let dbValue = Math.round((value / 100 - 1) * 24);
-            document.getElementById('master-vol-txt').innerText = value == 100 ? "0dB" : dbValue + "dB";
-            if(isEngineBuilt && masterHardwareGainNode && !isMasterHardwareMuted) {
-                masterHardwareGainNode.gain.setTargetAtTime(value / 100, audioCtx.currentTime, 0.01);
-            }
-        }
-
-        function toggleMasterHardwareMute() {
-            isMasterHardwareMuted = !isMasterHardwareMuted;
-            const btn = document.getElementById('master-mute-trigger');
-            const card = document.getElementById('card-master-mixer');
-
-            if(isMasterHardwareMuted) {
-                btn.classList.add('muted-active');
-                btn.innerText = "MUTED";
-                card.style.background = "linear-gradient(145deg, #220511, #0a0104)";
-                if(isEngineBuilt && masterHardwareGainNode) {
-                    masterHardwareGainNode.gain.setTargetAtTime(0.0, audioCtx.currentTime, 0.002);
-                }
-            } else {
-                btn.classList.remove('muted-active');
-                btn.innerText = "MASTER MUTE";
-                card.style.background = "linear-gradient(145deg, #130722, #07020d)";
-                if(isEngineBuilt && masterHardwareGainNode) {
-                    let lastVol = parseFloat(document.getElementById('master-gain-slider').value) / 100;
-                    masterHardwareGainNode.gain.setTargetAtTime(lastVol, audioCtx.currentTime, 0.02);
-                }
-            }
-        }
-
-        function updateCompressorSettings() {
-            let thresh = parseFloat(document.getElementById('comp-threshold').value);
-            let ratio = parseFloat(document.getElementById('comp-ratio').value);
-            
-            document.getElementById('comp-thresh-txt').innerText = thresh + " dB";
-            document.getElementById('comp-ratio-txt').innerText = ratio + ":1";
-
-            if(isEngineBuilt && globalVoiceCompressorNode && !isCompressorBypassed) {
-                globalVoiceCompressorNode.threshold.setValueAtTime(thresh, audioCtx.currentTime);
-                globalVoiceCompressorNode.ratio.setValueAtTime(ratio, audioCtx.currentTime);
-            }
-        }
-
-        function toggleCompressorBypass() {
-            isCompressorBypassed = !isCompressorBypassed;
-            const btn = document.getElementById('comp-bypass-btn');
-            
-            if(isCompressorBypassed) {
-                btn.className = "action-toggle-btn";
-                btn.innerText = "COMPRESSOR BYPASS";
-                if(isEngineBuilt && globalVoiceCompressorNode) {
-                    globalVoiceCompressorNode.threshold.setValueAtTime(0, audioCtx.currentTime);
-                    globalVoiceCompressorNode.ratio.setValueAtTime(1, audioCtx.currentTime);
-                }
-            } else {
-                btn.className = "action-toggle-btn l-active";
-                btn.innerText = "COMPRESSOR ACTIVE";
-                updateCompressorSettings();
-            }
-        }
-
-        function updateRobotEffectSettings() {
-            let freq = parseFloat(document.getElementById('fx-pitch-slider').value);
-            document.getElementById('fx-pitch-txt').innerText = freq + " Hz";
-            if(isEngineBuilt && robotVoiceOsc) {
-                robotVoiceOsc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-            }
-        }
-
-        function toggleRobotEffect() {
-            isRobotEffectActive = !isRobotEffectActive;
-            const btn = document.getElementById('fx-toggle-btn');
-            if(isRobotEffectActive) {
-                btn.style.background = "var(--led-red)";
-                btn.style.borderColor = "#ff5555";
-                btn.innerText = "ROBOT EFFECT ON";
-                // Crossfade ke Ring Modulator
-                if(isEngineBuilt && dryVoiceGain && robotGainNode) {
-                    dryVoiceGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.01);
-                    // Oscillator mengatur gain. Jika kering 0, maka hanya hasil modulasi yang lewat (Ring Mod)
-                }
-            } else {
-                btn.style.background = "rgba(230,126,34,0.1)";
-                btn.style.borderColor = "rgba(230,126,34,0.3)";
-                btn.innerText = "ACTIVATE ROBOT VOICE";
-                // Crossfade balik ke Dry Vocal (bypass)
-                if(isEngineBuilt && dryVoiceGain && robotGainNode) {
-                    dryVoiceGain.gain.setTargetAtTime(1, audioCtx.currentTime, 0.01);
-                }
-            }
-        }
-
-        /* --- OUTPUT DELAY / TIME ALIGNMENT UPDATE --- */
-        function updateOutputDelay(ch) {
-            let msValue = parseFloat(document.getElementById('dly-slider-' + ch).value);
-            document.getElementById('dly-val-' + ch).innerText = msValue.toFixed(1) + " ms";
-            // Hitungan kasar jarak suara: 1 ms ~ 0.34 meter
-            document.getElementById('dly-dist-' + ch).innerText = (msValue * 0.34).toFixed(1) + "m";
-            
-            if(isEngineBuilt) {
-                let delayNode = (ch === 'l') ? outDelayNodeL : outDelayNodeR;
-                delayNode.delayTime.setTargetAtTime(msValue / 1000.0, audioCtx.currentTime, 0.01);
-            }
-        }
-
-        /* --- BUILD CORE HARDWARE ENGINE GRAPH --- */
-        function buildDiscreteEngine() {
-            // Master Hardware Gain
-            masterHardwareGainNode = audioCtx.createGain();
-            masterHardwareGainNode.gain.setValueAtTime(parseFloat(document.getElementById('master-gain-slider').value) / 100, audioCtx.currentTime);
-
-            // True Independent Split Arsitektur Vokal (Hanya jika Input Type adalah Live/Mic/Capture)
-            globalVoiceCompressorNode = audioCtx.createDynamicsCompressor();
-            globalVoiceCompressorNode.knee.setValueAtTime(12, audioCtx.currentTime);
-            globalVoiceCompressorNode.attack.setValueAtTime(0.003, audioCtx.currentTime);
-            globalVoiceCompressorNode.release.setValueAtTime(0.08, audioCtx.currentTime);
-            
-            // IMPLEMENTASI RING MODULATOR (TRUE ROBOT/DALEK VOICE)
-            robotVoiceOsc = audioCtx.createOscillator();
-            robotVoiceOsc.type = 'sawtooth';
-            robotVoiceOsc.frequency.setValueAtTime(parseFloat(document.getElementById('fx-pitch-slider').value), audioCtx.currentTime);
-            robotVoiceOsc.start();
-
-            robotGainNode = audioCtx.createGain();
-            robotGainNode.gain.setValueAtTime(0, audioCtx.currentTime); // Akan dimodulasi oleh Osc
-            robotVoiceOsc.connect(robotGainNode.gain);
-
-            dryVoiceGain = audioCtx.createGain();
-            dryVoiceGain.gain.setValueAtTime(1, audioCtx.currentTime); // Default Dry Active
-
-            // Routing Input
-            if(activeInputType === 'live') {
-                streamNode.connect(globalVoiceCompressorNode);
-                
-                // Pemisahan ke bypass dan proses efek robot
-                globalVoiceCompressorNode.connect(dryVoiceGain);
-                globalVoiceCompressorNode.connect(robotGainNode);
-                
-                // Keduanya dikirim ke master engine
-                dryVoiceGain.connect(masterHardwareGainNode);
-                robotGainNode.connect(masterHardwareGainNode);
-            } else {
-                // Jalur Musik Murni / Generator: Lewati Efek Vokal
-                streamNode.connect(masterHardwareGainNode);
-            }
-
-            splitterNode = audioCtx.createChannelSplitter(2);
-            mergerNode = audioCtx.createChannelMerger(2);
-
-            analyserL = audioCtx.createAnalyser(); analyserL.fftSize = 256;
-            analyserR = audioCtx.createAnalyser(); analyserR.fftSize = 256;
-            bufferLength = analyserL.frequencyBinCount;
-            dataArrayL = new Uint8Array(bufferLength);
-            dataArrayR = new Uint8Array(bufferLength);
-
-            const coreStages = ['core', 'turbo', 'hpf', 'lpf', 'slope', 'peq', 'deq', 'phase', 'gain', 'harmonic', 'sultan', 'vocal', 'echo', 'limiter', 'sublimit', 'antipop', 'syscombine'];
-            coreStages.forEach(stage => {
-                muteNodesL[stage] = audioCtx.createGain(); muteNodesL[stage].gain.setValueAtTime(1.0, audioCtx.currentTime);
-                muteNodesR[stage] = audioCtx.createGain(); muteNodesR[stage].gain.setValueAtTime(1.0, audioCtx.currentTime);
-            });
-
-            for(let i=0; i<4; i++){
-                let hL = audioCtx.createBiquadFilter(); hL.type = "highpass"; hpfLNodes.push(hL);
-                let lL = audioCtx.createBiquadFilter(); lL.type = "lowpass";  lpfLNodes.push(lL);
-                let hR = audioCtx.createBiquadFilter(); hR.type = "highpass"; hpfRNodes.push(hR);
-                let lR = audioCtx.createBiquadFilter(); lR.type = "lowpass";  lpfRNodes.push(lR);
-            }
-
-            peqLML = audioCtx.createBiquadFilter(); peqLML.type = "peaking"; peqLML.frequency.value = 250;  peqLML.gain.value = 0; peqLML.Q.value = 1.2;
-            peqMVL = audioCtx.createBiquadFilter(); peqMVL.type = "peaking"; peqMVL.frequency.value = 2200; peqMVL.gain.value = 0; peqMVL.Q.value = 1.5;
-            peqHTL = audioCtx.createBiquadFilter(); peqHTL.type = "peaking"; peqHTL.frequency.value = 8500; peqHTL.gain.value = 0; peqHTL.Q.value = 1.0;
-
-            peqLMR = audioCtx.createBiquadFilter(); peqLMR.type = "peaking"; peqLMR.frequency.value = 250;  peqLMR.gain.value = 0; peqLMR.Q.value = 1.2;
-            peqMVR = audioCtx.createBiquadFilter(); peqMVR.type = "peaking"; peqMVR.frequency.value = 2200; peqMVR.gain.value = 0; peqMVR.Q.value = 1.5;
-            peqHTR = audioCtx.createBiquadFilter(); peqHTR.type = "peaking"; peqHTR.frequency.value = 8500; peqHTR.gain.value = 0; peqHTR.Q.value = 1.0;
-
-            deqFilterL = audioCtx.createBiquadFilter(); deqFilterL.type = "peaking"; deqFilterL.frequency.value = 60; deqFilterL.Q.value = 2.0; deqFilterL.gain.value = 0;
-            deqFilterR = audioCtx.createBiquadFilter(); deqFilterR.type = "peaking"; deqFilterR.frequency.value = 60; deqFilterR.Q.value = 2.0; deqFilterR.gain.value = 0;
-
-            sultanL = audioCtx.createBiquadFilter(); sultanL.type = "lowshelf"; sultanL.frequency.value = 85; sultanL.gain.value = 0;
-            vocalL = audioCtx.createBiquadFilter(); vocalL.type = "peaking"; vocalL.frequency.value = 2200; vocalL.gain.value = 0; vocalL.Q.value = 1.5;
-            harmonicL = audioCtx.createBiquadFilter(); harmonicL.type = "highshelf"; harmonicL.frequency.value = 12000; harmonicL.gain.value = 0;
-            
-            sultanR = audioCtx.createBiquadFilter(); sultanR.type = "lowshelf"; sultanR.frequency.value = 85; sultanR.gain.value = 0;
-            vocalR = audioCtx.createBiquadFilter(); vocalR.type = "peaking"; vocalR.frequency.value = 2200; vocalR.gain.value = 0; vocalR.Q.value = 1.5;
-            harmonicR = audioCtx.createBiquadFilter(); harmonicR.type = "highshelf"; harmonicR.frequency.value = 12000; harmonicR.gain.value = 0;
-
-            phaseL = audioCtx.createWaveShaper(); phaseL.curve = makePhaseCurve(false); 
-            phaseR = audioCtx.createWaveShaper(); phaseR.curve = makePhaseCurve(false);
-
-            limiterL = audioCtx.createDynamicsCompressor();
-            limiterR = audioCtx.createDynamicsCompressor();
-            configureLimiterHardware(limiterL, parseFloat(document.getElementById('limit-thres-l').value));
-            configureLimiterHardware(limiterR, parseFloat(document.getElementById('limit-thres-r').value));
-
-            antiPopL = audioCtx.createGain(); antiPopL.gain.value = 1.0;
-            gainL = audioCtx.createGain(); gainL.gain.value = parseFloat(document.getElementById('gain-slider-l').value) / 100;
-
-            antiPopR = audioCtx.createGain(); antiPopR.gain.value = 1.0;
-            gainR = audioCtx.createGain(); gainR.gain.value = parseFloat(document.getElementById('gain-slider-r').value) / 100;
-
-            delayL1 = audioCtx.createDelay(1.0); delayL1.delayTime.value = 0.35; 
-            delayL2 = audioCtx.createDelay(1.0); delayL2.delayTime.value = 0.48; 
-            feedbackL1 = audioCtx.createGain(); feedbackL1.gain.value = 0.0;
-            feedbackL2 = audioCtx.createGain(); feedbackL2.gain.value = 0.0;
-            filterL = audioCtx.createBiquadFilter(); filterL.type = "lowpass"; filterL.frequency.value = 3000; 
-            wetGainL = audioCtx.createGain(); wetGainL.gain.value = 0.0;
-
-            delayR1 = audioCtx.createDelay(1.0); delayR1.delayTime.value = 0.38; 
-            delayR2 = audioCtx.createDelay(1.0); delayR2.delayTime.value = 0.52; 
-            feedbackR1 = audioCtx.createGain(); feedbackR1.gain.value = 0.0;
-            feedbackR2 = audioCtx.createGain(); feedbackR2.gain.value = 0.0;
-            filterR = audioCtx.createBiquadFilter(); filterR.type = "lowpass"; filterR.frequency.value = 3000; 
-            wetGainR = audioCtx.createGain(); wetGainR.gain.value = 0.0;
-
-            // INIT OUTPUT DELAY NODES
-            outDelayNodeL = audioCtx.createDelay(1.0); outDelayNodeL.delayTime.value = parseFloat(document.getElementById('dly-slider-l').value) / 1000.0;
-            outDelayNodeR = audioCtx.createDelay(1.0); outDelayNodeR.delayTime.value = parseFloat(document.getElementById('dly-slider-r').value) / 1000.0;
-
-            vocalL.connect(delayL1); delayL1.connect(feedbackL1); feedbackL1.connect(delayL2); delayL2.connect(feedbackL2); feedbackL2.connect(filterL); filterL.connect(delayL1); filterL.connect(wetGainL);
-            vocalR.connect(delayR1); delayR1.connect(feedbackR1); feedbackR1.connect(delayR2); delayR2.connect(feedbackR2); feedbackR2.connect(filterR); filterR.connect(delayR1); filterR.connect(wetGainR);
-
-            refreshFilterFrequencies('l');
-            refreshFilterFrequencies('r');
-
-            // Connect Master Control Node to Processing Core Matrix Splitter
-            masterHardwareGainNode.connect(splitterNode);
-
-            // ---------------- CHAIN CH L ----------------
-            splitterNode.connect(muteNodesL['core'], 0);
-            
-            muteNodesL['core'].connect(hpfLNodes[0]);
-            for(let i=0; i<3; i++) hpfLNodes[i].connect(hpfLNodes[i+1]);
-            hpfLNodes[3].connect(muteNodesL['hpf']);
-            
-            muteNodesL['hpf'].connect(lpfLNodes[0]);
-            for(let i=0; i<3; i++) lpfLNodes[i].connect(lpfLNodes[i+1]);
-            lpfLNodes[3].connect(muteNodesL['lpf']);
-            
-            muteNodesL['lpf'].connect(muteNodesL['slope']);
-            muteNodesL['slope'].connect(peqLML);
-            
-            peqLML.connect(peqMVL);
-            peqMVL.connect(peqHTL);
-            peqHTL.connect(muteNodesL['peq']);
-            
-            muteNodesL['peq'].connect(deqFilterL);
-            deqFilterL.connect(muteNodesL['deq']);
-            
-            muteNodesL['deq'].connect(sultanL);
-            sultanL.connect(muteNodesL['sultan']);
-            
-            muteNodesL['sultan'].connect(vocalL);
-            vocalL.connect(muteNodesL['vocal']);
-            
-            muteNodesL['vocal'].connect(harmonicL);
-            wetGainL.connect(harmonicL);
-            
-            harmonicL.connect(muteNodesL['harmonic']);
-            muteNodesL['harmonic'].connect(muteNodesL['turbo']);
-            
-            muteNodesL['turbo'].connect(muteNodesL['echo']);
-            muteNodesL['echo'].connect(phaseL);
-            
-            phaseL.connect(muteNodesL['phase']);
-            muteNodesL['phase'].connect(limiterL);
-            
-            limiterL.connect(muteNodesL['limiter']);
-            muteNodesL['limiter'].connect(muteNodesL['sublimit']);
-            
-            muteNodesL['sublimit'].connect(antiPopL);
-            antiPopL.connect(muteNodesL['antipop']);
-            
-            muteNodesL['antipop'].connect(gainL);
-            
-            // FINAL TIME ALIGNMENT CH L
-            gainL.connect(outDelayNodeL);
-            outDelayNodeL.connect(muteNodesL['syscombine']);
-            
-            muteNodesL['syscombine'].connect(analyserL);
-            analyserL.connect(mergerNode, 0, 0);
-
-            // ---------------- CHAIN CH R ----------------
-            let inputChannelIndex = (masterHardwareGainNode.channelCount > 1) ? 1 : 0;
-            splitterNode.connect(muteNodesR['core'], inputChannelIndex);
-            
-            muteNodesR['core'].connect(hpfRNodes[0]);
-            for(let i=0; i<3; i++) hpfRNodes[i].connect(hpfRNodes[i+1]);
-            hpfRNodes[3].connect(muteNodesR['hpf']);
-            
-            muteNodesR['hpf'].connect(lpfRNodes[0]);
-            for(let i=0; i<3; i++) lpfRNodes[i].connect(lpfRNodes[i+1]);
-            lpfRNodes[3].connect(muteNodesR['lpf']);
-            
-            muteNodesR['lpf'].connect(muteNodesR['slope']);
-            muteNodesR['slope'].connect(peqLMR);
-            
-            peqLMR.connect(peqMVR);
-            peqMVR.connect(peqHTR);
-            peqHTR.connect(muteNodesR['peq']);
-            
-            muteNodesR['peq'].connect(deqFilterR);
-            deqFilterR.connect(muteNodesR['deq']);
-            
-            muteNodesR['deq'].connect(sultanR);
-            sultanR.connect(muteNodesR['sultan']);
-            
-            muteNodesR['sultan'].connect(vocalR);
-            vocalR.connect(muteNodesR['vocal']);
-            
-            vocalR.connect(harmonicR);
-            wetGainR.connect(harmonicR);
-            
-            harmonicR.connect(muteNodesR['harmonic']);
-            muteNodesR['harmonic'].connect(muteNodesR['turbo']);
-            
-            muteNodesR['turbo'].connect(muteNodesR['echo']);
-            muteNodesR['echo'].connect(phaseR);
-            
-            phaseR.connect(muteNodesR['phase']);
-            muteNodesR['phase'].connect(limiterR);
-            
-            limiterR.connect(muteNodesR['limiter']);
-            muteNodesR['limiter'].connect(muteNodesR['sublimit']);
-            
-            muteNodesR['sublimit'].connect(antiPopR);
-            antiPopR.connect(muteNodesR['antipop']);
-            
-            muteNodesR['antipop'].connect(gainR);
-
-            // FINAL TIME ALIGNMENT CH R
-            gainR.connect(outDelayNodeR);
-            outDelayNodeR.connect(muteNodesR['syscombine']);
-            
-            muteNodesR['syscombine'].connect(analyserR);
-            analyserR.connect(mergerNode, 0, 1);
-
-            mergerNode.connect(audioCtx.destination);
-            isEngineBuilt = true;
-            
-            // Trigger visual update awal
-            updateCompressorSettings();
-            updateRobotEffectSettings();
-            updateOutputDelay('l');
-            updateOutputDelay('r');
-            
-            renderSystemLoop();
-        }
-
-        function configureLimiterHardware(limiter, thresholdValue) {
-            limiter.threshold.setValueAtTime(thresholdValue, audioCtx.currentTime);
-            limiter.knee.setValueAtTime(10, audioCtx.currentTime); 
-            limiter.ratio.setValueAtTime(20, audioCtx.currentTime); 
-            limiter.attack.setValueAtTime(0.001, audioCtx.currentTime); 
-            limiter.release.setValueAtTime(0.15, audioCtx.currentTime); 
-        }
-
-        function makePhaseCurve(invert) {
-            let curve = new Float32Array(2);
-            if (invert) { curve[0] = 1; curve[1] = -1; } 
-            else { curve[0] = -1; curve[1] = 1; }
-            return curve;
-        }
-
-        function refreshFilterFrequencies(ch) {
-            if(!audioCtx || !isEngineBuilt) return;
-            let hpfVal = parseFloat(document.getElementById('hpf-slider-'+ch).value);
-            let lpfVal = parseFloat(document.getElementById('lpf-slider-'+ch).value);
-            document.getElementById('hpf-txt-'+ch).innerText = hpfVal + " Hz";
-            document.getElementById('lpf-txt-'+ch).innerText = (lpfVal/1000).toFixed(1) + " kHz";
-
-            let hNodes = (ch === 'l') ? hpfLNodes : hpfRNodes;
-            let lNodes = (ch === 'l') ? lpfLNodes : lpfRNodes;
-            let slope = channelParams[ch].slope;
-
-            hNodes.forEach((node) => {
-                node.frequency.setValueAtTime(hpfVal, audioCtx.currentTime);
-                if (slope === 'BW12' || slope === 'BS') node.Q.setValueAtTime(0.707, audioCtx.currentTime);
-                else if (slope === 'LR24') node.Q.setValueAtTime(0.707, audioCtx.currentTime); 
-                else node.Q.setValueAtTime(1.2, audioCtx.currentTime); 
-            });
-
-            lNodes.forEach((node) => {
-                node.frequency.setValueAtTime(lpfVal, audioCtx.currentTime);
-                if (slope === 'BW12' || slope === 'BS') node.Q.setValueAtTime(0.707, audioCtx.currentTime);
-                else if (slope === 'LR24') node.Q.setValueAtTime(0.707, audioCtx.currentTime);
-                else node.Q.setValueAtTime(1.2, audioCtx.currentTime);
-            });
-        }
-
-        function updateSlopeFilter(ch) {
-            let select = document.getElementById('slope-select-' + ch);
-            channelParams[ch].slope = select.value;
-            refreshFilterFrequencies(ch);
-        }
-
-        function toggleCoreMute(ch, type) {
-            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-            
-            let isMuted = !coreMuteStates[ch][type];
-            coreMuteStates[ch][type] = isMuted;
-            
-            const btn = document.getElementById(`mute-${type}-${ch}`);
-            if (btn) {
-                if (isMuted) btn.className = "mute-toggle-btn mute-on";
-                else btn.className = "mute-toggle-btn mute-off";
-            }
-
-            if (isEngineBuilt) {
-                let targetNode = (ch === 'l') ? muteNodesL[type] : muteNodesR[type];
-                if (targetNode) {
-                    let gainValue = isMuted ? 0.0 : 1.0;
-                    targetNode.gain.setTargetAtTime(gainValue, audioCtx.currentTime, 0.01);
-                }
-            }
-        }
-
-        function attachPeqListeners(id, node, param) {
-            const el = document.getElementById(id);
-            if(el) {
-                el.addEventListener('input', function() {
-                    if(!isEngineBuilt) return;
-                    if(param === 'g') node.gain.setValueAtTime(parseFloat(this.value), audioCtx.currentTime);
-                    if(param === 'q') node.Q.setValueAtTime(parseFloat(this.value), audioCtx.currentTime);
-                });
-            }
-        }
-        
-        attachPeqListeners('peq-lm-g-l', peqLML, 'g'); attachPeqListeners('peq-lm-q-l', peqLML, 'q');
-        attachPeqListeners('peq-mv-g-l', peqMVL, 'g'); attachPeqListeners('peq-mv-q-l', peqMVL, 'q');
-        attachPeqListeners('peq-ht-g-l', peqHTL, 'g'); attachPeqListeners('peq-ht-q-l', peqHTL, 'q');
-        attachPeqListeners('peq-lm-g-r', peqLMR, 'g'); attachPeqListeners('peq-lm-q-r', peqLMR, 'q');
-        attachPeqListeners('peq-mv-g-r', peqMVR, 'g'); attachPeqListeners('peq-mv-q-r', peqMVR, 'q');
-        attachPeqListeners('peq-ht-g-r', peqHTR, 'g'); attachPeqListeners('peq-ht-q-r', peqHTR, 'q');
-
-        document.getElementById('hpf-slider-l').addEventListener('input', function() { refreshFilterFrequencies('l'); });
-        document.getElementById('lpf-slider-l').addEventListener('input', function() { refreshFilterFrequencies('l'); });
-        document.getElementById('hpf-slider-r').addEventListener('input', function() { refreshFilterFrequencies('r'); });
-        document.getElementById('lpf-slider-r').addEventListener('input', function() { refreshFilterFrequencies('r'); });
-
-        document.getElementById('gain-slider-l').addEventListener('input', function() { 
-            if(gainL && channelParams.l.core && !globalPanicState) gainL.gain.setValueAtTime(parseFloat(this.value)/100, audioCtx.currentTime); 
-        });
-        document.getElementById('gain-slider-r').addEventListener('input', function() { 
-            if(gainR && channelParams.r.core && !globalPanicState) gainR.gain.setValueAtTime(parseFloat(this.value)/100, audioCtx.currentTime); 
-        });
-
-        document.getElementById('limit-thres-l').addEventListener('input', function() {
-            if(limiterL) limiterL.threshold.setValueAtTime(parseFloat(this.value), audioCtx.currentTime);
-        });
-        document.getElementById('limit-thres-r').addEventListener('input', function() {
-            if(limiterR) limiterR.threshold.setValueAtTime(parseFloat(this.value), audioCtx.currentTime);
-        });
-
-        document.getElementById('sub-limit-slider-l').addEventListener('input', function() {
-            if(!isEngineBuilt) return;
-            let val = parseFloat(this.value) / 100;
-            limiterL.ratio.setValueAtTime(4 + (16 * (1 - val)), audioCtx.currentTime); 
-        });
-        document.getElementById('sub-limit-slider-r').addEventListener('input', function() {
-            if(!isEngineBuilt) return;
-            let val = parseFloat(this.value) / 100;
-            limiterR.ratio.setValueAtTime(4 + (16 * (1 - val)), audioCtx.currentTime);
-        });
-
-        function toggleDualMatrix(btn, ch, type) {
-            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-            let isActive = btn.classList.contains('l-active') || btn.classList.contains('r-active');
-            const card = document.getElementById('card-' + type);
-            
-            if(isActive) {
-                btn.className = "action-toggle-btn";
-                channelParams[ch][type] = false;
-                if (type === 'phase') btn.innerText = "0 DEG (NORM)";
-                else if (type === 'core') btn.innerText = "CORE OFF";
-                else if (type === 'turbo') btn.innerText = "BOOST OFF";
-                else if (type === 'harmonic') btn.innerText = "XTREME OFF";
-                else if (type === 'sultan') btn.innerText = ch.toUpperCase() + "-OFF";
-                else if (type === 'vocal') btn.innerText = "BOOST OFF";
-                else if (type === 'echo') btn.innerText = "PSRAM OFF";
-                else if (type === 'limiter') btn.innerText = "BYPASS";
-                else if (type === 'antipop') btn.innerText = "UNSECURE";
-                else if (type === 'syscombine') btn.innerText = "STANDALONE";
-                else if (type === 'deq') btn.innerText = "DEQ " + ch.toUpperCase() + " OFF";
-            } else {
-                btn.classList.add(ch === 'l' ? 'l-active' : 'r-active');
-                channelParams[ch][type] = true;
-                if (type === 'phase') btn.innerText = "180 DEG (REV)";
-                else if (type === 'core') btn.innerText = "CORE " + ch.toUpperCase() + " ON";
-                else if (type === 'turbo') btn.innerText = "MAX BOOST";
-                else if (type === 'harmonic') btn.innerText = "XTREME ON";
-                else if (type === 'sultan') btn.innerText = "SULTAN ON";
-                else if (type === 'vocal') btn.innerText = "VOCAL ACT";
-                else if (type === 'echo') btn.innerText = "PSRAM ECHO";
-                else if (type === 'limiter') btn.innerText = "GUARDING";
-                else if (type === 'antipop') btn.innerText = "SECURE ON";
-                else if (type === 'syscombine') btn.innerText = "COMBINE " + ch.toUpperCase();
-                else if (type === 'deq') btn.innerText = "DEQ " + ch.toUpperCase() + " ACTIVE";
-            }
-
-            if(card) {
-                if(channelParams.l[type] || channelParams.r[type]) card.classList.add('active');
-                else card.classList.remove('active');
-            }
-
-            if(isEngineBuilt) {
-                let nSultan = (ch === 'l') ? sultanL : sultanR; let nVocal = (ch === 'l') ? vocalL : vocalR;
-                let nHarmonic = (ch === 'l') ? harmonicL : harmonicR; let nGain = (ch === 'l') ? gainL : gainR;
-                let nPhase = (ch === 'l') ? phaseL : phaseR; let nLimit = (ch === 'l') ? limiterL : limiterR;
-                let nPop = (ch === 'l') ? antiPopL : antiPopR;
-                let wNode = (ch === 'l') ? wetGainL : wetGainR;
-                let fb1 = (ch === 'l') ? feedbackL1 : feedbackR1; let fb2 = (ch === 'l') ? feedbackL2 : feedbackR2;
-
-                if(type === 'turbo') {
-                    nHarmonic.frequency.setValueAtTime(channelParams[ch].turbo ? 10000 : 12000, audioCtx.currentTime);
-                }
-                if(channelParams[ch].echo) {
-                    wNode.gain.setValueAtTime(0.60, audioCtx.currentTime); fb1.gain.setValueAtTime(0.65, audioCtx.currentTime); fb2.gain.setValueAtTime(0.50, audioCtx.currentTime);
-                } else {
-                    wNode.gain.setValueAtTime(0, audioCtx.currentTime); fb1.gain.setValueAtTime(0, audioCtx.currentTime); fb2.gain.setValueAtTime(0, audioCtx.currentTime);
-                }
-
-                nSultan.gain.setValueAtTime(channelParams[ch].sultan ? 18 : 0, audioCtx.currentTime);
-                nVocal.gain.setValueAtTime(channelParams[ch].vocal ? 10 : 0, audioCtx.currentTime);
-                nHarmonic.gain.setValueAtTime(channelParams[ch].harmonic ? 8 : 0, audioCtx.currentTime);
-                if(type === 'phase') nPhase.curve = makePhaseCurve(channelParams[ch].phase);
-                
-                if(type === 'limiter') {
-                    nLimit.ratio.setValueAtTime(channelParams[ch].limiter ? 20 : 1.0, audioCtx.currentTime);
-                }
-                if(type === 'antipop') {
-                    nPop.gain.setValueAtTime(channelParams[ch].antipop ? 1.0 : 0.85, audioCtx.currentTime);
-                }
-                if((type === 'syscombine' || type === 'core') && !globalPanicState) {
-                    if(!channelParams[ch].core) { nGain.gain.setValueAtTime(0, audioCtx.currentTime); } 
-                    else if(!channelParams[ch].syscombine) { nGain.gain.setValueAtTime(0.2, audioCtx.currentTime); } 
-                    else {
-                        let sldGain = parseFloat(document.getElementById('gain-slider-' + ch).value) / 100;
-                        nGain.gain.setValueAtTime(sldGain, audioCtx.currentTime);
-                    }
-                }
-            }
-        }
-
-        function renderSystemLoop() {
-            if (!isEngineBuilt) return;
-            requestAnimationFrame(renderSystemLoop);
-
-            analyserL.getByteFrequencyData(dataArrayL);
-            analyserR.getByteFrequencyData(dataArrayR);
-            
-            ctxL.clearRect(0, 0, canvasL.width, canvasL.height);
-            ctxR.clearRect(0, 0, canvasR.width, canvasR.height);
-            
-            let bL = 0, bR = 0, mL = 0, mR = 0, tL = 0, tR = 0, allL = 0, allR = 0;
-
-            for(let i = 0; i < bufferLength; i++) {
-                allL += dataArrayL[i]; allR += dataArrayR[i];
-                if(i < 8) { bL += dataArrayL[i]; bR += dataArrayR[i]; }
-                else if(i < 40) { mL += dataArrayL[i]; mR += dataArrayR[i]; }
-                else { tL += dataArrayL[i]; tR += dataArrayR[i]; }
-            }
-
-            let avgL = allL / bufferLength; let avgR = allR / bufferLength;
-            bL /= 8; bR /= 8; mL /= 32; mR /= 32; tL /= (bufferLength-40); tR /= (bufferLength-40);
-
-            processDynamicEqLogic('l', bL, deqFilterL);
-            processDynamicEqLogic('r', bR, deqFilterR);
-
-            drawIndividualGraph(ctxL, canvasL, dataArrayL, '#9b51e0', 'l', deqCurrentGainL);
-            drawIndividualGraph(ctxR, canvasR, dataArrayR, '#00e5ff', 'r', deqCurrentGainR);
-
-            let reductionL = 0, reductionR = 0;
-            if(limiterL && typeof limiterL.reduction === 'number') reductionL = limiterL.reduction; 
-            else if (limiterL && limiterL.reduction && typeof limiterL.reduction.value === 'number') reductionL = limiterL.reduction.value;
-            
-            if(limiterR && typeof limiterR.reduction === 'number') reductionR = limiterR.reduction;
-            else if (limiterR && limiterR.reduction && typeof limiterR.reduction.value === 'number') reductionR = limiterR.reduction.value;
-
-            processLedLimitVisuals('l', reductionL);
-            processLedLimitVisuals('r', reductionR);
-
-            let lvL = Math.min(19, Math.floor((avgL / 120) * 19));
-            let lvR = Math.min(19, Math.floor((avgR / 120) * 19));
-            renderMainVUBars('vu-left', lvL);
-            renderMainVUBars('vu-right', lvR);
-
-            renderGRBars('gr-left', reductionL);
-            renderGRBars('gr-right', reductionR);
-
-            processDualMatrixUV(bL, bR, mL, mR, tL, tR, avgL, avgR);
-        }
-
-        function processDynamicEqLogic(ch, bassLevel, deqNode) {
-            if(!channelParams[ch].deq) {
-                deqNode.gain.setValueAtTime(0, audioCtx.currentTime);
-                if(ch === 'l') deqCurrentGainL = 0; else deqCurrentGainR = 0;
-                return;
-            }
-            let targetGain = 0;
-            if(bassLevel < 45) targetGain = 10; 
-            else if(bassLevel < 90) targetGain = 12 * (1 - (bassLevel - 45) / 45); 
-            else targetGain = -8; 
-            
-            if(ch === 'l') {
-                deqCurrentGainL += (targetGain - deqCurrentGainL) * 0.15;
-                deqNode.gain.setValueAtTime(deqCurrentGainL, audioCtx.currentTime);
-            } else {
-                deqCurrentGainR += (targetGain - deqCurrentGainR) * 0.15;
-                deqNode.gain.setValueAtTime(deqCurrentGainR, audioCtx.currentTime);
-            }
-        }
-
-        function processLedLimitVisuals(ch, reductionVal) {
-            const led = document.getElementById('led-limit-' + ch);
-            if(reductionVal < 0 && channelParams[ch].limiter) led.classList.add('active-limit');
-            else led.classList.remove('active-limit');
-        }
-
-        function drawIndividualGraph(ctx, cnv, data, color, ch, activeDeqGain) {
-            const w = cnv.width; const h = cnv.height;
-            let barWidth = w / bufferLength;
-            
-            for(let i = 0; i < bufferLength; i++) {
-                let barHeight = (data[i] / 255) * h * 0.82;
-                ctx.fillStyle = color === '#9b51e0' ? 'rgba(155, 81, 224, 0.25)' : 'rgba(0, 229, 255, 0.25)';
-                ctx.fillRect(i * barWidth, h - barHeight, barWidth - 1, barHeight);
-            }
-
-            let hpfVal = document.getElementById('hpf-slider-' + ch).value;
-            let lpfVal = document.getElementById('lpf-slider-' + ch).value;
-            let slope = channelParams[ch].slope;
-
-            let cutOffX_HPF = ((parseInt(hpfVal) - 20) / 380) * (w * 0.35) + 10;
-            let cutOffX_LPF = w - ((20000 - parseInt(lpfVal)) / 18000) * (w * 0.45) - 10;
-
-            ctx.beginPath(); 
-            if(slope === 'LR48' || slope === 'BW24') ctx.lineWidth = 3.5;
-            else if(slope === 'BS') ctx.lineWidth = 1.0;
-            else ctx.lineWidth = 2.0;
-            
-            ctx.strokeStyle = '#ffffff';
-            ctx.moveTo(0, h - 4);
-
-            let bassCurveY = (h - 25) - (activeDeqGain * 2);
-            ctx.lineTo(cutOffX_HPF * 0.3, h - 4);
-            ctx.quadraticCurveTo(cutOffX_HPF * 0.7, h - 4, cutOffX_HPF, bassCurveY);
-            
-            let midX = (cutOffX_HPF + cutOffX_LPF) / 2;
-            ctx.lineTo(midX, bassCurveY + 5);
-            ctx.lineTo(cutOffX_LPF, 20);
-            
-            if(slope === 'LR48') ctx.quadraticCurveTo((w + cutOffX_LPF) * 0.5, h, w, h - 2); 
-            else ctx.quadraticCurveTo((w + cutOffX_LPF) * 0.5, h - 4, w, h - 4);
-            ctx.stroke();
-
-            ctx.fillStyle = '#2ecc71'; ctx.beginPath(); ctx.arc(cutOffX_HPF, bassCurveY, 4, 0, 2*Math.PI); ctx.fill();
-            ctx.fillStyle = '#e74c3c'; ctx.beginPath(); ctx.arc(cutOffX_LPF, 20, 4, 0, 2*Math.PI); ctx.fill();
-        }
-
-        function renderMainVUBars(id, count) {
-            const el = document.getElementById(id);
-            const segs = el.getElementsByClassName('vu-segment');
-            for(let i = 1; i < segs.length; i++) {
-                segs[i].className = 'vu-segment';
-                if((i - 1) < count) {
-                    if(i < 13) segs[i].classList.add('green-on');
-                    else if(i < 18) segs[i].classList.add('yellow-on');
-                    else segs[i].classList.add('red-on');
-                }
-            }
-        }
-
-        function renderGRBars(id, reductionDb) {
-            const el = document.getElementById(id);
-            const segs = el.getElementsByClassName('gr-segment');
-            let absRed = Math.abs(reductionDb);
-            let activeSegmentsCount = Math.min(10, Math.floor(absRed / 2)); 
-
-            for(let i = 0; i < segs.length; i++) {
-                segs[i].className = 'gr-segment';
-                if(i < activeSegmentsCount) segs[i].classList.add('gr-on');
-            }
-        }
-
-        function processDualMatrixUV(bL, bR, mL, mR, tL, tR, aL, aR) {
-            const containers = document.querySelectorAll('.dual-uv-container');
-            containers.forEach(container => {
-                const group = container.getAttribute('data-uv-group');
-                const dotsL = container.querySelector('.uv-l').getElementsByClassName('uv-dot');
-                const dotsR = container.querySelector('.uv-r').getElementsByClassName('uv-dot');
-
-                let targetL = aL, targetR = aR;
-                let muteKey = group; 
-                
-                if(group === 'sultan' || group === 'deq') { targetL = bL; targetR = bR; }
-                else if(group === 'peq' || group === 'vocal' || group === 'slope') { targetL = mL; targetR = mR; }
-                else if(group === 'turbo' || group === 'harmonic') { targetL = tL; targetR = tR; }
-                
-                if (group === 'sultan') muteKey = 'sultan';
-                if (group === 'syscombine') muteKey = 'syscombine';
-
-                let maxSignalDots = dotsL.length - 1; 
-                let litL = Math.floor((targetL / 140) * maxSignalDots);
-                let litR = Math.floor((targetR / 140) * maxSignalDots);
-
-                if (coreMuteStates.l[muteKey]) litL = 0;
-                if (coreMuteStates.r[muteKey]) litR = 0;
-
-                applyDotsColor(dotsL, litL);
-                applyDotsColor(dotsR, litR);
-            });
-        }
-
-        function applyDotsColor(dots, count) {
-            for(let i = 1; i < dots.length; i++) {
-                if((i - 1) < count) {
-                    if(i === dots.length - 1) dots[i].style.backgroundColor = 'var(--led-red)';
-                    else if(i >= dots.length - 2) dots[i].style.backgroundColor = 'var(--led-yellow)';
-                    else dots[i].style.backgroundColor = 'var(--led-green)';
-                } else {
-                    dots[i].style.backgroundColor = '#11071c';
-                }
-            }
-        }
-
-        function checkOtaServer() {
-            alert("Mencari pembaruan patch firmware FR-AUDIO dynamic Server... Sistem Anda versi v300++ OMEGA PRO sudah paling mutakhir!");
-        }
-
-        setInterval(() => {
-            cpuTempEl.innerText = (53.1 + Math.random() * 1.2).toFixed(1) + " °C";
-            voltEl.innerText = (13.6 + Math.random() * 0.2).toFixed(1) + " VDC";
-        }, 2500);
-    </script>
-</body>
-    </html>
-
-<div class="menu-slot-card" id="card-ota">
-                    <div class="slot-header">
-                        <span class="slot-title">sedikit info:
-    admin sungguh minta maaf karena belum bisa Upgrade web ini dan masih banyak bug yang belum terselesaikan, 
-    karena aplikasi memiliki batas waktu yang ditentukan, oleh karena itu update selanjutnya adalah dibulan
-    depan jika di minggu depan sudah bisa admin usahakan untuk update. 
-</body></span>
-                        <span class="slot-index">INFO 1 </span>
-
-                        <div class="menu-slot-card" id="card-ota">
-                    <div class="slot-header">
-                        <span class="slot-title">Ringkasan Status Fitur
-​Fitur Aktif (Kontrol Penuh):
-                            
-​Master & Input: 
-Master Volume, Mute, pemilihan Input Source (YouTube/Mic/File), dan Test Tone Generator berfungsi sebagai kontrol utama.
-​Pemrosesan Audio: Voice Dynamics (Compressor), Ring-Mod, Time Alignment (Delay), serta filter HPF/LPF memiliki slider dan bypass yang siap digunakan.
-​Engine: Toggle untuk Dual-Core dan Turbo berfungsi untuk mengaktifkan modul pemrosesan.
-
-​Fitur Setengah Aktif (Indikator):
-​Monitoring: Indikator suhu CPU, tegangan sistem, dan VU Meters (Visualizer) memberikan data real-time namun bersifat pasif (hanya memantau).
-                            
-​Fitur Belum Aktif:
-​Secara struktur, semua elemen UI sudah tersedia, namun jika ada fungsi yang tidak berjalan, hal tersebut disebabkan oleh logika backend (JavaScript/Firmware) yang belum terhubung sepenuhnya ke elemen-elemen tersebut.
-                            
-​Saran Rekomendasi Penggunaan (Menghindari Bug)
-​Mengingat sistem ini melibatkan pemrosesan audio intensif (seperti DLMS 4-way), berikut adalah strategi agar penggunaan tetap nyaman di tengah adanya bug:
-                            
-​Gunakan PC/Laptop (Mode Desktop):
-​Alasan: Sistem ini membutuhkan respons cepat dan manajemen memori yang stabil untuk real-time audio processing. Browser di PC/Laptop memiliki engine JavaScript yang jauh lebih efisien dalam menangani loop visualizer dan buffer audio dibandingkan perangkat seluler (HP).
-​Tips: Gunakan browser berbasis Chromium (Chrome/Edge/Brave) untuk stabilitas terbaik.
-​Strategi Saat Bug Muncul:
-                            
-​Matikan Visualizer: Jika sistem terasa lag atau stutter, nonaktifkan fungsi visualizer (VU Meters) sementara. Visualizer sering kali memakan beban CPU yang tidak perlu di sisi klien (browser).
-​Gunakan Mode "Passthrough": Jika pemrosesan DLMS (HPF/LPF/Delay) menyebabkan crash, gunakan Bypass pada setiap modul dan lakukan pengaturan crossover secara bertahap satu per satu (jangan aktifkan semua filter secara bersamaan saat pertama kali connect).
-                            
-​Prioritas Koneksi:                           
-​Selalu pastikan koneksi jaringan stabil, terutama saat menggunakan fitur Live YouTube. Buffering pada stream YouTube yang tidak stabil sering kali dianggap sebagai bug pada sistem audio padahal disebabkan oleh latensi bandwidth.
-                            
-​Urutan Aktivasi:
-​Aktivasi fitur dengan urutan: Master Volume (Posisi rendah) \rightarrow Input Source \rightarrow Engine \rightarrow Filter/Dynamics \rightarrow Fine Tuning (Delay). Ini mencegah lonjakan sinyal mendadak yang bisa membuat modul audio hang.</span>
-                        <span class="slot-index">SARAN 1</span>
+   </div><!-- Check Status Button -->
+   <div class="px-4 py-3 border-t border-gray-800 flex justify-center"><button class="btn-ctrl px-6 py-2 text-sm" id="checkStatusBtn" style="font-family:'Orbitron',sans-serif; border-color: var(--accent);">⚡ CHECK STATUS</button>
+    <div id="statusOutput" class="ml-4 text-xs text-gray-400 self-center hidden"></div>
+   </div>
+  </div>
+  <script>
+// Audio Engine
+let ctx, sourceNode, micStream;
+let analyser, compressor, limiter;
+let eqLM, eqMH, eqHF, hpf, lpf;
+let delayNode, delayFb, delayDry, delayWet;
+let pitchDelay1, pitchDelay2, pitchFb1, pitchFb2, pitchDry, pitchWet;
+let outputGain, masterGain;
+let audioBuffer, isPlaying = false;
+let toneOsc, toneGain;
+let animFrame;
+
+const states = {
+  pitch: false, comp: true, eq: true, filter: true, limiterOn: true,
+  delay: false, subHarm: false, dcn: false, fpl: false, hb: false,
+  sr: false, vp: false, sde: false, asw: false, spdl: false, mhe: false,
+  aswPhaseInvert: false
+};
+
+function initAudio() {
+  ctx = new (window.AudioContext || window.webkitAudioContext)();
+
+  analyser = ctx.createAnalyser();
+  analyser.fftSize = 4096;
+
+  // EQ nodes
+  eqLM = ctx.createBiquadFilter(); eqLM.type = 'peaking'; eqLM.frequency.value = 250; eqLM.Q.value = 1; eqLM.gain.value = 0;
+  eqMH = ctx.createBiquadFilter(); eqMH.type = 'peaking'; eqMH.frequency.value = 2500; eqMH.Q.value = 1; eqMH.gain.value = 0;
+  eqHF = ctx.createBiquadFilter(); eqHF.type = 'peaking'; eqHF.frequency.value = 8000; eqHF.Q.value = 1; eqHF.gain.value = 0;
+
+  // HPF/LPF
+  hpf = ctx.createBiquadFilter(); hpf.type = 'highpass'; hpf.frequency.value = 15; hpf.Q.value = 0.707;
+  lpf = ctx.createBiquadFilter(); lpf.type = 'lowpass'; lpf.frequency.value = 44000; lpf.Q.value = 0.707;
+
+  // Compressor - chained before limiter
+  compressor = ctx.createDynamicsCompressor();
+  compressor.threshold.value = -24; compressor.ratio.value = 4;
+  compressor.attack.value = 0.003; compressor.release.value = 0.25;
+
+  // Limiter
+  limiter = ctx.createDynamicsCompressor();
+  limiter.threshold.value = -0.3; limiter.ratio.value = 20;
+  limiter.attack.value = 0.001; limiter.release.value = 0.05;
+
+  // Delay
+  delayNode = ctx.createDelay(5); delayNode.delayTime.value = 0.3;
+  delayFb = ctx.createGain(); delayFb.gain.value = 0.4;
+  delayDry = ctx.createGain(); delayDry.gain.value = 0.7;
+  delayWet = ctx.createGain(); delayWet.gain.value = 0.3;
+
+  // Pitch shifter using rapid modulated delay
+  pitchDelay1 = ctx.createDelay(1); pitchDelay1.delayTime.value = 0.01;
+  pitchDelay2 = ctx.createDelay(1); pitchDelay2.delayTime.value = 0.015;
+  pitchFb1 = ctx.createGain(); pitchFb1.gain.value = 0.3;
+  pitchFb2 = ctx.createGain(); pitchFb2.gain.value = 0.3;
+  pitchDry = ctx.createGain(); pitchDry.gain.value = 0.5;
+  pitchWet = ctx.createGain(); pitchWet.gain.value = 0.5;
+
+  // Output
+  outputGain = ctx.createGain(); outputGain.gain.value = 1;
+  masterGain = ctx.createGain(); masterGain.gain.value = 1;
+
+  // Tone generator
+  toneGain = ctx.createGain(); toneGain.gain.value = 0;
+
+  updateSysInfo();
+  startAnimation();
+}
+
+function buildChain(source) {
+  // Universal routing: source → analyser → pitch → EQ → HPF → LPF → delay → compressor → limiter → output → destination
+  source.connect(analyser);
+
+  // Pitch section (parallel dry/wet)
+  let pitchOut = ctx.createGain();
+  analyser.connect(pitchDry);
+  analyser.connect(pitchDelay1);
+  pitchDelay1.connect(pitchDelay2);
+  pitchDelay2.connect(pitchFb1);
+  pitchFb1.connect(pitchDelay1);
+  pitchDelay2.connect(pitchWet);
+  pitchDry.connect(pitchOut);
+  pitchWet.connect(pitchOut);
+
+  // EQ chain
+  pitchOut.connect(eqLM);
+  eqLM.connect(eqMH);
+  eqMH.connect(eqHF);
+
+  // Filters
+  eqHF.connect(hpf);
+  hpf.connect(lpf);
+
+  // Delay (parallel)
+  let delayOut = ctx.createGain();
+  lpf.connect(delayDry);
+  lpf.connect(delayNode);
+  delayNode.connect(delayFb);
+  delayFb.connect(delayNode);
+  delayNode.connect(delayWet);
+  delayDry.connect(delayOut);
+  delayWet.connect(delayOut);
+
+  // Compressor → Limiter (series chain)
+  delayOut.connect(compressor);
+  compressor.connect(limiter);
+  limiter.connect(outputGain);
+  outputGain.connect(masterGain);
+  masterGain.connect(ctx.destination);
+
+  updatePitchState();
+  updateDelayState();
+}
+
+function disconnectAll() {
+  try {
+    if (sourceNode) { sourceNode.disconnect(); }
+    analyser.disconnect();
+    pitchDry.disconnect(); pitchWet.disconnect();
+    pitchDelay1.disconnect(); pitchDelay2.disconnect(); pitchFb1.disconnect();
+    eqLM.disconnect(); eqMH.disconnect(); eqHF.disconnect();
+    hpf.disconnect(); lpf.disconnect();
+    delayNode.disconnect(); delayFb.disconnect(); delayDry.disconnect(); delayWet.disconnect();
+    compressor.disconnect(); limiter.disconnect();
+    outputGain.disconnect(); masterGain.disconnect();
+  } catch(e){}
+}
+
+function updatePitchState() {
+  if (states.pitch) {
+    pitchDry.gain.value = 1 - (parseInt(document.getElementById('pitchMix').value) / 100);
+    pitchWet.gain.value = parseInt(document.getElementById('pitchMix').value) / 100;
+    pitchFb1.gain.value = parseInt(document.getElementById('pitchFeedback').value) / 100;
+    // Modulate delay time based on pitch shift
+    const semitones = parseFloat(document.getElementById('pitchShift').value);
+    const rate = Math.pow(2, semitones / 12);
+    const baseDelay = 0.01 / rate;
+    pitchDelay1.delayTime.value = Math.max(0.001, Math.min(0.1, baseDelay));
+    pitchDelay2.delayTime.value = Math.max(0.001, Math.min(0.1, baseDelay * 1.5));
+  } else {
+    pitchDry.gain.value = 1;
+    pitchWet.gain.value = 0;
+  }
+}
+
+function updateDelayState() {
+  if (states.delay) {
+    delayDry.gain.value = 1 - (parseInt(document.getElementById('delayMix').value) / 100);
+    delayWet.gain.value = parseInt(document.getElementById('delayMix').value) / 100;
+    delayFb.gain.value = parseInt(document.getElementById('delayFeedback').value) / 100;
+    delayNode.delayTime.value = parseInt(document.getElementById('delayTime').value) / 1000;
+  } else {
+    delayDry.gain.value = 1;
+    delayWet.gain.value = 0;
+  }
+}
+
+function updateSysInfo() {
+  if (!ctx) return;
+  document.getElementById('sysSR').textContent = ctx.sampleRate;
+  document.getElementById('sysBuf').textContent = '256';
+  document.getElementById('sysLat').textContent = ((256 / ctx.sampleRate) * 1000).toFixed(1) + ' ms';
+  document.getElementById('sysCh').textContent = ctx.destination.channelCount;
+}
+
+// File loading
+document.getElementById('fileInput').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (!ctx) initAudio();
+  if (ctx.state === 'suspended') await ctx.resume();
+  const arrayBuf = await file.arrayBuffer();
+  audioBuffer = await ctx.decodeAudioData(arrayBuf);
+});
+
+// Mic
+document.getElementById('micBtn').addEventListener('click', async () => {
+  if (!ctx) initAudio();
+  if (ctx.state === 'suspended') await ctx.resume();
+  try {
+    micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    disconnectAll();
+    sourceNode = ctx.createMediaStreamSource(micStream);
+    buildChain(sourceNode);
+    document.getElementById('micBtn').classList.add('active');
+  } catch(e) {}
+});
+
+// Play
+document.getElementById('playBtn').addEventListener('click', async () => {
+  if (!ctx) initAudio();
+  if (ctx.state === 'suspended') await ctx.resume();
+  if (isPlaying) return;
+  if (audioBuffer) {
+    disconnectAll();
+    sourceNode = ctx.createBufferSource();
+    sourceNode.buffer = audioBuffer;
+    sourceNode.loop = true;
+    buildChain(sourceNode);
+    sourceNode.start();
+    isPlaying = true;
+  }
+});
+
+// Stop
+document.getElementById('stopBtn').addEventListener('click', () => {
+  if (sourceNode && isPlaying) {
+    try { sourceNode.stop(); } catch(e){}
+    isPlaying = false;
+  }
+  if (micStream) {
+    micStream.getTracks().forEach(t => t.stop());
+    micStream = null;
+    document.getElementById('micBtn').classList.remove('active');
+  }
+  if (toneOsc) {
+    toneOsc.stop(); toneOsc = null;
+    toneGain.gain.value = 0;
+    document.getElementById('toneBtn').classList.remove('active');
+  }
+});
+
+// Tone Generator
+document.getElementById('toneBtn').addEventListener('click', async () => {
+  if (!ctx) initAudio();
+  if (ctx.state === 'suspended') await ctx.resume();
+  if (toneOsc) { toneOsc.stop(); toneOsc = null; toneGain.gain.value = 0; document.getElementById('toneBtn').classList.remove('active'); return; }
+  disconnectAll();
+  toneOsc = ctx.createOscillator();
+  toneOsc.type = document.getElementById('toneWave').value;
+  toneOsc.frequency.value = parseInt(document.getElementById('toneFreq').value);
+  toneGain.gain.value = 0.5;
+  toneOsc.connect(toneGain);
+  sourceNode = toneGain;
+  buildChain(toneGain);
+  toneOsc.start();
+  document.getElementById('toneBtn').classList.add('active');
+});
+
+document.getElementById('toneFreq').addEventListener('input', (e) => {
+  const v = parseInt(e.target.value);
+  document.getElementById('toneFreqDisp').textContent = v >= 1000 ? (v/1000).toFixed(1)+' kHz' : v+' Hz';
+  if (toneOsc) toneOsc.frequency.value = v;
+});
+document.getElementById('toneWave').addEventListener('change', (e) => {
+  if (toneOsc) toneOsc.type = e.target.value;
+});
+
+// Toggle buttons
+function setupToggle(btnId, stateKey, cb) {
+  document.getElementById(btnId).addEventListener('click', function() {
+    states[stateKey] = !states[stateKey];
+    this.textContent = states[stateKey] ? 'ON' : 'OFF';
+    this.classList.toggle('active', states[stateKey]);
+    if (cb) cb();
+  });
+}
+setupToggle('pitchToggle', 'pitch', updatePitchState);
+setupToggle('compToggle', 'comp', () => { compressor.ratio.value = states.comp ? parseFloat(document.getElementById('compRatio').value) : 1; });
+setupToggle('eqToggle', 'eq', () => { [eqLM,eqMH,eqHF].forEach(f => f.gain.value = states.eq ? 0 : 0); });
+setupToggle('filterToggle', 'filter');
+setupToggle('limiterToggle', 'limiterOn', () => { limiter.ratio.value = states.limiterOn ? 20 : 1; });
+setupToggle('delayToggle', 'delay', updateDelayState);
+setupToggle('subHarmToggle', 'subHarm');
+setupToggle('dcnToggle', 'dcn');
+setupToggle('fplToggle', 'fpl');
+setupToggle('hbToggle', 'hb');
+setupToggle('srToggle', 'sr');
+setupToggle('vpToggle', 'vp');
+setupToggle('sdeToggle', 'sde');
+setupToggle('aswToggle', 'asw');
+setupToggle('spdlToggle', 'spdl');
+setupToggle('mheToggle', 'mhe');
+
+// Phase invert
+document.getElementById('aswPhase').addEventListener('click', function() {
+  states.aswPhaseInvert = !states.aswPhaseInvert;
+  this.textContent = '⟲ Phase Invert: ' + (states.aswPhaseInvert ? 'ON' : 'OFF');
+  if (states.aswPhaseInvert) this.classList.add('active'); else this.classList.remove('active');
+});
+
+// Fader bindings
+function bindFader(id, dispId, fmt, cb) {
+  document.getElementById(id).addEventListener('input', function() {
+    const v = parseFloat(this.value);
+    document.getElementById(dispId).textContent = fmt(v);
+    if (cb) cb(v);
+  });
+}
+
+// Pitch
+bindFader('pitchShift', 'pitchDisp', v => v.toFixed(1)+' st', updatePitchState);
+bindFader('pitchFeedback', 'pitchFbDisp', v => v+'%', updatePitchState);
+bindFader('pitchMix', 'pitchMixDisp', v => v+'%', updatePitchState);
+
+// Compressor
+bindFader('compThreshold', 'compThDisp', v => v+' dB', v => { if(compressor) compressor.threshold.value = v; });
+bindFader('compRatio', 'compRatDisp', v => v+':1', v => { if(compressor && states.comp) compressor.ratio.value = v; });
+bindFader('compAttack', 'compAtkDisp', v => v+' ms', v => { if(compressor) compressor.attack.value = v/1000; });
+bindFader('compRelease', 'compRelDisp', v => v+' ms', v => { if(compressor) compressor.release.value = v/1000; });
+
+// EQ
+bindFader('eqLMFreq', 'eqLMFreqD', v => v>=1000?(v/1000).toFixed(1)+' kHz':v+' Hz', v => { eqLM.frequency.value=v; });
+bindFader('eqLMGain', 'eqLMGainD', v => v+' dB', v => { if(states.eq) eqLM.gain.value=v; });
+bindFader('eqLMQ', 'eqLMQD', v => v.toFixed(1), v => { eqLM.Q.value=v; });
+bindFader('eqMHFreq', 'eqMHFreqD', v => v>=1000?(v/1000).toFixed(1)+' kHz':v+' Hz', v => { eqMH.frequency.value=v; });
+bindFader('eqMHGain', 'eqMHGainD', v => v+' dB', v => { if(states.eq) eqMH.gain.value=v; });
+bindFader('eqMHQ', 'eqMHQD', v => v.toFixed(1), v => { eqMH.Q.value=v; });
+bindFader('eqHFFreq', 'eqHFFreqD', v => v>=1000?(v/1000).toFixed(1)+' kHz':v+' Hz', v => { eqHF.frequency.value=v; });
+bindFader('eqHFGain', 'eqHFGainD', v => v+' dB', v => { if(states.eq) eqHF.gain.value=v; });
+bindFader('eqHFQ', 'eqHFQD', v => v.toFixed(1), v => { eqHF.Q.value=v; });
+
+// HPF/LPF
+bindFader('hpfFreq', 'hpfDisp', v => v>=1000?(v/1000).toFixed(1)+' kHz':v+' Hz', v => { hpf.frequency.value=v; });
+bindFader('lpfFreq', 'lpfDisp', v => v>=1000?(v/1000).toFixed(1)+' kHz':v+' Hz', v => { lpf.frequency.value=v; });
+
+// Limiter
+bindFader('limCeiling', 'limCeilDisp', v => v.toFixed(1)+' dB', v => { limiter.threshold.value=v; });
+bindFader('limRelease', 'limRelDisp', v => v+' ms', v => { limiter.release.value=v/1000; });
+
+// Delay
+bindFader('delayTime', 'delayTimeDisp', v => v+' ms', updateDelayState);
+bindFader('delayFeedback', 'delayFbDisp', v => v+'%', updateDelayState);
+bindFader('delayMix', 'delayMixDisp', v => v+'%', updateDelayState);
+
+// Output
+bindFader('outGain', 'outGainDisp', v => v+' dB', v => { if(outputGain) outputGain.gain.value = Math.pow(10, v/20); });
+bindFader('outBalance', 'outBalDisp', v => v===0?'C':v<0?'L'+Math.abs(v):'R'+v, v => {});
+
+// Other faders (display only for DSP modules)
+bindFader('dceA', 'dceADisp', v=>v+'%');
+bindFader('dceB', 'dceBDisp', v=>v+'%');
+bindFader('dceBlend', 'dceBldDisp', v=>v+'%');
+bindFader('shLevel', 'shLvlDisp', v=>v+' dB');
+bindFader('shFreq', 'shFreqDisp', v=>v+' Hz');
+bindFader('dcnClarity', 'dcnClrDisp', v=>v+'%');
+bindFader('dcnPresence', 'dcnPresDisp', v=>v+'%');
+bindFader('fplPhase', 'fplPhDisp', v=>v+'°');
+bindFader('fplFidelity', 'fplFidDisp', v=>v+'%');
+bindFader('hbOdd', 'hbOddDisp', v=>v+'%');
+bindFader('hbEven', 'hbEvenDisp', v=>v+'%');
+bindFader('srRecovery', 'srRecDisp', v=>v+'%');
+bindFader('srDepth', 'srDepDisp', v=>v+'%');
+bindFader('vpPresence', 'vpPresDisp', v=>v+'%');
+bindFader('vpAir', 'vpAirDisp', v=>v+'%');
+bindFader('sdeWidth', 'sdeWidDisp', v=>v+'%');
+bindFader('sdeDepth', 'sdeDepDisp', v=>v+'%');
+bindFader('aswCutoff', 'aswCutDisp', v=>v+' Hz');
+bindFader('aswLevel', 'aswLvlDisp', v=>v+' dB');
+bindFader('spdlThresh', 'spdlThDisp', v=>v+' dB');
+bindFader('spdlHold', 'spdlHoldDisp', v=>v+' ms');
+bindFader('mheEnhance', 'mheEnhDisp', v=>v+'%');
+bindFader('mheFocus', 'mheFocDisp', v=>v>=1000?(v/1000).toFixed(1)+' kHz':v+' Hz');
+
+// Phase Lock
+document.getElementById('fplLock').addEventListener('click', function() {
+  this.classList.toggle('active');
+  this.textContent = this.classList.contains('active') ? '🔒 Phase Locked' : '🔒 Phase Lock';
+});
+
+// Check Status
+document.getElementById('checkStatusBtn').addEventListener('click', function() {
+  const out = document.getElementById('statusOutput');
+  out.classList.remove('hidden');
+  const activeModules = Object.entries(states).filter(([k,v])=>v).map(([k])=>k);
+  out.innerHTML = `<span style="color:var(--accent);">✓ System OK</span> | Modules Active: ${activeModules.length} | SR: ${ctx?ctx.sampleRate:'N/A'} | State: ${ctx?ctx.state:'offline'}`;
+});
+
+// Animation / RTA
+function startAnimation() {
+  const rtaC = document.getElementById('rtaCanvas');
+  const rtaCtx = rtaC.getContext('2d');
+  const eqC = document.getElementById('eqCanvas');
+  const eqCtx = eqC.getContext('2d');
+  const limC = document.getElementById('limiterCanvas');
+  const limCtx = limC.getContext('2d');
+  const crossC = document.getElementById('crossCanvas');
+  const crossCtx = crossC.getContext('2d');
+
+  function draw() {
+    animFrame = requestAnimationFrame(draw);
+    if (!analyser) return;
+
+    // RTA
+    const bufLen = analyser.frequencyBinCount;
+    const data = new Uint8Array(bufLen);
+    analyser.getByteFrequencyData(data);
+
+    rtaCtx.fillStyle = '#000';
+    rtaCtx.fillRect(0, 0, rtaC.width, rtaC.height);
+
+    const barW = rtaC.width / 128;
+    for (let i = 0; i < 128; i++) {
+      const idx = Math.floor(i * bufLen / 128);
+      const v = data[idx] / 255;
+      const h = v * rtaC.height;
+      const hue = 180 - v * 180;
+      rtaCtx.fillStyle = `hsl(${hue}, 100%, ${50 + v*30}%)`;
+      rtaCtx.fillRect(i * barW, rtaC.height - h, barW - 1, h);
+    }
+
+    // EQ response visualization
+    eqCtx.fillStyle = '#000';
+    eqCtx.fillRect(0, 0, eqC.width, eqC.height);
+    eqCtx.strokeStyle = '#00e5ff';
+    eqCtx.lineWidth = 1.5;
+    eqCtx.beginPath();
+    for (let x = 0; x < eqC.width; x++) {
+      const freq = 15 * Math.pow(44000/15, x/eqC.width);
+      let gain = 0;
+      if (states.eq) {
+        gain += calcEQGain(freq, eqLM.frequency.value, eqLM.gain.value, eqLM.Q.value);
+        gain += calcEQGain(freq, eqMH.frequency.value, eqMH.gain.value, eqMH.Q.value);
+        gain += calcEQGain(freq, eqHF.frequency.value, eqHF.gain.value, eqHF.Q.value);
+      }
+      const y = eqC.height/2 - (gain/12) * (eqC.height/2);
+      x === 0 ? eqCtx.moveTo(x, y) : eqCtx.lineTo(x, y);
+    }
+    eqCtx.stroke();
+
+    // Crossover visualization
+    crossCtx.fillStyle = '#000';
+    crossCtx.fillRect(0, 0, crossC.width, crossC.height);
+    crossCtx.strokeStyle = '#ff3d71';
+    crossCtx.lineWidth = 1;
+    crossCtx.beginPath();
+    const hpfV = parseFloat(document.getElementById('hpfFreq').value);
+    const lpfV = parseFloat(document.getElementById('lpfFreq').value);
+    for (let x = 0; x < crossC.width; x++) {
+      const freq = 15 * Math.pow(44000/15, x/crossC.width);
+      let atten = 0;
+      if (freq < hpfV) atten -= (1 - freq/hpfV) * 40;
+      if (freq > lpfV) atten -= (1 - lpfV/freq) * 40;
+      const y = crossC.height * 0.2 - (atten/40) * crossC.height * 0.8;
+      x === 0 ? crossCtx.moveTo(x, y) : crossCtx.lineTo(x, Math.min(crossC.height, y));
+    }
+    crossCtx.stroke();
+
+    // Limiter meter
+    limCtx.fillStyle = '#000';
+    limCtx.fillRect(0, 0, limC.width, limC.height);
+    if (compressor) {
+      const red = compressor.reduction || 0;
+      const redAbs = Math.abs(red);
+      const w = Math.min(limC.width, (redAbs / 20) * limC.width);
+      limCtx.fillStyle = redAbs > 3 ? '#ff3d71' : '#00e5ff';
+      limCtx.fillRect(0, 5, w, limC.height - 10);
+    }
+
+    // Master level & limit flash
+    let peak = 0;
+    for (let i = 0; i < bufLen; i++) { if (data[i] > peak) peak = data[i]; }
+    const dbLevel = peak > 0 ? (20 * Math.log10(peak / 255)).toFixed(1) : '-∞';
+    document.getElementById('masterLevel').textContent = dbLevel + ' dB';
+
+    const badge = document.getElementById('limitBadge');
+    const limReduction = limiter ? Math.abs(limiter.reduction || 0) : 0;
+    if (limReduction > 0.5) {
+      badge.classList.add('neon-flash');
+      badge.style.color = '#ff0040';
+      badge.style.background = '#1a0008';
+    } else {
+      badge.classList.remove('neon-flash');
+      badge.style.color = '#4a5568';
+      badge.style.background = '';
+    }
+
+    // Compressor reduction display
+    if (compressor) {
+      document.getElementById('compRedDisp').textContent = (compressor.reduction || 0).toFixed(1) + ' dB';
+    }
+
+    // CPU estimate
+    document.getElementById('sysCpu').textContent = Math.min(100, Math.floor(peak / 255 * 30 + Math.random() * 5)) + '%';
+  }
+  draw();
+}
+
+function calcEQGain(freq, centerFreq, gain, Q) {
+  const ratio = freq / centerFreq;
+  const logRatio = Math.log2(ratio);
+  return gain * Math.exp(-0.5 * Math.pow(logRatio * Q * 2, 2));
+}
+
+// Init SDK
+const defaultConfig = {
+  console_title: 'AUDIO PROCESSING CONSOLE',
+  background_color: '#0a0a0f',
+  surface_color: '#12131a',
+  accent_color: '#00e5ff',
+  text_color: '#e0e6ed',
+  accent2_color: '#ff3d71',
+  font_family: 'JetBrains Mono',
+  font_size: 10
+};
+
+window.elementSdk.init({
+  defaultConfig,
+  onConfigChange: async (config) => {
+    document.getElementById('consoleTitle').textContent = config.console_title || defaultConfig.console_title;
+    document.documentElement.style.setProperty('--bg', config.background_color || defaultConfig.background_color);
+    document.documentElement.style.setProperty('--surface', config.surface_color || defaultConfig.surface_color);
+    document.documentElement.style.setProperty('--accent', config.accent_color || defaultConfig.accent_color);
+    document.documentElement.style.setProperty('--text', config.text_color || defaultConfig.text_color);
+    document.documentElement.style.setProperty('--accent2', config.accent2_color || defaultConfig.accent2_color);
+    const font = config.font_family || defaultConfig.font_family;
+    document.body.style.fontFamily = `${font}, monospace`;
+    const size = config.font_size || defaultConfig.font_size;
+    document.querySelectorAll('.section-label').forEach(el => el.style.fontSize = (size * 0.8) + 'px');
+    document.querySelectorAll('.digital-display').forEach(el => el.style.fontSize = size + 'px');
+    document.querySelectorAll('.btn-ctrl').forEach(el => el.style.fontSize = (size * 0.9) + 'px');
+  },
+  mapToCapabilities: (config) => ({
+    recolorables: [
+      { get: () => config.background_color || defaultConfig.background_color, set: (v) => { config.background_color = v; window.elementSdk.setConfig({background_color:v}); }},
+      { get: () => config.surface_color || defaultConfig.surface_color, set: (v) => { config.surface_color = v; window.elementSdk.setConfig({surface_color:v}); }},
+      { get: () => config.text_color || defaultConfig.text_color, set: (v) => { config.text_color = v; window.elementSdk.setConfig({text_color:v}); }},
+      { get: () => config.accent_color || defaultConfig.accent_color, set: (v) => { config.accent_color = v; window.elementSdk.setConfig({accent_color:v}); }},
+      { get: () => config.accent2_color || defaultConfig.accent2_color, set: (v) => { config.accent2_color = v; window.elementSdk.setConfig({accent2_color:v}); }}
+    ],
+    borderables: [],
+    fontEditable: { get: () => config.font_family || defaultConfig.font_family, set: (v) => { config.font_family = v; window.elementSdk.setConfig({font_family:v}); }},
+    fontSizeable: { get: () => config.font_size || defaultConfig.font_size, set: (v) => { config.font_size = v; window.elementSdk.setConfig({font_size:v}); }}
+  }),
+  mapToEditPanelValues: (config) => new Map([
+    ['console_title', config.console_title || defaultConfig.console_title]
+  ])
+});
+
+// Start
+initAudio();
+lucide.createIcons();
+</script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a0b63e79a4ceea87',t:'MTc4MTQwNzY5Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+                                                                                                                                                                                                                                                                                                              </html>
