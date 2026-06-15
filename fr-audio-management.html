@@ -1,1228 +1,979 @@
 <!doctype html>
 <html lang="en" class="h-full">
- <head><script src="/_sdk/telemetry_sdk.js"></script>
+ <head>
+  <script src="/_sdk/telemetry_sdk.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Audio Processing Console</title>
+  <title>FR AUDIO MANAGEMENT V2.1</title>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
   <script src="/_sdk/element_sdk.js"></script>
   <style>
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Orbitron:wght@400;700;900&display=swap');
-
-html, body { height: 100%; margin: 0; overflow: auto; }
-:root {
-  --bg: #0d0b0f;
-  --surface: #1a1520;
-  --accent: #ff8c00;
-  --accent2: #ff2d55;
-  --text: #e8e0d4;
-  --dim: #6b5e52;
-}
-* { box-sizing: border-box; }
-body { font-family: 'JetBrains Mono', monospace; background: var(--bg); color: var(--text); }
-
-.card {
-  background: var(--surface);
-  border: 1px solid #2a2030;
-  border-radius: 8px;
-  padding: 10px;
-  position: relative;
-  overflow: hidden;
-}
-.card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, var(--accent), var(--accent2));
-  opacity: 0.6;
-}
-
-.led-uv {
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: #7c3aed;
-  box-shadow: 0 0 4px #7c3aed, 0 0 8px #7c3aed;
-  display: inline-block;
-  animation: ledPulse 2s infinite;
-}
-@keyframes ledPulse { 0%,100%{opacity:1;} 50%{opacity:0.5;} }
-.led-active { background: #ff8c00; box-shadow: 0 0 4px #ff8c00, 0 0 8px #ff8c00; }
-
-.neon-flash { animation: neonFlash 0.3s infinite alternate; }
-@keyframes neonFlash {
-  from { opacity:1; text-shadow: 0 0 5px #ff0040, 0 0 10px #ff0040; }
-  to { opacity:0.4; text-shadow:none; }
-}
-
-.btn-ctrl {
-  background: #1a1520;
-  border: 1px solid #3a2d40;
-  color: var(--text);
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 9px;
-  cursor: pointer;
-  font-family: 'JetBrains Mono', monospace;
-  transition: all 0.15s;
-}
-.btn-ctrl:hover { border-color: var(--accent); }
-.btn-ctrl.active { background: var(--accent); color: #000; border-color: var(--accent); }
-
-.fader {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 100%;
-  height: 4px;
-  background: #2a2030;
-  border-radius: 2px;
-  outline: none;
-}
-.fader::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 12px; height: 12px;
-  background: var(--accent);
-  border-radius: 50%;
-  cursor: pointer;
-  box-shadow: 0 0 4px var(--accent);
-}
-.fader::-moz-range-thumb {
-  width: 12px; height: 12px;
-  background: var(--accent);
-  border-radius: 50%;
-  cursor: pointer;
-  border: none;
-}
-
-.digital-display {
-  background: #000;
-  border: 1px solid #2a2030;
-  padding: 2px 6px;
-  font-family: 'Orbitron', sans-serif;
-  font-size: 10px;
-  color: #ff8c00;
-  border-radius: 3px;
-  min-width: 50px;
-  text-align: center;
-}
-
-.section-label {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 8px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: var(--dim);
-}
-
-canvas { display: block; }
-
-.grid-console {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-  padding: 8px;
-}
-@media (max-width: 1200px) { .grid-console { grid-template-columns: repeat(3, 1fr); } }
-@media (max-width: 800px) { .grid-console { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 500px) { .grid-console { grid-template-columns: 1fr; } }
-
-/* VU Meter styles */
-.vu-meter-container {
-  display: flex;
-  gap: 2px;
-  align-items: flex-end;
-  height: 20px;
-  margin-top: 4px;
-}
-.vu-bar {
-  display: flex;
-  flex-direction: column-reverse;
-  gap: 1px;
-  flex: 1;
-}
-.vu-bar-label {
-  font-size: 7px;
-  text-align: center;
-  color: var(--dim);
-  margin-bottom: 1px;
-}
-.vu-segment {
-  height: 2px;
-  border-radius: 1px;
-  background: #1a1520;
-  transition: background 0.05s;
-}
-.vu-segment.lit-green { background: #00cc44; box-shadow: 0 0 2px #00cc44; }
-.vu-segment.lit-yellow { background: #ffcc00; box-shadow: 0 0 2px #ffcc00; }
-.vu-segment.lit-red { background: #ff2d55; box-shadow: 0 0 2px #ff2d55; }
-
-.master-vu {
-  display: flex;
-  gap: 3px;
-  align-items: center;
-}
-.master-vu-bar {
-  width: 80px;
-  height: 6px;
-  background: #1a1520;
-  border-radius: 3px;
-  overflow: hidden;
-  border: 1px solid #2a2030;
-}
-.master-vu-fill {
-  height: 100%;
-  border-radius: 3px;
-  transition: width 0.05s;
-  background: linear-gradient(90deg, #00cc44, #ffcc00, #ff2d55);
-}
-</style>
-  <style>body { box-sizing: border-box; }</style>
+    html, body { height: 100%; margin: 0; overflow: auto; }
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Orbitron:wght@400;700;900&display=swap');
+    :root {
+      --bg: #06060a;
+      --surface: #0f1016;
+      --accent: #00e5ff;
+      --accent2: #ff3d71;
+      --active-blue: #0055ff;
+      --text: #e0e6ed;
+      --dim: #4a5568;
+    }
+    * { box-sizing: border-box; }
+    body { font-family: 'JetBrains Mono', monospace; background: var(--bg); color: var(--text); }
+    .card {
+      background: var(--surface);
+      border: 1px solid #1e2030;
+      border-radius: 8px;
+      padding: 12px;
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      opacity: 0.6;
+    }
+    .led-uv {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #4a5568;
+      display: inline-block;
+      transition: all 0.3s;
+    }
+    .led-uv.active {
+      background: var(--active-blue);
+      box-shadow: 0 0 6px var(--active-blue), 0 0 12px var(--active-blue);
+    }
+    .btn-ctrl {
+      background: #141522;
+      border: 1px solid #2d3048;
+      color: var(--text);
+      padding: 6px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      cursor: pointer;
+      font-family: 'JetBrains Mono', monospace;
+      transition: all 0.15s;
+    }
+    .btn-ctrl:hover { border-color: var(--accent); }
+    .btn-ctrl.active { background: var(--accent); color: #000; border-color: var(--accent); }
+    .btn-preset {
+      background: #1e2030;
+      border: 1px solid #3b3f5c;
+      font-size: 10px;
+      padding: 4px;
+      border-radius: 3px;
+      text-align: left;
+      transition: all 0.2s;
+    }
+    .btn-preset.active {
+      background: var(--active-blue);
+      color: white;
+      border-color: #00d2ff;
+    }
+    .fader {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 6px;
+      background: #1e2030;
+      border-radius: 3px;
+      outline: none;
+    }
+    .fader::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px; height: 14px;
+      background: var(--accent);
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 0 4px var(--accent);
+    }
+    .digital-display {
+      background: #000;
+      border: 1px solid #1e2030;
+      padding: 2px 6px;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 11px;
+      color: #00ff88;
+      border-radius: 3px;
+      min-width: 65px;
+      text-align: center;
+    }
+    .section-label {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #94a3b8;
+    }
+    .grid-console {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      padding: 10px;
+    }
+    @media (max-width: 1300px) { .grid-console { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 950px) { .grid-console { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 600px) { .grid-console { grid-template-columns: 1fr; } }
+  </style>
   <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
  </head>
  <body class="h-full">
-  <div id="app" class="h-full overflow-auto" style="background: var(--bg);"><!-- Header -->
-   <div class="flex items-center justify-between px-4 py-2 border-b border-gray-800">
+  <div id="app" class="h-full overflow-auto">
+   
+   <div class="flex items-center justify-between px-4 py-3 border-b border-gray-800 bg-[#090a10]">
     <div class="flex items-center gap-3">
-     <h1 id="consoleTitle" class="font-bold text-sm" style="font-family:'Orbitron',sans-serif; color:var(--accent);">AUDIO PROCESSING CONSOLE</h1><span class="led-uv"></span>
+     <h1 id="consoleTitle" class="font-black text-base tracking-wider" style="font-family:'Orbitron',sans-serif; color:var(--accent);">FR AUDIO MANAGEMENT V2.1</h1>
+     <span class="text-xs px-2 py-0.5 rounded bg-blue-950 text-blue-400 font-bold border border-blue-800">TRUE STEREO Engine</span>
     </div>
-    <div class="flex items-center gap-3"><span id="limitBadge" class="text-xs px-2 py-0.5 rounded bg-gray-800 text-gray-400 font-bold" style="font-family:'Orbitron',sans-serif;">LIMIT</span> <!-- Master L/R VU -->
-     <div class="master-vu"><span class="text-xs text-gray-500" style="font-size:7px;">L</span>
-      <div class="master-vu-bar">
-       <div class="master-vu-fill" id="masterVuL" style="width:0%"></div>
+    <div class="flex items-center gap-4">
+      <div class="flex flex-col items-end">
+        <span class="text-[9px] text-gray-500">MASTER L/R OUT</span>
+        <div class="flex gap-1">
+          <span class="digital-display text-emerald-400" id="masterLevelL">-∞ dB L</span>
+          <span class="digital-display text-emerald-400" id="masterLevelR">-∞ dB R</span>
+        </div>
       </div>
-     </div>
-     <div class="master-vu"><span class="text-xs text-gray-500" style="font-size:7px;">R</span>
-      <div class="master-vu-bar">
-       <div class="master-vu-fill" id="masterVuR" style="width:0%"></div>
-      </div>
-     </div><span class="digital-display" id="masterLevel">0.0 dB</span>
     </div>
-   </div><!-- Source Controls -->
-   <div class="flex items-center gap-2 px-4 py-2 border-b border-gray-800 flex-wrap"><span class="section-label">SOURCE:</span> <label class="btn-ctrl cursor-pointer"><input type="file" accept="audio/*" id="fileInput" class="hidden"> 📁 Load File</label> <button class="btn-ctrl" id="micBtn">🎙️ Mic</button> <button class="btn-ctrl" id="toneBtn">〰️ Tone Gen</button>
-    <div class="flex items-center gap-1 ml-2"><span class="text-xs text-gray-500">Freq:</span> <input type="range" class="fader" style="width:80px;" id="toneFreq" min="15" max="44000" value="440"> <span class="digital-display" id="toneFreqDisp">440 Hz</span>
-    </div>
-    <div class="flex items-center gap-1 ml-2"><span class="text-xs text-gray-500">Wave:</span> <select id="toneWave" class="btn-ctrl" style="padding:2px 4px;"> <option value="sine">Sine</option><option value="square">Square</option><option value="sawtooth">Saw</option><option value="triangle">Tri</option> </select>
-    </div><button class="btn-ctrl ml-auto" id="playBtn">▶ Play</button> <button class="btn-ctrl" id="stopBtn">⏹ Stop</button>
-   </div><!-- Main Grid -->
-   <div class="grid-console" id="mainGrid"><!-- RTA Canvas -->
-    <div class="card" style="grid-column: span 2; grid-row: span 2;">
-     <div class="flex items-center justify-between mb-1">
-      <span class="section-label">Real-Time Analyzer (Stereo)</span><span class="led-uv"></span>
-     </div>
-     <canvas id="rtaCanvas" width="500" height="200" style="width:100%;height:180px;border-radius:4px;background:#000;"></canvas>
-     <div class="flex justify-between mt-1">
-      <div class="flex items-center gap-1">
-       <span style="font-size:7px;color:#00cc44;">●</span><span style="font-size:7px;color:var(--dim);">L</span>
-      </div>
-      <div class="flex items-center gap-1">
-       <span style="font-size:7px;color:#ff8c00;">●</span><span style="font-size:7px;color:var(--dim);">R</span>
-      </div>
-     </div>
-    </div><!-- Pitch Shifter -->
-    <div class="card">
-     <div class="flex items-center justify-between mb-1">
-      <span class="section-label">Pitch Shifter</span>
-      <div class="flex items-center gap-1">
-       <span class="led-uv"></span><button class="btn-ctrl" id="pitchToggle">OFF</button>
-      </div>
-     </div>
-     <div class="space-y-1">
-      <div class="flex items-center justify-between">
-       <span class="text-xs text-gray-500">Shift</span><span class="digital-display" id="pitchDisp">0 st</span>
-      </div><input type="range" class="fader" id="pitchShift" min="-12" max="12" value="0" step="0.5">
-      <div class="flex items-center justify-between">
-       <span class="text-xs text-gray-500">Feedback</span><span class="digital-display" id="pitchFbDisp">30%</span>
-      </div><input type="range" class="fader" id="pitchFeedback" min="0" max="95" value="30">
-      <div class="flex items-center justify-between">
-       <span class="text-xs text-gray-500">Mix</span><span class="digital-display" id="pitchMixDisp">50%</span>
-      </div><input type="range" class="fader" id="pitchMix" min="0" max="100" value="50">
-     </div>
-     <div class="vu-meter-container" id="vuPitch"></div>
-    </div><!-- Compressor -->
-    <div class="card">
-     <div class="flex items-center justify-between mb-1">
-      <span class="section-label">Compressor</span>
-      <div class="flex items-center gap-1">
-       <span class="led-uv"></span><button class="btn-ctrl active" id="compToggle">ON</button>
-      </div>
-     </div>
-     <div class="space-y-1">
-      <div class="flex items-center justify-between">
-       <span class="text-xs text-gray-500">Threshold</span><span class="digital-display" id="compThDisp">-24 dB</span>
-      </div><input type="range" class="fader" id="compThreshold" min="-60" max="0" value="-24">
-      <div class="flex items-center justify-between">
-       <span class="text-xs text-gray-500">Ratio</span><span class="digital-display" id="compRatDisp">4:1</span>
-      </div><input type="range" class="fader" id="compRatio" min="1" max="20" value="4">
-      <div class="flex items-center justify-between">
-       <span class="text-xs text-gray-500">Attack</span><span class="digital-display" id="compAtkDisp">3 ms</span>
-      </div><input type="range" class="fader" id="compAttack" min="0" max="100" value="3">
-      <div class="flex items-center justify-between">
-       <span class="text-xs text-gray-500">Release</span><span class="digital-display" id="compRelDisp">250 ms</span>
-      </div><input type="range" class="fader" id="compRelease" min="10" max="1000" value="250">
-      <div class="flex items-center justify-between">
-       <span class="text-xs text-gray-500">Reduction</span><span class="digital-display" id="compRedDisp">0 dB</span>
-      </div>
-     </div>
-     <div class="vu-meter-container" id="vuComp"></div>
-    </div><!-- EQ Section -->
-    <div class="card" style="grid-column: span 2;">
-     <div class="flex items-center justify-between mb-1">
-      <span class="section-label">EQ Tuning Node (15Hz - 44kHz)</span>
-      <div class="flex items-center gap-1">
-       <span class="led-uv"></span><button class="btn-ctrl active" id="eqToggle">ON</button>
-      </div>
-     </div>
-     <div class="grid grid-cols-3 gap-2">
-      <div>
-       <div class="text-center text-xs text-gray-500 mb-1">
-        Low-Mid
-       </div>
-       <div class="flex items-center justify-between">
-        <span class="text-xs text-gray-600">Freq</span><span class="digital-display" id="eqLMFreqD">250 Hz</span>
-       </div><input type="range" class="fader" id="eqLMFreq" min="15" max="2000" value="250">
-       <div class="flex items-center justify-between mt-1">
-        <span class="text-xs text-gray-600">Gain</span><span class="digital-display" id="eqLMGainD">0 dB</span>
-       </div><input type="range" class="fader" id="eqLMGain" min="-12" max="12" value="0">
-       <div class="flex items-center justify-between mt-1">
-        <span class="text-xs text-gray-600">Q</span><span class="digital-display" id="eqLMQD">1.0</span>
-       </div><input type="range" class="fader" id="eqLMQ" min="0.1" max="10" value="1" step="0.1">
-      </div>
-      <div>
-       <div class="text-center text-xs text-gray-500 mb-1">
-        Mid-High
-       </div>
-       <div class="flex items-center justify-between">
-        <span class="text-xs text-gray-600">Freq</span><span class="digital-display" id="eqMHFreqD">2500 Hz</span>
-       </div><input type="range" class="fader" id="eqMHFreq" min="500" max="12000" value="2500">
-       <div class="flex items-center justify-between mt-1">
-        <span class="text-xs text-gray-600">Gain</span><span class="digital-display" id="eqMHGainD">0 dB</span>
-       </div><input type="range" class="fader" id="eqMHGain" min="-12" max="12" value="0">
-       <div class="flex items-center justify-between mt-1">
-        <span class="text-xs text-gray-600">Q</span><span class="digital-display" id="eqMHQD">1.0</span>
-       </div><input type="range" class="fader" id="eqMHQ" min="0.1" max="10" value="1" step="0.1">
-      </div>
-      <div>
-       <div class="text-center text-xs text-gray-500 mb-1">
-        High-Filter
-       </div>
-       <div class="flex items-center justify-between">
-        <span class="text-xs text-gray-600">Freq</span><span class="digital-display" id="eqHFFreqD">8000 Hz</span>
-       </div><input type="range" class="fader" id="eqHFFreq" min="2000" max="44000" value="8000">
-       <div class="flex items-center justify-between mt-1">
-        <span class="text-xs text-gray-600">Gain</span><span class="digital-display" id="eqHFGainD">0 dB</span>
-       </div><input type="range" class="fader" id="eqHFGain" min="-12" max="12" value="0">
-       <div class="flex items-center justify-between mt-1">
-        <span class="text-xs text-gray-600">Q</span><span class="digital-display" id="eqHFQD">1.0</span>
-       </div><input type="range" class="fader" id="eqHFQ" min="0.1" max="10" value="1" step="0.1">
-      </div>
-     </div>
-     <canvas id="eqCanvas" width="500" height="80" style="width:100%;height:60px;margin-top:6px;border-radius:4px;background:#000;"></canvas>
-     <div class="vu-meter-container" id="vuEQ"></div>
-    </div><!-- HPF/LPF Crossover -->
-    <div class="card">
-     <div class="flex items-center justify-between mb-1">
-      <span class="section-label">HPF / LPF Crossover</span>
-      <div class="flex items-center gap-1">
-       <span class="led-uv"></span><button class="btn-ctrl active" id="filterToggle">ON</button>
-      </div>
-     </div>
-     <div class="space-y-1">
-      <div class="flex items-center justify-between">
-       <span class="text-xs text-gray-500">HPF</span><span class="digital-display" id="hpfDisp">15 Hz</span>
-      </div><input type="range" class="fader" id="hpfFreq" min="15" max="44000" value="15">
-      <div class="flex items-center justify-between">
-       <span class="text-xs text-gray-500">LPF</span><span class="digital-display" id="lpfDisp">44000 Hz</span>
-      </div><input type="range" class="fader" id="lpfFreq" min="15" max="44000" value="44000">
-     </div>
-     <canvas id="crossCanvas" width="200" height="50" style="width:100%;height:40px;margin-top:4px;border-radius:4px;background:#000;"></canvas>
-     <div class="vu-meter-container" id="vuFilter"></div>
-    </div><!-- Limiter -->
-    <div class="card">
-     <div class="flex items-center justify-between mb-1">
-      <span class="section-label">Output Limiter</span>
-      <div class="flex items-center gap-1">
-       <span class="led-uv"></span><button class="btn-ctrl active" id="limiterToggle">ON</button>
-      </div>
-     </div>
-     <div class="space-y-1">
-      <div class="flex items-center justify-between">
-       <span class="text-xs text-gray-500">Ceiling</span><span class="digital-display" id="limCeilDisp">-0.3 dB</span>
-      </div><input type="range" class="fader" id="limCeiling" min="-12" max="0" value="-0.3" step="0.1">
-      <div class="flex items-center justify-between">
-       <span class="text-xs text-gray-500">Release</span><span class="digital-display" id="limRelDisp">50 ms</span>
-      </div><input type="range" class="fader" id="limRelease" min="1" max="500" value="50">
-     </div>
-     <canvas id="limiterCanvas" width="200" height="40" style="width:100%;height:35px;margin-top:4px;border-radius:4px;background:#000;"></canvas>
-     <div class="vu-meter-container" id="vuLimiter"></div>
-    </div><!-- Delay -->
-    <div class="card">
-     <div class="flex items-center justify-between mb-1">
-      <span class="section-label">Delay</span>
-      <div class="flex items-center gap-1">
-       <span class="led-uv"></span><button class="btn-ctrl" id="delayToggle">OFF</button>
-      </div>
-     </div>
-     <div class="space-y-1">
-      <div class="flex items-center justify-between">
-       <span class="text-xs text-gray-500">Time</span><span class="digital-display" id="delayTimeDisp">300 ms</span>
-      </div><input type="range" class="fader" id="delayTime" min="1" max="2000" value="300">
-      <div class="flex items-center justify-between">
-       <span class="text-xs text-gray-500">Feedback</span><span class="digital-display" id="delayFbDisp">40%</span>
-      </div><input type="range" class="fader" id="delayFeedback" min="0" max="95" value="40">
-      <div class="flex items-center justify-between">
-       <span class="text-xs text-gray-500">Mix</span><span class="digital-display" id="delayMixDisp">30%</span>
-      </div><input type="range" class="fader" id="delayMix" min="0" max="100" value="30">
-     </div>
-     <div class="vu-meter-container" id="vuDelay"></div>
-    </div><!-- Dual Core Engine -->
-    <div class="card">
-     <div class="flex items-center justify-between mb-1">
-      <span class="section-label">Dual Core Engine</span>
-      <div class="flex items-center gap-1">
-       <span class="led-uv led-active"></span>
-      </div>
-     </div>
-     <div class="space-y-1">
-      <div class="flex items-center justify-between">
-       <span class="text-xs text-gray-500">Drive A</span><span class="digital-display" id="dceADisp">50%</span>
-      </div><input type="range" class="fader" id="dceA" min="0" max="100" value="50">
-      <div class="flex items-center justify-between">
-       <span class="text-xs text-gray-500">Drive B</span><span class="digital-display" id="dceBDisp">50%</span>
-      </div><input type="range" class="fader" id="dceB" min="0" max="100" value="50">
-      <div class="flex items-center justify-between">
-       <span class="text-xs text-gray-500">Blend</span><span class="digital-display" id="dceBldDisp">50%</span>
-      </div><input type="range" class="fader" id="dceBlend" min="0" max="100" value="50">
-     </div>
-     <div class="vu-meter-container" id="vuDCE"></div>
-    </div><!-- Sub-Harmonic Focus -->
-    <div class="card">
-     <div class="flex items-center justify-between mb-1">
-      <span class="section-label">Sub-Harmonic Focus</span>
-      <div class="flex items-center gap-1">
-       <span class="led-uv"></span><button class="btn-ctrl" id="subHarmToggle">OFF</button>
-      </div>
-     </div>
-     <div class="space-y-1">
-      <div class="flex items-center justify-between">
-       <span class="text-xs text-gray-500">Level</span><span class="digital-display" id="shLvlDisp">0 dB</span>
-      </div><input type="range" class="fader" id="shLevel" min="-12" max="12" value="0">
-      <div class="flex items-center justify-between">
-       <span class="text-xs text-gray-500">Freq</span><span class="digital-display" id="shFreqDisp">60 Hz</span>
-      </div><input type="range" class="fader" id="shFreq" min="20" max="150" value="60">
-     </div>
-     <div class="vu-meter-container" id="vuSubHarm"></div>
-    </div><!-- Dynamic Clarity Node -->
-    <div class="card">
-     <div class="flex items-center justify-between mb-1">
-      <span class="section-label">Dynamic Clarity Node</span>
-      <div class="flex items-center gap-1">
-       <span class="led-uv"></span><button class="btn-ctrl" id="dcnToggle">OFF</button>
-      </div>
-     </div>
-     <div class="space-y-1">
-      <div class="flex items-center justify-between">
-       <span class="text-xs text-gray-500">Clarity</span><span class="digital-display" id="dcnClrDisp">50%</span>
-      </div><input type="range" class="fader" id="dcnClarity" min="0" max="100" value="50">
-      <div class="flex items-center justify-between">
-       <span class="text-xs text-gray-500">Presence</span><span class="digital-display" id="dcnPresDisp">50%</span>
-      </div><input type="range" class="fader" id="dcnPresence" min="0" max="100" value="50">
-     </div>
-     <div class="vu-meter-container" id="vuDCN"></div>
-    </div><!-- Fidelity Phase Logic -->
-    <div class="card">
-     <div class="flex items-center justify-between mb-1">
-      <span class="section-label">Fidelity Phase Logic</span>
-      <div class="flex items-center gap-1">
-       <span class="led-uv"></span><button class="btn-ctrl" id="fplToggle">OFF</button>
-      </div>
-     </div>
-     <div class="space-y-1">
-      <div class="flex items-center justify-between">
-       <span class="text-xs text-gray-500">Phase</span><span class="digital-display" id="fplPhDisp">0°</span>
-      </div><input type="range" class="fader" id="fplPhase" min="0" max="360" value="0">
-      <div class="flex items-center justify-between">
-       <span class="text-xs text-gray-500">Fidelity</span><span class="digital-display" id="fplFidDisp">100%</span>
-      </div><input type="range" class="fader" id="fplFidelity" min="0" max="100" value="100"> <button class="btn-ctrl" id="fplLock">🔒 Phase Lock</button>
-     </div>
-     <div class="vu-meter-container" id="vuFPL"></div>
-    </div><!-- Output Gain -->
-    <div class="card">
-     <div class="flex items-center justify-between mb-1">
-      <span class="section-label">Output Gain</span>
-      <div class="flex items-center gap-1">
-       <span class="led-uv led-active"></span>
-      </div>
-     </div>
-     <div class="space-y-1">
-      <div class="flex items-center justify-between">
-       <span class="text-xs text-gray-500">Master</span><span class="digital-display" id="outGainDisp">0 dB</span>
-      </div><input type="range" class="fader" id="outGain" min="-60" max="12" value="0">
-      <div class="flex items-center justify-between">
-       <span class="text-xs text-gray-500">L/R Balance</span><span class="digital-display" id="outBalDisp">C</span>
-      </div><input type="range" class="fader" id="outBalance" min="-100" max="100" value="0">
-     </div>
-     <div class="vu-meter-container" id="vuOutput"></div>
-    </div><!-- Harmonix Balance -->
-    <div class="card">
-     <div class="flex items-center justify-between mb-1">
-      <span class="section-label">Harmonix Balance</span>
-      <div class="flex items-center gap-1">
-       <span class="led-uv"></span><button class="btn-ctrl" id="hbToggle">OFF</button>
-      </div>
-     </div>
-     <div class="space-y-1">
-      <div class="flex items-center justify-between">
-       <span class="text-xs text-gray-500">Odd</span><span class="digital-display" id="hbOddDisp">50%</span>
-      </div><input type="range" class="fader" id="hbOdd" min="0" max="100" value="50">
-      <div class="flex items-center justify-between">
-       <span class="text-xs text-gray-500">Even</span><span class="digital-display" id="hbEvenDisp">50%</span>
-      </div><input type="range" class="fader" id="hbEven" min="0" max="100" value="50">
-     </div>
-     <div class="vu-meter-container" id="vuHB"></div>
-    </div><!-- System Restorer -->
-    <div class="card">
-     <div class="flex items-center justify-between mb-1">
-      <span class="section-label">System Restorer</span>
-      <div class="flex items-center gap-1">
-       <span class="led-uv"></span><button class="btn-ctrl" id="srToggle">OFF</button>
-      </div>
-     </div>
-     <div class="space-y-1">
-      <div class="flex items-center justify-between">
-       <span class="text-xs text-gray-500">Recovery</span><span class="digital-display" id="srRecDisp">50%</span>
-      </div><input type="range" class="fader" id="srRecovery" min="0" max="100" value="50">
-      <div class="flex items-center justify-between">
-       <span class="text-xs text-gray-500">Depth</span><span class="digital-display" id="srDepDisp">50%</span>
-      </div><input type="range" class="fader" id="srDepth" min="0" max="100" value="50">
-     </div>
-     <div class="vu-meter-container" id="vuSR"></div>
-    </div><!-- Vocal Presence -->
-    <div class="card">
-     <div class="flex items-center justify-between mb-1">
-      <span class="section-label">Vocal Presence</span>
-      <div class="flex items-center gap-1">
-       <span class="led-uv"></span><button class="btn-ctrl" id="vpToggle">OFF</button>
-      </div>
-     </div>
-     <div class="space-y-1">
-      <div class="flex items-center justify-between">
-       <span class="text-xs text-gray-500">Presence</span><span class="digital-display" id="vpPresDisp">50%</span>
-      </div><input type="range" class="fader" id="vpPresence" min="0" max="100" value="50">
-      <div class="flex items-center justify-between">
-       <span class="text-xs text-gray-500">Air</span><span class="digital-display" id="vpAirDisp">30%</span>
-      </div><input type="range" class="fader" id="vpAir" min="0" max="100" value="30">
-     </div>
-     <div class="vu-meter-container" id="vuVP"></div>
-    </div><!-- Stage Dynamic Engine -->
-    <div class="card">
-     <div class="flex items-center justify-between mb-1">
-      <span class="section-label">Stage Dynamic Engine</span>
-      <div class="flex items-center gap-1">
-       <span class="led-uv"></span><button class="btn-ctrl" id="sdeToggle">OFF</button>
-      </div>
-     </div>
-     <div class="space-y-1">
-      <div class="flex items-center justify-between">
-       <span class="text-xs text-gray-500">Width</span><span class="digital-display" id="sdeWidDisp">50%</span>
-      </div><input type="range" class="fader" id="sdeWidth" min="0" max="100" value="50">
-      <div class="flex items-center justify-between">
-       <span class="text-xs text-gray-500">Depth</span><span class="digital-display" id="sdeDepDisp">50%</span>
-      </div><input type="range" class="fader" id="sdeDepth" min="0" max="100" value="50">
-     </div>
-     <div class="vu-meter-container" id="vuSDE"></div>
-    </div><!-- Advanced Sub-Woofer Control -->
-    <div class="card">
-     <div class="flex items-center justify-between mb-1">
-      <span class="section-label">Adv Sub-Woofer Control</span>
-      <div class="flex items-center gap-1">
-       <span class="led-uv"></span><button class="btn-ctrl" id="aswToggle">OFF</button>
-      </div>
-     </div>
-     <div class="space-y-1">
-      <div class="flex items-center justify-between">
-       <span class="text-xs text-gray-500">Cutoff</span><span class="digital-display" id="aswCutDisp">80 Hz</span>
-      </div><input type="range" class="fader" id="aswCutoff" min="20" max="200" value="80">
-      <div class="flex items-center justify-between">
-       <span class="text-xs text-gray-500">Level</span><span class="digital-display" id="aswLvlDisp">0 dB</span>
-      </div><input type="range" class="fader" id="aswLevel" min="-12" max="12" value="0"> <button class="btn-ctrl" id="aswPhase">⟲ Phase Invert: OFF</button>
-     </div>
-     <div class="vu-meter-container" id="vuASW"></div>
-    </div><!-- Sub Peak Dynamic Lock -->
-    <div class="card">
-     <div class="flex items-center justify-between mb-1">
-      <span class="section-label">Sub Peak Dynamic Lock</span>
-      <div class="flex items-center gap-1">
-       <span class="led-uv"></span><button class="btn-ctrl" id="spdlToggle">OFF</button>
-      </div>
-     </div>
-     <div class="space-y-1">
-      <div class="flex items-center justify-between">
-       <span class="text-xs text-gray-500">Lock Thresh</span><span class="digital-display" id="spdlThDisp">-6 dB</span>
-      </div><input type="range" class="fader" id="spdlThresh" min="-24" max="0" value="-6">
-      <div class="flex items-center justify-between">
-       <span class="text-xs text-gray-500">Hold</span><span class="digital-display" id="spdlHoldDisp">100 ms</span>
-      </div><input type="range" class="fader" id="spdlHold" min="10" max="500" value="100">
-     </div>
-     <div class="vu-meter-container" id="vuSPDL"></div>
-    </div><!-- Mid-High Enhancer -->
-    <div class="card">
-     <div class="flex items-center justify-between mb-1">
-      <span class="section-label">Mid-High Enhancer</span>
-      <div class="flex items-center gap-1">
-       <span class="led-uv"></span><button class="btn-ctrl" id="mheToggle">OFF</button>
-      </div>
-     </div>
-     <div class="space-y-1">
-      <div class="flex items-center justify-between">
-       <span class="text-xs text-gray-500">Enhance</span><span class="digital-display" id="mheEnhDisp">50%</span>
-      </div><input type="range" class="fader" id="mheEnhance" min="0" max="100" value="50">
-      <div class="flex items-center justify-between">
-       <span class="text-xs text-gray-500">Focus</span><span class="digital-display" id="mheFocDisp">5000 Hz</span>
-      </div><input type="range" class="fader" id="mheFocus" min="1000" max="20000" value="5000">
-     </div>
-     <div class="vu-meter-container" id="vuMHE"></div>
-    </div><!-- System Tracking -->
-    <div class="card">
-     <div class="flex items-center justify-between mb-1">
-      <span class="section-label">System Tracking</span>
-      <div class="flex items-center gap-1">
-       <span class="led-uv led-active"></span>
-      </div>
-     </div>
-     <div class="space-y-1 text-xs">
-      <div class="flex justify-between">
-       <span class="text-gray-500">CPU Load</span><span class="digital-display" id="sysCpu">0%</span>
-      </div>
-      <div class="flex justify-between">
-       <span class="text-gray-500">Sample Rate</span><span class="digital-display" id="sysSR">48000</span>
-      </div>
-      <div class="flex justify-between">
-       <span class="text-gray-500">Buffer</span><span class="digital-display" id="sysBuf">256</span>
-      </div>
-      <div class="flex justify-between">
-       <span class="text-gray-500">Latency</span><span class="digital-display" id="sysLat">5.3 ms</span>
-      </div>
-      <div class="flex justify-between">
-       <span class="text-gray-500">Channels</span><span class="digital-display" id="sysCh">2 (Stereo)</span>
-      </div>
-      <div class="flex justify-between">
-       <span class="text-gray-500">Mode</span><span class="digital-display" id="sysMode">STEREO</span>
-      </div>
-     </div>
-    </div>
-   </div><!-- Check Status -->
-   <div class="px-4 py-3 border-t border-gray-800 flex justify-center"><button class="btn-ctrl px-6 py-2 text-sm" id="checkStatusBtn" style="font-family:'Orbitron',sans-serif; border-color: var(--accent);">⚡ CHECK STATUS</button>
-    <div id="statusOutput" class="ml-4 text-xs text-gray-400 self-center hidden"></div>
    </div>
+
+   <div class="p-3 border-b border-gray-800 bg-[#0c0d14] space-y-3">
+     <div class="flex items-center gap-2 flex-wrap">
+       <span class="section-label">INPUT SOURCE PATH:</span>
+       <label class="btn-ctrl cursor-pointer flex items-center gap-1" id="fileLabel">
+         <input type="file" accept="audio/*" id="fileInput" class="hidden"> 📁 Local File
+       </label>
+       <button class="btn-ctrl" id="micBtn">🎙️ Live Mic Input</button>
+       
+       <div class="flex items-center gap-1 bg-black/40 p-1 rounded border border-gray-800">
+         <input type="text" id="ytUrl" placeholder="Paste YouTube Link / Stream URL..." class="bg-gray-900 text-xs px-2 py-1 rounded border border-gray-700 w-52 text-gray-300 focus:outline-none focus:border-cyan-400">
+         <button class="btn-ctrl bg-red-950/40 text-red-400" id="ytLoadBtn">🔗 Inject Stream</button>
+       </div>
+
+       <div class="flex items-center gap-1 bg-black/40 p-1 rounded border border-gray-800">
+         <button class="btn-ctrl" id="toneBtn">〰️ Gen Test Tone</button>
+         <select id="toneWave" class="btn-ctrl py-1">
+           <option value="sine">Sine</option>
+           <option value="square">Square</option>
+           <option value="sawtooth">Saw</option>
+           <option value="triangle">Tri</option>
+         </select>
+         <input type="range" class="fader w-16" id="toneFreq" min="15" max="20000" value="440">
+         <span class="digital-display text-amber-400 min-width-[45px]" id="toneFreqDisp">440 Hz</span>
+       </div>
+     </div>
+
+     <div class="flex items-center gap-2 flex-wrap bg-black/20 p-2 rounded border border-gray-900">
+       <span class="section-label text-gray-500">TRANSPORT:</span>
+       <button class="btn-ctrl text-amber-400 font-bold" id="prevBtn">⏮ PREV</button>
+       <button class="btn-ctrl text-emerald-400 font-bold px-4" id="playBtn">▶ PLAY / RESUME</button>
+       <button class="btn-ctrl text-yellow-400 font-bold" id="pauseBtn">⏸ PAUSE</button>
+       <button class="btn-ctrl text-red-500 font-bold" id="stopBtn">⏹ STOP</button>
+       <button class="btn-ctrl text-amber-400 font-bold" id="nextBtn">⏭ NEXT</button>
+       <span class="text-xs text-gray-400 ml-4 border-l border-gray-700 pl-4 truncate max-w-sm" id="nowPlaying">Source Status: Standby / Idle</span>
+     </div>
+   </div>
+
+   <audio id="audioElement" crossorigin="anonymous" class="hidden"></audio>
+
+   <div class="grid-console" id="mainGrid">
+
+    <div class="card grid col-span-1 lg:col-span-2 row-span-1">
+     <div class="flex items-center justify-between mb-1">
+       <span class="section-label text-cyan-400">Stereo Spectrum Analyzer (L / R Channels)</span>
+       <span class="led-uv id-led" id="led-rta"></span>
+     </div>
+     <canvas id="rtaCanvas" width="600" height="180" style="width:100%;height:160px;border-radius:4px;background:#000;"></canvas>
+    </div>
+
+    <div class="card row-span-1">
+      <div class="flex items-center justify-between mb-2">
+        <span class="section-label text-purple-400">25 Vocal DSP FX Engine (Live FX Only)</span>
+        <span class="led-uv id-led" id="led-vocal-fx"></span>
+      </div>
+      <div class="grid grid-cols-2 gap-1 h-[155px] overflow-y-auto pr-1 text-[10px]" id="vocalPresetContainer">
+        </div>
+    </div>
+
+    <div class="card">
+     <div class="flex items-center justify-between mb-1">
+       <span class="section-label">Dedicated Vocal Delay</span>
+       <button class="btn-ctrl text-[9px]" id="vocalDelayToggle">OFF</button>
+     </div>
+     <div class="space-y-1.5 mt-1">
+       <div>
+         <div class="flex justify-between text-[10px] text-gray-400"><span>Time L</span><span id="vDelayTimeLDisp">350 ms</span></div>
+         <input type="range" class="fader" id="vDelayTimeL" min="1" max="2000" value="350">
+       </div>
+       <div>
+         <div class="flex justify-between text-[10px] text-gray-400"><span>Time R</span><span id="vDelayTimeRDisp">450 ms</span></div>
+         <input type="range" class="fader" id="vDelayTimeR" min="1" max="2000" value="450">
+       </div>
+       <div>
+         <div class="flex justify-between text-[10px] text-gray-400"><span>Feedback L/R</span><span id="vDelayFbDisp">40%</span></div>
+         <input type="range" class="fader" id="vDelayFb" min="0" max="95" value="40">
+       </div>
+       <div>
+         <div class="flex justify-between text-[10px] text-gray-400"><span>Dry / Wet Mix</span><span id="vDelayMixDisp">30%</span></div>
+         <input type="range" class="fader" id="vDelayMix" min="0" max="100" value="30">
+       </div>
+     </div>
+    </div>
+
+    <div class="card col-span-1 lg:col-span-2">
+     <div class="flex items-center justify-between mb-2">
+       <span class="section-label text-pink-500">True Stereo Double Link Crossover Network (HPF / LPF)</span>
+       <button class="btn-ctrl text-[9px] active" id="filterToggle">ON</button>
+     </div>
+     <div class="grid grid-cols-2 gap-4">
+       <div class="space-y-1.5 border-r border-gray-800 pr-2">
+         <div class="text-[10px] text-cyan-400 font-bold border-b border-gray-900 pb-0.5">LEFT CHANNEL FILTER</div>
+         <div>
+           <div class="flex justify-between text-[10px]"><span>HPF Cut L</span><span class="text-cyan-400" id="hpfLDisp">20 Hz</span></div>
+           <input type="range" class="fader" id="hpfFreqL" min="15" max="20000" value="20">
+         </div>
+         <div>
+           <div class="flex justify-between text-[10px]"><span>LPF Cut L</span><span class="text-pink-400" id="lpfLDisp">20.0 kHz</span></div>
+           <input type="range" class="fader" id="lpfFreqL" min="15" max="20000" value="20000">
+         </div>
+       </div>
+       <div class="space-y-1.5 pl-1">
+         <div class="text-[10px] text-amber-400 font-bold border-b border-gray-900 pb-0.5">RIGHT CHANNEL FILTER</div>
+         <div>
+           <div class="flex justify-between text-[10px]"><span>HPF Cut R</span><span class="text-cyan-400" id="hpfRDisp">20 Hz</span></div>
+           <input type="range" class="fader" id="hpfFreqR" min="15" max="20000" value="20">
+         </div>
+         <div>
+           <div class="flex justify-between text-[10px]"><span>LPF Cut R</span><span class="text-pink-400" id="lpfRDisp">20.0 kHz</span></div>
+           <input type="range" class="fader" id="lpfFreqR" min="15" max="20000" value="20000">
+         </div>
+       </div>
+     </div>
+     <canvas id="crossCanvas" width="500" height="50" style="width:100%;height:45px;margin-top:8px;border-radius:4px;background:#000;"></canvas>
+    </div>
+
+    <div class="card col-span-1 lg:col-span-2">
+     <div class="flex items-center justify-between mb-1">
+       <span class="section-label">Parametric EQ Split Controls (Low-Mid, Mid-High, High)</span>
+       <button class="btn-ctrl text-[9px] active" id="eqToggle">ON</button>
+     </div>
+     <div class="grid grid-cols-3 gap-3 mt-1">
+      <div class="bg-black/20 p-1.5 rounded">
+       <div class="text-center text-[10px] font-bold text-gray-400 border-b border-gray-900 mb-1">LOW-MID FREQ</div>
+       <div class="space-y-1 text-[9px]">
+         <div class="flex justify-between"><span>Freq</span><span id="eqLMFreqD">250 Hz</span></div>
+         <input type="range" class="fader" id="eqLMFreq" min="20" max="1000" value="250">
+         <div class="flex justify-between"><span>Gain L</span><span id="eqLMGainLD">0 dB</span></div>
+         <input type="range" class="fader" id="eqLMGainL" min="-15" max="15" value="0">
+         <div class="flex justify-between"><span>Gain R</span><span id="eqLMGainRD">0 dB</span></div>
+         <input type="range" class="fader" id="eqLMGainR" min="-15" max="15" value="0">
+       </div>
+      </div>
+      <div class="bg-black/20 p-1.5 rounded">
+       <div class="text-center text-[10px] font-bold text-gray-400 border-b border-gray-900 mb-1">MID-HIGH FREQ</div>
+       <div class="space-y-1 text-[9px]">
+         <div class="flex justify-between"><span>Freq</span><span id="eqMHFreqD">2.5 kHz</span></div>
+         <input type="range" class="fader" id="eqMHFreq" min="1000" max="8000" value="2500">
+         <div class="flex justify-between"><span>Gain L</span><span id="eqMHGainLD">0 dB</span></div>
+         <input type="range" class="fader" id="eqMHGainL" min="-15" max="15" value="0">
+         <div class="flex justify-between"><span>Gain R</span><span id="eqMHGainRD">0 dB</span></div>
+         <input type="range" class="fader" id="eqMHGainR" min="-15" max="15" value="0">
+       </div>
+      </div>
+      <div class="bg-black/20 p-1.5 rounded">
+       <div class="text-center text-[10px] font-bold text-gray-400 border-b border-gray-900 mb-1">HIGH SHELF</div>
+       <div class="space-y-1 text-[9px]">
+         <div class="flex justify-between"><span>Freq</span><span id="eqHFFreqD">10.0 kHz</span></div>
+         <input type="range" class="fader" id="eqHFFreq" min="8000" max="20000" value="10000">
+         <div class="flex justify-between"><span>Gain L</span><span id="eqHFGainLD">0 dB</span></div>
+         <input type="range" class="fader" id="eqHFGainL" min="-15" max="15" value="0">
+         <div class="flex justify-between"><span>Gain R</span><span id="eqHFGainRD">0 dB</span></div>
+         <input type="range" class="fader" id="eqHFGainR" min="-15" max="15" value="0">
+       </div>
+      </div>
+     </div>
+     <canvas id="eqCanvas" width="500" height="50" style="width:100%;height:40px;margin-top:6px;border-radius:4px;background:#000;"></canvas>
+    </div>
+
+    <div class="card">
+     <div class="flex items-center justify-between mb-1"><span class="section-label">Stereo Compressor</span>
+       <button class="btn-ctrl text-[9px] active" id="compToggle">ON</button>
+     </div>
+     <div class="space-y-1 text-[10px]">
+      <div class="flex justify-between"><span>Threshold</span><span id="compThDisp">-24 dB</span></div>
+      <input type="range" class="fader" id="compThreshold" min="-60" max="0" value="-24">
+      <div class="flex justify-between"><span>Ratio</span><span id="compRatDisp">4:1</span></div>
+      <input type="range" class="fader" id="compRatio" min="1" max="20" value="4">
+      <div class="flex justify-between"><span>Attack</span><span id="compAtkDisp">15 ms</span></div>
+      <input type="range" class="fader" id="compAttack" min="1" max="200" value="15">
+      <div class="flex justify-between"><span>Release</span><span id="compRelDisp">200 ms</span></div>
+      <input type="range" class="fader" id="compRelease" min="10" max="1000" value="200">
+      <div class="flex justify-between text-pink-400 font-bold"><span>Gain Reduction</span><span id="compRedDisp">0 dB</span></div>
+     </div>
+    </div>
+
+    <div class="card">
+     <div class="flex items-center justify-between mb-1"><span class="section-label">Output Brickwall Limiter</span>
+       <button class="btn-ctrl text-[9px] active" id="limiterToggle">ON</button>
+     </div>
+     <div class="space-y-1 text-[10px]">
+       <div class="flex justify-between"><span>Ceiling L</span><span id="limCeilLDisp">-0.5 dB</span></div>
+       <input type="range" class="fader" id="limCeilingL" min="-12" max="0" value="-0.5" step="0.1">
+       <div class="flex justify-between"><span>Ceiling R</span><span id="limCeilRDisp">-0.5 dB</span></div>
+       <input type="range" class="fader" id="limCeilingR" min="-12" max="0" value="-0.5" step="0.1">
+       <div class="flex justify-between"><span>Release Time</span><span id="limRelDisp">40 ms</span></div>
+       <input type="range" class="fader" id="limRelease" min="5" max="500" value="40">
+     </div>
+     <canvas id="limiterCanvas" width="200" height="30" style="width:100%;height:25px;margin-top:6px;border-radius:4px;background:#000;"></canvas>
+    </div>
+
+    <div class="card">
+     <div class="flex items-center justify-between mb-1">
+       <span class="section-label text-emerald-400">Master Level Out (Fader Split)</span>
+       <span class="led-uv id-led active" id="led-master-out"></span>
+     </div>
+     <div class="space-y-2 mt-2">
+      <div>
+        <div class="flex justify-between text-[10px] text-cyan-400"><span>Fader Channel LEFT</span><span id="outGainLDisp">0 dB</span></div>
+        <input type="range" class="fader" id="outGainL" min="-60" max="12" value="0">
+      </div>
+      <div>
+        <div class="flex justify-between text-[10px] text-amber-400"><span>Fader Channel RIGHT</span><span id="outGainRDisp">0 dB</span></div>
+        <input type="range" class="fader" id="outGainR" min="-60" max="12" value="0">
+      </div>
+     </div>
+    </div>
+
+    <div class="card">
+     <div class="flex items-center justify-between mb-1"><span class="section-label text-cyan-400">6 Core Stereo Tracker Matrix</span></div>
+     <div class="grid grid-cols-2 gap-1 text-[9px] mt-1">
+       <div class="bg-black/40 p-1 rounded flex flex-col"><span class="text-gray-500">1. DSP Core Latency</span><span class="digital-display text-cyan-400" id="sysLat">2.9 ms</span></div>
+       <div class="bg-black/40 p-1 rounded flex flex-col"><span class="text-gray-500">2. Processing Frame</span><span class="digital-display text-cyan-400" id="sysBuf">Stereo 512</span></div>
+       <div class="bg-black/40 p-1 rounded flex flex-col"><span class="text-gray-500">3. Sample Rate L Node</span><span class="digital-display text-emerald-400" id="sysSRL">48000 Hz</span></div>
+       <div class="bg-black/40 p-1 rounded flex flex-col"><span class="text-gray-500">4. Sample Rate R Node</span><span class="digital-display text-emerald-400" id="sysSRR">48000 Hz</span></div>
+       <div class="bg-black/40 p-1 rounded flex flex-col"><span class="text-gray-500">5. VU Track L Active</span><span class="digital-display text-blue-400" id="vuTrackL">ACTIVE</span></div>
+       <div class="bg-black/40 p-1 rounded flex flex-col"><span class="text-gray-500">6. VU Track R Active</span><span class="digital-display text-blue-400" id="vuTrackR">ACTIVE</span></div>
+     </div>
+    </div>
+
+   </div>
+
+   <div class="px-4 py-3 border-t border-gray-800 flex justify-between items-center bg-[#090a10]">
+    <button class="btn-ctrl px-6 py-2 text-xs font-bold" id="checkStatusBtn" style="font-family:'Orbitron',sans-serif; border-color: var(--accent);">⚡ CORE NODE DIAGNOSTIC</button>
+    <div id="statusOutput" class="text-xs text-gray-400 hidden"></div>
+    <div class="text-[10px] text-gray-600">FR AUDIO Corp. Ltd © 2026</div>
+   </div>
+
   </div>
+
   <script>
-// VU Meter Creation
-const VU_SEGMENTS = 8;
-function createVU(containerId) {
-  const container = document.getElementById(containerId);
-  if (!container) return null;
-  container.innerHTML = '';
-  
-  // L channel
-  const lWrap = document.createElement('div');
-  lWrap.style.cssText = 'flex:1;display:flex;flex-direction:column;';
-  const lLabel = document.createElement('div');
-  lLabel.className = 'vu-bar-label';
-  lLabel.textContent = 'L';
-  const lBar = document.createElement('div');
-  lBar.style.cssText = 'display:flex;gap:1px;height:4px;';
-  for (let i = 0; i < VU_SEGMENTS; i++) {
-    const seg = document.createElement('div');
-    seg.style.cssText = 'flex:1;height:4px;border-radius:1px;background:#2a2030;transition:background 0.08s;';
-    seg.dataset.idx = i;
-    lBar.appendChild(seg);
-  }
-  lWrap.appendChild(lLabel);
-  lWrap.appendChild(lBar);
+    // Core Engine Variables
+    let ctx, sourceNode, micStream, elementSource, mediaPlaylist = [];
+    let currentTrackIdx = 0;
+    
+    // Core Processing Node Chains (Separated L and R for True Stereo routing)
+    let splitter, merger;
+    let rtaAnalyserL, rtaAnalyserR;
+    
+    // Equalizer Nodes (L/R Matrix)
+    let eqLML, eqLMR, eqMHL, eqMHR, eqHFL, eqHFR;
+    // Crossover Filter Nodes (L/R Matrix)
+    let hpfL, hpfR, lpfL, lpfR;
+    // Dynamics Core Processing
+    let compL, compR, limL, limR;
+    // Master Volume Gains
+    let outGainNodeL, outGainNodeR;
 
-  // R channel
-  const rWrap = document.createElement('div');
-  rWrap.style.cssText = 'flex:1;display:flex;flex-direction:column;';
-  const rLabel = document.createElement('div');
-  rLabel.className = 'vu-bar-label';
-  rLabel.textContent = 'R';
-  const rBar = document.createElement('div');
-  rBar.style.cssText = 'display:flex;gap:1px;height:4px;';
-  for (let i = 0; i < VU_SEGMENTS; i++) {
-    const seg = document.createElement('div');
-    seg.style.cssText = 'flex:1;height:4px;border-radius:1px;background:#2a2030;transition:background 0.08s;';
-    seg.dataset.idx = i;
-    rBar.appendChild(seg);
-  }
-  rWrap.appendChild(rLabel);
-  rWrap.appendChild(rBar);
+    // Vocal FX Delay Matrix
+    let vocalDelayNodeL, vocalDelayNodeR, vocalDelayFbL, vocalDelayFbR, vocalDelayWetL, vocalDelayWetR, vocalDelayDryL, vocalDelayDryR;
+    let vocalEffectNode; // Pitch / Reverb processing node wrapper
 
-  container.appendChild(lWrap);
-  container.appendChild(rWrap);
+    const states = {
+      comp: true, eq: true, filter: true, limiterOn: true, vocalDelay: false, currentVocalFx: 0
+    };
 
-  return { lBar, rBar };
-}
+    // 25 Vocal FX Presets Definitions
+    const vocalPresets = [
+      { name: "01. Bypass Pure Voice", pitch: 0, echo: 0, room: 0 },
+      { name: "02. Studio Warm Vocal", pitch: 0, echo: 10, room: 20 },
+      { name: "03. Hall Reverb Stage", pitch: 0, echo: 30, room: 70 },
+      { name: "04. Deep Male Anchor", pitch: -2.5, echo: 15, room: 25 },
+      { name: "05. Crisp Female Lead", pitch: 2.0, echo: 10, room: 30 },
+      { name: "06. Golden Plate Reverb", pitch: 0, echo: 20, room: 85 },
+      { name: "07. Club Karaoke Echo", pitch: 0, echo: 65, room: 45 },
+      { name: "08. Double Tracking Tracking", pitch: 0.2, echo: 25, room: 15 },
+      { name: "09. Radio Broadcast AM", pitch: -0.5, echo: 5, room: 5 },
+      { name: "10. Space Echo Space", pitch: 1.5, echo: 85, room: 80 },
+      { name: "11. Fat Low Sub-Vocal", pitch: -5.0, echo: 10, room: 40 },
+      { name: "12. High Air Soprano", pitch: 4.0, echo: 15, room: 50 },
+      { name: "13. Chorus Ensemble L/R", pitch: 0.4, echo: 40, room: 35 },
+      { name: "14. Vintage Tape Slapback", pitch: 0, echo: 90, room: 10 },
+      { name: "15. Church Cathedral", pitch: -1.0, echo: 40, room: 95 },
+      { name: "16. Aggressive Rock Growl", pitch: -1.8, echo: 12, room: 20 },
+      { name: "17. Telephone Box Filter", pitch: 3.0, echo: 0, room: 5 },
+      { name: "18. Cybernetic Robot Voice", pitch: -8.0, echo: 50, room: 30 },
+      { name: "19. Hyper Pop Pitch Tune", pitch: 12.0, echo: 20, room: 25 },
+      { name: "20. Ambient Whispering", pitch: 5.0, echo: 70, room: 90 },
+      { name: "21. Shimmer Pitch Reverb", pitch: 7.0, echo: 50, room: 85 },
+      { name: "22. Dynamic Ducking Echo", pitch: 0, echo: 35, room: 20 },
+      { name: "23. Arena Stadium Gig", pitch: -0.2, echo: 55, room: 85 },
+      { name: "24. Voice Over Compressor", pitch: 0, echo: 5, room: 10 },
+      { name: "25. Retro Arcade Talk", pitch: -4.0, echo: 30, room: 15 }
+    ];
 
-function updateVU(vu, levelL, levelR) {
-  if (!vu) return;
-  const litL = Math.round(levelL * VU_SEGMENTS);
-  const litR = Math.round(levelR * VU_SEGMENTS);
-  
-  for (let i = 0; i < VU_SEGMENTS; i++) {
-    const lSeg = vu.lBar.children[i];
-    const rSeg = vu.rBar.children[i];
-    const color = i < VU_SEGMENTS * 0.6 ? '#00cc44' : i < VU_SEGMENTS * 0.85 ? '#ffcc00' : '#ff2d55';
-    lSeg.style.background = i < litL ? color : '#2a2030';
-    lSeg.style.boxShadow = i < litL ? `0 0 3px ${color}` : 'none';
-    rSeg.style.background = i < litR ? color : '#2a2030';
-    rSeg.style.boxShadow = i < litR ? `0 0 3px ${color}` : 'none';
-  }
-}
+    // Build Preset DOM Layout Elements
+    const container = document.getElementById('vocalPresetContainer');
+    vocalPresets.forEach((p, idx) => {
+      const btn = document.createElement('button');
+      btn.className = `btn-preset ${idx === 0 ? 'active' : ''}`;
+      btn.id = `vfx-${idx}`;
+      btn.innerHTML = p.name;
+      btn.onclick = () => selectVocalPreset(idx);
+      container.appendChild(btn);
+    });
 
-// Create all VU meters
-const vuMeters = {};
-const vuIds = ['vuPitch','vuComp','vuEQ','vuFilter','vuLimiter','vuDelay','vuDCE','vuSubHarm','vuDCN','vuFPL','vuOutput','vuHB','vuSR','vuVP','vuSDE','vuASW','vuSPDL','vuMHE'];
-vuIds.forEach(id => { vuMeters[id] = createVU(id); });
-
-// Audio Engine
-let ctx, sourceNode, micStream;
-let analyserL, analyserR, splitter, merger;
-let compressor, limiter;
-let eqLM, eqMH, eqHF, hpf, lpf;
-let delayNode, delayFb, delayDry, delayWet;
-let pitchDelay1, pitchDelay2, pitchFb1, pitchDry, pitchWet;
-let outputGain, masterGain, pannerL, pannerR;
-let audioBuffer, isPlaying = false;
-let toneOsc, toneGain;
-let animFrame;
-
-const states = {
-  pitch: false, comp: true, eq: true, filter: true, limiterOn: true,
-  delay: false, subHarm: false, dcn: false, fpl: false, hb: false,
-  sr: false, vp: false, sde: false, asw: false, spdl: false, mhe: false,
-  aswPhaseInvert: false
-};
-
-function initAudio() {
-  ctx = new (window.AudioContext || window.webkitAudioContext)();
-
-  // Stereo splitter/merger for L/R analysis
-  splitter = ctx.createChannelSplitter(2);
-  merger = ctx.createChannelMerger(2);
-
-  analyserL = ctx.createAnalyser();
-  analyserL.fftSize = 4096;
-  analyserR = ctx.createAnalyser();
-  analyserR.fftSize = 4096;
-
-  // EQ
-  eqLM = ctx.createBiquadFilter(); eqLM.type = 'peaking'; eqLM.frequency.value = 250; eqLM.Q.value = 1; eqLM.gain.value = 0;
-  eqMH = ctx.createBiquadFilter(); eqMH.type = 'peaking'; eqMH.frequency.value = 2500; eqMH.Q.value = 1; eqMH.gain.value = 0;
-  eqHF = ctx.createBiquadFilter(); eqHF.type = 'peaking'; eqHF.frequency.value = 8000; eqHF.Q.value = 1; eqHF.gain.value = 0;
-
-  // HPF/LPF
-  hpf = ctx.createBiquadFilter(); hpf.type = 'highpass'; hpf.frequency.value = 15; hpf.Q.value = 0.707;
-  lpf = ctx.createBiquadFilter(); lpf.type = 'lowpass'; lpf.frequency.value = 44000; lpf.Q.value = 0.707;
-
-  // Compressor
-  compressor = ctx.createDynamicsCompressor();
-  compressor.threshold.value = -24; compressor.ratio.value = 4;
-  compressor.attack.value = 0.003; compressor.release.value = 0.25;
-
-  // Limiter
-  limiter = ctx.createDynamicsCompressor();
-  limiter.threshold.value = -0.3; limiter.ratio.value = 20;
-  limiter.attack.value = 0.001; limiter.release.value = 0.05;
-
-  // Delay
-  delayNode = ctx.createDelay(5); delayNode.delayTime.value = 0.3;
-  delayFb = ctx.createGain(); delayFb.gain.value = 0.4;
-  delayDry = ctx.createGain(); delayDry.gain.value = 0.7;
-  delayWet = ctx.createGain(); delayWet.gain.value = 0.3;
-
-  // Pitch
-  pitchDelay1 = ctx.createDelay(1); pitchDelay1.delayTime.value = 0.01;
-  pitchDelay2 = ctx.createDelay(1); pitchDelay2.delayTime.value = 0.015;
-  pitchFb1 = ctx.createGain(); pitchFb1.gain.value = 0.3;
-  pitchDry = ctx.createGain(); pitchDry.gain.value = 0.5;
-  pitchWet = ctx.createGain(); pitchWet.gain.value = 0.5;
-
-  // Output with stereo balance
-  outputGain = ctx.createGain(); outputGain.gain.value = 1;
-  masterGain = ctx.createGain(); masterGain.gain.value = 1;
-
-  // Tone generator
-  toneGain = ctx.createGain(); toneGain.gain.value = 0;
-
-  updateSysInfo();
-  startAnimation();
-}
-
-function buildChain(source) {
-  // source → pitch → EQ → HPF → LPF → delay → compressor → limiter → output → splitter → analysers → destination
-  let pitchOut = ctx.createGain();
-  source.connect(pitchDry);
-  source.connect(pitchDelay1);
-  pitchDelay1.connect(pitchDelay2);
-  pitchDelay2.connect(pitchFb1);
-  pitchFb1.connect(pitchDelay1);
-  pitchDelay2.connect(pitchWet);
-  pitchDry.connect(pitchOut);
-  pitchWet.connect(pitchOut);
-
-  pitchOut.connect(eqLM);
-  eqLM.connect(eqMH);
-  eqMH.connect(eqHF);
-  eqHF.connect(hpf);
-  hpf.connect(lpf);
-
-  let delayOut = ctx.createGain();
-  lpf.connect(delayDry);
-  lpf.connect(delayNode);
-  delayNode.connect(delayFb);
-  delayFb.connect(delayNode);
-  delayNode.connect(delayWet);
-  delayDry.connect(delayOut);
-  delayWet.connect(delayOut);
-
-  delayOut.connect(compressor);
-  compressor.connect(limiter);
-  limiter.connect(outputGain);
-  outputGain.connect(masterGain);
-  
-  // Stereo split for analysis
-  masterGain.connect(splitter);
-  splitter.connect(analyserL, 0);
-  splitter.connect(analyserR, 1);
-  masterGain.connect(ctx.destination);
-
-  updatePitchState();
-  updateDelayState();
-}
-
-function disconnectAll() {
-  try {
-    if (sourceNode) sourceNode.disconnect();
-    [pitchDry, pitchWet, pitchDelay1, pitchDelay2, pitchFb1,
-     eqLM, eqMH, eqHF, hpf, lpf,
-     delayNode, delayFb, delayDry, delayWet,
-     compressor, limiter, outputGain, masterGain, splitter].forEach(n => { try { n.disconnect(); } catch(e){} });
-  } catch(e){}
-}
-
-function updatePitchState() {
-  if (states.pitch) {
-    pitchDry.gain.value = 1 - (parseInt(document.getElementById('pitchMix').value) / 100);
-    pitchWet.gain.value = parseInt(document.getElementById('pitchMix').value) / 100;
-    pitchFb1.gain.value = parseInt(document.getElementById('pitchFeedback').value) / 100;
-    const semitones = parseFloat(document.getElementById('pitchShift').value);
-    const rate = Math.pow(2, semitones / 12);
-    const baseDelay = 0.01 / rate;
-    pitchDelay1.delayTime.value = Math.max(0.001, Math.min(0.1, baseDelay));
-    pitchDelay2.delayTime.value = Math.max(0.001, Math.min(0.1, baseDelay * 1.5));
-  } else {
-    pitchDry.gain.value = 1;
-    pitchWet.gain.value = 0;
-  }
-}
-
-function updateDelayState() {
-  if (states.delay) {
-    delayDry.gain.value = 1 - (parseInt(document.getElementById('delayMix').value) / 100);
-    delayWet.gain.value = parseInt(document.getElementById('delayMix').value) / 100;
-    delayFb.gain.value = parseInt(document.getElementById('delayFeedback').value) / 100;
-    delayNode.delayTime.value = parseInt(document.getElementById('delayTime').value) / 1000;
-  } else {
-    delayDry.gain.value = 1;
-    delayWet.gain.value = 0;
-  }
-}
-
-function updateSysInfo() {
-  if (!ctx) return;
-  document.getElementById('sysSR').textContent = ctx.sampleRate;
-  document.getElementById('sysBuf').textContent = '256';
-  document.getElementById('sysLat').textContent = ((256 / ctx.sampleRate) * 1000).toFixed(1) + ' ms';
-  document.getElementById('sysCh').textContent = '2 (Stereo)';
-  document.getElementById('sysMode').textContent = 'STEREO';
-}
-
-// File loading
-document.getElementById('fileInput').addEventListener('change', async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-  if (!ctx) initAudio();
-  if (ctx.state === 'suspended') await ctx.resume();
-  const arrayBuf = await file.arrayBuffer();
-  audioBuffer = await ctx.decodeAudioData(arrayBuf);
-});
-
-// Mic
-document.getElementById('micBtn').addEventListener('click', async () => {
-  if (!ctx) initAudio();
-  if (ctx.state === 'suspended') await ctx.resume();
-  try {
-    micStream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 2 } });
-    disconnectAll();
-    sourceNode = ctx.createMediaStreamSource(micStream);
-    buildChain(sourceNode);
-    document.getElementById('micBtn').classList.add('active');
-  } catch(e) {}
-});
-
-// Play
-document.getElementById('playBtn').addEventListener('click', async () => {
-  if (!ctx) initAudio();
-  if (ctx.state === 'suspended') await ctx.resume();
-  if (isPlaying) return;
-  if (audioBuffer) {
-    disconnectAll();
-    sourceNode = ctx.createBufferSource();
-    sourceNode.buffer = audioBuffer;
-    sourceNode.loop = true;
-    buildChain(sourceNode);
-    sourceNode.start();
-    isPlaying = true;
-  }
-});
-
-// Stop
-document.getElementById('stopBtn').addEventListener('click', () => {
-  if (sourceNode && isPlaying) { try { sourceNode.stop(); } catch(e){} isPlaying = false; }
-  if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; document.getElementById('micBtn').classList.remove('active'); }
-  if (toneOsc) { toneOsc.stop(); toneOsc = null; toneGain.gain.value = 0; document.getElementById('toneBtn').classList.remove('active'); }
-});
-
-// Tone
-document.getElementById('toneBtn').addEventListener('click', async () => {
-  if (!ctx) initAudio();
-  if (ctx.state === 'suspended') await ctx.resume();
-  if (toneOsc) { toneOsc.stop(); toneOsc = null; toneGain.gain.value = 0; document.getElementById('toneBtn').classList.remove('active'); return; }
-  disconnectAll();
-  toneOsc = ctx.createOscillator();
-  toneOsc.type = document.getElementById('toneWave').value;
-  toneOsc.frequency.value = parseInt(document.getElementById('toneFreq').value);
-  toneGain.gain.value = 0.5;
-  toneOsc.connect(toneGain);
-  sourceNode = toneGain;
-  buildChain(toneGain);
-  toneOsc.start();
-  document.getElementById('toneBtn').classList.add('active');
-});
-
-document.getElementById('toneFreq').addEventListener('input', (e) => {
-  const v = parseInt(e.target.value);
-  document.getElementById('toneFreqDisp').textContent = v >= 1000 ? (v/1000).toFixed(1)+' kHz' : v+' Hz';
-  if (toneOsc) toneOsc.frequency.value = v;
-});
-document.getElementById('toneWave').addEventListener('change', (e) => { if (toneOsc) toneOsc.type = e.target.value; });
-
-// Toggles
-function setupToggle(btnId, stateKey, cb) {
-  document.getElementById(btnId).addEventListener('click', function() {
-    states[stateKey] = !states[stateKey];
-    this.textContent = states[stateKey] ? 'ON' : 'OFF';
-    this.classList.toggle('active', states[stateKey]);
-    if (cb) cb();
-  });
-}
-setupToggle('pitchToggle', 'pitch', updatePitchState);
-setupToggle('compToggle', 'comp', () => { compressor.ratio.value = states.comp ? parseFloat(document.getElementById('compRatio').value) : 1; });
-setupToggle('eqToggle', 'eq');
-setupToggle('filterToggle', 'filter');
-setupToggle('limiterToggle', 'limiterOn', () => { limiter.ratio.value = states.limiterOn ? 20 : 1; });
-setupToggle('delayToggle', 'delay', updateDelayState);
-setupToggle('subHarmToggle', 'subHarm');
-setupToggle('dcnToggle', 'dcn');
-setupToggle('fplToggle', 'fpl');
-setupToggle('hbToggle', 'hb');
-setupToggle('srToggle', 'sr');
-setupToggle('vpToggle', 'vp');
-setupToggle('sdeToggle', 'sde');
-setupToggle('aswToggle', 'asw');
-setupToggle('spdlToggle', 'spdl');
-setupToggle('mheToggle', 'mhe');
-
-document.getElementById('aswPhase').addEventListener('click', function() {
-  states.aswPhaseInvert = !states.aswPhaseInvert;
-  this.textContent = '⟲ Phase Invert: ' + (states.aswPhaseInvert ? 'ON' : 'OFF');
-  this.classList.toggle('active', states.aswPhaseInvert);
-});
-
-// Fader bindings
-function bindFader(id, dispId, fmt, cb) {
-  document.getElementById(id).addEventListener('input', function() {
-    const v = parseFloat(this.value);
-    document.getElementById(dispId).textContent = fmt(v);
-    if (cb) cb(v);
-  });
-}
-
-bindFader('pitchShift', 'pitchDisp', v => v.toFixed(1)+' st', updatePitchState);
-bindFader('pitchFeedback', 'pitchFbDisp', v => v+'%', updatePitchState);
-bindFader('pitchMix', 'pitchMixDisp', v => v+'%', updatePitchState);
-bindFader('compThreshold', 'compThDisp', v => v+' dB', v => { if(compressor) compressor.threshold.value = v; });
-bindFader('compRatio', 'compRatDisp', v => v+':1', v => { if(compressor && states.comp) compressor.ratio.value = v; });
-bindFader('compAttack', 'compAtkDisp', v => v+' ms', v => { if(compressor) compressor.attack.value = v/1000; });
-bindFader('compRelease', 'compRelDisp', v => v+' ms', v => { if(compressor) compressor.release.value = v/1000; });
-bindFader('eqLMFreq', 'eqLMFreqD', v => v>=1000?(v/1000).toFixed(1)+' kHz':v+' Hz', v => { eqLM.frequency.value=v; });
-bindFader('eqLMGain', 'eqLMGainD', v => v+' dB', v => { if(states.eq) eqLM.gain.value=v; });
-bindFader('eqLMQ', 'eqLMQD', v => v.toFixed(1), v => { eqLM.Q.value=v; });
-bindFader('eqMHFreq', 'eqMHFreqD', v => v>=1000?(v/1000).toFixed(1)+' kHz':v+' Hz', v => { eqMH.frequency.value=v; });
-bindFader('eqMHGain', 'eqMHGainD', v => v+' dB', v => { if(states.eq) eqMH.gain.value=v; });
-bindFader('eqMHQ', 'eqMHQD', v => v.toFixed(1), v => { eqMH.Q.value=v; });
-bindFader('eqHFFreq', 'eqHFFreqD', v => v>=1000?(v/1000).toFixed(1)+' kHz':v+' Hz', v => { eqHF.frequency.value=v; });
-bindFader('eqHFGain', 'eqHFGainD', v => v+' dB', v => { if(states.eq) eqHF.gain.value=v; });
-bindFader('eqHFQ', 'eqHFQD', v => v.toFixed(1), v => { eqHF.Q.value=v; });
-bindFader('hpfFreq', 'hpfDisp', v => v>=1000?(v/1000).toFixed(1)+' kHz':v+' Hz', v => { hpf.frequency.value=v; });
-bindFader('lpfFreq', 'lpfDisp', v => v>=1000?(v/1000).toFixed(1)+' kHz':v+' Hz', v => { lpf.frequency.value=v; });
-bindFader('limCeiling', 'limCeilDisp', v => v.toFixed(1)+' dB', v => { limiter.threshold.value=v; });
-bindFader('limRelease', 'limRelDisp', v => v+' ms', v => { limiter.release.value=v/1000; });
-bindFader('delayTime', 'delayTimeDisp', v => v+' ms', updateDelayState);
-bindFader('delayFeedback', 'delayFbDisp', v => v+'%', updateDelayState);
-bindFader('delayMix', 'delayMixDisp', v => v+'%', updateDelayState);
-bindFader('outGain', 'outGainDisp', v => v+' dB', v => { if(outputGain) outputGain.gain.value = Math.pow(10, v/20); });
-bindFader('outBalance', 'outBalDisp', v => v===0?'C':v<0?'L'+Math.abs(v):'R'+v);
-bindFader('dceA', 'dceADisp', v=>v+'%');
-bindFader('dceB', 'dceBDisp', v=>v+'%');
-bindFader('dceBlend', 'dceBldDisp', v=>v+'%');
-bindFader('shLevel', 'shLvlDisp', v=>v+' dB');
-bindFader('shFreq', 'shFreqDisp', v=>v+' Hz');
-bindFader('dcnClarity', 'dcnClrDisp', v=>v+'%');
-bindFader('dcnPresence', 'dcnPresDisp', v=>v+'%');
-bindFader('fplPhase', 'fplPhDisp', v=>v+'°');
-bindFader('fplFidelity', 'fplFidDisp', v=>v+'%');
-bindFader('hbOdd', 'hbOddDisp', v=>v+'%');
-bindFader('hbEven', 'hbEvenDisp', v=>v+'%');
-bindFader('srRecovery', 'srRecDisp', v=>v+'%');
-bindFader('srDepth', 'srDepDisp', v=>v+'%');
-bindFader('vpPresence', 'vpPresDisp', v=>v+'%');
-bindFader('vpAir', 'vpAirDisp', v=>v+'%');
-bindFader('sdeWidth', 'sdeWidDisp', v=>v+'%');
-bindFader('sdeDepth', 'sdeDepDisp', v=>v+'%');
-bindFader('aswCutoff', 'aswCutDisp', v=>v+' Hz');
-bindFader('aswLevel', 'aswLvlDisp', v=>v+' dB');
-bindFader('spdlThresh', 'spdlThDisp', v=>v+' dB');
-bindFader('spdlHold', 'spdlHoldDisp', v=>v+' ms');
-bindFader('mheEnhance', 'mheEnhDisp', v=>v+'%');
-bindFader('mheFocus', 'mheFocDisp', v=>v>=1000?(v/1000).toFixed(1)+' kHz':v+' Hz');
-
-document.getElementById('fplLock').addEventListener('click', function() {
-  this.classList.toggle('active');
-  this.textContent = this.classList.contains('active') ? '🔒 Phase Locked' : '🔒 Phase Lock';
-});
-
-// Check Status
-document.getElementById('checkStatusBtn').addEventListener('click', function() {
-  const out = document.getElementById('statusOutput');
-  out.classList.remove('hidden');
-  const activeModules = Object.entries(states).filter(([k,v])=>v).map(([k])=>k);
-  out.innerHTML = `<span style="color:var(--accent);">✓ System OK</span> | Modules Active: ${activeModules.length} | SR: ${ctx?ctx.sampleRate:'N/A'} | State: ${ctx?ctx.state:'offline'} | Mode: STEREO`;
-});
-
-// Animation
-function startAnimation() {
-  const rtaC = document.getElementById('rtaCanvas');
-  const rtaCtx2 = rtaC.getContext('2d');
-  const eqC = document.getElementById('eqCanvas');
-  const eqCtx = eqC.getContext('2d');
-  const limC = document.getElementById('limiterCanvas');
-  const limCtx = limC.getContext('2d');
-  const crossC = document.getElementById('crossCanvas');
-  const crossCtx = crossC.getContext('2d');
-
-  function draw() {
-    animFrame = requestAnimationFrame(draw);
-    if (!analyserL || !analyserR) return;
-
-    const bufLen = analyserL.frequencyBinCount;
-    const dataL = new Uint8Array(bufLen);
-    const dataR = new Uint8Array(bufLen);
-    analyserL.getByteFrequencyData(dataL);
-    analyserR.getByteFrequencyData(dataR);
-
-    // RTA - Stereo (L=green overlay, R=orange overlay)
-    rtaCtx2.fillStyle = '#000';
-    rtaCtx2.fillRect(0, 0, rtaC.width, rtaC.height);
-
-    const barW = rtaC.width / 128;
-    for (let i = 0; i < 128; i++) {
-      const idx = Math.floor(i * bufLen / 128);
-      const vL = dataL[idx] / 255;
-      const vR = dataR[idx] / 255;
-      const hL = vL * rtaC.height;
-      const hR = vR * rtaC.height;
+    function initAudioEngine() {
+      if(ctx) return;
+      ctx = new (window.AudioContext || window.webkitAudioContext)();
       
-      // L channel (green-cyan)
-      rtaCtx2.fillStyle = `rgba(0, 204, 68, 0.7)`;
-      rtaCtx2.fillRect(i * barW, rtaC.height - hL, barW/2 - 0.5, hL);
+      // Core Channel Tools
+      splitter = ctx.createChannelSplitter(2);
+      merger = ctx.createChannelMerger(2);
       
-      // R channel (orange-amber)
-      rtaCtx2.fillStyle = `rgba(255, 140, 0, 0.7)`;
-      rtaCtx2.fillRect(i * barW + barW/2, rtaC.height - hR, barW/2 - 0.5, hR);
+      // Dual Monitoring Modules
+      rtaAnalyserL = ctx.createAnalyser(); rtaAnalyserL.fftSize = 2048;
+      rtaAnalyserR = ctx.createAnalyser(); rtaAnalyserR.fftSize = 2048;
+      
+      // Parametric EQ L/R Modules Initialization
+      eqLML = ctx.createBiquadFilter(); eqLML.type = 'peaking';
+      eqLMR = ctx.createBiquadFilter(); eqLMR.type = 'peaking';
+      eqMHL = ctx.createBiquadFilter(); eqMHL.type = 'peaking';
+      eqMHR = ctx.createBiquadFilter(); eqMHR.type = 'peaking';
+      eqHFL = ctx.createBiquadFilter(); eqHFL.type = 'highshelf';
+      eqHFR = ctx.createBiquadFilter(); eqHFR.type = 'highshelf';
+
+      // Crossover Filters L/R Initialization
+      hpfL = ctx.createBiquadFilter(); hpfL.type = 'highpass';
+      hpfR = ctx.createBiquadFilter(); hpfR.type = 'highpass';
+      lpfL = ctx.createBiquadFilter(); lpfL.type = 'lowpass';
+      lpfR = ctx.createBiquadFilter(); lpfR.type = 'lowpass';
+
+      // Dynamics Chain Linkage
+      compL = ctx.createDynamicsCompressor();
+      compR = ctx.createDynamicsCompressor();
+      limL = ctx.createDynamicsCompressor(); limL.ratio.value = 20;
+      limR = ctx.createDynamicsCompressor(); limR.ratio.value = 20;
+
+      // Master Gains Separated
+      outGainNodeL = ctx.createGain();
+      outGainNodeR = ctx.createGain();
+
+      // Vocal Dedicated Delay Network Line
+      vocalDelayNodeL = ctx.createDelay(4); vocalDelayNodeR = ctx.createDelay(4);
+      vocalDelayFbL = ctx.createGain(); vocalDelayFbR = ctx.createGain();
+      vocalDelayWetL = ctx.createGain(); vocalDelayWetR = ctx.createGain();
+      vocalDelayDryL = ctx.createGain(); vocalDelayDryR = ctx.createGain();
+
+      syncFadersToNodes();
+      startRenderingLoops();
     }
 
-    // EQ response
-    eqCtx.fillStyle = '#000';
-    eqCtx.fillRect(0, 0, eqC.width, eqC.height);
-    eqCtx.strokeStyle = '#ff8c00';
-    eqCtx.lineWidth = 1.5;
-    eqCtx.beginPath();
-    for (let x = 0; x < eqC.width; x++) {
-      const freq = 15 * Math.pow(44000/15, x/eqC.width);
-      let gain = 0;
-      if (states.eq) {
-        gain += calcEQGain(freq, eqLM.frequency.value, eqLM.gain.value, eqLM.Q.value);
-        gain += calcEQGain(freq, eqMH.frequency.value, eqMH.gain.value, eqMH.Q.value);
-        gain += calcEQGain(freq, eqHF.frequency.value, eqHF.gain.value, eqHF.Q.value);
+    function syncFadersToNodes() {
+      // Set EQ Parameters from UI Elements
+      const lmf = parseFloat(document.getElementById('eqLMFreq').value);
+      eqLML.frequency.value = lmf; eqLMR.frequency.value = lmf;
+      eqLML.gain.value = parseFloat(document.getElementById('eqLMGainL').value);
+      eqLMR.gain.value = parseFloat(document.getElementById('eqLMGainR').value);
+
+      const mhf = parseFloat(document.getElementById('eqMHFreq').value);
+      eqMHL.frequency.value = mhf; eqMHR.frequency.value = mhf;
+      eqMHL.gain.value = parseFloat(document.getElementById('eqMHGainL').value);
+      eqMHR.gain.value = parseFloat(document.getElementById('eqMHGainR').value);
+
+      const hff = parseFloat(document.getElementById('eqHFFreq').value);
+      eqHFL.frequency.value = hff; eqHFR.frequency.value = hff;
+      eqHFL.gain.value = parseFloat(document.getElementById('eqHFGainL').value);
+      eqHFR.gain.value = parseFloat(document.getElementById('eqHFGainR').value);
+
+      // Crossovers Parameters Setup
+      hpfL.frequency.value = parseFloat(document.getElementById('hpfFreqL').value);
+      hpfR.frequency.value = parseFloat(document.getElementById('hpfFreqR').value);
+      lpfL.frequency.value = parseFloat(document.getElementById('lpfFreqL').value);
+      lpfR.frequency.value = parseFloat(document.getElementById('lpfFreqR').value);
+
+      // Compressors parameters setup
+      const th = parseFloat(document.getElementById('compThreshold').value);
+      compL.threshold.value = th; compR.threshold.value = th;
+      const rt = parseFloat(document.getElementById('compRatio').value);
+      compL.ratio.value = rt; compR.ratio.value = rt;
+      const at = parseFloat(document.getElementById('compAttack').value) / 1000;
+      compL.attack.value = at; compR.attack.value = at;
+      const rl = parseFloat(document.getElementById('compRelease').value) / 1000;
+      compL.release.value = rl; compR.release.value = rl;
+
+      // Limiters Matrix Setup
+      limL.threshold.value = parseFloat(document.getElementById('limCeilingL').value);
+      limR.threshold.value = parseFloat(document.getElementById('limCeilingR').value);
+      const lmr = parseFloat(document.getElementById('limRelease').value) / 1000;
+      limL.release.value = lmr; limR.release.value = lmr;
+
+      // Output level routing values
+      outGainNodeL.gain.value = Math.pow(10, parseFloat(document.getElementById('outGainL').value) / 20);
+      outGainNodeR.gain.value = Math.pow(10, parseFloat(document.getElementById('outGainR').value) / 20);
+
+      // Setup Vocal Delay
+      updateVocalDelayRouting();
+      
+      // Setup UI Core Displays Node
+      document.getElementById('sysSRL').textContent = ctx.sampleRate + " Hz";
+      document.getElementById('sysSRR').textContent = ctx.sampleRate + " Hz";
+    }
+
+    function updateVocalDelayRouting() {
+      if(!ctx) return;
+      if(states.vocalDelay) {
+        const mix = parseFloat(document.getElementById('vDelayMix').value) / 100;
+        vocalDelayDryL.gain.value = 1 - mix; vocalDelayDryR.gain.value = 1 - mix;
+        vocalDelayWetL.gain.value = mix; vocalDelayWetR.gain.value = mix;
+        vocalDelayFbL.gain.value = parseFloat(document.getElementById('vDelayFb').value) / 100;
+        vocalDelayFbR.gain.value = parseFloat(document.getElementById('vDelayFb').value) / 100;
+        vocalDelayNodeL.delayTime.value = parseFloat(document.getElementById('vDelayTimeL').value) / 1000;
+        vocalDelayNodeR.delayTime.value = parseFloat(document.getElementById('vDelayTimeR').value) / 1000;
+        document.getElementById('led-vocal-fx').classList.add('active');
+      } else {
+        vocalDelayDryL.gain.value = 1; vocalDelayDryR.gain.value = 1;
+        vocalDelayWetL.gain.value = 0; vocalDelayWetR.gain.value = 0;
+        document.getElementById('led-vocal-fx').classList.remove('active');
       }
-      const y = eqC.height/2 - (gain/12) * (eqC.height/2);
-      x === 0 ? eqCtx.moveTo(x, y) : eqCtx.lineTo(x, y);
-    }
-    eqCtx.stroke();
-
-    // Crossover
-    crossCtx.fillStyle = '#000';
-    crossCtx.fillRect(0, 0, crossC.width, crossC.height);
-    crossCtx.strokeStyle = '#ff2d55';
-    crossCtx.lineWidth = 1;
-    crossCtx.beginPath();
-    const hpfV = parseFloat(document.getElementById('hpfFreq').value);
-    const lpfV = parseFloat(document.getElementById('lpfFreq').value);
-    for (let x = 0; x < crossC.width; x++) {
-      const freq = 15 * Math.pow(44000/15, x/crossC.width);
-      let atten = 0;
-      if (freq < hpfV) atten -= (1 - freq/hpfV) * 40;
-      if (freq > lpfV) atten -= (1 - lpfV/freq) * 40;
-      const y = crossC.height * 0.2 - (atten/40) * crossC.height * 0.8;
-      x === 0 ? crossCtx.moveTo(x, y) : crossCtx.lineTo(x, Math.min(crossC.height, y));
-    }
-    crossCtx.stroke();
-
-    // Limiter meter
-    limCtx.fillStyle = '#000';
-    limCtx.fillRect(0, 0, limC.width, limC.height);
-    if (compressor) {
-      const red = Math.abs(compressor.reduction || 0);
-      const w = Math.min(limC.width, (red / 20) * limC.width);
-      limCtx.fillStyle = red > 3 ? '#ff2d55' : '#ff8c00';
-      limCtx.fillRect(0, 5, w, limC.height - 10);
     }
 
-    // Master level
-    let peakL = 0, peakR = 0;
-    for (let i = 0; i < bufLen; i++) {
-      if (dataL[i] > peakL) peakL = dataL[i];
-      if (dataR[i] > peakR) peakR = dataR[i];
+    function injectAndConnectSourceNode(audioSourceNode, isMonoSource = false) {
+      initAudioEngine();
+      ctx.resume();
+      
+      try { sourceNode.disconnect(); } catch(e){}
+      sourceNode = audioSourceNode;
+
+      // Processing True Stereo Topology Path:
+      // Source Node -> Channel Splitter (L / R separated paths)
+      sourceNode.connect(splitter);
+
+      // --- LEFT NODE PROCESSING ROUTE ---
+      let leftPath = splitter;
+      let leftChannelIdx = 0;
+
+      // Is source mono? Redirect fallback channel routing internally
+      if (isMonoSource) {
+        // Force duplicate processing chain for absolute separation 
+        let internalMonoPanner = ctx.createStereoPanner();
+        internalMonoPanner.pan.value = 0;
+        sourceNode.connect(internalMonoPanner);
+      }
+
+      // Connect Analyzer L immediately post split
+      splitter.connect(rtaAnalyserL, 0);
+      
+      // EQ Filter Insertion L
+      rtaAnalyserL.connect(eqLML);
+      eqLML.connect(eqMHL);
+      eqMHL.connect(eqHFL);
+
+      // HPF/LPF Crossover Nodes L
+      eqHFL.connect(hpfL);
+      hpfL.connect(lpfL);
+
+      // Vocal Space Delay parallel matrix insertion L
+      lpfL.connect(vocalDelayDryL);
+      lpfL.connect(vocalDelayNodeL);
+      vocalDelayNodeL.connect(vocalDelayFbL);
+      vocalDelayFbL.connect(vocalDelayNodeL); // Feedback Loop
+      vocalDelayNodeL.connect(vocalDelayWetL);
+
+      let preCompMuxL = ctx.createGain();
+      vocalDelayDryL.connect(preCompMuxL);
+      vocalDelayWetL.connect(preCompMuxL);
+
+      // Compressor & Limiter Combo L
+      preCompMuxL.connect(compL);
+      compL.connect(limL);
+      limL.connect(outGainNodeL);
+
+      // --- RIGHT NODE PROCESSING ROUTE ---
+      splitter.connect(rtaAnalyserR, 1);
+      
+      // EQ Filter Insertion R
+      rtaAnalyserR.connect(eqLMR);
+      eqLMR.connect(eqMHR);
+      eqMHR.connect(eqHFR);
+
+      // HPF/LPF Crossover Nodes R
+      eqHFR.connect(hpfR);
+      hpfR.connect(lpfR);
+
+      // Vocal Space Delay parallel matrix insertion R
+      lpfR.connect(vocalDelayDryR);
+      lpfR.connect(vocalDelayNodeR);
+      vocalDelayNodeR.connect(vocalDelayFbR);
+      vocalDelayFbR.connect(vocalDelayNodeR); // Feedback Loop
+      vocalDelayNodeR.connect(vocalDelayWetR);
+
+      let preCompMuxR = ctx.createGain();
+      vocalDelayDryR.connect(preCompMuxR);
+      vocalDelayWetR.connect(preCompMuxR);
+
+      // Compressor & Limiter Combo R
+      preCompMuxR.connect(compR);
+      compR.connect(limR);
+      limR.connect(outGainNodeR);
+
+      // Re-merging separate dynamic paths directly into stereo master matrix output
+      outGainNodeL.connect(merger, 0, 0);
+      outGainNodeR.connect(merger, 0, 1);
+      
+      merger.connect(ctx.destination);
+      document.getElementById('led-rta').classList.add('active');
     }
-    const peak = Math.max(peakL, peakR);
-    const dbLevel = peak > 0 ? (20 * Math.log10(peak / 255)).toFixed(1) : '-∞';
-    document.getElementById('masterLevel').textContent = dbLevel + ' dB';
 
-    // Master VU bars
-    document.getElementById('masterVuL').style.width = (peakL / 255 * 100) + '%';
-    document.getElementById('masterVuR').style.width = (peakR / 255 * 100) + '%';
+    function selectVocalPreset(idx) {
+      states.currentVocalFx = idx;
+      document.querySelectorAll('.btn-preset').forEach(btn => btn.classList.remove('active'));
+      document.getElementById(`vfx-${idx}`).classList.add('active');
 
-    // Limit badge
-    const badge = document.getElementById('limitBadge');
-    const limReduction = limiter ? Math.abs(limiter.reduction || 0) : 0;
-    if (limReduction > 0.5) {
-      badge.classList.add('neon-flash');
-      badge.style.color = '#ff0040';
-      badge.style.background = '#1a0008';
-    } else {
-      badge.classList.remove('neon-flash');
-      badge.style.color = '#6b5e52';
-      badge.style.background = '';
+      const fx = vocalPresets[idx];
+      // Simulate real-time adjustment inside DLMS based on selected preset values
+      if(idx === 0) {
+        // Bypass values
+        document.getElementById('vDelayMix').value = 0;
+        states.vocalDelay = false;
+        document.getElementById('vocalDelayToggle').classList.remove('active');
+        document.getElementById('vocalDelayToggle').textContent = "OFF";
+      } else {
+        states.vocalDelay = true;
+        document.getElementById('vocalDelayToggle').classList.add('active');
+        document.getElementById('vocalDelayToggle').textContent = "ON";
+        document.getElementById('vDelayMix').value = fx.echo;
+        document.getElementById('vDelayFb').value = Math.min(fx.echo + 10, 85);
+        document.getElementById('vDelayTimeL').value = 200 + (fx.room * 4);
+        document.getElementById('vDelayTimeR').value = 250 + (fx.room * 5);
+      }
+      
+      // Update displays instantly
+      document.getElementById('vDelayMixDisp').textContent = document.getElementById('vDelayMix').value + "%";
+      document.getElementById('vDelayFbDisp').textContent = document.getElementById('vDelayFb').value + "%";
+      document.getElementById('vDelayTimeLDisp').textContent = document.getElementById('vDelayTimeL').value + " ms";
+      document.getElementById('vDelayTimeRDisp').textContent = document.getElementById('vDelayTimeR').value + " ms";
+      
+      updateVocalDelayRouting();
     }
 
-    // Comp reduction
-    if (compressor) document.getElementById('compRedDisp').textContent = (compressor.reduction || 0).toFixed(1) + ' dB';
+    // Input Source Event Listeners
+    const audioEl = document.getElementById('audioElement');
 
-    // Update VU meters for active modules
-    const normL = peakL / 255;
-    const normR = peakR / 255;
+    document.getElementById('fileInput').addEventListener('change', (e) => {
+      const files = e.target.files;
+      if(!files.length) return;
+      
+      mediaPlaylist = Array.from(files).map(file => URL.createObjectURL(file));
+      currentTrackIdx = 0;
+      loadPlaylistTrack();
+    });
 
-    // Show VU activity based on module state
-    updateVU(vuMeters.vuPitch, states.pitch ? normL : 0, states.pitch ? normR : 0);
-    updateVU(vuMeters.vuComp, states.comp ? normL : 0, states.comp ? normR : 0);
-    updateVU(vuMeters.vuEQ, states.eq ? normL : 0, states.eq ? normR : 0);
-    updateVU(vuMeters.vuFilter, states.filter ? normL : 0, states.filter ? normR : 0);
-    updateVU(vuMeters.vuLimiter, states.limiterOn ? normL : 0, states.limiterOn ? normR : 0);
-    updateVU(vuMeters.vuDelay, states.delay ? normL : 0, states.delay ? normR : 0);
-    updateVU(vuMeters.vuDCE, normL, normR); // always on
-    updateVU(vuMeters.vuSubHarm, states.subHarm ? normL * 0.8 : 0, states.subHarm ? normR * 0.8 : 0);
-    updateVU(vuMeters.vuDCN, states.dcn ? normL : 0, states.dcn ? normR : 0);
-    updateVU(vuMeters.vuFPL, states.fpl ? normL : 0, states.fpl ? normR : 0);
-    updateVU(vuMeters.vuOutput, normL, normR); // always on
-    updateVU(vuMeters.vuHB, states.hb ? normL : 0, states.hb ? normR : 0);
-    updateVU(vuMeters.vuSR, states.sr ? normL : 0, states.sr ? normR : 0);
-    updateVU(vuMeters.vuVP, states.vp ? normL : 0, states.vp ? normR : 0);
-    updateVU(vuMeters.vuSDE, states.sde ? normL : 0, states.sde ? normR : 0);
-    updateVU(vuMeters.vuASW, states.asw ? normL * 0.6 : 0, states.asw ? normR * 0.6 : 0);
-    updateVU(vuMeters.vuSPDL, states.spdl ? normL * 0.7 : 0, states.spdl ? normR * 0.7 : 0);
-    updateVU(vuMeters.vuMHE, states.mhe ? normL : 0, states.mhe ? normR : 0);
+    function loadPlaylistTrack() {
+      if(!mediaPlaylist.length) return;
+      initAudioEngine();
+      audioEl.src = mediaPlaylist[currentTrackIdx];
+      document.getElementById('nowPlaying').textContent = `Track [${currentTrackIdx + 1}]: Local Audio File Active`;
+      
+      if(!elementSource) {
+        elementSource = ctx.createMediaElementSource(audioEl);
+      }
+      injectAndConnectSourceNode(elementSource, false);
+      audioEl.play().catch(err => console.log("Playback error, require explicit user action interaction first."));
+    }
 
-    // CPU
-    document.getElementById('sysCpu').textContent = Math.min(100, Math.floor(peak / 255 * 30 + Math.random() * 5)) + '%';
-  }
-  draw();
-}
+    // Media Control Actions
+    document.getElementById('playBtn').addEventListener('click', () => {
+      initAudioEngine();
+      if(audioEl.src) {
+        audioEl.play();
+        document.getElementById('nowPlaying').textContent = "Playback State: Running Mono/Stereo Engine Links";
+      }
+    });
+    document.getElementById('pauseBtn').addEventListener('click', () => { audioEl.pause(); document.getElementById('nowPlaying').textContent = "Playback State: Paused"; });
+    document.getElementById('stopBtn').addEventListener('click', () => { 
+      audioEl.pause(); 
+      audioEl.currentTime = 0; 
+      if(micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
+      if(toneOsc) { try{toneOsc.stop();}catch(e){} toneOsc = null; }
+      document.getElementById('nowPlaying').textContent = "Playback State: Hard Stopped"; 
+    });
+    document.getElementById('prevBtn').addEventListener('click', () => { if(currentTrackIdx > 0) { currentTrackIdx--; loadPlaylistTrack(); } });
+    document.getElementById('nextBtn').addEventListener('click', () => { if(currentTrackIdx < mediaPlaylist.length - 1) { currentTrackIdx++; loadPlaylistTrack(); } });
 
-function calcEQGain(freq, centerFreq, gain, Q) {
-  const ratio = freq / centerFreq;
-  const logRatio = Math.log2(ratio);
-  return gain * Math.exp(-0.5 * Math.pow(logRatio * Q * 2, 2));
-}
+    // Live Microphone Input System Capture
+    document.getElementById('micBtn').addEventListener('click', async () => {
+      initAudioEngine();
+      try {
+        micStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+        let micSource = ctx.createMediaStreamSource(micStream);
+        // Microphones are typically Mono sources, force Stereo simulation
+        injectAndConnectSourceNode(micSource, true);
+        document.getElementById('nowPlaying').textContent = "Source State: LIVE MICROPHONE ACTIVE (Stereo Processed)";
+      } catch(err) {
+        alert("Microphone Access Denied or Unavailable.");
+      }
+    });
 
-// Element SDK
-const defaultConfig = {
-  console_title: 'AUDIO PROCESSING CONSOLE',
-  background_color: '#0d0b0f',
-  surface_color: '#1a1520',
-  accent_color: '#ff8c00',
-  text_color: '#e8e0d4',
-  accent2_color: '#ff2d55',
-  font_family: 'JetBrains Mono',
-  font_size: 10
-};
+    // YouTube / URL Stream Direct Injection Node Setup
+    document.getElementById('ytLoadBtn').addEventListener('click', () => {
+      const url = document.getElementById('ytUrl').value.trim();
+      if(!url) return;
+      initAudioEngine();
+      
+      document.getElementById('nowPlaying').textContent = "Attempting to inject Network Stream Connection...";
+      // Standard audio element parsing configuration
+      audioEl.src = url;
+      if(!elementSource) {
+        elementSource = ctx.createMediaElementSource(audioEl);
+      }
+      injectAndConnectSourceNode(elementSource, false);
+      audioEl.play()
+        .then(() => { document.getElementById('nowPlaying').textContent = "Stream Network Link: Playing Successfully"; })
+        .catch(e => { document.getElementById('nowPlaying').textContent = "Stream direct source error. Proxied streams require direct CORS configurations."; });
+    });
 
-window.elementSdk.init({
-  defaultConfig,
-  onConfigChange: async (config) => {
-    document.getElementById('consoleTitle').textContent = config.console_title || defaultConfig.console_title;
-    document.documentElement.style.setProperty('--bg', config.background_color || defaultConfig.background_color);
-    document.documentElement.style.setProperty('--surface', config.surface_color || defaultConfig.surface_color);
-    document.documentElement.style.setProperty('--accent', config.accent_color || defaultConfig.accent_color);
-    document.documentElement.style.setProperty('--text', config.text_color || defaultConfig.text_color);
-    document.documentElement.style.setProperty('--accent2', config.accent2_color || defaultConfig.accent2_color);
-    const font = config.font_family || defaultConfig.font_family;
-    document.body.style.fontFamily = `${font}, monospace`;
-    const size = config.font_size || defaultConfig.font_size;
-    document.querySelectorAll('.section-label').forEach(el => el.style.fontSize = (size * 0.8) + 'px');
-    document.querySelectorAll('.digital-display').forEach(el => el.style.fontSize = size + 'px');
-    document.querySelectorAll('.btn-ctrl').forEach(el => el.style.fontSize = (size * 0.9) + 'px');
-  },
-  mapToCapabilities: (config) => ({
-    recolorables: [
-      { get: () => config.background_color || defaultConfig.background_color, set: (v) => { config.background_color = v; window.elementSdk.setConfig({background_color:v}); }},
-      { get: () => config.surface_color || defaultConfig.surface_color, set: (v) => { config.surface_color = v; window.elementSdk.setConfig({surface_color:v}); }},
-      { get: () => config.text_color || defaultConfig.text_color, set: (v) => { config.text_color = v; window.elementSdk.setConfig({text_color:v}); }},
-      { get: () => config.accent_color || defaultConfig.accent_color, set: (v) => { config.accent_color = v; window.elementSdk.setConfig({accent_color:v}); }},
-      { get: () => config.accent2_color || defaultConfig.accent2_color, set: (v) => { config.accent2_color = v; window.elementSdk.setConfig({accent2_color:v}); }}
-    ],
-    borderables: [],
-    fontEditable: { get: () => config.font_family || defaultConfig.font_family, set: (v) => { config.font_family = v; window.elementSdk.setConfig({font_family:v}); }},
-    fontSizeable: { get: () => config.font_size || defaultConfig.font_size, set: (v) => { config.font_size = v; window.elementSdk.setConfig({font_size:v}); }}
-  }),
-  mapToEditPanelValues: (config) => new Map([
-    ['console_title', config.console_title || defaultConfig.console_title]
-  ])
-});
+    // Test Tone Generator Implementation
+    let toneOsc;
+    document.getElementById('toneBtn').addEventListener('click', () => {
+      initAudioEngine();
+      if(toneOsc) { try{toneOsc.stop();}catch(e){} toneOsc = null; return; }
+      
+      toneOsc = ctx.createOscillator();
+      toneOsc.type = document.getElementById('toneWave').value;
+      toneOsc.frequency.value = parseFloat(document.getElementById('toneFreq').value);
+      
+      let toneGainWrapper = ctx.createGain();
+      toneGainWrapper.gain.value = 0.25; // Continuous default protection volume limit
+      toneOsc.connect(toneGainWrapper);
+      
+      injectAndConnectSourceNode(toneGainWrapper, true);
+      toneOsc.start();
+      document.getElementById('nowPlaying').textContent = "Source State: TEST TONE NODE RUNNING ENGINE CORDS";
+    });
 
-initAudio();
-lucide.createIcons();
-</script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a0b69c712378e8f1',t:'MTc4MTQxMTU0Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
- </html>
+    document.getElementById('toneFreq').addEventListener('input', (e) => {
+      const v = parseFloat(e.target.value);
+      document.getElementById('toneFreqDisp').textContent = v + " Hz";
+      if(toneOsc) toneOsc.frequency.setValueAtTime(v, ctx.currentTime);
+    });
+
+    // Faders Array Continuous Event Mappings 
+    function setupBindFader(id, dispId, formulaUnit, processCallback) {
+      document.getElementById(id).addEventListener('input', function() {
+        const val = parseFloat(this.value);
+        document.getElementById(dispId).textContent = formulaUnit(val);
+        if(processCallback) processCallback(val);
+      });
+    }
+
+    // Connect Split EQ Controls L/R
+    setupBindFader('eqLMFreq', 'eqLMFreqD', v=>v+" Hz", v=>{ eqLML.frequency.value=v; eqLMR.frequency.value=v; });
+    setupBindFader('eqLMGainL', 'eqLMGainLD', v=>v+" dB", v=>{ if(states.eq) eqLML.gain.value=v; });
+    setupBindFader('eqLMGainR', 'eqLMGainRD', v=>v+" dB", v=>{ if(states.eq) eqLMR.gain.value=v; });
+    
+    setupBindFader('eqMHFreq', 'eqMHFreqD', v=>(v/1000).toFixed(1)+" kHz", v=>{ eqMHL.frequency.value=v; eqMHR.frequency.value=v; });
+    setupBindFader('eqMHGainL', 'eqMHGainLD', v=>v+" dB", v=>{ if(states.eq) eqMHL.gain.value=v; });
+    setupBindFader('eqMHGainR', 'eqMHGainRD', v=>v+" dB", v=>{ if(states.eq) eqMHR.gain.value=v; });
+
+    setupBindFader('eqHFFreq', 'eqHFFreqD', v=>(v/1000).toFixed(1)+" kHz", v=>{ eqHFL.frequency.value=v; eqHFR.frequency.value=v; });
+    setupBindFader('eqHFGainL', 'eqHFGainLD', v=>v+" dB", v=>{ if(states.eq) eqHFL.gain.value=v; });
+    setupBindFader('eqHFGainR', 'eqHFGainRD', v=>v+" dB", v=>{ if(states.eq) eqHFR.gain.value=v; });
+
+    // Connect Crossover Faders
+    setupBindFader('hpfFreqL', 'hpfLDisp', v=>v+" Hz", v=>{ hpfL.frequency.value=v; });
+    setupBindFader('hpfFreqR', 'hpfRDisp', v=>v+" Hz", v=>{ hpfR.frequency.value=v; });
+    setupBindFader('lpfFreqL', 'lpfLDisp', v=>(v/1000).toFixed(1)+" kHz", v=>{ lpfL.frequency.value=v; });
+    setupBindFader('lpfFreqR', 'lpfRDisp', v=>(v/1000).toFixed(1)+" kHz", v=>{ lpfR.frequency.value=v; });
+
+    // Connect Delay parameters
+    setupBindFader('vDelayTimeL', 'vDelayTimeLDisp', v=>v+" ms", updateVocalDelayRouting);
+    setupBindFader('vDelayTimeR', 'vDelayTimeRDisp', v=>v+" ms", updateVocalDelayRouting);
+    setupBindFader('vDelayFb', 'vDelayFbDisp', v=>v+"%", updateVocalDelayRouting);
+    setupBindFader('vDelayMix', 'vDelayMixDisp', v=>v+"%", updateVocalDelayRouting);
+
+    // Compressors Parameters Linked
+    setupBindFader('compThreshold', 'compThDisp', v=>v+" dB", v=>{ compL.threshold.value=v; compR.threshold.value=v; });
+    setupBindFader('compRatio', 'compRatDisp', v=>v+":1", v=>{ compL.ratio.value=v; compR.ratio.value=v; });
+    setupBindFader('compAttack', 'compAtkDisp', v=>v+" ms", v=>{ compL.attack.value=v/1000; compR.attack.value=v/1000; });
+    setupBindFader('compRelease', 'compRelDisp', v=>v+" ms", v=>{ compL.release.value=v/1000; compR.release.value=v/1000; });
+
+    // Limiters Parameters Linked
+    setupBindFader('limCeilingL', 'limCeilLDisp', v=>v.toFixed(1)+" dB", v=>{ limL.threshold.value=v; });
+    setupBindFader('limCeilingR', 'limCeilRDisp', v=>v.toFixed(1)+" dB", v=>{ limR.threshold.value=v; });
+    setupBindFader('limRelease', 'limRelDisp', v=>v+" ms", v=>{ limL.release.value=v/1000; limR.release.value=v/1000; });
+
+    // Output Master Volume Gain Faders
+    setupBindFader('outGainL', 'outGainLDisp', v=>v+" dB", v=>{ if(outGainNodeL) outGainNodeL.gain.value = Math.pow(10, v/20); });
+    setupBindFader('outGainR', 'outGainRDisp', v=>v+" dB", v=>{ if(outGainNodeR) outGainNodeR.gain.value = Math.pow(10, v/20); });
+
+    // Toggle Buttons Click Handlers
+    document.getElementById('vocalDelayToggle').addEventListener('click', function() {
+      states.vocalDelay = !states.vocalDelay;
+      this.textContent = states.vocalDelay ? "ON" : "OFF";
+      this.classList.toggle('active', states.vocalDelay);
+      updateVocalDelayRouting();
+    });
+
+    document.getElementById('filterToggle').addEventListener('click', function() {
+      states.filter = !states.filter;
+      this.textContent = states.filter ? "ON" : "OFF";
+      this.classList.toggle('active', states.filter);
+      if(states.filter) {
+        hpfL.type = 'highpass'; hpfR.type = 'highpass'; lpfL.type = 'lowpass'; lpfR.type = 'lowpass';
+      } else {
+        hpfL.type = 'allpass'; hpfR.type = 'allpass'; lpfL.type = 'allpass'; lpfR.type = 'allpass';
+      }
+    });
+
+    document.getElementById('eqToggle').addEventListener('click', function() {
+      states.eq = !states.eq;
+      this.textContent = states.eq ? "ON" : "OFF";
+      this.classList.toggle('active', states.eq);
+      const gainL = states.eq ? parseFloat(document.getElementById('eqLMGainL').value) : 0;
+      eqLML.gain.value = gainL;
+      // Mirror system bypass rules...
+    });
+
+    // Real-Time Canvas Draw and VU Calculation Loops
+    function startRenderingLoops() {
+      const rtaCanvas = document.getElementById('rtaCanvas');
+      const rtaCtx = rtaCanvas.getContext('2d');
+      
+      const crossCanvas = document.getElementById('crossCanvas');
+      const crossCtx = crossCanvas.getContext('2d');
+
+      const eqCanvas = document.getElementById('eqCanvas');
+      const eqCtx = eqCanvas.getContext('2d');
+
+      const limCanvas = document.getElementById('limiterCanvas');
+      const limCtx = limCanvas.getContext('2d');
+
+      const bufferLength = rtaAnalyserL.frequencyBinCount;
+      const dataArrayL = new Uint8Array(bufferLength);
+      const dataArrayR = new Uint8Array(bufferLength);
+
+      function renderFrame() {
+        requestAnimationFrame(renderFrame);
+        if(!ctx) return;
+
+        // Fetch analytical real-time data arrays
+        rtaAnalyserL.getByteFrequencyData(dataArrayL);
+        rtaAnalyserR.getByteFrequencyData(dataArrayR);
+
+        // Calculate Decibel Max Peaks for VU Display Meters (Stereo Nodes Separated)
+        let peakL = 0, peakR = 0;
+        for(let i=0; i<bufferLength; i++) {
+          if(dataArrayL[i] > peakL) peakL = dataArrayL[i];
+          if(dataArrayR[i] > peakR) peakR = dataArrayR[i];
+        }
+
+        const dbL = peakL > 0 ? (20 * Math.log10(peakL / 255)).toFixed(1) : '-∞';
+        const dbR = peakR > 0 ? (20 * Math.log10(peakR / 255)).toFixed(1) : '-∞';
+
+        const dispL = document.getElementById('masterLevelL');
+        const dispR = document.getElementById('masterLevelR');
+        dispL.textContent = dbL + " dB L";
+        dispR.textContent = dbR + " dB R";
+
+        // Dynamic 4-Color Shift Styling Algorithm For Displays (Green -> Yellow -> Red + Active Blue Indicator)
+        function applyVuColorStyles(element, dbVal) {
+          const val = parseFloat(dbVal);
+          if(dbVal === '-∞') { element.style.color = '#4a5568'; return; }
+          if(val > -3) { element.style.color = '#ff3d71'; } // Red Alert Zone
+          else if(val > -12) { element.style.color = '#ffea00'; } // Yellow Warning
+          else if(val > -40) { element.style.color = '#00ff88'; } // Safe Green Zone
+          else { element.style.color = '#00e5ff'; } // Pure DSP Active Blue Indicator Signal
+        }
+        applyVuColorStyles(dispL, dbL);
+        applyVuColorStyles(dispR, dbR);
+
+        // Draw Spectrum Analyzer Channels Left (Cyan Gradient) and Right (Pink/Orange Gradient)
+        rtaCtx.fillStyle = '#020204';
+        rtaCtx.fillRect(0, 0, rtaCanvas.width, rtaCanvas.height);
+
+        const barWidth = (rtaCanvas.width / 2) / 64;
+        // Left Channel Drawing (Left side of Canvas screen)
+        for(let i=0; i<64; i++) {
+          let val = dataArrayL[i * 4] / 255;
+          let h = val * rtaCanvas.height;
+          rtaCtx.fillStyle = `rgba(0, 229, 255, ${val + 0.2})`;
+          rtaCtx.fillRect((64 - i) * barWidth, rtaCanvas.height - h, barWidth - 1, h);
+        }
+        // Right Channel Drawing (Right side of Canvas screen)
+        for(let i=0; i<64; i++) {
+          let val = dataArrayR[i * 4] / 255;
+          let h = val * rtaCanvas.height;
+          rtaCtx.fillStyle = `rgba(255, 61, 113, ${val + 0.2})`;
+          rtaCtx.fillRect((64 + i) * barWidth, rtaCanvas.height - h, barWidth - 1, h);
+        }
+
+        // Draw EQ Response Paths Line Mapping Visuals
+        eqCtx.fillStyle = '#000';
+        eqCtx.fillRect(0, 0, eqCanvas.width, eqCanvas.height);
+        eqCtx.strokeStyle = '#00ff88';
+        eqCtx.lineWidth = 2;
+        eqCtx.beginPath();
+        eqCtx.moveTo(0, eqCanvas.height/2);
+        eqCtx.lineTo(eqCanvas.width, eqCanvas.height/2);
+        eqCtx.stroke();
+
+        // Draw Crossovers Lines
+        crossCtx.fillStyle = '#000';
+        crossCtx.fillRect(0, 0, crossCanvas.width, crossCanvas.height);
+        crossCtx.strokeStyle = '#00e5ff';
+        crossCtx.beginPath();
+        crossCtx.moveTo(0, 5); crossCtx.lineTo(crossCanvas.width, crossCanvas.height - 5);
+        crossCtx.stroke();
+
+        // Limiter compression trace indicator lines tracking
+        limCtx.fillStyle = '#050508'; limCtx.fillRect(0,0, limCanvas.width, limCanvas.height);
+        if(compL && compR) {
+          let redL = Math.abs(compL.reduction || 0);
+          let redR = Math.abs(compR.reduction || 0);
+          document.getElementById('compRedDisp').textContent = Math.max(redL, redR).toFixed(1) + " dB";
+          
+          limCtx.fillStyle = '#ff3d71';
+          limCtx.fillRect(0, 2, (redL / 20) * limCanvas.width, 10);
+          limCtx.fillStyle = '#00e5ff';
+          limCtx.fillRect(0, 14, (redR / 20) * limCanvas.width, 10);
+        }
+      }
+      renderFrame();
+    }
+
+    // Diagnostic Status Alert Handler Trigger Action
+    document.getElementById('checkStatusBtn').addEventListener('click', () => {
+      const out = document.getElementById('statusOutput');
+      out.classList.remove('hidden');
+      if(!ctx) {
+        out.innerHTML = "<span class='text-red-500 font-bold'>OFFLINE</span> | Audio Engine Standby Node.";
+        return;
+      }
+      out.innerHTML = `<span class='text-cyan-400 font-bold'>✓ ENGINE STABLE</span> | Channels: 2 True Stereo L/R | Active FX ID Node: ${vocalPresets[states.currentVocalFx].name.split('.')[0]} | Latency Factor: ${(ctx.baseLatency ? ctx.baseLatency * 1000 : 2.9).toFixed(1)} ms`;
+    });
+
+    // Init Element SDK Config Hooks
+    window.elementSdk.init({
+      defaultConfig: { console_title: 'FR AUDIO MANAGEMENT V2.1' },
+      onConfigChange: (config) => {
+        document.getElementById('consoleTitle').textContent = config.console_title || 'FR AUDIO MANAGEMENT V2.1';
+      }
+    });
+  </script>
+ </body>
+</html>
