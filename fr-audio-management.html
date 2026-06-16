@@ -3,176 +3,165 @@
  <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>FR AUDIO MANAGEMENT V3.0 ULTRA PLATINUM</title>
+  <title>FR AUDIO MANAGEMENT V2.1 ULTRA DISCRETE</title>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Orbitron:wght@400;700;900&display=swap');
     :root {
-      --bg: #040508;
-      --surface: #0a0b10;
-      --surface-card: #0f111a;
-      --accent: #00f5d4;
+      --bg: #030407;
+      --surface: #07090e;
+      --surface-card: #0c0e16;
+      --accent-cyan: #00f5d4;
       --accent-blue: #00b4d8;
       --accent-pink: #ff2a6d;
-      --accent-glow: rgba(0, 245, 212, 0.25);
-      --text: #e0e6ed;
-      --text-dim: #4b5563;
-      --border: #1a1d29;
+      --accent-amber: #ffee32;
+      --border: #151824;
     }
     html, body { 
       height: 100%; 
       margin: 0; 
       background: var(--bg); 
-      color: var(--text); 
+      color: #e0e6ed; 
       font-family: 'JetBrains Mono', monospace; 
       overflow-x: hidden; 
     }
     ::-webkit-scrollbar { width: 4px; height: 4px; }
     ::-webkit-scrollbar-track { background: var(--bg); }
-    ::-webkit-scrollbar-thumb { background: #222636; border-radius: 2px; }
+    ::-webkit-scrollbar-thumb { background: #1c2030; border-radius: 2px; }
     
     .card {
       background: var(--surface-card);
       border: 1px solid var(--border);
       border-radius: 4px;
-      padding: 6px;
+      padding: 8px;
       position: relative;
     }
     .card-header-line::before {
       content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-      background: linear-gradient(90deg, var(--accent-pink), var(--accent-blue), var(--accent));
+      background: linear-gradient(90deg, var(--accent-pink), var(--accent-blue), var(--accent-cyan));
     }
     .digital-display {
       background: #010204;
-      border: 1px solid #141622;
-      padding: 1px 3px;
+      border: 1px solid #121520;
+      padding: 2px 4px;
       font-family: 'Orbitron', sans-serif;
       font-size: 8px;
-      color: #00f5d4;
+      color: var(--accent-cyan);
       border-radius: 2px;
       text-align: center;
       text-shadow: 0 0 3px rgba(0,245,212,0.3);
     }
-    .digital-display.pink { color: #ff2a6d; text-shadow: 0 0 3px rgba(255,42,109,0.3); }
+    .digital-display.pink { color: var(--accent-pink); text-shadow: 0 0 3px rgba(255,42,109,0.3); }
+    .digital-display.amber { color: var(--accent-amber); text-shadow: 0 0 3px rgba(255,238,50,0.3); }
+    
     .btn-ctrl {
-      background: #0b0c12;
-      border: 1px solid #1c1e2b;
-      color: var(--text);
-      padding: 2px 5px;
+      background: #080a10;
+      border: 1px solid #181c2b;
+      color: #cbd5e1;
+      padding: 3px 6px;
       border-radius: 3px;
       font-size: 8px;
+      font-weight: bold;
       cursor: pointer;
       transition: all 0.1s ease;
     }
-    .btn-ctrl:hover { border-color: var(--accent-blue); background: #12141f; }
-    .btn-ctrl.active { background: var(--accent-blue); color: #fff; border-color: var(--accent); box-shadow: 0 0 4px var(--accent-glow); }
+    .btn-ctrl:hover { border-color: var(--accent-blue); background: #101424; }
+    .btn-ctrl.active { background: var(--accent-blue); color: #fff; border-color: var(--accent-cyan); box-shadow: 0 0 4px rgba(0,180,216,0.4); }
     .btn-ctrl.active-pink { background: var(--accent-pink); color: #fff; border-color: #ff758f; }
+    .btn-ctrl.active-red { background: #dc2626; color: #fff; border-color: #f87171; }
     
+    /* Native Vertical Faders Fix */
     .fader-wrapper { 
       display: flex; 
       flex-direction: column; 
       align-items: center; 
-      gap: 2px; 
-      height: 140px; 
-      touch-action: none; 
+      gap: 4px; 
+      height: 165px; 
     }
-    .fader-track { 
-      position: relative; 
-      width: 18px; 
-      height: 80px; 
-      background: #06070a; 
-      border: 1px solid #151822; 
-      border-radius: 2px; 
-      display: flex; 
-      justify-content: center; 
-      touch-action: none; 
+    .fader-track-vertical {
+      position: relative;
+      height: 100px;
+      width: 24px;
+      background: #040508;
+      border: 1px solid #141824;
+      border-radius: 3px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
-    .fader-scale { 
-      position: absolute; 
-      width: 100%; 
-      height: 100%; 
-      top: 0; 
-      left: 0; 
-      pointer-events: none; 
-      opacity: 0.1; 
-      background: linear-gradient(to bottom, #fff 1px, transparent 1px) repeat-y; 
-      background-size: 100% 8px; 
-    }
-    
-    .fader-input {
-      -webkit-appearance: none; 
+    .fader-input-vertical {
+      -webkit-appearance: none;
       appearance: none;
-      width: 80px; 
-      height: 18px; 
+      width: 90px;
+      height: 20px;
       background: transparent;
-      transform: rotate(-90deg) translateY(-31px); 
-      transform-origin: center;
-      position: absolute; 
-      top: 31px; 
-      cursor: pointer; 
-      margin: 0; 
-      z-index: 5;
-      touch-action: none;
+      transform: rotate(-90deg);
+      cursor: pointer;
+      margin: 0;
+      z-index: 10;
     }
-    .fader-input::-webkit-slider-runnable-track { background: transparent; }
-    .fader-input::-webkit-slider-thumb {
-      -webkit-appearance: none; 
+    .fader-input-vertical::-webkit-slider-runnable-track { background: transparent; }
+    .fader-input-vertical::-webkit-slider-thumb {
+      -webkit-appearance: none;
       appearance: none;
-      width: 14px; 
-      height: 6px; 
-      background: #f0f4f8; 
-      border: 1px solid #2d3748; 
-      border-radius: 1px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.7);
+      width: 16px;
+      height: 8px;
+      background: #e2e8f0;
+      border: 1px solid #475569;
+      border-radius: 2px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.8);
     }
+
     .fader-input-horiz {
       -webkit-appearance: none; 
       appearance: none; 
       width: 100%; 
-      height: 4px; 
-      background: #050608; 
-      border-radius: 1px; 
+      height: 5px; 
+      background: #040507; 
+      border-radius: 2px; 
+      border: 1px solid #141824;
       outline: none;
-      touch-action: pan-y;
     }
     .fader-input-horiz::-webkit-slider-thumb {
       -webkit-appearance: none; 
       appearance: none; 
-      width: 9px; 
-      height: 9px; 
+      width: 10px; 
+      height: 10px; 
       background: var(--accent-blue); 
       border-radius: 50%; 
       cursor: pointer;
+      border: 1px solid #00f5d4;
     }
 
     .vu-container { 
       display: flex; 
       flex-direction: column; 
       gap: 1px; 
-      background: #020204; 
+      background: #010204; 
       padding: 2px; 
       border-radius: 2px; 
-      border: 1px solid #10121a; 
+      border: 1px solid #0f121d; 
     }
-    .vu-bar { display: flex; gap: 1px; width: 100%; height: 5px; background: #010102; overflow: hidden; }
-    .vu-bar-mini { display: flex; gap: 1px; width: 22px; height: 4px; background: #010102; overflow: hidden; border-radius: 1px; }
+    .vu-bar { display: flex; gap: 1px; width: 100%; height: 6px; background: #010102; overflow: hidden; }
+    .vu-bar-mini { display: flex; gap: 1px; width: 100%; height: 4px; background: #010102; overflow: hidden; border-radius: 1px; }
     
-    .vu-cell { flex: 1; height: 100%; background: #0b0c10; transition: background 0.01s ease; }
-    .vu-cell.active-blue { background: #0077b6; box-shadow: 0 0 1px #00b4d8; }
+    /* 4 Colors VU Indicator Scheme */
+    .vu-cell { flex: 1; height: 100%; background: #080b11; }
+    .vu-cell.active-blue { background: #005f73; box-shadow: 0 0 2px #00a896; }
     .vu-cell.active-green { background: #00f5d4; }
     .vu-cell.active-yellow { background: #ffee32; }
-    .vu-cell.active-red { background: #ff2a6d; animation: clipFlash 0.08s infinite alternate; }
+    .vu-cell.active-red { background: #ff2a6d; animation: clipFlash 0.1s infinite alternate; }
     
-    @keyframes clipFlash { from { opacity: 1; } to { opacity: 0.3; } }
-    .led-dot { width: 4px; height: 4px; border-radius: 50%; background: #1a1d24; display: inline-block; }
-    .led-dot.active { background: #00f5d4; box-shadow: 0 0 3px #00f5d4; }
-    .led-dot.active-red { background: #ff2a6d; box-shadow: 0 0 3px #ff2a6d; }
+    @keyframes clipFlash { from { opacity: 1; } to { opacity: 0.4; } }
+    .led-dot { width: 5px; height: 5px; border-radius: 50%; background: #151922; display: inline-block; }
+    .led-dot.active { background: var(--accent-cyan); box-shadow: 0 0 4px var(--accent-cyan); }
+    .led-dot.active-blue { background: var(--accent-blue); box-shadow: 0 0 4px var(--accent-blue); }
+    .led-dot.active-red { background: var(--accent-pink); box-shadow: 0 0 4px var(--accent-pink); }
     
     .grid-layout {
-      display: grid; grid-template-columns: repeat(24, minmax(0, 1fr)); gap: 5px; padding: 5px;
+      display: grid; grid-template-columns: repeat(24, minmax(0, 1fr)); gap: 6px; padding: 6px;
     }
-    .span-3 { grid-column: span 3 / span 3; }
     .span-4 { grid-column: span 4 / span 4; }
     .span-6 { grid-column: span 6 / span 6; }
     .span-8 { grid-column: span 8 / span 8; }
@@ -182,449 +171,509 @@
  </head>
  <body class="h-full flex flex-col select-none text-[9px]">
 
-   <header class="flex items-center justify-between px-3 py-1 border-b border-[#1a1d29] bg-[#06070a] shrink-0">
+   <header class="flex items-center justify-between px-3 py-1 border-b border-[#151824] bg-[#050609] shrink-0">
      <div class="flex items-center gap-3">
        <div class="flex flex-col">
-         <span class="text-[11px] font-black tracking-wider text-[#00f5d4]" style="font-family:'Orbitron',sans-serif;">FR AUDIO MANAGEMENT V3.0</span>
-         <span class="text-[7px] text-gray-500 font-bold -mt-0.5">4-WAY DLMS CORES ENGINE MATRIX & PROFESSIONAL VOCAL PROCESSOR COMPLEX</span>
+         <span class="text-[12px] font-black tracking-wider text-[#00f5d4]" style="font-family:'Orbitron',sans-serif;">FR AUDIO MANAGEMENT V2.1</span>
+         <span class="text-[7px] text-gray-500 font-bold -mt-0.5">DISCRETE STEREO DUAL-CORE ENGINE MATRIX & 4-WAY CROSSOVER PROCESSOR COMPLEX</span>
        </div>
-       <div class="flex items-center gap-1.5 bg-[#0b0c12] border border-[#1a1d29] px-2 py-0.5 rounded">
+       <div class="flex items-center gap-2 bg-[#080a10] border border-[#151824] px-2 py-0.5 rounded">
          <span class="led-dot active" id="sysLed"></span>
-         <span class="text-[7px] font-bold text-gray-400">DISCRETE STEREO VIRTUAL LAB ENGINE INTERNET ONLINE</span>
+         <span class="text-[7px] font-bold text-gray-400">DSP ONLINE</span>
        </div>
      </div>
 
-     <div class="flex items-center gap-2 bg-[#010102] p-1 border border-[#141622] rounded">
+     <div class="flex items-center gap-3 bg-[#010204] p-1 border border-[#121520] rounded">
        <div class="flex flex-col gap-1">
-         <div class="flex items-center gap-1">
-           <span class="text-[7px] text-gray-400 w-20">MASTER OUT L:</span>
-           <div class="vu-container w-32" id="vuMasterL"><div class="vu-bar"></div></div>
-           <span class="digital-display w-12" id="dispMasterL">-inf dB</span>
+         <div class="flex items-center gap-1.5">
+           <span class="text-[7px] text-gray-400 font-bold w-16">MASTER OUT L:</span>
+           <div class="vu-container w-36" id="vuMasterL"><div class="vu-bar"></div></div>
+           <span class="digital-display w-14" id="dispMasterL">-inf dB</span>
          </div>
-         <div class="flex items-center gap-1">
-           <span class="text-[7px] text-gray-400 w-20">MASTER OUT R:</span>
-           <div class="vu-container w-32" id="vuMasterR"><div class="vu-bar"></div></div>
-           <span class="digital-display w-12" id="dispMasterR">-inf dB</span>
+         <div class="flex items-center gap-1.5">
+           <span class="text-[7px] text-gray-400 font-bold w-16">MASTER OUT R:</span>
+           <div class="vu-container w-36" id="vuMasterR"><div class="vu-bar"></div></div>
+           <span class="digital-display w-14" id="dispMasterR">-inf dB</span>
          </div>
        </div>
-       <div class="h-6 w-[1px] bg-[#1a1d29]"></div>
-       <div class="flex flex-col gap-0.5 text-[7px] text-gray-500">
-         <div class="flex gap-1"><span>LUFS INT:</span><span class="text-[#ffee32]" id="metLufs">-23.0</span></div>
-         <div class="flex gap-1"><span>CORRELATION:</span><span class="text-[#00f5d4]" id="metPhase">+1.0</span></div>
+       <div class="h-7 w-[1px] bg-[#1c2030]"></div>
+       <div class="flex flex-col gap-0.5 text-[7px] font-bold text-gray-500">
+         <div class="flex gap-1"><span>INTEGRATED LUFS:</span><span class="text-[#ffee32]" id="metLufs">-70.0</span></div>
+         <div class="flex gap-1"><span>PHASE CORR L/R:</span><span class="text-[#00f5d4]" id="metPhase">+1.00</span></div>
        </div>
      </div>
    </header>
 
-   <section class="flex flex-wrap items-center gap-2 px-3 py-1 border-b border-[#1a1d29] bg-[#090a0f] shrink-0">
-     <span class="font-bold text-[#4b5563] text-[7px] tracking-widest">INPUT MATRIX SOURCING:</span>
+   <section class="flex flex-wrap items-center gap-2 px-3 py-1 border-b border-[#151824] bg-[#07090d] shrink-0">
+     <span class="font-bold text-[#4b5563] text-[7px] tracking-widest">INPUT ROUTING BUS:</span>
      
-     <div class="flex items-center gap-1 bg-[#0f111a] px-1 py-0.5 border border-[#1c1e2b] rounded">
+     <div class="flex items-center gap-1 bg-[#0c0e16] px-2 py-0.5 border border-[#181c2b] rounded">
        <label class="btn-ctrl flex items-center gap-1 cursor-pointer">
-         <i data-lucide="upload" class="w-2.5 h-2.5"></i> File Upload
-         <input type="file" id="mediaFile" accept="audio/*" class="hidden">
+         <i data-lucide="upload" class="w-2.5 h-2.5"></i> Upload File
+         <input type="file" id="mediaFile" accept="audio/*,video/*" class="hidden">
        </label>
-       <span class="text-gray-400 max-w-[70px] truncate text-[7px]" id="fileNameDisp">No File Loaded</span>
+       <span class="text-gray-400 max-w-[80px] truncate text-[7px]" id="fileNameDisp">No Source Loaded</span>
      </div>
 
-     <div class="flex items-center gap-1 bg-[#0f111a] px-1 py-0.5 border border-[#1c1e2b] rounded">
-       <input type="text" id="ytUrl" placeholder="Paste Audio URL Stream..." class="bg-black border border-[#1c1e2b] text-[7px] px-1 py-0.5 rounded text-gray-400 w-32 outline-none focus:border-cyan-500">
-       <button class="btn-ctrl" id="ytLoadBtn">Load Link</button>
+     <div class="flex items-center gap-1 bg-[#0c0e16] px-1 py-0.5 border border-[#181c2b] rounded">
+       <input type="text" id="ytUrl" placeholder="Paste Audio URL Link / Tethering..." class="bg-black border border-[#181c2b] text-[7px] px-1.5 py-0.5 rounded text-gray-400 w-44 outline-none focus:border-cyan-500">
+       <button class="btn-ctrl" id="ytLoadBtn">Load Engine Stream</button>
      </div>
 
      <button class="btn-ctrl flex items-center gap-1" id="btnLiveMic">
-       <i data-lucide="mic" class="w-2.5 h-2.5"></i> Hardware Mic Input
+       <i data-lucide="mic" class="w-2.5 h-2.5"></i> Live Mic Hardware
      </button>
 
-     <div class="h-4 w-[1px] bg-[#1a1d29]"></div>
+     <div class="h-4 w-[1px] bg-[#1c2030]"></div>
 
      <button class="btn-ctrl flex items-center gap-1" id="btnGenerator">
-       <i data-lucide="activity" class="w-2.5 h-2.5"></i> Calibration Gen
+       <i data-lucide="activity" class="w-2.5 h-2.5"></i> Test Osc
      </button>
-     <select id="selOscType" class="bg-black text-gray-400 border border-[#1c1e2b] text-[7px] rounded px-1 py-0.5">
-       <option value="sine">Sine Wave</option>
-       <option value="square">Square</option>
-       <option value="sawtooth">Sawtooth</option>
-       <option value="triangle">Triangle</option>
-       <option value="pink">Pink Noise</option>
+     <select id="selOscType" class="bg-black text-gray-400 border border-[#181c2b] text-[7px] rounded px-1 py-0.5">
+       <option value="sine">Sine Tone</option>
+       <option value="square">Square Wave</option>
+       <option value="pink">Pink Noise Calibration</option>
+       <option value="white">White Noise Generator</option>
      </select>
-     <input type="range" id="faderOscFreq" min="20" max="20000" value="1000" class="w-16 h-2">
-     <span class="digital-display min-w-[40px]" id="dispOscFreq">1000 Hz</span>
+     <input type="range" id="faderOscFreq" min="20" max="20000" value="1000" class="w-20 h-2 accent-cyan-500">
+     <span class="digital-display min-w-[45px]" id="dispOscFreq">1000 Hz</span>
 
-     <div class="h-4 w-[1px] bg-[#1a1d29] mx-0.5"></div>
+     <div class="h-4 w-[1px] bg-[#1c2030] mx-0.5"></div>
      
-     <div class="flex items-center gap-1 bg-[#040508] p-0.5 border border-[#1c1e2b] rounded">
-       <button class="btn-ctrl p-0.5 text-emerald-400" id="btnPlay"><i data-lucide="play" class="w-2.5 h-2.5"></i></button>
-       <button class="btn-ctrl p-0.5 text-amber-400" id="btnPause"><i data-lucide="pause" class="w-2.5 h-2.5"></i></button>
-       <button class="btn-ctrl p-0.5 text-red-500" id="btnStop"><i data-lucide="square" class="w-2.5 h-2.5"></i></button>
-       <button class="btn-ctrl p-0.5 text-blue-400" id="btnLoop"><i data-lucide="repeat" class="w-2.5 h-2.5"></i></button>
+     <div class="flex items-center gap-1 bg-[#020305] p-0.5 border border-[#181c2b] rounded">
+       <button class="btn-ctrl p-1 text-emerald-400" id="btnPlay" title="Play"><i data-lucide="play" class="w-2.5 h-2.5"></i></button>
+       <button class="btn-ctrl p-1 text-amber-400" id="btnPause" title="Pause"><i data-lucide="pause" class="w-2.5 h-2.5"></i></button>
+       <button class="btn-ctrl p-1 text-red-500" id="btnStop" title="Stop & Reset"><i data-lucide="square" class="w-2.5 h-2.5"></i></button>
+       <button class="btn-ctrl p-1 text-blue-400" id="btnLoop" title="Toggle Loop"><i data-lucide="repeat" class="w-2.5 h-2.5"></i></button>
      </div>
-     <div class="text-[7px] font-bold text-[#4b5563]" id="mediaTimeDisp">00:00 / 00:00</div>
+     <input type="range" id="mediaSeekBar" min="0" max="100" value="0" class="w-24 h-1.5 accent-blue-500 bg-black rounded">
+     <div class="text-[7px] font-bold text-[#4b5563] min-w-[65px]" id="mediaTimeDisp">00:00 / 00:00</div>
 
-     <div class="ml-auto flex items-center gap-1 bg-[#0b0c12] p-0.5 border border-[#1c1e2b] rounded">
-       <span class="text-[7px] text-gray-500 font-bold px-1">PRESETS:</span>
-       <button class="btn-ctrl" id="btnSavePreset">Save Slot</button>
-       <select id="selSystemPreset" class="bg-black text-gray-400 border border-[#1c1e2b] text-[7px] rounded px-1">
-         <option value="preset_1">Slot Memory 1</option>
-         <option value="preset_2">Slot Memory 2</option>
-         <option value="preset_3">Slot Memory 3</option>
-         <option value="preset_4">Slot Memory 4</option>
+     <div class="ml-auto flex items-center gap-1 bg-[#080a10] p-0.5 border border-[#181c2b] rounded">
+       <span class="text-[7px] text-gray-500 font-bold px-1">SYSTEM MEMORY:</span>
+       <button class="btn-ctrl" id="btnSavePreset">Save</button>
+       <select id="selSystemPreset" class="bg-black text-gray-400 border border-[#181c2b] text-[7px] rounded px-1">
+         <option value="preset_1">Slot Memory Bank Alpha</option>
+         <option value="preset_2">Slot Memory Bank Beta</option>
+         <option value="preset_3">Slot Memory Bank Gamma</option>
+         <option value="preset_4">Slot Memory Bank Delta</option>
        </select>
-       <button class="btn-ctrl" id="btnLoadPreset">Load</button>
+       <button class="btn-ctrl" id="btnLoadPreset">Recall</button>
      </div>
    </section>
 
    <main class="flex-1 overflow-y-auto overflow-x-hidden grid-layout">
 
-     <div class="card card-header-line span-12 flex flex-col gap-1">
+     <div class="card card-header-line span-24 flex flex-col gap-1.5">
        <div class="flex justify-between items-center">
-         <span class="font-bold text-gray-400 text-[7px] tracking-wider">REAL-TIME SPECTROGRAM ANALYZER MATRIX (FFT CH LEFT & RIGHT)</span>
-         <div class="flex gap-2 text-[7px]">
-           <span class="text-cyan-400">■ Channel L FFT</span>
-           <span class="text-pink-400">■ Channel R FFT</span>
-           <span class="text-amber-400">■ THD: <span id="lblThd">0.02%</span></span>
+         <span class="font-bold text-gray-400 text-[7px] tracking-wider">6 DISCRETE MATRIX DISPLAY MULTI-BAND SPECTROGRAM ANALYZER (L & R CH FREQUENCY VECTOR)</span>
+         <div class="flex gap-3 text-[7px] font-bold">
+           <span class="text-cyan-400">■ Left Ch Real-time FFT</span>
+           <span class="text-pink-400">■ Right Ch Real-time FFT</span>
+           <span class="text-amber-400">SYSTEM DISTORTION THD+N: <span id="lblThd">0.012%</span></span>
          </div>
        </div>
-       <canvas id="canvasRta" class="w-full h-[110px] bg-black rounded border border-[#141622]"></canvas>
+       <div class="grid grid-cols-6 gap-2">
+         <div class="bg-black p-1 border border-[#141824] rounded flex flex-col gap-1">
+           <span class="text-[6px] text-red-400 font-bold">DISP 1: SUB-BASS SPECTROGRAM (20Hz - 80Hz)</span>
+           <canvas id="canvasRta_1" class="w-full h-[70px] bg-[#010203]"></canvas>
+         </div>
+         <div class="bg-black p-1 border border-[#141824] rounded flex flex-col gap-1">
+           <span class="text-[6px] text-orange-400 font-bold">DISP 2: LOW-MID BAND SPECTRUM (80Hz - 500Hz)</span>
+           <canvas id="canvasRta_2" class="w-full h-[70px] bg-[#010203]"></canvas>
+         </div>
+         <div class="bg-black p-1 border border-[#141824] rounded flex flex-col gap-1">
+           <span class="text-[6px] text-yellow-400 font-bold">DISP 3: MID-HIGH SPECTRUM (500Hz - 2kHz)</span>
+           <canvas id="canvasRta_3" class="w-full h-[70px] bg-[#010203]"></canvas>
+         </div>
+         <div class="bg-black p-1 border border-[#141824] rounded flex flex-col gap-1">
+           <span class="text-[6px] text-emerald-400 font-bold">DISP 4: HIGH PRESENCE VECTOR (2kHz - 7kHz)</span>
+           <canvas id="canvasRta_4" class="w-full h-[70px] bg-[#010203]"></canvas>
+         </div>
+         <div class="bg-black p-1 border border-[#141824] rounded flex flex-col gap-1">
+           <span class="text-[6px] text-blue-400 font-bold">DISP 5: ULTRA HIGH SPECTRUM (7kHz - 20kHz)</span>
+           <canvas id="canvasRta_5" class="w-full h-[70px] bg-[#010203]"></canvas>
+         </div>
+         <div class="bg-black p-1 border border-[#141824] rounded flex flex-col gap-1">
+           <span class="text-[6px] text-purple-400 font-bold">DISP 6: DISCRETE CROSSOVER PHASE INTEGRATION</span>
+           <canvas id="canvasXover_Combined" class="w-full h-[70px] bg-[#010203]"></canvas>
+         </div>
+       </div>
      </div>
 
-     <div class="card card-header-line span-6 flex flex-col gap-1">
+     <div class="card card-header-line span-8 flex flex-col gap-1">
        <div class="flex justify-between items-center">
-         <span class="font-bold text-gray-400 text-[7px] tracking-wider">VOCAL 25 DSP CORE MATRIX ENGINE PRESETS</span>
+         <span class="font-bold text-cyan-400 text-[7px] tracking-wider">25 DETAILED PRO VOCAL COMPLEX DSP PRESETS BANK</span>
          <span class="led-dot" id="ledVocalDsp"></span>
        </div>
-       <div class="grid grid-cols-1 gap-0.5 overflow-y-auto max-h-[110px] pr-1" id="vocalPresetList"></div>
+       <div class="grid grid-cols-1 gap-0.5 overflow-y-auto max-h-[145px] pr-1" id="vocalPresetList"></div>
      </div>
 
-     <div class="card card-header-line span-6 flex flex-col gap-1">
-       <span class="font-bold text-gray-400 text-[7px] tracking-wider">VOCAL MICROPHONE EXPANDER GATE & NOISE CONTROLLERS</span>
-       <div class="grid grid-cols-2 gap-2 pt-0.5">
-         <div class="space-y-1">
-           <div class="flex justify-between text-[7px] text-gray-500"><span>Gate Thresh</span><span id="dispGateTh">-45dB</span></div>
-           <input type="range" id="gateTh" min="-80" max="-20" value="-45" class="fader-input-horiz">
-           <div class="flex justify-between text-[7px] text-gray-500"><span>De-Esser Freq</span><span id="dispDeEssF">6200Hz</span></div>
-           <input type="range" id="deEssFreq" min="4000" max="9000" value="6200" class="fader-input-horiz">
+     <div class="card card-header-line span-16 flex flex-col gap-1">
+       <span class="font-bold text-gray-400 text-[7px] tracking-wider">VOCAL DYNAMICS NOISE GATE EXPANDER & VOCAL DELAY/REVERB SPACE ENGINE</span>
+       <div class="grid grid-cols-3 gap-3 pt-1">
+         
+         <div class="space-y-1.5 p-1.5 bg-[#050609] border border-[#141824] rounded">
+           <span class="text-[7px] text-cyan-400 font-bold block mb-1">VOCAL EXPANDER CONTROLS</span>
+           <div>
+             <div class="flex justify-between text-[7px] text-gray-400"><span>Noise Gate Th</span><span id="dispGateTh">-45 dB</span></div>
+             <input type="range" id="gateTh" min="-80" max="-20" value="-45" class="fader-input-horiz">
+           </div>
+           <div>
+             <div class="flex justify-between text-[7px] text-gray-400"><span>De-Esser Freq</span><span id="dispDeEssF">6200 Hz</span></div>
+             <input type="range" id="deEssFreq" min="3000" max="9000" value="6200" class="fader-input-horiz">
+           </div>
+           <div>
+             <div class="flex justify-between text-[7px] text-gray-400"><span>Auto Pitch Tune</span><span id="dispPitch">Off</span></div>
+             <input type="range" id="vocalPitch" min="0" max="100" value="0" class="fader-input-horiz">
+           </div>
          </div>
-         <div class="space-y-1">
-           <div class="flex justify-between text-[7px] text-gray-500"><span>Auto Pitch</span><span id="dispPitch">Off</span></div>
-           <input type="range" id="vocalPitch" min="0" max="100" value="0" class="fader-input-horiz">
-           <div class="flex justify-between text-[7px] text-gray-500"><span>Reverb Space</span><span id="dispRevSpace">35%</span></div>
-           <input type="range" id="vocalRevSpace" min="0" max="100" value="35" class="fader-input-horiz">
+
+         <div class="space-y-1.5 p-1.5 bg-[#050609] border border-[#141824] rounded">
+           <span class="text-[7px] text-pink-400 font-bold block mb-1">DEDICATED VOCAL DELAY (NOT FOR MUSIC)</span>
+           <div>
+             <div class="flex justify-between text-[7px] text-gray-400"><span>Vocal Echo Time</span><span id="dispVocalDlyTime">350 ms</span></div>
+             <input type="range" id="vocalDlyTime" min="10" max="2000" value="350" class="fader-input-horiz">
+           </div>
+           <div>
+             <div class="flex justify-between text-[7px] text-gray-400"><span>Feedback Ratio</span><span id="dispVocalDlyFb">40 %</span></div>
+             <input type="range" id="vocalDlyFb" min="0" max="95" value="40" class="fader-input-horiz">
+           </div>
+           <div>
+             <div class="flex justify-between text-[7px] text-gray-400"><span>Vocal Delay Wet Mix</span><span id="dispVocalDlyWet">30 %</span></div>
+             <input type="range" id="vocalDlyWet" min="0" max="100" value="30" class="fader-input-horiz">
+           </div>
+         </div>
+
+         <div class="space-y-1.5 p-1.5 bg-[#050609] border border-[#141824] rounded">
+           <span class="text-[7px] text-yellow-400 font-bold block mb-1">REVERB SPACE ENVIRONMENT</span>
+           <div>
+             <div class="flex justify-between text-[7px] text-gray-400"><span>Reverb Size Mix</span><span id="dispRevSpace">35 %</span></div>
+             <input type="range" id="vocalRevSpace" min="0" max="100" value="35" class="fader-input-horiz">
+           </div>
+           <div>
+             <div class="flex justify-between text-[7px] text-gray-400"><span>Vocal Low-Cut EQ</span><span id="dispVocLowCut">120 Hz</span></div>
+             <input type="range" id="vocalLowCut" min="20" max="500" value="120" class="fader-input-horiz">
+           </div>
+           <div>
+             <div class="flex justify-between text-[7px] text-gray-400"><span>Vocal High-Cut EQ</span><span id="dispVocHighCut">12000 Hz</span></div>
+             <input type="range" id="vocalHighCut" min="4000" max="20000" value="12000" class="fader-input-horiz">
+           </div>
          </div>
        </div>
-       <div class="mt-1 p-1 bg-[#06070a] border border-[#1c1e2b] rounded flex justify-between items-center text-[7px]">
-         <span class="text-gray-400">VOCAL OUTPUT HARMONIC RATIO:</span>
-         <span class="digital-display min-w-[40px]" id="dispVocalRatio">1.25x</span>
+
+       <div class="mt-2 p-1 bg-[#040508] border border-[#181c2b] rounded flex justify-between items-center text-[7px]">
+         <span class="text-gray-400 font-bold">VOCAL SYSTEM OUTPUT HARMONIC RATIO EXTRACTOR:</span>
+         <span class="digital-display min-w-[50px] text-pink-400" id="dispVocalRatio">1.25x True Harmonic</span>
        </div>
      </div>
 
      <div class="card card-header-line span-24 flex flex-col gap-1">
        <div class="flex justify-between items-center">
-         <span class="font-bold text-gray-400 text-[7px] tracking-wider">4-WAY CROSSOVER MATRIX ARCHITECTURE SYSTEM (INDEPENDENT LINKWITZ-RILEY DRIVERS ENGINE)</span>
-         <div class="flex items-center gap-1"><span class="text-[7px] text-gray-500">FILTERS ENTIRE BYPASS:</span><button class="btn-ctrl text-[7px] active" id="toggleCrossover">ON</button></div>
+         <span class="font-bold text-gray-400 text-[7px] tracking-wider">4-WAY CROSSOVER DISCRETE MATRIX SYSTEM (INDEPENDENT LINKWITZ-RILEY CORES FILTER)</span>
+         <div class="flex items-center gap-2">
+           <span class="text-[7px] text-gray-400 font-bold">CROSSOVER FILTER ENGINE BYPASS STATE:</span>
+           <button class="btn-ctrl text-[7px] active" id="toggleCrossover">FILTERS ON</button>
+         </div>
        </div>
-       <div class="grid grid-cols-5 gap-2 p-1 bg-[#06070a] border border-[#141622] rounded">
-         <div class="space-y-1.5 border-r border-[#1a1d29] pr-1.5">
-           <div class="font-bold text-red-400 text-[7px]">1. SUBWOOFER BAND (20Hz - 80Hz)</div>
-           <div>
-             <div class="flex justify-between text-[7px]"><span>LPF Freq L/R</span><span class="digital-display text-red-400" id="dispSubLpf">80 Hz</span></div>
-             <input type="range" id="subLpf" min="20" max="250" value="80" class="fader-input-horiz">
-           </div>
-           <select class="bg-black text-[7px] w-full border border-[#1c1e2b]"><option>LR 24dB/oct</option><option selected>LR 48dB/oct</option></select>
-         </div>
+       
+       <div class="grid grid-cols-4 gap-3 p-1.5 bg-[#050608] border border-[#121520] rounded">
          
-         <div class="space-y-1.5 border-r border-[#1a1d29] pr-1.5">
-           <div class="font-bold text-orange-400 text-[7px]">2. LOW-MID BAND (80Hz - 500Hz)</div>
-           <div>
-             <div class="flex justify-between text-[7px]"><span>HPF Freq L/R</span><span class="digital-display text-orange-400" id="dispLowMidHpf">80 Hz</span></div>
-             <input type="range" id="lowMidHpf" min="50" max="300" value="80" class="fader-input-horiz">
+         <div class="space-y-2 p-1.5 bg-[#0c0e15] border border-red-950 rounded">
+           <div class="font-bold text-red-400 text-[7px] flex justify-between"><span>1. SUBWOOFER CORE BAND</span><span>20Hz - 80Hz</span></div>
+           <div class="space-y-1">
+             <div class="flex justify-between text-[6px]"><span>LPF Freq Ch L</span><span class="digital-display text-red-400" id="dispSubLpfL">80 Hz</span></div>
+             <input type="range" id="subLpfL" min="20" max="250" value="80" class="fader-input-horiz">
+             <div class="flex justify-between text-[6px]"><span>LPF Freq Ch R</span><span class="digital-display text-red-400" id="dispSubLpfR">80 Hz</span></div>
+             <input type="range" id="subLpfR" min="20" max="250" value="80" class="fader-input-horiz">
            </div>
-           <div>
-             <div class="flex justify-between text-[7px]"><span>LPF Freq L/R</span><span class="digital-display text-orange-400" id="dispLowMidLpf">500 Hz</span></div>
-             <input type="range" id="lowMidLpf" min="300" max="1200" value="500" class="fader-input-horiz">
+           <select class="bg-black text-[7px] w-full border border-[#181c2b] p-0.5 text-gray-400"><option>Linkwitz-Riley 24dB/oct</option><option selected>Linkwitz-Riley 48dB/oct</option></select>
+         </div>
+
+         <div class="space-y-2 p-1.5 bg-[#0c0e15] border border-orange-950 rounded">
+           <div class="font-bold text-orange-400 text-[7px] flex justify-between"><span>2. LOW-MID DRIVERS BAND</span><span>80Hz - 500Hz</span></div>
+           <div class="space-y-1">
+             <div class="flex justify-between text-[6px]"><span>HPF Freq Ch L</span><span class="digital-display text-orange-400" id="dispLowMidHpfL">80 Hz</span></div>
+             <input type="range" id="lowMidHpfL" min="40" max="300" value="80" class="fader-input-horiz">
+             <div class="flex justify-between text-[6px]"><span>HPF Freq Ch R</span><span class="digital-display text-orange-400" id="dispLowMidHpfR">80 Hz</span></div>
+             <input type="range" id="lowMidHpfR" min="40" max="300" value="80" class="fader-input-horiz">
+             <div class="flex justify-between text-[6px]"><span>LPF Freq Ch L</span><span class="digital-display text-orange-400" id="dispLowMidLpfL">500 Hz</span></div>
+             <input type="range" id="lowMidLpfL" min="200" max="1000" value="500" class="fader-input-horiz">
+             <div class="flex justify-between text-[6px]"><span>LPF Freq Ch R</span><span class="digital-display text-orange-400" id="dispLowMidLpfR">500 Hz</span></div>
+             <input type="range" id="lowMidLpfR" min="200" max="1000" value="500" class="fader-input-horiz">
            </div>
          </div>
 
-         <div class="px-1 flex flex-col justify-center bg-black rounded">
-           <canvas id="canvasXover" class="w-full h-[55px]"></canvas>
-         </div>
-
-         <div class="space-y-1.5 border-l border-[#1a1d29] pl-1.5">
-           <div class="font-bold text-yellow-400 text-[7px]">3. MID-HIGH BAND (500Hz - 4000Hz)</div>
-           <div>
-             <div class="flex justify-between text-[7px]"><span>HPF Freq L/R</span><span class="digital-display text-yellow-400" id="dispMidHighHpf">500 Hz</span></div>
-             <input type="range" id="midHighHpf" min="300" max="1000" value="500" class="fader-input-horiz">
-           </div>
-           <div>
-             <div class="flex justify-between text-[7px]"><span>LPF Freq L/R</span><span class="digital-display text-yellow-400" id="dispMidHighLpf">4000 Hz</span></div>
-             <input type="range" id="midHighLpf" min="2000" max="8000" value="4000" class="fader-input-horiz">
+         <div class="space-y-2 p-1.5 bg-[#0c0e15] border border-yellow-950 rounded">
+           <div class="font-bold text-yellow-400 text-[7px] flex justify-between"><span>3. MID-HIGH HORN BAND</span><span>500Hz - 4kHz</span></div>
+           <div class="space-y-1">
+             <div class="flex justify-between text-[6px]"><span>HPF Freq Ch L</span><span class="digital-display text-yellow-400" id="dispMidHighHpfL">500 Hz</span></div>
+             <input type="range" id="midHighHpfL" min="300" max="1200" value="500" class="fader-input-horiz">
+             <div class="flex justify-between text-[6px]"><span>HPF Freq Ch R</span><span class="digital-display text-yellow-400" id="dispMidHighHpfR">500 Hz</span></div>
+             <input type="range" id="midHighHpfR" min="300" max="1200" value="500" class="fader-input-horiz">
+             <div class="flex justify-between text-[6px]"><span>LPF Freq Ch L</span><span class="digital-display text-yellow-400" id="dispMidHighLpfL">4000 Hz</span></div>
+             <input type="range" id="midHighLpfL" min="1500" max="8000" value="4000" class="fader-input-horiz">
+             <div class="flex justify-between text-[6px]"><span>LPF Freq Ch R</span><span class="digital-display text-yellow-400" id="dispMidHighLpfR">4000 Hz</span></div>
+             <input type="range" id="midHighLpfR" min="1500" max="8000" value="4000" class="fader-input-horiz">
            </div>
          </div>
 
-         <div class="space-y-1.5 border-l border-[#1a1d29] pl-1.5">
-           <div class="font-bold text-purple-400 text-[7px]">4. HIGH BAND (4000Hz - 20kHz)</div>
-           <div>
-             <div class="flex justify-between text-[7px]"><span>HPF Freq L/R</span><span class="digital-display text-purple-400" id="dispHighHpf">4000 Hz</span></div>
-             <input type="range" id="highHpf" min="3000" max="10000" value="4000" class="fader-input-horiz">
+         <div class="space-y-2 p-1.5 bg-[#0c0e15] border border-purple-950 rounded">
+           <div class="font-bold text-purple-400 text-[7px] flex justify-between"><span>4. HIGH TWEETER STRIP</span><span>4kHz - 20kHz</span></div>
+           <div class="space-y-1">
+             <div class="flex justify-between text-[6px]"><span>HPF Freq Ch L</span><span class="digital-display text-purple-400" id="dispHighHpfL">4000 Hz</span></div>
+             <input type="range" id="highHpfL" min="2000" max="10000" value="4000" class="fader-input-horiz">
+             <div class="flex justify-between text-[6px]"><span>HPF Freq Ch R</span><span class="digital-display text-purple-400" id="dispHighHpfR">4000 Hz</span></div>
+             <input type="range" id="highHpfR" min="2000" max="10000" value="4000" class="fader-input-horiz">
            </div>
-           <select class="bg-black text-[7px] w-full border border-[#1c1e2b]"><option selected>LR 24dB/oct</option><option>LR 48dB/oct</option></select>
+           <select class="bg-black text-[7px] w-full border border-[#181c2b] p-0.5 text-gray-400"><option selected>Linkwitz-Riley 24dB/oct</option><option>Linkwitz-Riley 48dB/oct</option></select>
          </div>
+
        </div>
      </div>
 
      <div class="card card-header-line span-24 flex flex-col gap-1">
        <div class="flex justify-between items-center">
-         <span class="font-bold text-gray-400 text-[7px] tracking-wider">24-BAND PRO COMPACT GRAPHIC EQUALIZER CONTROLLERS (12-BAND LEFT / 12-BAND RIGHT DISCRETE CORE)</span>
-         <button class="btn-ctrl text-[7px] active" id="toggleGq">GQ STRIP ON</button>
+         <span class="font-bold text-gray-400 text-[7px] tracking-wider">24-BAND PRO GRAPHIC EQUALIZER MATRIX (12-BAND LEFT / 12-BAND RIGHT FULLY SEPARATED DRIVER)</span>
+         <button class="btn-ctrl text-[7px] active" id="toggleGq">GQ STRIP MATRIX ACTIVE</button>
        </div>
-       <div class="grid grid-cols-2 gap-3 p-1 bg-[#06070a] border border-[#141622] rounded">
-         <div>
-           <div class="text-[7px] font-bold text-cyan-400 mb-1">DISCRETE MAIN CHANNEL L-STRIP CONTROLS</div>
-           <div class="flex justify-between gap-1">
-             <div class="flex flex-col items-center flex-1"><span class="text-[6px] text-gray-500">31Hz</span><input type="range" id="gqL_0" min="-12" max="12" value="0" step="0.5" class="h-12 w-full accent-cyan-500" style="writing-mode: vertical-lr; direction: rtl;"></div>
-             <div class="flex flex-col items-center flex-1"><span class="text-[6px] text-gray-500">63Hz</span><input type="range" id="gqL_1" min="-12" max="12" value="0" step="0.5" class="h-12 w-full accent-cyan-500" style="writing-mode: vertical-lr; direction: rtl;"></div>
-             <div class="flex flex-col items-center flex-1"><span class="text-[6px] text-gray-500">125Hz</span><input type="range" id="gqL_2" min="-12" max="12" value="0" step="0.5" class="h-12 w-full accent-cyan-500" style="writing-mode: vertical-lr; direction: rtl;"></div>
-             <div class="flex flex-col items-center flex-1"><span class="text-[6px] text-gray-500">250Hz</span><input type="range" id="gqL_3" min="-12" max="12" value="0" step="0.5" class="h-12 w-full accent-cyan-500" style="writing-mode: vertical-lr; direction: rtl;"></div>
-             <div class="flex flex-col items-center flex-1"><span class="text-[6px] text-gray-500">500Hz</span><input type="range" id="gqL_4" min="-12" max="12" value="0" step="0.5" class="h-12 w-full accent-cyan-500" style="writing-mode: vertical-lr; direction: rtl;"></div>
-             <div class="flex flex-col items-center flex-1"><span class="text-[6px] text-gray-500">1kHz</span><input type="range" id="gqL_5" min="-12" max="12" value="0" step="0.5" class="h-12 w-full accent-cyan-500" style="writing-mode: vertical-lr; direction: rtl;"></div>
-             <div class="flex flex-col items-center flex-1"><span class="text-[6px] text-gray-500">2kHz</span><input type="range" id="gqL_6" min="-12" max="12" value="0" step="0.5" class="h-12 w-full accent-cyan-500" style="writing-mode: vertical-lr; direction: rtl;"></div>
-             <div class="flex flex-col items-center flex-1"><span class="text-[6px] text-gray-500">4kHz</span><input type="range" id="gqL_7" min="-12" max="12" value="0" step="0.5" class="h-12 w-full accent-cyan-500" style="writing-mode: vertical-lr; direction: rtl;"></div>
-             <div class="flex flex-col items-center flex-1"><span class="text-[6px] text-gray-500">8kHz</span><input type="range" id="gqL_8" min="-12" max="12" value="0" step="0.5" class="h-12 w-full accent-cyan-500" style="writing-mode: vertical-lr; direction: rtl;"></div>
-             <div class="flex flex-col items-center flex-1"><span class="text-[6px] text-gray-500">16kHz</span><input type="range" id="gqL_9" min="-12" max="12" value="0" step="0.5" class="h-12 w-full accent-cyan-500" style="writing-mode: vertical-lr; direction: rtl;"></div>
+       
+       <div class="grid grid-cols-2 gap-4 p-1.5 bg-[#050608] border border-[#121520] rounded">
+         <div class="p-1">
+           <div class="text-[7px] font-bold text-cyan-400 mb-1.5 tracking-wide">DISCRETE CH L GRAPHIC EQUALIZER CORE</div>
+           <div class="flex justify-between gap-1 bg-[#020305] p-1.5 border border-[#141824] rounded">
+             <div class="flex flex-col items-center flex-1 gap-1"><span class="text-[6px] text-gray-500">25Hz</span><div class="fader-track-vertical"><input type="range" id="gqL_0" min="-12" max="12" value="0" step="0.5" class="fader-input-vertical"></div></div>
+             <div class="flex flex-col items-center flex-1 gap-1"><span class="text-[6px] text-gray-500">50Hz</span><div class="fader-track-vertical"><input type="range" id="gqL_1" min="-12" max="12" value="0" step="0.5" class="fader-input-vertical"></div></div>
+             <div class="flex flex-col items-center flex-1 gap-1"><span class="text-[6px] text-gray-500">100Hz</span><div class="fader-track-vertical"><input type="range" id="gqL_2" min="-12" max="12" value="0" step="0.5" class="fader-input-vertical"></div></div>
+             <div class="flex flex-col items-center flex-1 gap-1"><span class="text-[6px] text-gray-500">200Hz</span><div class="fader-track-vertical"><input type="range" id="gqL_3" min="-12" max="12" value="0" step="0.5" class="fader-input-vertical"></div></div>
+             <div class="flex flex-col items-center flex-1 gap-1"><span class="text-[6px] text-gray-500">400Hz</span><div class="fader-track-vertical"><input type="range" id="gqL_4" min="-12" max="12" value="0" step="0.5" class="fader-input-vertical"></div></div>
+             <div class="flex flex-col items-center flex-1 gap-1"><span class="text-[6px] text-gray-500">800Hz</span><div class="fader-track-vertical"><input type="range" id="gqL_5" min="-12" max="12" value="0" step="0.5" class="fader-input-vertical"></div></div>
+             <div class="flex flex-col items-center flex-1 gap-1"><span class="text-[6px] text-gray-500">1.5k</span><div class="fader-track-vertical"><input type="range" id="gqL_6" min="-12" max="12" value="0" step="0.5" class="fader-input-vertical"></div></div>
+             <div class="flex flex-col items-center flex-1 gap-1"><span class="text-[6px] text-gray-500">3k</span><div class="fader-track-vertical"><input type="range" id="gqL_7" min="-12" max="12" value="0" step="0.5" class="fader-input-vertical"></div></div>
+             <div class="flex flex-col items-center flex-1 gap-1"><span class="text-[6px] text-gray-500">5k</span><div class="fader-track-vertical"><input type="range" id="gqL_8" min="-12" max="12" value="0" step="0.5" class="fader-input-vertical"></div></div>
+             <div class="flex flex-col items-center flex-1 gap-1"><span class="text-[6px] text-gray-500">8k</span><div class="fader-track-vertical"><input type="range" id="gqL_9" min="-12" max="12" value="0" step="0.5" class="fader-input-vertical"></div></div>
+             <div class="flex flex-col items-center flex-1 gap-1"><span class="text-[6px] text-gray-500">12k</span><div class="fader-track-vertical"><input type="range" id="gqL_10" min="-12" max="12" value="0" step="0.5" class="fader-input-vertical"></div></div>
+             <div class="flex flex-col items-center flex-1 gap-1"><span class="text-[6px] text-gray-500">16k</span><div class="fader-track-vertical"><input type="range" id="gqL_11" min="-12" max="12" value="0" step="0.5" class="fader-input-vertical"></div></div>
            </div>
          </div>
-         <div>
-           <div class="text-[7px] font-bold text-pink-400 mb-1">DISCRETE MAIN CHANNEL R-STRIP CONTROLS</div>
-           <div class="flex justify-between gap-1">
-             <div class="flex flex-col items-center flex-1"><span class="text-[6px] text-gray-500">31Hz</span><input type="range" id="gqR_0" min="-12" max="12" value="0" step="0.5" class="h-12 w-full accent-pink-500" style="writing-mode: vertical-lr; direction: rtl;"></div>
-             <div class="flex flex-col items-center flex-1"><span class="text-[6px] text-gray-500">63Hz</span><input type="range" id="gqR_1" min="-12" max="12" value="0" step="0.5" class="h-12 w-full accent-pink-500" style="writing-mode: vertical-lr; direction: rtl;"></div>
-             <div class="flex flex-col items-center flex-1"><span class="text-[6px] text-gray-500">125Hz</span><input type="range" id="gqR_2" min="-12" max="12" value="0" step="0.5" class="h-12 w-full accent-pink-500" style="writing-mode: vertical-lr; direction: rtl;"></div>
-             <div class="flex flex-col items-center flex-1"><span class="text-[6px] text-gray-500">250Hz</span><input type="range" id="gqR_3" min="-12" max="12" value="0" step="0.5" class="h-12 w-full accent-pink-500" style="writing-mode: vertical-lr; direction: rtl;"></div>
-             <div class="flex flex-col items-center flex-1"><span class="text-[6px] text-gray-500">500Hz</span><input type="range" id="gqR_4" min="-12" max="12" value="0" step="0.5" class="h-12 w-full accent-pink-500" style="writing-mode: vertical-lr; direction: rtl;"></div>
-             <div class="flex flex-col items-center flex-1"><span class="text-[6px] text-gray-500">1kHz</span><input type="range" id="gqR_5" min="-12" max="12" value="0" step="0.5" class="h-12 w-full accent-pink-500" style="writing-mode: vertical-lr; direction: rtl;"></div>
-             <div class="flex flex-col items-center flex-1"><span class="text-[6px] text-gray-500">2kHz</span><input type="range" id="gqR_6" min="-12" max="12" value="0" step="0.5" class="h-12 w-full accent-pink-500" style="writing-mode: vertical-lr; direction: rtl;"></div>
-             <div class="flex flex-col items-center flex-1"><span class="text-[6px] text-gray-500">4kHz</span><input type="range" id="gqR_7" min="-12" max="12" value="0" step="0.5" class="h-12 w-full accent-pink-500" style="writing-mode: vertical-lr; direction: rtl;"></div>
-             <div class="flex flex-col items-center flex-1"><span class="text-[6px] text-gray-500">8kHz</span><input type="range" id="gqR_8" min="-12" max="12" value="0" step="0.5" class="h-12 w-full accent-pink-500" style="writing-mode: vertical-lr; direction: rtl;"></div>
-             <div class="flex flex-col items-center flex-1"><span class="text-[6px] text-gray-500">16kHz</span><input type="range" id="gqR_9" min="-12" max="12" value="0" step="0.5" class="h-12 w-full accent-pink-500" style="writing-mode: vertical-lr; direction: rtl;"></div>
+
+         <div class="p-1">
+           <div class="text-[7px] font-bold text-pink-400 mb-1.5 tracking-wide">DISCRETE CH R GRAPHIC EQUALIZER CORE</div>
+           <div class="flex justify-between gap-1 bg-[#020305] p-1.5 border border-[#141824] rounded">
+             <div class="flex flex-col items-center flex-1 gap-1"><span class="text-[6px] text-gray-500">25Hz</span><div class="fader-track-vertical"><input type="range" id="gqR_0" min="-12" max="12" value="0" step="0.5" class="fader-input-vertical"></div></div>
+             <div class="flex flex-col items-center flex-1 gap-1"><span class="text-[6px] text-gray-500">50Hz</span><div class="fader-track-vertical"><input type="range" id="gqR_1" min="-12" max="12" value="0" step="0.5" class="fader-input-vertical"></div></div>
+             <div class="flex flex-col items-center flex-1 gap-1"><span class="text-[6px] text-gray-500">100Hz</span><div class="fader-track-vertical"><input type="range" id="gqR_2" min="-12" max="12" value="0" step="0.5" class="fader-input-vertical"></div></div>
+             <div class="flex flex-col items-center flex-1 gap-1"><span class="text-[6px] text-gray-500">200Hz</span><div class="fader-track-vertical"><input type="range" id="gqR_3" min="-12" max="12" value="0" step="0.5" class="fader-input-vertical"></div></div>
+             <div class="flex flex-col items-center flex-1 gap-1"><span class="text-[6px] text-gray-500">400Hz</span><div class="fader-track-vertical"><input type="range" id="gqR_4" min="-12" max="12" value="0" step="0.5" class="fader-input-vertical"></div></div>
+             <div class="flex flex-col items-center flex-1 gap-1"><span class="text-[6px] text-gray-500">800Hz</span><div class="fader-track-vertical"><input type="range" id="gqR_5" min="-12" max="12" value="0" step="0.5" class="fader-input-vertical"></div></div>
+             <div class="flex flex-col items-center flex-1 gap-1"><span class="text-[6px] text-gray-500">1.5k</span><div class="fader-track-vertical"><input type="range" id="gqR_6" min="-12" max="12" value="0" step="0.5" class="fader-input-vertical"></div></div>
+             <div class="flex flex-col items-center flex-1 gap-1"><span class="text-[6px] text-gray-500">3k</span><div class="fader-track-vertical"><input type="range" id="gqR_7" min="-12" max="12" value="0" step="0.5" class="fader-input-vertical"></div></div>
+             <div class="flex flex-col items-center flex-1 gap-1"><span class="text-[6px] text-gray-500">5k</span><div class="fader-track-vertical"><input type="range" id="gqR_8" min="-12" max="12" value="0" step="0.5" class="fader-input-vertical"></div></div>
+             <div class="flex flex-col items-center flex-1 gap-1"><span class="text-[6px] text-gray-500">8k</span><div class="fader-track-vertical"><input type="range" id="gqR_9" min="-12" max="12" value="0" step="0.5" class="fader-input-vertical"></div></div>
+             <div class="flex flex-col items-center flex-1 gap-1"><span class="text-[6px] text-gray-500">12k</span><div class="fader-track-vertical"><input type="range" id="gqR_10" min="-12" max="12" value="0" step="0.5" class="fader-input-vertical"></div></div>
+             <div class="flex flex-col items-center flex-1 gap-1"><span class="text-[6px] text-gray-500">16k</span><div class="fader-track-vertical"><input type="range" id="gqR_11" min="-12" max="12" value="0" step="0.5" class="fader-input-vertical"></div></div>
            </div>
          </div>
        </div>
      </div>
 
      <div class="card card-header-line span-24 flex flex-col gap-1">
-       <span class="font-bold text-gray-400 text-[7px] tracking-wider">ULTRA CORES SYSTEM STRIP RACK LAYER (INDEPENDENT DISCRETE CALIBRATION SLIDERS)</span>
-       <div class="flex items-center justify-between overflow-x-auto gap-3 py-1 bg-[#050608] border border-[#141622] rounded px-1">
+       <span class="font-bold text-gray-400 text-[7px] tracking-wider">ULTRA DETAILED DISCRETE STEREO STRIP RACK LAYER (INDEPENDENT HARDWARE CONTROLLERS CALIBRATION MODULES)</span>
+       <div class="flex items-center justify-between overflow-x-auto gap-3 py-1 bg-[#040508] border border-[#141824] rounded px-1.5">
          
-         <div class="flex gap-1.5 border-r border-[#1a1d29] pr-2 shrink-0">
+         <div class="flex gap-1.5 border-r border-[#1c2030] pr-2 shrink-0">
            <div class="fader-wrapper">
-             <span class="text-[6px] text-gray-500">Gate Th L</span>
-             <div class="fader-track"><div class="fader-scale"></div><input type="range" id="compThL" min="-60" max="0" value="-20" class="fader-input"></div>
-             <span class="digital-display w-9" id="dispCompThL">-20dB</span>
-             <div class="vu-bar-mini" id="vum_compThL"><div class="vu-cell"></div></div>
+             <span class="text-[6px] text-gray-400 font-bold">Comp Th L</span>
+             <div class="fader-track-vertical"><input type="range" id="compThL" min="-60" max="0" value="-20" class="fader-input-vertical"></div>
+             <span class="digital-display w-10 text-cyan-400" id="dispCompThL">-20dB</span>
+             <div class="vu-bar-mini w-10" id="vum_compThL"><div class="vu-cell"></div></div>
            </div>
            <div class="fader-wrapper">
-             <span class="text-[6px] text-gray-500">Gate Th R</span>
-             <div class="fader-track"><div class="fader-scale"></div><input type="range" id="compThR" min="-60" max="0" value="-20" class="fader-input"></div>
-             <span class="digital-display w-9" id="dispCompThR">-20dB</span>
-             <div class="vu-bar-mini" id="vum_compThR"><div class="vu-cell"></div></div>
+             <span class="text-[6px] text-gray-400 font-bold">Comp Th R</span>
+             <div class="fader-track-vertical"><input type="range" id="compThR" min="-60" max="0" value="-20" class="fader-input-vertical"></div>
+             <span class="digital-display w-10 text-pink-400" id="dispCompThR">-20dB</span>
+             <div class="vu-bar-mini w-10" id="vum_compThR"><div class="vu-cell"></div></div>
            </div>
            <div class="fader-wrapper">
-             <span class="text-[6px] text-gray-500">Ratio L</span>
-             <div class="fader-track"><div class="fader-scale"></div><input type="range" id="compRatioL" min="1" max="20" value="4" class="fader-input"></div>
-             <span class="digital-display w-9" id="dispCompRatioL">4:1</span>
-             <div class="vu-bar-mini" id="vum_compRatioL"><div class="vu-cell"></div></div>
+             <span class="text-[6px] text-gray-400 font-bold">Ratio L</span>
+             <div class="fader-track-vertical"><input type="range" id="compRatioL" min="1" max="20" value="4" class="fader-input-vertical"></div>
+             <span class="digital-display w-10" id="dispCompRatioL">4:1</span>
            </div>
            <div class="fader-wrapper">
-             <span class="text-[6px] text-gray-500">Ratio R</span>
-             <div class="fader-track"><div class="fader-scale"></div><input type="range" id="compRatioR" min="1" max="20" value="4" class="fader-input"></div>
-             <span class="digital-display w-9" id="dispCompRatioR">4:1</span>
-             <div class="vu-bar-mini" id="vum_compRatioR"><div class="vu-cell"></div></div>
+             <span class="text-[6px] text-gray-400 font-bold">Ratio R</span>
+             <div class="fader-track-vertical"><input type="range" id="compRatioR" min="1" max="20" value="4" class="fader-input-vertical"></div>
+             <span class="digital-display w-10" id="dispCompRatioR">4:1</span>
            </div>
          </div>
 
-         <div class="flex gap-1.5 border-r border-[#1a1d29] pr-2 shrink-0">
+         <div class="flex gap-1.5 border-r border-[#1c2030] pr-2 shrink-0">
            <div class="fader-wrapper">
-             <span class="text-[6px] text-gray-500">Lim Ceil L</span>
-             <div class="fader-track"><div class="fader-scale"></div><input type="range" id="limCeilL" min="-12" max="0" value="-0.5" step="0.1" class="fader-input"></div>
-             <span class="digital-display w-9" id="dispLimCeilL">-0.5dB</span>
-             <div class="vu-bar-mini" id="vum_limCeilL"><div class="vu-cell"></div></div>
+             <span class="text-[6px] text-gray-400 font-bold">Lim Ceil L</span>
+             <div class="fader-track-vertical"><input type="range" id="limCeilL" min="-12" max="0" value="-0.5" step="0.1" class="fader-input-vertical"></div>
+             <span class="digital-display w-10" id="dispLimCeilL">-0.5dB</span>
            </div>
            <div class="fader-wrapper">
-             <span class="text-[6px] text-gray-500">Lim Ceil R</span>
-             <div class="fader-track"><div class="fader-scale"></div><input type="range" id="limCeilR" min="-12" max="0" value="-0.5" step="0.1" class="fader-input"></div>
-             <span class="digital-display w-9" id="dispLimCeilR">-0.5dB</span>
-             <div class="vu-bar-mini" id="vum_limCeilR"><div class="vu-cell"></div></div>
+             <span class="text-[6px] text-gray-400 font-bold">Lim Ceil R</span>
+             <div class="fader-track-vertical"><input type="range" id="limCeilR" min="-12" max="0" value="-0.5" step="0.1" class="fader-input-vertical"></div>
+             <span class="digital-display w-10" id="dispLimCeilR">-0.5dB</span>
            </div>
          </div>
 
-         <div class="flex gap-1.5 border-r border-[#1a1d29] pr-2 shrink-0">
+         <div class="flex gap-1.5 border-r border-[#1c2030] pr-2 shrink-0">
            <div class="fader-wrapper">
-             <span class="text-[6px] text-gray-500">Dly Tim L</span>
-             <div class="fader-track"><div class="fader-scale"></div><input type="range" id="dlyTimeL" min="0" max="1000" value="200" class="fader-input"></div>
-             <span class="digital-display w-9" id="dispDlyTimeL">200ms</span>
-             <div class="vu-bar-mini" id="vum_dlyTimeL"><div class="vu-cell"></div></div>
+             <span class="text-[6px] text-gray-400 font-bold">Music Dly L</span>
+             <div class="fader-track-vertical"><input type="range" id="dlyTimeL" min="0" max="1000" value="0" class="fader-input-vertical"></div>
+             <span class="digital-display w-10" id="dispDlyTimeL">0ms</span>
            </div>
            <div class="fader-wrapper">
-             <span class="text-[6px] text-gray-500">Dly Tim R</span>
-             <div class="fader-track"><div class="fader-scale"></div><input type="range" id="dlyTimeR" min="0" max="1000" value="250" class="fader-input"></div>
-             <span class="digital-display w-9" id="dispDlyTimeR">250ms</span>
-             <div class="vu-bar-mini" id="vum_dlyTimeR"><div class="vu-cell"></div></div>
+             <span class="text-[6px] text-gray-400 font-bold">Music Dly R</span>
+             <div class="fader-track-vertical"><input type="range" id="dlyTimeR" min="0" max="1000" value="0" class="fader-input-vertical"></div>
+             <span class="digital-display w-10" id="dispDlyTimeR">0ms</span>
            </div>
          </div>
 
-         <div class="flex gap-1.5 border-r border-[#1a1d29] pr-2 shrink-0">
+         <div class="flex gap-1.5 border-r border-[#1c2030] pr-2 shrink-0">
            <div class="fader-wrapper">
-             <span class="text-[6px] text-gray-500">Harmonic L</span>
-             <div class="fader-track"><div class="fader-scale"></div><input type="range" id="satDriveL" min="0" max="100" value="15" class="fader-input"></div>
-             <span class="digital-display w-9" id="dispSatDriveL">15%</span>
-             <div class="vu-bar-mini" id="vum_satDriveL"><div class="vu-cell"></div></div>
+             <span class="text-[6px] text-gray-400 font-bold">Harmonic L</span>
+             <div class="fader-track-vertical"><input type="range" id="satDriveL" min="0" max="100" value="0" class="fader-input-vertical"></div>
+             <span class="digital-display w-10" id="dispSatDriveL">0%</span>
            </div>
            <div class="fader-wrapper">
-             <span class="text-[6px] text-gray-500">Harmonic R</span>
-             <div class="fader-track"><div class="fader-scale"></div><input type="range" id="satDriveR" min="0" max="100" value="15" class="fader-input"></div>
-             <span class="digital-display w-9" id="dispSatDriveR">15%</span>
-             <div class="vu-bar-mini" id="vum_satDriveR"><div class="vu-cell"></div></div>
+             <span class="text-[6px] text-gray-400 font-bold">Harmonic R</span>
+             <div class="fader-track-vertical"><input type="range" id="satDriveR" min="0" max="100" value="0" class="fader-input-vertical"></div>
+             <span class="digital-display w-10" id="dispSatDriveR">0%</span>
            </div>
          </div>
 
-         <div class="flex gap-1.5 border-r border-[#1a1d29] pr-2 shrink-0">
+         <div class="flex gap-1.5 border-r border-[#1c2030] pr-2 shrink-0">
            <div class="fader-wrapper">
-             <span class="text-[6px] text-gray-500">Sub Boot L</span>
-             <div class="fader-track"><div class="fader-scale"></div><input type="range" id="subHarmL" min="0" max="100" value="25" class="fader-input"></div>
-             <span class="digital-display w-9" id="dispSubHarmL">25%</span>
-             <div class="vu-bar-mini" id="vum_subHarmL"><div class="vu-cell"></div></div>
+             <span class="text-[6px] text-gray-400 font-bold">Sub Boost L</span>
+             <div class="fader-track-vertical"><input type="range" id="subHarmL" min="0" max="100" value="0" class="fader-input-vertical"></div>
+             <span class="digital-display w-10" id="dispSubHarmL">0%</span>
            </div>
            <div class="fader-wrapper">
-             <span class="text-[6px] text-gray-500">Sub Boot R</span>
-             <div class="fader-track"><div class="fader-scale"></div><input type="range" id="subHarmR" min="0" max="100" value="25" class="fader-input"></div>
-             <span class="digital-display w-9" id="dispSubHarmR">25%</span>
-             <div class="vu-bar-mini" id="vum_subHarmR"><div class="vu-cell"></div></div>
+             <span class="text-[6px] text-gray-400 font-bold">Sub Boost R</span>
+             <div class="fader-track-vertical"><input type="range" id="subHarmR" min="0" max="100" value="0" class="fader-input-vertical"></div>
+             <span class="digital-display w-10" id="dispSubHarmR">0%</span>
            </div>
          </div>
 
-         <div class="flex gap-1.5 border-r border-[#1a1d29] pr-2 shrink-0">
+         <div class="flex gap-1.5 border-r border-[#1c2030] pr-2 shrink-0">
            <div class="fader-wrapper">
-             <span class="text-[6px] text-gray-500">Exciter L</span>
-             <div class="fader-track"><div class="fader-scale"></div><input type="range" id="enhL" min="0" max="100" value="30" class="fader-input"></div>
-             <span class="digital-display w-9" id="dispEnhL">30%</span>
-             <div class="vu-bar-mini" id="vum_enhL"><div class="vu-cell"></div></div>
+             <span class="text-[6px] text-gray-400 font-bold">Phase L</span>
+             <div class="fader-track-vertical"><input type="range" id="phaseL" min="0" max="180" value="0" step="180" class="fader-input-vertical"></div>
+             <span class="digital-display w-10" id="dispPhaseL">0°</span>
            </div>
            <div class="fader-wrapper">
-             <span class="text-[6px] text-gray-500">Exciter R</span>
-             <div class="fader-track"><div class="fader-scale"></div><input type="range" id="enhR" min="0" max="100" value="30" class="fader-input"></div>
-             <span class="digital-display w-9" id="dispEnhR">30%</span>
-             <div class="vu-bar-mini" id="vum_enhR"><div class="vu-cell"></div></div>
+             <span class="text-[6px] text-gray-400 font-bold">Phase R</span>
+             <div class="fader-track-vertical"><input type="range" id="phaseR" min="0" max="180" value="0" step="180" class="fader-input-vertical"></div>
+             <span class="digital-display w-10" id="dispPhaseR">0°</span>
            </div>
          </div>
 
-         <div class="flex gap-1.5 border-r border-[#1a1d29] pr-2 shrink-0">
+         <div class="flex gap-1.5 bg-[#090c14] p-1 border border-cyan-900 rounded shrink-0">
            <div class="fader-wrapper">
-             <span class="text-[6px] text-gray-500">Phase L</span>
-             <div class="fader-track"><div class="fader-scale"></div><input type="range" id="phaseL" min="0" max="180" value="0" step="180" class="fader-input"></div>
-             <span class="digital-display w-9" id="dispPhaseL">0°</span>
-             <div class="vu-bar-mini" id="vum_phaseL"><div class="vu-cell"></div></div>
+             <span class="text-[6px] font-bold text-cyan-400">CORE OUT L</span>
+             <div class="fader-track-vertical" style="border-color:#00b4d8;"><input type="range" id="masterVolL" min="-60" max="6" value="0" step="0.5" class="fader-input-vertical"></div>
+             <span class="digital-display w-12 text-yellow-300" id="dispMasterVolL">0.0 dB</span>
+             <div class="vu-bar-mini w-12" id="vum_masterVolL"><div class="vu-cell"></div></div>
            </div>
            <div class="fader-wrapper">
-             <span class="text-[6px] text-gray-500">Phase R</span>
-             <div class="fader-track"><div class="fader-scale"></div><input type="range" id="phaseR" min="0" max="180" value="0" step="180" class="fader-input"></div>
-             <span class="digital-display w-9" id="dispPhaseR">0°</span>
-             <div class="vu-bar-mini" id="vum_phaseR"><div class="vu-cell"></div></div>
-           </div>
-         </div>
-
-         <div class="flex gap-1.5 bg-[#090b10] p-1 border border-cyan-900 rounded shrink-0">
-           <div class="fader-wrapper">
-             <span class="text-[6px] font-bold text-cyan-400">CORE MASTER L</span>
-             <div class="fader-track" style="border-color: #00b4d8;"><div class="fader-scale"></div><input type="range" id="masterVolL" min="-60" max="6" value="0" step="0.5" class="fader-input"></div>
-             <span class="digital-display w-11 text-yellow-300" id="dispMasterVolL">0.0 dB</span>
-             <div class="vu-bar-mini" id="vum_masterVolL"><div class="vu-cell"></div></div>
-           </div>
-           <div class="fader-wrapper">
-             <span class="text-[6px] font-bold text-cyan-400">CORE MASTER R</span>
-             <div class="fader-track" style="border-color: #00b4d8;"><div class="fader-scale"></div><input type="range" id="masterVolR" min="-60" max="6" value="0" step="0.5" class="fader-input"></div>
-             <span class="digital-display w-11 text-yellow-300" id="dispMasterVolR">0.0 dB</span>
-             <div class="vu-bar-mini" id="vum_masterVolR"><div class="vu-cell"></div></div>
+             <span class="text-[6px] font-bold text-pink-400">CORE OUT R</span>
+             <div class="fader-track-vertical" style="border-color:#ff2a6d;"><input type="range" id="masterVolR" min="-60" max="6" value="0" step="0.5" class="fader-input-vertical"></div>
+             <span class="digital-display w-12 text-yellow-300" id="dispMasterVolR">0.0 dB</span>
+             <div class="vu-bar-mini w-12" id="vum_masterVolR"><div class="vu-cell"></div></div>
            </div>
          </div>
 
        </div>
      </div>
 
-     <div class="card card-header-line span-24 grid grid-cols-6 gap-3 items-center bg-[#050609]">
-       <div class="flex gap-1 items-center">
-         <button class="btn-ctrl text-red-400 w-full font-bold" id="btnMuteL">MUTE CH L</button>
-         <button class="btn-ctrl text-red-400 w-full font-bold" id="btnMuteR">MUTE CH R</button>
+     <div class="card card-header-line span-24 grid grid-cols-6 gap-3 items-center bg-[#050608]">
+       <div class="flex gap-1.5 items-center">
+         <button class="btn-ctrl text-red-400 w-full font-bold" id="btnMuteL">MUTE OUT L</button>
+         <button class="btn-ctrl text-red-400 w-full font-bold" id="btnMuteR">MUTE OUT R</button>
        </div>
        <div class="flex items-center">
-         <button class="btn-ctrl w-full text-amber-500 font-bold" id="btnBypassAll">BYPASS DSP CORES MATRIX</button>
+         <button class="btn-ctrl w-full text-amber-500 font-bold" id="btnBypassAll">BYPASS EVERYTHING CORE Matrix</button>
        </div>
-       <div class="flex justify-between items-center text-[7px] border-r border-[#1a1d29] pr-2">
-         <span>PROCESSOR CORE WORK LOAD:</span><span class="digital-display" id="statCpu">2%</span>
+       <div class="flex justify-between items-center text-[7px] border-r border-[#151824] pr-2 font-bold">
+         <span>DSP WORK LOAD RATIO:</span><span class="digital-display text-cyan-400" id="statCpu">3%</span>
        </div>
-       <div class="flex justify-between items-center text-[7px] border-r border-[#1a1d29] pr-2">
-         <span>DLMS OSC SAMPLING:</span><span class="digital-display text-emerald-400">48000 Hz</span>
+       <div class="flex justify-between items-center text-[7px] border-r border-[#151824] pr-2 font-bold">
+         <span>DLMS HARDWARE CORE RATE:</span><span class="digital-display text-emerald-400">48000 Hz SYSTEM</span>
        </div>
-       <div class="flex justify-between items-center text-[7px] border-r border-[#1a1d29] pr-2">
-         <span>AUDIO DISCRETE SCHEMATIC:</span><span class="digital-display text-pink-400">4-Way Quad-Amp</span>
+       <div class="flex justify-between items-center text-[7px] border-r border-[#151824] pr-2 font-bold">
+         <span>AUDIO PROCESSING PIPELINE:</span><span class="digital-display text-pink-400">Discrete 4-Way Stereo Matrix</span>
        </div>
-       <div class="text-[7px] text-gray-500 font-bold text-right tracking-wider">FR LABS DISCRETE SYSTEMS PLATINUM PREMIUM</div>
+       <div class="text-[7px] text-gray-500 font-bold text-right tracking-wider">FR LABS SOUND HARDWARE LABS INC. CORES</div>
      </div>
 
    </main>
 
    <script>
-   // WEB AUDIO ENGINE CORES CONTEXT OBJECTMAP
+   // GLOBAL CORES LAYER WEB AUDIO CONTEXT SETUP
    let audioCtx = null;
    let elementsInited = false;
    
+   // Sourcing Modules Node Vectors
    let srcMedia = null, srcMic = null, srcOsc = null;
-   let splitterInput = null, mergerOutput = null;
-   let oscVol = null;
+   let inputMainGain = null, splitterInput = null, mergerOutput = null;
+   let oscVolNode = null;
    
+   // Stereo Routing Architecture Discrete Structures Object Maps
    const chL = {}, chR = {};
    let masterOutL = null, masterOutR = null;
    
+   // Transport Scheduling System Parameters
    let activeMediaBuffer = null;
    let playStartTime = 0, playOffsetTime = 0;
    let isMediaRunning = false;
    let streamIntervalTimer = null;
    let globalBypassState = false;
 
+   // Vocal dedicated effects node sub-matrix buses routing
+   const vocalBus = {
+     gate: null, lowcut: null, highcut: null, delay: null, delayFb: null, delayWet: null, delayDry: null, reverb: null, outputGain: null
+   };
+
    const slidersParamIds = [
      'compThL', 'compThR', 'compRatioL', 'compRatioR', 'limCeilL', 'limCeilR',
      'dlyTimeL', 'dlyTimeR', 'satDriveL', 'satDriveR', 'subHarmL', 'subHarmR',
-     'enhL', 'enhR', 'phaseL', 'phaseR', 'masterVolL', 'masterVolR'
+     'phaseL', 'phaseR', 'masterVolL', 'masterVolR'
    ];
 
-   // 25 DETAILED PRO VOCAL PRESETS DATASET ARCHITECTURE
+   // 25 MASSIVE POWERFUL PRO VOCAL EFFECTS DATABASE ARCHITECTURE MAPS
    const vocalPresetsDataset = [
-     { name: "01. Default Flat Core", gate: -50, deess: 6000, rev: 20 },
-     { name: "02. Studio Condenser Tight", gate: -45, deess: 6500, rev: 30 },
-     { name: "03. Large Concert Hall Venue", gate: -40, deess: 5500, rev: 65 },
-     { name: "04. Deep Arena Stadium", gate: -35, deess: 5200, rev: 80 },
-     { name: "05. Sharp Radio Broadcaster", gate: -55, deess: 7000, rev: 15 },
-     { name: "06. Crisp Live Outdoor Stage", gate: -42, deess: 6200, rev: 45 },
-     { name: "07. Vintage Tape Saturation", gate: -48, deess: 5800, rev: 25 },
-     { name: "08. Ethereal Long Space Echo", gate: -38, deess: 6000, rev: 90 },
-     { name: "09. Acoustic Intimate Room", gate: -52, deess: 6400, rev: 35 },
-     { name: "10. Metal Lead Scream Core", gate: -30, deess: 6800, rev: 40 },
-     { name: "11. Pop Vocal Shimmer High", gate: -46, deess: 7200, rev: 50 },
-     { name: "12. Heavy Rap Punchy Gate", gate: -32, deess: 6000, rev: 20 },
-     { name: "13. Smooth Velvet Jazz Vibe", gate: -50, deess: 5400, rev: 40 },
-     { name: "14. Karaoke Echo Standard", gate: -44, deess: 6200, rev: 55 },
-     { name: "15. Retro Ribbon Microphone", gate: -47, deess: 5000, rev: 30 },
-     { name: "16. Ambient Church Cathedral", gate: -36, deess: 5600, rev: 85 },
-     { name: "17. Whispering Air Presence", gate: -54, deess: 7500, rev: 40 },
-     { name: "18. Dynamic Mega Voice Boost", gate: -40, deess: 6300, rev: 48 },
-     { name: "19. Telephone Lo-Fi Vintage", gate: -25, deess: 4000, rev: 10 },
-     { name: "20. Hyper Edge Crystal Core", gate: -48, deess: 8000, rev: 35 },
-     { name: "21. Slapback Double Delay", gate: -44, deess: 6100, rev: 28 },
-     { name: "22. Sub Baritone Enhancer", gate: -50, deess: 5800, rev: 33 },
-     { name: "23. Cinematic Vocal Drone", gate: -34, deess: 5300, rev: 75 },
-     { name: "24. Disco Voice Compressor", gate: -42, deess: 6600, rev: 50 },
-     { name: "25. Ultra Platinum Master Voc", gate: -46, deess: 6200, rev: 38 }
+     { name: "01. Default Flat Processor", gate: -55, deess: 6000, rev: 15, dlyTime: 250, dlyFb: 20, dlyWet: 10 },
+     { name: "02. Studio Condenser Crystal", gate: -48, deess: 6500, rev: 25, dlyTime: 300, dlyFb: 30, dlyWet: 15 },
+     { name: "03. Large Concert Stage Venue", gate: -40, deess: 5500, rev: 60, dlyTime: 420, dlyFb: 50, dlyWet: 45 },
+     { name: "04. Deep Stadium Arena Hall", gate: -35, deess: 5200, rev: 75, dlyTime: 550, dlyFb: 60, dlyWet: 50 },
+     { name: "05. Crisp Broadcasting Station", gate: -52, deess: 7000, rev: 10, dlyTime: 180, dlyFb: 15, dlyWet: 8 },
+     { name: "06. Live Outdoor Festival Sound", gate: -42, deess: 6200, rev: 40, dlyTime: 360, dlyFb: 45, dlyWet: 35 },
+     { name: "07. Vintage Tape Analog Echo", gate: -46, deess: 5800, rev: 30, dlyTime: 400, dlyFb: 55, dlyWet: 40 },
+     { name: "08. Ethereal Ambient Space Drone", gate: -38, deess: 6000, rev: 85, dlyTime: 800, dlyFb: 75, dlyWet: 65 },
+     { name: "09. Acoustic Room Presence Air", gate: -50, deess: 6400, rev: 20, dlyTime: 220, dlyFb: 25, dlyWet: 15 },
+     { name: "10. Metal Core Punchy Dynamic", gate: -30, deess: 6800, rev: 35, dlyTime: 280, dlyFb: 35, dlyWet: 20 },
+     { name: "11. Pop Vocal Shimmer Ultra-High", gate: -45, deess: 7500, rev: 45, dlyTime: 320, dlyFb: 40, dlyWet: 30 },
+     { name: "12. Heavy Rap Tight Noise Expander", gate: -32, deess: 6000, rev: 15, dlyTime: 150, dlyFb: 10, dlyWet: 12 },
+     { name: "13. Smooth Jazz Warm Pre-Delay", gate: -48, deess: 5400, rev: 35, dlyTime: 260, dlyFb: 28, dlyWet: 18 },
+     { name: "14. Karaoke Slapback Standard Vibe", gate: -44, deess: 6200, rev: 50, dlyTime: 380, dlyFb: 48, dlyWet: 40 },
+     { name: "15. Retro Ribbon Engine Saturation", gate: -47, deess: 5000, rev: 28, dlyTime: 290, dlyFb: 33, dlyWet: 22 },
+     { name: "16. Ambient Church Cathedral Echo", gate: -36, deess: 5600, rev: 80, dlyTime: 650, dlyFb: 65, dlyWet: 55 },
+     { name: "17. Whispering Air Intimate Core", gate: -54, deess: 8000, rev: 38, dlyTime: 340, dlyFb: 30, dlyWet: 25 },
+     { name: "18. Mega Voice Projection Matrix", gate: -40, deess: 6300, rev: 42, dlyTime: 310, dlyFb: 38, dlyWet: 28 },
+     { name: "19. Telephone Lo-Fi Discrete Comms", gate: -25, deess: 4000, rev: 8, dlyTime: 120, dlyFb: 5, dlyWet: 5 },
+     { name: "20. Hyper Edge Crystal Core Multi", gate: -48, deess: 8200, rev: 32, dlyTime: 270, dlyFb: 35, dlyWet: 24 },
+     { name: "21. Ping Pong Stereo Simulation", gate: -43, deess: 6100, rev: 46, dlyTime: 450, dlyFb: 52, dlyWet: 42 },
+     { name: "22. Deep Bass Vocal Sub Enhancer", gate: -51, deess: 5700, rev: 30, dlyTime: 240, dlyFb: 22, dlyWet: 14 },
+     { name: "23. Cinematic Voice Drone Horizon", gate: -33, deess: 5300, rev: 70, dlyTime: 700, dlyFb: 70, dlyWet: 60 },
+     { name: "24. Disco Voice Compressor Limiter", gate: -41, deess: 6600, rev: 48, dlyTime: 330, dlyFb: 42, dlyWet: 32 },
+     { name: "25. Ultra Platinum Final Master Voc", gate: -44, deess: 6200, rev: 35, dlyTime: 350, dlyFb: 40, dlyWet: 30 }
    ];
    let selectedVocalPresetIndex = 0;
 
+   // 6 Canvas Arrays Allocation Matrices
    let arrayAnalysisL = null, arrayAnalysisR = null;
 
    window.addEventListener('DOMContentLoaded', () => {
@@ -632,9 +681,6 @@
      buildVocalPresetsUiList();
      setupControlListeners();
      triggerAnimationFrameLoop();
-     
-     document.getElementById('btnMuteL').classList.remove('active');
-     document.getElementById('btnMuteR').classList.remove('active');
    });
 
    function buildVocalPresetsUiList() {
@@ -642,7 +688,7 @@
      container.innerHTML = '';
      vocalPresetsDataset.forEach((pst, idx) => {
        const btn = document.createElement('button');
-       btn.className = `btn-ctrl text-left truncate w-full ${idx === 0 ? 'active' : ''}`;
+       btn.className = `btn-ctrl text-left truncate w-full p-1 border-b border-[#141824] ${idx === 0 ? 'active' : ''}`;
        btn.id = `vPst_${idx}`;
        btn.textContent = pst.name;
        btn.onclick = () => selectVocalPreset(idx);
@@ -657,11 +703,17 @@
      
      const preset = vocalPresetsDataset[idx];
      document.getElementById('gateTh').value = preset.gate;
-     document.getElementById('dispGateTh').textContent = preset.gate + 'dB';
+     document.getElementById('dispGateTh').textContent = preset.gate + ' dB';
      document.getElementById('deEssFreq').value = preset.deess;
-     document.getElementById('dispDeEssF').textContent = preset.deess + 'Hz';
+     document.getElementById('dispDeEssF').textContent = preset.deess + ' Hz';
      document.getElementById('vocalRevSpace').value = preset.rev;
-     document.getElementById('dispRevSpace').textContent = preset.rev + '%';
+     document.getElementById('dispRevSpace').textContent = preset.rev + ' %';
+     document.getElementById('vocalDlyTime').value = preset.dlyTime;
+     document.getElementById('dispVocalDlyTime').textContent = preset.dlyTime + ' ms';
+     document.getElementById('vocalDlyFb').value = preset.dlyFb;
+     document.getElementById('dispVocalDlyFb').textContent = preset.dlyFb + ' %';
+     document.getElementById('vocalDlyWet').value = preset.dlyWet;
+     document.getElementById('dispVocalDlyWet').textContent = preset.dlyWet + ' %';
      
      syncHardwareParametersToNodes();
    }
@@ -670,17 +722,19 @@
      if (audioCtx) return;
      audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 48000 });
      
+     inputMainGain = audioCtx.createGain();
      splitterInput = audioCtx.createChannelSplitter(2);
      mergerOutput = audioCtx.createChannelMerger(2);
      
-     buildChannelDSPGraph(chL);
-     buildChannelDSPGraph(chR);
+     inputMainGain.connect(splitterInput);
+     
+     buildChannelDSPGraph(chL, 0);
+     buildChannelDSPGraph(chR, 1);
+     
+     buildVocalBusDSPGraph();
      
      masterOutL = audioCtx.createGain();
      masterOutR = audioCtx.createGain();
-     
-     splitterInput.connect(chL.inputGain, 0);
-     splitterInput.connect(chR.inputGain, 1);
      
      chL.outputTerminal.connect(masterOutL);
      chR.outputTerminal.connect(masterOutR);
@@ -697,13 +751,16 @@
      syncHardwareParametersToNodes();
    }
 
-   function buildChannelDSPGraph(ch) {
+   function buildChannelDSPGraph(ch, indexSignalChannel) {
      ch.inputGain = audioCtx.createGain();
      ch.analyser = audioCtx.createAnalyser();
-     ch.analyser.fftSize = 512;
-     ch.analyser.smoothingTimeConstant = 0.4;
+     ch.analyser.fftSize = 1024;
+     ch.analyser.smoothingTimeConstant = 0.5;
      
-     // 4-WAY CROSSOVER DETAILED FILTERS CHASSIS
+     splitterInput.connect(ch.inputGain, indexSignalChannel);
+     ch.inputGain.connect(ch.analyser);
+     
+     // Discrete 4-Way Crossover Filter Framework
      ch.fSub = audioCtx.createBiquadFilter(); ch.fSub.type = "lowpass";
      ch.fLowMidH = audioCtx.createBiquadFilter(); ch.fLowMidH.type = "highpass";
      ch.fLowMidL = audioCtx.createBiquadFilter(); ch.fLowMidL.type = "lowpass";
@@ -711,39 +768,6 @@
      ch.fMidHighL = audioCtx.createBiquadFilter(); ch.fMidHighL.type = "lowpass";
      ch.fHigh = audioCtx.createBiquadFilter(); ch.fHigh.type = "highpass";
      
-     // 10-BAND GRAPHIC EQ NODES MATRIX STACKS
-     ch.gqFilters = [];
-     for(let i=0; i<10; i++) {
-       let f = audioCtx.createBiquadFilter();
-       f.type = "peaking";
-       f.Q.value = 1.4;
-       ch.gqFilters.push(f);
-     }
-     const freqs = [31, 63, 125, 250, 500, 1000, 2000, 4000, 8000, 16000];
-     ch.gqFilters.forEach((filter, idx) => { filter.frequency.value = freqs[idx]; });
-
-     // SATURATION CORE WITH CUSTOM WAVE SHAPER
-     ch.satWave = audioCtx.createWaveShaper();
-     ch.satGain = audioCtx.createGain();
-     
-     // DELAY LINE MODULE CHASSIS
-     ch.delayNode = audioCtx.createDelay(2.0);
-     ch.delayDryGain = audioCtx.createGain();
-     ch.delayWetGain = audioCtx.createGain();
-     
-     // SYSTEM COMPRESSOR & PEAK LIMITER DYNAMICS
-     ch.compressor = audioCtx.createDynamicsCompressor();
-     ch.limiter = audioCtx.createDynamicsCompressor();
-     ch.limiter.ratio.value = 20;
-     ch.limiter.attack.value = 0.001;
-     
-     ch.outputGainNode = audioCtx.createGain();
-     ch.invertGainNode = audioCtx.createGain(); ch.invertGainNode.gain.value = 1.0;
-
-     // NODE MATRIX CONNECTING SCHEMATIC LOOP
-     ch.inputGain.connect(ch.analyser);
-     
-     // Connect 4-Way Crossover Cascades Matrix
      ch.analyser.connect(ch.fSub);
      ch.analyser.connect(ch.fLowMidH);
      ch.fLowMidH.connect(ch.fLowMidL);
@@ -751,26 +775,37 @@
      ch.fMidHighH.connect(ch.fMidHighL);
      ch.analyser.connect(ch.fHigh);
 
-     // Sum 4-Way path into EQ Block Chain
      let xoverSum = audioCtx.createGain();
      ch.fSub.connect(xoverSum);
      ch.fLowMidL.connect(xoverSum);
      ch.fMidHighL.connect(xoverSum);
      ch.fHigh.connect(xoverSum);
 
-     // Link Graphic EQ Chain Node Series
+     // 12-Band Peaking GQ Matrices Allocation
+     ch.gqFilters = [];
+     const structuralFreqs = [25, 50, 100, 200, 400, 800, 1500, 3000, 5000, 8000, 12000, 16000];
+     for(let i=0; i<12; i++) {
+       let f = audioCtx.createBiquadFilter();
+       f.type = "peaking"; f.Q.value = 1.8;
+       f.frequency.value = structuralFreqs[i];
+       ch.gqFilters.push(f);
+     }
      xoverSum.connect(ch.gqFilters[0]);
-     for(let i=0; i<9; i++) { ch.gqFilters[i].connect(ch.gqFilters[i+1]); }
+     for(let i=0; i<11; i++) { ch.gqFilters[i].connect(ch.gqFilters[i+1]); }
      
-     // Saturation Engine Loop Path Connection
-     ch.gqFilters[9].connect(ch.satWave);
+     // Dynamics, Saturation, Real delays matrix loop pipelines
+     ch.satWave = audioCtx.createWaveShaper();
+     ch.satGain = audioCtx.createGain();
+     ch.gqFilters[11].connect(ch.satWave);
      ch.satWave.connect(ch.satGain);
      
      let satSum = audioCtx.createGain();
-     ch.gqFilters[9].connect(satSum);
+     ch.gqFilters[11].connect(satSum);
      ch.satGain.connect(satSum);
      
-     // Delay Unit Split Integration Routing
+     ch.delayNode = audioCtx.createDelay(2.5);
+     ch.delayDryGain = audioCtx.createGain();
+     ch.delayWetGain = audioCtx.createGain();
      satSum.connect(ch.delayDryGain);
      satSum.connect(ch.delayNode);
      ch.delayNode.connect(ch.delayWetGain);
@@ -779,13 +814,76 @@
      ch.delayDryGain.connect(delaySum);
      ch.delayWetGain.connect(delaySum);
      
-     // Final Dynamics Processing Insertion Blocks
+     ch.compressor = audioCtx.createDynamicsCompressor();
+     ch.limiter = audioCtx.createDynamicsCompressor();
+     ch.limiter.ratio.value = 20.0;
+     ch.limiter.attack.value = 0.001;
+     
      delaySum.connect(ch.compressor);
      ch.compressor.connect(ch.limiter);
+     
+     ch.outputGainNode = audioCtx.createGain();
+     ch.invertGainNode = audioCtx.createGain();
      ch.limiter.connect(ch.outputGainNode);
      ch.outputGainNode.connect(ch.invertGainNode);
      
      ch.outputTerminal = ch.invertGainNode;
+   }
+
+   function buildVocalBusDSPGraph() {
+     vocalBus.gate = audioCtx.createDynamicsCompressor();
+     vocalBus.lowcut = audioCtx.createBiquadFilter(); vocalBus.lowcut.type = "highpass";
+     vocalBus.highcut = audioCtx.createBiquadFilter(); vocalBus.highcut.type = "lowpass";
+     
+     // Dedicated Echo/Delay Module Chassis Matrix For Vocal Only
+     vocalBus.delay = audioCtx.createDelay(3.0);
+     vocalBus.delayFb = audioCtx.createGain();
+     vocalBus.delayWet = audioCtx.createGain();
+     vocalBus.delayDry = audioCtx.createGain();
+     
+     vocalBus.reverb = audioCtx.createConvolver();
+     vocalBus.reverbWet = audioCtx.createGain();
+     generateSyntheticReverbImpulse();
+     
+     vocalBus.outputGain = audioCtx.createGain();
+     
+     // Link internal vocal bus modules cascades
+     vocalBus.gate.connect(vocalBus.lowcut);
+     vocalBus.lowcut.connect(vocalBus.highcut);
+     
+     // Connecting Vocal Delays Paths
+     vocalBus.highcut.connect(vocalBus.delayDry);
+     vocalBus.highcut.connect(vocalBus.delay);
+     vocalBus.delay.connect(vocalBus.delayFb);
+     vocalBus.delayFb.connect(vocalBus.delay); // feedback loop active
+     vocalBus.delay.connect(vocalBus.delayWet);
+     
+     // Connecting Reverb System Space
+     vocalBus.highcut.connect(vocalBus.reverb);
+     vocalBus.reverb.connect(vocalBus.reverbWet);
+     
+     let vocalSumNode = audioCtx.createGain();
+     vocalBus.delayDry.connect(vocalSumNode);
+     vocalBus.delayWet.connect(vocalSumNode);
+     vocalBus.reverbWet.connect(vocalSumNode);
+     
+     vocalSumNode.connect(vocalBus.outputGain);
+     
+     // Route Vocal Output Bus Into Both Left and Right Channel Entry Modules Simultaneously
+     vocalBus.outputGain.connect(chL.inputGain);
+     vocalBus.outputGain.connect(chR.inputGain);
+   }
+
+   function generateSyntheticReverbImpulse() {
+     const len = 48000 * 2.5; // 2.5 Sec Space Reverb
+     const buffer = audioCtx.createBuffer(2, len, 48000);
+     for (let channel = 0; channel < 2; channel++) {
+       const channelData = buffer.getChannelData(channel);
+       for (let i = 0; i < len; i++) {
+         channelData[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.2);
+       }
+     }
+     vocalBus.reverb.buffer = buffer;
    }
 
    function syncHardwareParametersToNodes() {
@@ -795,74 +893,91 @@
      const isXoverOn = document.getElementById('toggleCrossover').classList.contains('active') && !bypass;
      const isGqOn = document.getElementById('toggleGq').classList.contains('active') && !bypass;
      
-     // Get Hardware Crossover Parameters
-     const subLpfVal = parseFloat(document.getElementById('subLpf').value);
-     const lowMidHpfVal = parseFloat(document.getElementById('lowMidHpf').value);
-     const lowMidLpfVal = parseFloat(document.getElementById('lowMidLpf').value);
-     const midHighHpfVal = parseFloat(document.getElementById('midHighHpf').value);
-     const midHighLpfVal = parseFloat(document.getElementById('midHighLpf').value);
-     const highHpfVal = parseFloat(document.getElementById('highHpf').value);
+     // Sync Vocal Matrix Core Hardware Settings
+     vocalBus.gate.threshold.setValueAtTime(parseFloat(document.getElementById('gateTh').value), audioCtx.currentTime);
+     vocalBus.lowcut.frequency.setValueAtTime(parseFloat(document.getElementById('vocalLowCut').value), audioCtx.currentTime);
+     vocalBus.highcut.frequency.setValueAtTime(parseFloat(document.getElementById('vocalHighCut').value), audioCtx.currentTime);
+     vocalBus.delay.delayTime.setValueAtTime(parseFloat(document.getElementById('vocalDlyTime').value) / 1000, audioCtx.currentTime);
+     vocalBus.delayFb.gain.setValueAtTime(parseFloat(document.getElementById('vocalDlyFb').value) / 100, audioCtx.currentTime);
+     vocalBus.delayWet.gain.setValueAtTime(parseFloat(document.getElementById('vocalDlyWet').value) / 100, audioCtx.currentTime);
+     vocalBus.delayDry.gain.setValueAtTime(1.0 - (parseFloat(document.getElementById('vocalDlyWet').value) / 100), audioCtx.currentTime);
+     vocalBus.reverbWet.gain.setValueAtTime(parseFloat(document.getElementById('vocalRevSpace').value) / 100, audioCtx.currentTime);
 
+     // Reading Discrete 4-Way Coefficients
+     const cnf = {
+       subL: parseFloat(document.getElementById('subLpfL').value),
+       subR: parseFloat(document.getElementById('subLpfR').value),
+       lmHL: parseFloat(document.getElementById('lowMidHpfL').value),
+       lmHR: parseFloat(document.getElementById('lowMidHpfR').value),
+       lmL_L: parseFloat(document.getElementById('lowMidLpfL').value),
+       lmL_R: parseFloat(document.getElementById('lowMidLpfR').value),
+       mhHL: parseFloat(document.getElementById('midHighHpfL').value),
+       mhHR: parseFloat(document.getElementById('midHighHpfR').value),
+       mhL_L: parseFloat(document.getElementById('midHighLpfL').value),
+       mhL_R: parseFloat(document.getElementById('midHighLpfR').value),
+       hiHL: parseFloat(document.getElementById('highHpfL').value),
+       hiHR: parseFloat(document.getElementById('highHpfR').value)
+     };
+
+     // Channel Left DSP Coefficient Synchronization
+     chL.fSub.frequency.setValueAtTime(isXoverOn ? cnf.subL : 22000, audioCtx.currentTime);
+     chL.fLowMidH.frequency.setValueAtTime(isXoverOn ? cnf.lmHL : 10, audioCtx.currentTime);
+     chL.fLowMidL.frequency.setValueAtTime(isXoverOn ? cnf.lmL_L : 22000, audioCtx.currentTime);
+     chL.fMidHighH.frequency.setValueAtTime(isXoverOn ? cnf.mhHL : 10, audioCtx.currentTime);
+     chL.fMidHighL.frequency.setValueAtTime(isXoverOn ? cnf.mhL_L : 22000, audioCtx.currentTime);
+     chL.fHigh.frequency.setValueAtTime(isXoverOn ? cnf.hiHL : 10, audioCtx.currentTime);
+
+     // Channel Right DSP Coefficient Synchronization
+     chR.fSub.frequency.setValueAtTime(isXoverOn ? cnf.subR : 22000, audioCtx.currentTime);
+     chR.fLowMidH.frequency.setValueAtTime(isXoverOn ? cnf.lmHR : 10, audioCtx.currentTime);
+     chR.fLowMidL.frequency.setValueAtTime(isXoverOn ? cnf.lmL_R : 22000, audioCtx.currentTime);
+     chR.fMidHighH.frequency.setValueAtTime(isXoverOn ? cnf.mhHR : 10, audioCtx.currentTime);
+     chR.fMidHighL.frequency.setValueAtTime(isXoverOn ? cnf.mhL_R : 22000, audioCtx.currentTime);
+     chR.fHigh.frequency.setValueAtTime(isXoverOn ? cnf.hiHR : 10, audioCtx.currentTime);
+
+     // Sync 24-Bands Graphic Equalizers Discrete Strips
+     for(let i=0; i<12; i++) {
+       chL.gqFilters[i].gain.setValueAtTime(isGqOn ? parseFloat(document.getElementById(`gqL_${i}`).value) : 0, audioCtx.currentTime);
+       chR.gqFilters[i].gain.setValueAtTime(isGqOn ? parseFloat(document.getElementById(`gqR_${i}`).value) : 0, audioCtx.currentTime);
+     }
+
+     // Sync Rack Dynamics & Extra Enhancers Modules
      ["L", "R"].forEach(side => {
        const ch = (side === "L") ? chL : chR;
-       
-       // SYNC 4-WAY CROSSOVER COEFFICIENTS VALUES
-       ch.fSub.frequency.setValueAtTime(isXoverOn ? subLpfVal : 20000, audioCtx.currentTime);
-       ch.fLowMidH.frequency.setValueAtTime(isXoverOn ? lowMidHpfVal : 20, audioCtx.currentTime);
-       ch.fLowMidL.frequency.setValueAtTime(isXoverOn ? lowMidLpfVal : 20000, audioCtx.currentTime);
-       ch.fMidHighH.frequency.setValueAtTime(isXoverOn ? midHighHpfVal : 20, audioCtx.currentTime);
-       ch.fMidHighL.frequency.setValueAtTime(isXoverOn ? midHighLpfVal : 20000, audioCtx.currentTime);
-       ch.fHigh.frequency.setValueAtTime(isXoverOn ? highHpfVal : 20, audioCtx.currentTime);
-       
-       // SYNC 24-BANDS GRAPHIC EQ STRIP GAINS PARAMETERS
-       for(let i=0; i<10; i++) {
-         const sliderGain = parseFloat(document.getElementById(`gq${side}_${i}`).value);
-         ch.gqFilters[i].gain.setValueAtTime(isGqOn ? sliderGain : 0, audioCtx.currentTime);
-       }
-       
-       // COMPRESSOR / GATE THRESHOLDS SYSTEM RATIO
        ch.compressor.threshold.setValueAtTime(parseFloat(document.getElementById(`compTh${side}`).value), audioCtx.currentTime);
        ch.compressor.ratio.setValueAtTime(parseFloat(document.getElementById(`compRatio${side}`).value), audioCtx.currentTime);
-       
-       // PEAK LIMITING CEILING VOLTAGE
        ch.limiter.threshold.setValueAtTime(parseFloat(document.getElementById(`limCeil${side}`).value), audioCtx.currentTime);
        
-       // HARMONIC DRIVE SATURATOR CORE
-       const driveVal = parseFloat(document.getElementById(`satDrive` + side).value) / 100;
-       if (driveVal > 0 && !bypass) {
-         ch.satGain.gain.setValueAtTime(driveVal * 2.0, audioCtx.currentTime);
-         ch.satWave.curve = makeDistortionCurve(driveVal * 25);
+       const delaySec = parseFloat(document.getElementById(`dlyTime${side}`).value) / 1000;
+       ch.delayNode.delayTime.setValueAtTime(delaySec, audioCtx.currentTime);
+       ch.delayWetGain.gain.setValueAtTime(delaySec > 0 ? 0.4 : 0.0, audioCtx.currentTime);
+       ch.delayDryGain.gain.setValueAtTime(delaySec > 0 ? 0.6 : 1.0, audioCtx.currentTime);
+       
+       const satDrv = parseFloat(document.getElementById(`satDrive${side}`).value) / 100;
+       if (satDrv > 0 && !bypass) {
+         ch.satGain.gain.setValueAtTime(satDrv * 2.5, audioCtx.currentTime);
+         ch.satWave.curve = makeDistortionCurve(satDrv * 30);
        } else {
-         ch.satGain.gain.setValueAtTime(0.0, audioCtx.currentTime);
-         ch.satWave.curve = null;
+         ch.satGain.gain.setValueAtTime(0, audioCtx.currentTime); ch.satWave.curve = null;
        }
        
-       // SYSTEM ALIGNMENT DELAY SYSTEM LINE MAP
-       const dlyTimeVal = parseFloat(document.getElementById(`dlyTime${side}`).value) / 1000;
-       ch.delayNode.delayTime.setValueAtTime(dlyTimeVal, audioCtx.currentTime);
-       ch.delayWetGain.gain.setValueAtTime(dlyTimeVal > 0 ? 0.35 : 0.0, audioCtx.currentTime);
-       ch.delayDryGain.gain.setValueAtTime(dlyTimeVal > 0 ? 0.65 : 1.0, audioCtx.currentTime);
-       
-       // PHASE CONTROLLERS CORES INVERSION
-       const phaseVal = parseInt(document.getElementById(`phase${side}`).value);
-       ch.invertGainNode.gain.setValueAtTime((phaseVal === 180) ? -1.0 : 1.0, audioCtx.currentTime);
+       const phs = parseInt(document.getElementById(`phase${side}`).value);
+       ch.invertGainNode.gain.setValueAtTime((phs === 180) ? -1.0 : 1.0, audioCtx.currentTime);
      });
-     
-     // SYSTEM LEVEL GAINS VOLUME TRACK CONTROLLERS
-     const volGainL = Math.pow(10, parseFloat(document.getElementById('masterVolL').value) / 20);
-     const volGainR = Math.pow(10, parseFloat(document.getElementById('masterVolR').value) / 20);
-     
+
+     // Processing Master Volume Tracks
+     const volL = Math.pow(10, parseFloat(document.getElementById('masterVolL').value) / 20);
+     const volR = Math.pow(10, parseFloat(document.getElementById('masterVolR').value) / 20);
      const muteL = document.getElementById('btnMuteL').classList.contains('active');
      const muteR = document.getElementById('btnMuteR').classList.contains('active');
      
-     masterOutL.gain.setValueAtTime(muteL ? 0 : volGainL, audioCtx.currentTime);
-     masterOutR.gain.setValueAtTime(muteR ? 0 : volGainR, audioCtx.currentTime);
+     masterOutL.gain.setValueAtTime(muteL ? 0 : volL, audioCtx.currentTime);
+     masterOutR.gain.setValueAtTime(muteR ? 0 : volR, audioCtx.currentTime);
    }
 
    function makeDistortionCurve(amount) {
-     const k = typeof amount === 'number' ? amount : 20;
-     const n_samples = 44100;
-     const curve = new Float32Array(n_samples);
+     const k = typeof amount === 'number' ? amount : 30;
+     const n_samples = 44100; const curve = new Float32Array(n_samples);
      for (let i = 0; i < n_samples; ++i) {
        const x = (i * 2) / n_samples - 1;
        curve[i] = ((3 + k) * x) / (Math.PI + k * Math.abs(x));
@@ -871,20 +986,21 @@
    }
 
    function setupControlListeners() {
-     // Automate linking parameter UI sliders to real-time update engine loops
-     const inlineSliders = [
-       { id: 'subLpf', disp: 'dispSubLpf', unit: ' Hz' },
-       { id: 'lowMidHpf', disp: 'dispLowMidHpf', unit: ' Hz' },
-       { id: 'lowMidLpf', disp: 'dispLowMidLpf', unit: ' Hz' },
-       { id: 'midHighHpf', disp: 'dispMidHighHpf', unit: ' Hz' },
-       { id: 'midHighLpf', disp: 'dispMidHighLpf', unit: ' Hz' },
-       { id: 'highHpf', disp: 'dispHighHpf', unit: ' Hz' },
-       { id: 'gateTh', disp: 'dispGateTh', unit: 'dB' },
-       { id: 'deEssFreq', disp: 'dispDeEssF', unit: 'Hz' },
-       { id: 'vocalRevSpace', disp: 'dispRevSpace', unit: '%' }
+     const structuralLinkedSliders = [
+       { id: 'subLpfL', disp: 'dispSubLpfL', unit: ' Hz' }, { id: 'subLpfR', disp: 'dispSubLpfR', unit: ' Hz' },
+       { id: 'lowMidHpfL', disp: 'dispLowMidHpfL', unit: ' Hz' }, { id: 'lowMidHpfR', disp: 'dispLowMidHpfR', unit: ' Hz' },
+       { id: 'lowMidLpfL', disp: 'dispLowMidLpfL', unit: ' Hz' }, { id: 'lowMidLpfR', disp: 'dispLowMidLpfR', unit: ' Hz' },
+       { id: 'midHighHpfL', disp: 'dispMidHighHpfL', unit: ' Hz' }, { id: 'midHighHpfR', disp: 'dispMidHighHpfR', unit: ' Hz' },
+       { id: 'midHighLpfL', disp: 'dispMidHighLpfL', unit: ' Hz' }, { id: 'midHighLpfR', disp: 'dispMidHighLpfR', unit: ' Hz' },
+       { id: 'highHpfL', disp: 'dispHighHpfL', unit: ' Hz' }, { id: 'highHpfR', disp: 'dispHighHpfR', unit: ' Hz' },
+       { id: 'gateTh', disp: 'dispGateTh', unit: ' dB' }, { id: 'deEssFreq', disp: 'dispDeEssF', unit: ' Hz' },
+       { id: 'vocalPitch', disp: 'dispPitch', unit: ' %' }, { id: 'vocalRevSpace', disp: 'dispRevSpace', unit: ' %' },
+       { id: 'vocalLowCut', disp: 'dispVocLowCut', unit: ' Hz' }, { id: 'vocalHighCut', disp: 'dispVocHighCut', unit: ' Hz' },
+       { id: 'vocalDlyTime', disp: 'dispVocalDlyTime', unit: ' ms' }, { id: 'vocalDlyFb', disp: 'dispVocalDlyFb', unit: ' %' },
+       { id: 'vocalDlyWet', disp: 'dispVocalDlyWet', unit: ' %' }
      ];
 
-     inlineSliders.forEach(item => {
+     structuralLinkedSliders.forEach(item => {
        const el = document.getElementById(item.id);
        if(el) {
          el.addEventListener('input', () => {
@@ -905,41 +1021,34 @@
            if(disp) disp.textContent = val + unit;
            syncHardwareParametersToNodes();
          });
-         el.addEventListener('touchstart', (e) => { e.stopPropagation(); }, { passive: true });
-         el.addEventListener('touchmove', (e) => { e.preventDefault(); e.stopPropagation(); }, { passive: false });
        }
      });
 
-     // Handle 24-Band Graphic EQ Sliders Input Lines
-     for(let i=0; i<10; i++) {
+     for(let i=0; i<12; i++) {
        document.getElementById(`gqL_${i}`).addEventListener('input', syncHardwareParametersToNodes);
        document.getElementById(`gqR_${i}`).addEventListener('input', syncHardwareParametersToNodes);
      }
 
-     setupToggleAction('toggleCrossover', true);
-     setupToggleAction('toggleGq', true);
-     setupToggleAction('btnMuteL', false);
-     setupToggleAction('btnMuteR', false);
+     document.getElementById('toggleCrossover').onclick = function() { this.classList.toggle('active'); syncHardwareParametersToNodes(); };
+     document.getElementById('toggleGq').onclick = function() { this.classList.toggle('active'); syncHardwareParametersToNodes(); };
+     document.getElementById('btnMuteL').onclick = function() { this.classList.toggle('active'); syncHardwareParametersToNodes(); };
+     document.getElementById('btnMuteR').onclick = function() { this.classList.toggle('active'); syncHardwareParametersToNodes(); };
      
      document.getElementById('btnBypassAll').onclick = function() {
-       globalBypassState = !globalBypassState;
-       this.classList.toggle('active', globalBypassState);
-       syncHardwareParametersToNodes();
+       globalBypassState = !globalBypassState; this.classList.toggle('active', globalBypassState); syncHardwareParametersToNodes();
      };
 
-     // SYSTEM STORAGE PRESETS MANAGER IMPLEMENTATION
+     // Preset Module Operations
      document.getElementById('btnSavePreset').onclick = function() {
-       const slot = document.getElementById('selSystemPreset').value;
-       const params = {};
+       const slot = document.getElementById('selSystemPreset').value; const params = {};
        slidersParamIds.forEach(id => { params[id] = document.getElementById(id).value; });
-       localStorage.setItem('fr_audio_' + slot, JSON.stringify(params));
-       alert("System Parameters Saved Successfully to " + slot.toUpperCase());
+       localStorage.setItem('fr_v21_' + slot, JSON.stringify(params));
+       alert("System Preset Stored to Memory successfully: " + slot.toUpperCase());
      };
 
      document.getElementById('btnLoadPreset').onclick = function() {
        const slot = document.getElementById('selSystemPreset').value;
-       const data = localStorage.getItem('fr_audio_' + slot);
-       if(!data) { alert("Memory Slot Empty!"); return; }
+       const data = localStorage.getItem('fr_v21_' + slot); if(!data) { alert("Target Memory Bank Empty!"); return; }
        const params = JSON.parse(data);
        slidersParamIds.forEach(id => {
          if(params[id] !== undefined) {
@@ -948,73 +1057,74 @@
            if(disp) disp.textContent = params[id] + (id.includes('Th')?'dB':id.includes('Time')?'ms':'%');
          }
        });
-       syncHardwareParametersToNodes();
-       alert("Loaded Preset: " + slot.toUpperCase());
+       syncHardwareParametersToNodes(); alert("Preset Recalled Successfully from " + slot.toUpperCase());
      };
 
+     // File Upload Handling
      document.getElementById('mediaFile').onchange = async function(e) {
        instantiateAudioEngineCtx();
-       const file = e.target.files[0];
-       if (!file) return;
-       document.getElementById('fileNameDisp').textContent = "Loading..";
+       const file = e.target.files[0]; if (!file) return;
+       document.getElementById('fileNameDisp').textContent = "Decoding..";
        
-       const arrBuf = await file.arrayBuffer();
-       audioCtx.decodeAudioData(arrBuf, (buf) => {
-         activeMediaBuffer = buf;
-         document.getElementById('fileNameDisp').textContent = file.name.substring(0, 10) + "..";
-         playOffsetTime = 0;
-         terminateMediaGraph();
-         executeMediaPlayGraph();
-       }, () => { document.getElementById('fileNameDisp').textContent = "Err Buffer"; });
+       try {
+         const arrBuf = await file.arrayBuffer();
+         audioCtx.decodeAudioData(arrBuf, (buf) => {
+           activeMediaBuffer = buf;
+           document.getElementById('fileNameDisp').textContent = file.name.substring(0, 12) + "..";
+           playOffsetTime = 0; terminateMediaGraph(); executeMediaPlayGraph();
+         }, () => { document.getElementById('fileNameDisp').textContent = "Error Decode"; });
+       } catch(ex) { document.getElementById('fileNameDisp').textContent = "Load Failure"; }
      };
 
      document.getElementById('ytLoadBtn').onclick = function() {
        instantiateAudioEngineCtx();
-       document.getElementById('fileNameDisp').textContent = "Buffering Network..";
+       document.getElementById('fileNameDisp').textContent = "Buffering Stream..";
        setTimeout(() => {
-         document.getElementById('fileNameDisp').textContent = "Stream Active";
-         generateSyntheticOscBufferMatrix();
-         terminateMediaGraph();
-         executeMediaPlayGraph();
-       }, 600);
+         document.getElementById('fileNameDisp').textContent = "Live Network";
+         generateSyntheticComplexBuffer(); terminateMediaGraph(); executeMediaPlayGraph();
+       }, 700);
      };
 
+     // Live Mic Entry Drivers Execution
      document.getElementById('btnLiveMic').onclick = async function() {
        instantiateAudioEngineCtx();
        if (srcMic) {
-         srcMic.disconnect(); srcMic = null;
-         this.classList.remove('active');
-         document.getElementById('ledVocalDsp').classList.remove('active');
-         return;
+         srcMic.disconnect(); srcMic = null; this.classList.remove('active');
+         document.getElementById('ledVocalDsp').classList.remove('active'); return;
        }
        try {
-         const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
+         const stream = await navigator.mediaDevices.getUserMedia({
+           audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+         });
          srcMic = audioCtx.createMediaStreamSource(stream);
-         srcMic.connect(splitterInput);
-         this.classList.add('active');
-         document.getElementById('ledVocalDsp').classList.add('active');
-       } catch(err) { alert("Mic Hardware Terminal Denied / Missing"); }
+         srcMic.connect(vocalBus.gate); // Route Into Dedicated Vocal Input Node Pipeline
+         this.classList.add('active'); document.getElementById('ledVocalDsp').classList.add('active');
+       } catch(err) { alert("Mic Core Hardware Terminal Denied / Unavailable"); }
      };
 
+     // Internal Oscillator Engine
      document.getElementById('btnGenerator').onclick = function() {
        instantiateAudioEngineCtx();
        if (srcOsc) {
          srcOsc.stop(); srcOsc.disconnect(); srcOsc = null;
-         if(oscVol) { oscVol.disconnect(); oscVol = null; }
-         this.classList.remove('active');
-         return;
+         if(oscVolNode) { oscVolNode.disconnect(); oscVolNode = null; }
+         this.classList.remove('active'); return;
        }
-       srcOsc = audioCtx.createOscillator();
-       oscVol = audioCtx.createGain();
+       srcOsc = audioCtx.createOscillator(); oscVolNode = audioCtx.createGain();
+       const oscType = document.getElementById('selOscType').value;
        
-       srcOsc.type = document.getElementById('selOscType').value;
+       if(oscType === 'pink' || oscType === 'white') {
+         // Handle synthetic generator algorithms
+         generateSyntheticComplexBuffer(); this.classList.remove('active');
+         executeMediaPlayGraph(); return;
+       }
+       
+       srcOsc.type = oscType;
        srcOsc.frequency.setValueAtTime(parseFloat(document.getElementById('faderOscFreq').value), audioCtx.currentTime);
-       oscVol.gain.setValueAtTime(0.2, audioCtx.currentTime);
+       oscVolNode.gain.setValueAtTime(0.25, audioCtx.currentTime);
        
-       srcOsc.connect(oscVol);
-       oscVol.connect(splitterInput);
-       srcOsc.start();
-       this.classList.add('active');
+       srcOsc.connect(oscVolNode); oscVolNode.connect(inputMainGain);
+       srcOsc.start(); this.classList.add('active');
      };
 
      document.getElementById('faderOscFreq').oninput = function(e) {
@@ -1022,27 +1132,39 @@
        if(srcOsc) srcOsc.frequency.setValueAtTime(parseFloat(e.target.value), audioCtx.currentTime);
      };
 
+     // Transport Seek/Scrub Navigation Listener
+     document.getElementById('mediaSeekBar').oninput = function() {
+       if(!activeMediaBuffer) return;
+       const pct = parseFloat(this.value) / 100;
+       playOffsetTime = pct * activeMediaBuffer.duration;
+       if(isMediaRunning) { suspendMediaGraph(); executeMediaPlayGraph(); }
+       else { updateTransportTimeTrackerLabel(); }
+     };
+
      document.getElementById('btnPlay').onclick = () => { instantiateAudioEngineCtx(); executeMediaPlayGraph(); };
      document.getElementById('btnPause').onclick = () => { suspendMediaGraph(); };
      document.getElementById('btnStop').onclick = () => { terminateMediaGraph(); };
+     document.getElementById('btnLoop').onclick = function() { this.classList.toggle('active'); if(srcMedia) srcMedia.loop = this.classList.contains('active'); };
    }
 
-   // ACCURATE NOISE SPECTRUM GENERATOR SIMULATION MATRIX
-   function generateSyntheticOscBufferMatrix() {
-     const rate = 48000;
-     const len = rate * 60; 
+   function generateSyntheticComplexBuffer() {
+     const rate = 48000; const len = rate * 120; // 2 Minutes Buffer Map Allocation
      activeMediaBuffer = audioCtx.createBuffer(2, len, rate);
-     const dataL = activeMediaBuffer.getChannelData(0);
-     const dataR = activeMediaBuffer.getChannelData(1);
+     const dL = activeMediaBuffer.getChannelData(0);
+     const dR = activeMediaBuffer.getChannelData(1);
      
+     let lastOut = 0.0; // For pink noise filtering component approximation
      for (let i = 0; i < len; i++) {
        const t = i / rate;
-       const s1 = Math.sin(2 * Math.PI * 55 * t);
-       const s2 = Math.sin(2 * Math.PI * 350 * t);
-       const s3 = (Math.random() * 2 - 1) * 0.05; // Pink Noise Floor component
+       const white = Math.random() * 2 - 1;
+       lastOut = 0.99886 * lastOut + white * 0.0555179; // Pink sound component power
        
-       dataL[i] = (s1 * 0.5 + s2 * 0.3 + s3) * Math.sin(2 * Math.PI * 0.05 * t);
-       dataR[i] = (s1 * 0.3 + s2 * 0.5 + s3) * Math.cos(2 * Math.PI * 0.05 * t);
+       const s1 = Math.sin(2 * Math.PI * 45 * t) * 0.4;  // Deep Sub Synth 45Hz
+       const s2 = Math.sin(2 * Math.PI * 280 * t) * 0.2; // Low Mid Punch 280Hz
+       const s3 = Math.sin(2 * Math.PI * 1200 * t) * 0.15;// Mid presence 1.2kHz
+       
+       dL[i] = (s1 + s2 + s3 + lastOut * 0.2) * Math.sin(2 * Math.PI * 0.02 * t);
+       dR[i] = (s1 + s2 * 1.1 + s3 * 0.9 + lastOut * 0.2) * Math.cos(2 * Math.PI * 0.02 * t);
      }
    }
 
@@ -1053,13 +1175,16 @@
      srcMedia = audioCtx.createBufferSource();
      srcMedia.buffer = activeMediaBuffer;
      srcMedia.loop = document.getElementById('btnLoop').classList.contains('active');
-     srcMedia.connect(splitterInput);
+     srcMedia.connect(inputMainGain);
      
      srcMedia.start(0, playOffsetTime);
      playStartTime = audioCtx.currentTime - playOffsetTime;
      isMediaRunning = true;
      
-     streamIntervalTimer = setInterval(updateTransportTimeTrackerLabel, 250);
+     document.getElementById('btnPlay').classList.add('active');
+     document.getElementById('btnPause').classList.remove('active');
+     
+     streamIntervalTimer = setInterval(updateTransportTimeTrackerLabel, 200);
    }
 
    function suspendMediaGraph() {
@@ -1068,176 +1193,204 @@
      srcMedia.stop();
      playOffsetTime = audioCtx.currentTime - playStartTime;
      isMediaRunning = false;
+     document.getElementById('btnPlay').classList.remove('active');
+     document.getElementById('btnPause').classList.add('active');
    }
 
    function terminateMediaGraph() {
      clearInterval(streamIntervalTimer);
      if (srcMedia && isMediaRunning) { try { srcMedia.stop(); } catch(e){} }
-     srcMedia = null;
-     playOffsetTime = 0;
-     isMediaRunning = false;
+     srcMedia = null; playOffsetTime = 0; isMediaRunning = false;
+     document.getElementById('mediaSeekBar').value = 0;
      document.getElementById('mediaTimeDisp').textContent = "00:00 / 00:00";
-     resetAllLedBars();
+     document.getElementById('btnPlay').classList.remove('active');
+     document.getElementById('btnPause').classList.remove('active');
+     resetAllDisplaysToStatic();
    }
 
    function updateTransportTimeTrackerLabel() {
      if (!isMediaRunning || !activeMediaBuffer) return;
      const current = audioCtx.currentTime - playStartTime;
      const total = activeMediaBuffer.duration;
+     
      if (current >= total && !srcMedia.loop) { terminateMediaGraph(); return; }
-     document.getElementById('mediaTimeDisp').textContent = formatTimeSpec(current) + " / " + formatTimeSpec(total);
+     
+     document.getElementById('mediaTimeDisp').textContent = formatTimeLayout(current) + " / " + formatTimeLayout(total);
+     document.getElementById('mediaSeekBar').value = ((current / total) * 100).toFixed(1);
    }
 
-   function formatTimeSpec(sec) {
-     const m = Math.floor(sec / 60).toString().padStart(2, '0');
-     const s = Math.floor(sec % 60).toString().padStart(2, '0');
+   function formatTimeLayout(seconds) {
+     const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+     const s = Math.floor(seconds % 60).toString().padStart(2, '0');
      return `${m}:${s}`;
    }
 
-   function setupToggleAction(id, autoSync) {
-     const el = document.getElementById(id);
-     el.onclick = function() {
-       this.classList.toggle('active');
-       if(autoSync) syncHardwareParametersToNodes();
-     };
-   }
-
-   function resetAllLedBars() {
+   function resetAllDisplaysToStatic() {
      document.getElementById('dispMasterL').textContent = "-inf dB";
      document.getElementById('dispMasterR').textContent = "-inf dB";
    }
 
    function triggerAnimationFrameLoop() {
      requestAnimationFrame(triggerAnimationFrameLoop);
-     document.getElementById('statCpu').textContent = Math.floor(2 + Math.random() * 2) + "%";
      
-     if (!elementsInited) { renderStaticUiDisplays(); return; }
+     // Simulation Engine CPU Metric Load
+     document.getElementById('statCpu').textContent = Math.floor(3 + Math.random() * 3) + "%";
+     
+     if (!elementsInited) { renderStaticPreInitCanvases(); return; }
      
      chL.analyser.getByteFrequencyData(arrayAnalysisL);
      chR.analyser.getByteFrequencyData(arrayAnalysisR);
      
-     renderRtaGraphics();
-     processDynamicVuMetrics();
+     renderMultiBand6Displays();
+     computeAdvancedVUMetrics();
    }
 
-   function renderStaticUiDisplays() {
-     const c = document.getElementById('canvasRta');
-     const ctx = c.getContext('2d');
-     if(c.width !== c.clientWidth || c.height !== c.clientHeight) { c.width = c.clientWidth; c.height = c.clientHeight; }
-     ctx.fillStyle = '#010204'; ctx.fillRect(0,0,c.width,c.height);
-     
-     const cx = document.getElementById('canvasXover');
-     const ctxX = cx.getContext('2d');
+   function renderStaticPreInitCanvases() {
+     for(let d=1; d<=5; d++) {
+       const c = document.getElementById('canvasRta_' + d); const ctx = c.getContext('2d');
+       if(c.width !== c.clientWidth || c.height !== c.clientHeight) { c.width = c.clientWidth; c.height = c.clientHeight; }
+       ctx.fillStyle = '#010204'; ctx.fillRect(0,0,c.width,c.height);
+     }
+     const cx = document.getElementById('canvasXover_Combined'); const ctxX = cx.getContext('2d');
      if(cx.width !== cx.clientWidth || cx.height !== cx.clientHeight) { cx.width = cx.clientWidth; cx.height = cx.clientHeight; }
      ctxX.fillStyle = '#010204'; ctxX.fillRect(0,0,cx.width,cx.height);
    }
 
-   function renderRtaGraphics() {
-     const c = document.getElementById('canvasRta');
-     const ctx = c.getContext('2d');
-     if (c.width !== c.clientWidth || c.height !== c.clientHeight) { c.width = c.clientWidth; c.height = c.clientHeight; }
-     
-     const w = c.width; const h = c.height;
-     ctx.fillStyle = '#010204'; ctx.fillRect(0, 0, w, h);
-     
-     // Grid Line Markers drawing blocks
-     ctx.strokeStyle = '#0a0d14'; ctx.lineWidth = 1;
-     for(let i=1; i<4; i++) { ctx.beginPath(); ctx.moveTo(0, (h/4)*i); ctx.lineTo(w, (h/4)*i); ctx.stroke(); }
+   function renderMultiBand6Displays() {
+     const binsBoundaries = [
+       { minHz: 20, maxHz: 80, id: 1 },
+       { minHz: 80, maxHz: 500, id: 2 },
+       { minHz: 500, maxHz: 2000, id: 3 },
+       { minHz: 2000, maxHz: 7000, id: 4 },
+       { minHz: 7000, maxHz: 20000, id: 5 }
+     ];
 
-     const bars = 48; const barW = w / bars;
-     for (let i = 0; i < bars; i++) {
-       const val = arrayAnalysisL[Math.floor(i * (arrayAnalysisL.length / bars))] || 0;
-       const percent = val / 255; const barH = percent * (h - 4);
-       ctx.fillStyle = 'rgba(0, 245, 212, 0.35)';
-       ctx.fillRect(i * barW, h - barH, barW - 1, barH);
-     }
-     
-     ctx.strokeStyle = '#ff2a6d'; ctx.lineWidth = 1.2; ctx.beginPath();
-     for (let i = 0; i < bars; i++) {
-       const val = arrayAnalysisR[Math.floor(i * (arrayAnalysisR.length / bars))] || 0;
-       const percent = val / 255; const barH = percent * (h - 4);
-       let x = i * barW + (barW / 2); let y = h - barH;
-       if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-     }
-     ctx.stroke();
-     
-     renderCrossoverResponseCurves();
+     const totalBinsCount = arrayAnalysisL.length;
+     const nyquistFreq = 24000;
+
+     binsBoundaries.forEach(bin => {
+       const c = document.getElementById('canvasRta_' + bin.id); const ctx = c.getContext('2d');
+       if (c.width !== c.clientWidth || c.height !== c.clientHeight) { c.width = c.clientWidth; c.height = c.clientHeight; }
+       
+       const w = c.width; const h = c.height;
+       ctx.fillStyle = '#020305'; ctx.fillRect(0, 0, w, h);
+       
+       // Draw subtle horizontal division lines inside displays
+       ctx.strokeStyle = '#0e111a'; ctx.lineWidth = 1;
+       ctx.beginPath(); ctx.moveTo(0, h/2); ctx.lineTo(w, h/2); ctx.stroke();
+
+       const startBinIndex = Math.floor((bin.minHz / nyquistFreq) * totalBinsCount);
+       const endBinIndex = Math.floor((bin.maxHz / nyquistFreq) * totalBinsCount);
+       const discreteIntervalRange = endBinIndex - startBinIndex || 1;
+       
+       const barWidth = w / discreteIntervalRange;
+
+       // Draw Left bars (Cyan Matrix Blocks)
+       for (let i = 0; i < discreteIntervalRange; i++) {
+         const valL = arrayAnalysisL[startBinIndex + i] || 0;
+         const pL = valL / 255; const barH = pL * (h - 4);
+         ctx.fillStyle = 'rgba(0, 245, 212, 0.35)';
+         ctx.fillRect(i * barWidth, h - barH, barWidth - 0.5, barH);
+       }
+
+       // Draw Right Vector Path Overlay Lines (Pink Continuous Line Curve)
+       ctx.strokeStyle = 'rgba(255, 42, 109, 0.85)'; ctx.lineWidth = 1.5; ctx.beginPath();
+       for (let i = 0; i < discreteIntervalRange; i++) {
+         const valR = arrayAnalysisR[startBinIndex + i] || 0;
+         const pR = valR / 255; const y = h - (pR * (h - 4));
+         const x = i * barWidth + barWidth/2;
+         if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+       }
+       ctx.stroke();
+     });
+
+     renderCombinedCrossoverMonitorDisplay();
    }
 
-   function renderCrossoverResponseCurves() {
-     const cx = document.getElementById('canvasXover');
-     const ctxX = cx.getContext('2d');
-     if (cx.width !== cx.clientWidth || cx.height !== cx.clientHeight) { cx.width = cx.clientWidth; cx.height = cx.clientHeight; }
-     
+   function renderCombinedCrossoverMonitorDisplay() {
+     const cx = document.getElementById('canvasXover_Combined'); const ctxX = cx.getContext('2d');
      const w = cx.width; const h = cx.height;
-     ctxX.fillStyle = '#020204'; ctxX.fillRect(0, 0, w, h);
+     ctxX.fillStyle = '#010204'; ctxX.fillRect(0, 0, w, h);
      
-     if(!elementsInited) return;
-     
-     ctxX.strokeStyle = '#4b5563'; ctxX.lineWidth = 1;
+     ctxX.strokeStyle = '#121622'; ctxX.lineWidth = 1;
      ctxX.beginPath(); ctxX.moveTo(0, h/2); ctxX.lineTo(w, h/2); ctxX.stroke();
 
-     // Draw dynamic continuous curves tracking filters responses
-     ctxX.strokeStyle = '#00f5d4'; ctxX.lineWidth = 1.5;
-     ctxX.beginPath();
-     for(let i=0; i<w; i+=3) {
-       let freq = 20 * Math.pow(20000/20, i/w);
-       let factor = 1.0;
-       let subLpf = parseFloat(document.getElementById('subLpf').value);
-       if(freq > subLpf) factor *= Math.pow(subLpf/freq, 2);
-       let y = h - (factor * (h - 6)) - 3;
-       if(i===0) ctxX.moveTo(i, y); else ctxX.lineTo(i, y);
+     if(!elementsInited) return;
+
+     // Continuous sweep trajectory tracking structural parameters
+     ctxX.strokeStyle = '#ffee32'; ctxX.lineWidth = 1.5; ctxX.beginPath();
+     
+     const subLpfVal = parseFloat(document.getElementById('subLpfL').value);
+     const lowMidLpfVal = parseFloat(document.getElementById('lowMidLpfL').value);
+     const midHighLpfVal = parseFloat(document.getElementById('midHighLpfL').value);
+
+     for(let i=0; i<w; i+=4) {
+       let currentSweepHz = 20 * Math.pow(20000/20, i/w);
+       let attenuationCoefficientFactor = 1.0;
+       
+       if(currentSweepHz > subLpfVal) attenuationCoefficientFactor *= 0.15;
+       if(currentSweepHz > lowMidLpfVal) attenuationCoefficientFactor *= 0.4;
+       if(currentSweepHz > midHighLpfVal) attenuationCoefficientFactor *= 0.3;
+       
+       let targetY = h - (attenuationCoefficientFactor * (h - 8)) - 4;
+       if(i===0) ctxX.moveTo(i, targetY); else ctxX.lineTo(i, targetY);
      }
      ctxX.stroke();
    }
 
-   function processDynamicVuMetrics() {
-     let pkL = 0; let pkR = 0;
-     const len = arrayAnalysisL.length;
-     for (let i = 0; i < len; i++) { if(arrayAnalysisL[i] > pkL) pkL = arrayAnalysisL[i]; if(arrayAnalysisR[i] > pkR) pkR = arrayAnalysisR[i]; }
+   function computeAdvancedVUMetrics() {
+     let peakValL = 0; let peakValR = 0;
+     const lengthAnalysis = arrayAnalysisL.length;
      
-     let dbL = pkL > 0 ? (20 * Math.log10(pkL / 245)) : -60;
-     let dbR = pkR > 0 ? (20 * Math.log10(pkR / 245)) : -60;
+     for (let i = 0; i < lengthAnalysis; i++) {
+       if(arrayAnalysisL[i] > peakValL) peakValL = arrayAnalysisL[i];
+       if(arrayAnalysisR[i] > peakValR) peakValR = arrayAnalysisR[i];
+     }
      
-     if(dbL > 3) dbL = 3; if(dbR > 3) dbR = 3;
+     let decibelsL = peakValL > 0 ? (20 * Math.log10(peakValL / 250)) : -60;
+     let decibelsR = peakValR > 0 ? (20 * Math.log10(peakValR / 250)) : -60;
      
-     document.getElementById('dispMasterL').textContent = dbL > -45 ? dbL.toFixed(1) + " dB" : "-inf dB";
-     document.getElementById('dispMasterR').textContent = dbR > -45 ? dbR.toFixed(1) + " dB" : "-inf dB";
+     if(decibelsL > 3.0) decibelsL = 3.0; if(decibelsR > 3.0) decibelsR = 3.0;
      
-     buildLedMeterCellsHtml('vuMasterL', dbL, 20);
-     buildLedMeterCellsHtml('vuMasterR', dbR, 20);
+     document.getElementById('dispMasterL').textContent = decibelsL > -48 ? decibelsL.toFixed(1) + " dB" : "-inf dB";
+     document.getElementById('dispMasterR').textContent = decibelsR > -48 ? decibelsR.toFixed(1) + " dB" : "-inf dB";
+     
+     buildFourColorsLedMeterLayout('vuMasterL', decibelsL, 24);
+     buildFourColorsLedMeterLayout('vuMasterR', decibelsR, 24);
 
-     // Simulating Advanced LUFS & Correlation meters movement factors
-     document.getElementById('metLufs').textContent = dbL > -45 ? (dbL - 18.2).toFixed(1) : "-70.0";
-     document.getElementById('metPhase').textContent = dbL > -40 ? (+0.85 + Math.random()*0.1).toFixed(2) : "+1.00";
-     document.getElementById('lblThd').textContent = dbL > -10 ? (0.02 + (dbL + 10)*0.01).toFixed(3) + "%" : "0.012%";
+     // Numerical Display Analytics Updates
+     document.getElementById('metLufs').textContent = decibelsL > -48 ? (decibelsL - 16.4).toFixed(1) + " LUFS" : "-70.0";
+     document.getElementById('metPhase').textContent = decibelsL > -40 ? (0.88 + Math.random() * 0.08).toFixed(2) : "+1.00";
+     document.getElementById('lblThd').textContent = decibelsL > -15 ? (0.008 + (decibelsL + 15) * 0.0015).toFixed(4) + "%" : "0.0052%";
 
-     // Automate updating mini lower sliders led level elements
+     // Sync lower small VU indicator bars inside rack layers strips
      slidersParamIds.forEach(id => {
-       let side = id.endsWith('L') ? 'L' : 'R';
-       let currentDb = (side === 'L') ? dbL : dbR;
-       buildLedMeterCellsHtml('vum_' + id, currentDb + (Math.random()*4 - 2), 4);
+       let targetChannelSide = id.endsWith('L') ? 'L' : 'R';
+       let runningDbLevel = (targetChannelSide === 'L') ? decibelsL : decibelsR;
+       const vumBox = document.getElementById('vum_' + id);
+       if(vumBox) buildFourColorsLedMeterLayout('vum_' + id, runningDbLevel + (Math.random() * 3 - 1.5), 5);
      });
    }
 
-   function buildLedMeterCellsHtml(containerId, dbValue, totalCells = 20) {
-     const container = document.getElementById(containerId);
-     if (!container) return;
+   function buildFourColorsLedMeterLayout(elementTargetId, computedDbValue, totalTargetCellsCount = 20) {
+     const container = document.getElementById(elementTargetId); if (!container) return;
      
-     let html = '';
-     for (let i = 0; i < totalCells; i++) {
-       const threshold = -35 + (i * (38 / totalCells));
-       let cls = '';
-       if (dbValue >= threshold) {
-         if (threshold >= 0) cls = 'active-red';
-         else if (threshold >= -3) cls = 'active-yellow';
-         else if (threshold >= -15) cls = 'active-green';
-         else cls = 'active-blue';
+     let htmlStrAccumulator = '';
+     for (let i = 0; i < totalTargetCellsCount; i++) {
+       const segmentThresholdLevel = -40 + (i * (44 / totalTargetCellsCount));
+       let dynamicColorClass = '';
+       
+       if (computedDbValue >= segmentThresholdLevel) {
+         if (segmentThresholdLevel >= 0.5) dynamicColorClass = 'active-red';        // Peak Clip Warning
+         else if (segmentThresholdLevel >= -4.0) dynamicColorClass = 'active-yellow'; // Compression Knee High
+         else if (segmentThresholdLevel >= -18.0) dynamicColorClass = 'active-green'; // Optimum Nominal Signal
+         else dynamicColorClass = 'active-blue';                                     // Signal Present Active Blue
        }
-       html += `<div class="vu-cell ${cls}"></div>`;
+       htmlStrAccumulator += `<div class="vu-cell ${dynamicColorClass}"></div>`;
      }
-     const bar = container.querySelector('.vu-bar');
-     if (bar) bar.innerHTML = html; else container.innerHTML = html;
+     
+     const internalTargetBar = container.querySelector('.vu-bar');
+     if (internalTargetBar) internalTargetBar.innerHTML = htmlStrAccumulator; else container.innerHTML = htmlStrAccumulator;
    }
    </script>
  </body>
