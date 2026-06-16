@@ -38,6 +38,7 @@
       scroll-behavior: smooth;
     }
 
+    /* Scrollbar Style */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: var(--bg-main); }
     ::-webkit-scrollbar-thumb { background: var(--border-slate); border-radius: 3px; }
@@ -261,11 +262,12 @@
     .hardware-led.green { background: var(--led-green); box-shadow: 0 0 8px var(--led-green), inset 0 0 2px #fff; }
     .hardware-led.warning { background: var(--led-warning); box-shadow: 0 0 8px var(--led-warning), inset 0 0 2px #fff; }
 
+    /* Layout Matrix Lock Framework */
     .master-desktop-rack {
       display: flex;
       flex-direction: column;
       height: 100%;
-      min-width: 1280px;
+      min-width: 1280px; /* Cegah kolaps horizontal total */
     }
 
     .rack-scroll-viewport {
@@ -371,7 +373,12 @@
 
      <div class="ml-auto flex items-center gap-2 bg-[#0c1222] p-1 border border-[#1e2640] h-9">
        <select id="selSystemPreset" class="bg-[#010204] text-[#94a3b8] border border-[#1e2640] text-[10px] h-7 px-2 font-mono outline-none">
-         </select>
+         <option value="bank_0">EEPROM BANK 01 (LINEAR ALPHA)</option>
+         <option value="bank_1">EEPROM BANK 02 (POWER BOOST)</option>
+         <option value="bank_2">EEPROM BANK 03 (OUTDOOR LONG-THROW)</option>
+         <option value="bank_3">EEPROM BANK 04 (CLUB REFLECTION)</option>
+         <option value="bank_4">EEPROM BANK 05 (MONITOR COMPENSATION)</option>
+       </select>
        <button class="btn-hardware h-7 px-3 text-sky-400 font-bold" id="btnSavePreset">SAVE</button>
        <button class="btn-hardware h-7 px-3 text-amber-400 font-bold" id="btnLoadPreset">RECALL</button>
      </div>
@@ -433,7 +440,8 @@
            </span>
            <span class="hardware-led warning" id="ledVocalDsp"></span>
          </div>
-         <div class="flex flex-col gap-1 overflow-y-auto h-[234px] pr-1" id="vocalPresetList"></div>
+         <div class="flex flex-col gap-1 overflow-y-auto h-[234px] pr-1" id="vocalPresetList">
+           </div>
        </div>
 
        <div class="hardware-card col-span-16 flex flex-col gap-3">
@@ -795,12 +803,12 @@
    
   </div>
 
-  <script>
+   <script>
    /**
     *==================================================================================
     * FR LABS SOUND HARDWARE CORE INTERFACES CONTEXT DRIVER
     * AUDIO MANAGEMENT TERMINAL V2.2 PRO REAL-TIME ENGINE REGISTER IMPLEMENTATION
-    * INTERNAL INDUSTRIAL COMPILER SCALE - HIGH DENSITY DATA CONTEXT
+    * INTERNAL INDUSTRIAL COMPILER SCALE - COMPLETE BOILERPLATE DATA DATASET
     *==================================================================================
     */
    let audioCtx = null;
@@ -828,6 +836,7 @@
    let streamIntervalTimer = null;
    let globalBypassState = false;
 
+   // 25 EXTENDED VOCAL PROFILE DATASET REGISTER ARCHITECTURE
    const vocalBus = { 
      gate: null, 
      highcut: null, 
@@ -839,7 +848,6 @@
      outputGain: null 
    };
 
-   // 25 EXTENDED VOCAL PROFILE DATASET REGISTER ARCHITECTURE - FULL UNROLLMENT
    const vocalPresetsDataset = [
      { name: "01. FLAT ENGINE INDUSTRIAL DEFAULT", gate: -55, deess: 6000, rev: 12, dlyTime: 240, dlyFb: 20 },
      { name: "02. CONCERT HORN ARRAY OPTIMIZED", gate: -45, deess: 5500, rev: 35, dlyTime: 320, dlyFb: 45 },
@@ -869,108 +877,28 @@
    ];
    let selectedVocalPresetIndex = 0;
 
-   // 100 GLOBAL DEVICETOP SYSTEM SLOTS STORAGE REGISTER MAP UNROLLED FOR MAXIMUM COMPILER TRACKING
+   // 20 GLOBAL DEVICETOP SYSTEM SLOTS STORAGE
    const globalDevicePresetsRegistry = [
-     { id: "bank_0", desc: "EEPROM SYSTEM BANK 01 [FACTORY DEFAULT RESET]" },
-     { id: "bank_1", desc: "EEPROM SYSTEM BANK 02 [POWER LOUDNESS DRIVER]" },
-     { id: "bank_2", desc: "EEPROM SYSTEM BANK 03 [OUTDOOR LONG-THROW EXP]" },
-     { id: "bank_3", desc: "EEPROM SYSTEM BANK 04 [CLUB DUPLEX REFLECTION]" },
-     { id: "bank_4", desc: "EEPROM SYSTEM BANK 05 [STAGE COMPENSATE MODE]" },
-     { id: "bank_5", desc: "EEPROM SYSTEM BANK 06 [LINEAR SPECTRO RESONANCE]" },
-     { id: "bank_6", desc: "EEPROM SYSTEM BANK 07 [SUB-WOOFER EXTREME BOOST]" },
-     { id: "bank_7", desc: "EEPROM SYSTEM BANK 08 [VOCAL CLARITY FLAT BANK]" },
-     { id: "bank_8", desc: "EEPROM SYSTEM BANK 09 [HIGH SENSITIVITY ARENA]" },
-     { id: "bank_9", desc: "EEPROM SYSTEM BANK 10 [CINEMATIC RECONSTRUCTION]" },
-     { id: "bank_10", desc: "EEPROM SYSTEM BANK 11 [BROADCASTING COMPRESSION]" },
-     { id: "bank_11", desc: "EEPROM SYSTEM BANK 12 [ACOUSTIC STUDIO FIELD]" },
-     { id: "bank_12", desc: "EEPROM SYSTEM BANK 13 [COAXIAL MONITOR ALIGN]" },
-     { id: "bank_13", desc: "EEPROM SYSTEM BANK 14 [HORN WAVEGUIDE CORRECTION]" },
-     { id: "bank_14", desc: "EEPROM SYSTEM BANK 15 [THEATER MATRIX SURROUND]" },
-     { id: "bank_15", desc: "EEPROM SYSTEM BANK 16 [LOW END SATURATION RACK]" },
-     { id: "bank_16", desc: "EEPROM SYSTEM BANK 17 [BRIGHT PRESENCE SHIMMER]" },
-     { id: "bank_17", desc: "EEPROM SYSTEM BANK 18 [TELEPHONE BANDPASS MATRIX]" },
-     { id: "bank_18", desc: "EEPROM SYSTEM BANK 19 [HIGH CASING CLIP DEFENDER]" },
-     { id: "bank_19", desc: "EEPROM SYSTEM BANK 20 [CUSTOM FIELD CALIBRATION]" },
-     { id: "bank_20", desc: "EEPROM SYSTEM BANK 21 [ANALOG TAPE EMULATION]" },
-     { id: "bank_21", desc: "EEPROM SYSTEM BANK 22 [DISCRETE TRANSIENT PUNCH]" },
-     { id: "bank_22", desc: "EEPROM SYSTEM BANK 23 [MID CONTOURING ISOLATOR]" },
-     { id: "bank_23", desc: "EEPROM SYSTEM BANK 24 [SUBSONIC SAFETY LIMITER]" },
-     { id: "bank_24", desc: "EEPROM SYSTEM BANK 25 [DUAL WAVE SYMMETRY CORE]" },
-     { id: "bank_25", desc: "EEPROM SYSTEM BANK 26 [REVERBERATION MATRIX EXP]" },
-     { id: "bank_26", desc: "EEPROM SYSTEM BANK 27 [PHASE COHERENCE OPTIMIZER]" },
-     { id: "bank_27", desc: "EEPROM SYSTEM BANK 28 [CROSSFEED DELAY DECOUPLER]" },
-     { id: "bank_28", desc: "EEPROM SYSTEM BANK 29 [DE-ESSER INTENSIVE PASS]" },
-     { id: "bank_29", desc: "EEPROM SYSTEM BANK 30 [NOISE GATE HYSTERESIS]" },
-     { id: "bank_30", desc: "EEPROM SYSTEM BANK 31 [MULTI-BAND DYNAMICS LINK]" },
-     { id: "bank_31", desc: "EEPROM SYSTEM BANK 32 [ULTRA TWEETER RECOVERY]" },
-     { id: "bank_32", desc: "EEPROM SYSTEM BANK 33 [PUNCHY ROCK DRUM STAGE]" },
-     { id: "bank_33", desc: "EEPROM SYSTEM BANK 34 [JAZZ QUARTET ROOM ALLOC]" },
-     { id: "bank_34", desc: "EEPROM SYSTEM BANK 35 [ELECTRONIC SUB BASS DRY]" },
-     { id: "bank_35", desc: "EEPROM SYSTEM BANK 36 [SPEECH INTELLIGIBILITY PRO]" },
-     { id: "bank_36", desc: "EEPROM SYSTEM BANK 37 [CHURCH CONVOLVER REFLECT]" },
-     { id: "bank_37", desc: "EEPROM SYSTEM BANK 38 [OUTDOOR STADIUM DELAY L]" },
-     { id: "bank_38", desc: "EEPROM SYSTEM BANK 39 [COAX MONITOR PHASE MATCH]" },
-     { id: "bank_39", desc: "EEPROM SYSTEM BANK 40 [COMPACT BAR ACOUSTIC FIX]" },
-     { id: "bank_40", desc: "EEPROM SYSTEM BANK 41 [CRITICAL LISTENING MATRIX]" },
-     { id: "bank_41", desc: "EEPROM SYSTEM BANK 42 [WARM VINTAGE VALVES SIM]" },
-     { id: "bank_42", desc: "EEPROM SYSTEM BANK 43 [HARMONIC EXCITER CORE LEVEL]" },
-     { id: "bank_43", desc: "EEPROM SYSTEM BANK 44 [TRANSIENT SHAPER EXTREME]" },
-     { id: "bank_44", desc: "EEPROM SYSTEM BANK 45 [SUBWOOFER PHASE REVERSAL]" },
-     { id: "bank_45", desc: "EEPROM SYSTEM BANK 46 [LOW MID RESONANCE ATTN]" },
-     { id: "bank_46", desc: "EEPROM SYSTEM BANK 47 [HIGH FREQ ROLLOFF COAXIAL]" },
-     { id: "bank_47", desc: "EEPROM SYSTEM BANK 48 [DRESSED LINE IN PREAMPLIFIER]" },
-     { id: "bank_48", desc: "EEPROM SYSTEM BANK 49 [STEREO WIDTH MAXIMIZER DUO]" },
-     { id: "bank_49", desc: "EEPROM SYSTEM BANK 50 [MONO SUMMATION PIPELINE]" },
-     { id: "bank_50", desc: "EEPROM SYSTEM BANK 51 [LINKWITZ RILEY CALIBRATED]" },
-     { id: "bank_51", desc: "EEPROM SYSTEM BANK 52 [BUTTERWORTH MULTI CASCADE]" },
-     { id: "bank_52", desc: "EEPROM SYSTEM BANK 53 [BESSEL TRANSIENT ALIGNED]" },
-     { id: "bank_53", desc: "EEPROM SYSTEM BANK 54 [ROOF ECHO SUSPENSION CORE]" },
-     { id: "bank_54", desc: "EEPROM SYSTEM BANK 55 [DYNAMICS PEAK RESTORER V2]" },
-     { id: "bank_55", desc: "EEPROM SYSTEM BANK 56 [AUTOMATIC GAIN LEVELER IN]" },
-     { id: "bank_56", desc: "EEPROM SYSTEM BANK 57 [FEEDBACK ELIMINATOR SEARCH]" },
-     { id: "bank_57", desc: "EEPROM SYSTEM BANK 58 [NOTCH MULTI FREQ PACK]" },
-     { id: "bank_58", desc: "EEPROM SYSTEM BANK 59 [PINK NOISE CALIBRATION CL]" },
-     { id: "bank_59", desc: "EEPROM SYSTEM BANK 60 [WHITE NOISE MATRIX SOURCE]" },
-     { id: "bank_60", desc: "EEPROM SYSTEM BANK 61 [SINE GENERATOR RECON]" },
-     { id: "bank_61", desc: "EEPROM SYSTEM BANK 62 [COMPRESSOR KNEE SOFT MODE]" },
-     { id: "bank_62", desc: "EEPROM SYSTEM BANK 63 [COMPRESSOR KNEE HARD RATIO]" },
-     { id: "bank_63", desc: "EEPROM SYSTEM BANK 64 [LIMITER LOOKAHEAD ENGAGED]" },
-     { id: "bank_64", desc: "EEPROM SYSTEM BANK 65 [DE-ESSER DYNAMIC ATTN 5K]" },
-     { id: "bank_65", desc: "EEPROM SYSTEM BANK 66 [DE-ESSER DYNAMIC ATTN 7K]" },
-     { id: "bank_66", desc: "EEPROM SYSTEM BANK 67 [VOCAL SPACE REVERB CONCERT]" },
-     { id: "bank_67", desc: "EEPROM SYSTEM BANK 68 [VOCAL SPACE REVERB CHAMBER]" },
-     { id: "bank_68", desc: "EEPROM SYSTEM BANK 69 [VOCAL DELAY SLAPBACK CORE]" },
-     { id: "bank_69", desc: "EEPROM SYSTEM BANK 70 [VOCAL DELAY PINGPONG MUX]" },
-     { id: "bank_70", desc: "EEPROM SYSTEM BANK 71 [MATRIX ROUTING INPUT AA]" },
-     { id: "bank_71", desc: "EEPROM SYSTEM BANK 72 [MATRIX ROUTING INPUT BB]" },
-     { id: "bank_72", desc: "EEPROM SYSTEM BANK 73 [MATRIX ROUTING CROSS SPLIT]" },
-     { id: "bank_73", desc: "EEPROM SYSTEM BANK 74 [SUB CROSSOVER VARIABLE LPF]" },
-     { id: "bank_74", desc: "EEPROM SYSTEM BANK 75 [LOW MID CROSSOVER SPLIT]" },
-     { id: "bank_75", desc: "EEPROM SYSTEM BANK 76 [MID HIGH CROSSOVER SPLIT]" },
-     { id: "bank_76", desc: "EEPROM SYSTEM BANK 77 [HIGH CROSSOVER VARIABLE HPF]" },
-     { id: "bank_77", desc: "EEPROM SYSTEM BANK 78 [DISCRETE THD ESTIMATOR ON]" },
-     { id: "bank_78", desc: "EEPROM SYSTEM BANK 79 [VECTOR Trajectory CORRECT]" },
-     { id: "bank_79", desc: "EEPROM SYSTEM BANK 80 [LISSANOUS PHASE ADJUSTER]" },
-     { id: "bank_80", desc: "EEPROM SYSTEM BANK 81 [GRAPHIC EQ BYPASS SLOTS]" },
-     { id: "bank_81", desc: "EEPROM SYSTEM BANK 82 [GRAPHIC EQ RECON FLAT]" },
-     { id: "bank_82", desc: "EEPROM SYSTEM BANK 83 [GRAPHIC EQ V-SHAPE PROFILE]" },
-     { id: "bank_83", desc: "EEPROM SYSTEM BANK 84 [GRAPHIC EQ MID FREQ ATTN]" },
-     { id: "bank_84", desc: "EEPROM SYSTEM BANK 85 [GRAPHIC EQ BASS ELEVATION]" },
-     { id: "bank_85", desc: "EEPROM SYSTEM BANK 86 [GRAPHIC EQ HIGH ELEVATION]" },
-     { id: "bank_86", desc: "EEPROM SYSTEM BANK 87 [MCU ENGINE PREFETCH BUFF]" },
-     { id: "bank_87", desc: "EEPROM SYSTEM BANK 88 [SYSTEM TIMER ALIGN FIXED]" },
-     { id: "bank_88", desc: "EEPROM SYSTEM BANK 89 [ADC LINE SENSITIVITY HIGH]" },
-     { id: "bank_89", desc: "EEPROM SYSTEM BANK 90 [ADC LINE SENSITIVITY LOW]" },
-     { id: "bank_90", desc: "EEPROM SYSTEM BANK 91 [PIPELINE EXPANSION PORT]" },
-     { id: "bank_91", desc: "EEPROM SYSTEM BANK 92 [RACK COMBINED MULTIPLEX]" },
-     { id: "bank_92", desc: "EEPROM SYSTEM BANK 93 [LUFS MEASUREMENT INTEGRAL]" },
-     { id: "bank_93", desc: "EEPROM SYSTEM BANK 94 [PEAK PROTECTION HARD CELL]" },
-     { id: "bank_94", desc: "EEPROM SYSTEM BANK 95 [GAIN SHIFTING MASTER OUT]" },
-     { id: "bank_95", desc: "EEPROM SYSTEM BANK 96 [MUTE CONTROLLER LOGIC ON]" },
-     { id: "bank_96", desc: "EEPROM SYSTEM BANK 97 [DUAL CORE MATRIX EXPANSION]" },
-     { id: "bank_97", desc: "EEPROM SYSTEM BANK 98 [FR LABS INITIALIZATION B01]" },
-     { id: "bank_98", desc: "EEPROM SYSTEM BANK 99 [FR LABS INITIALIZATION B02]" },
-     { id: "bank_99", desc: "EEPROM SYSTEM BANK 100 [MASTER CALIBRATION LOCK]" }
+     { id: "bank_0", description: "LINEAR FACTORY INITIALIZATION" },
+     { id: "bank_1", description: "POWER DYNAMICS LOUDNESS PROFILE" },
+     { id: "bank_2", description: "OUTDOOR RECONSTRUCTION LONG BAND" },
+     { id: "bank_3", description: "CLUB DUPLEX ARCHITECTURE BANK" },
+     { id: "bank_4", description: "MONITOR EQUALIZATION REVERSAL" },
+     { id: "bank_5", description: "EEPROM EXPANSION ADAPTER PRESET 6" },
+     { id: "bank_6", description: "EEPROM EXPANSION ADAPTER PRESET 7" },
+     { id: "bank_7", description: "EEPROM EXPANSION ADAPTER PRESET 8" },
+     { id: "bank_8", description: "EEPROM EXPANSION ADAPTER PRESET 9" },
+     { id: "bank_9", description: "EEPROM EXPANSION ADAPTER PRESET 10" },
+     { id: "bank_10", description: "EEPROM EXPANSION ADAPTER PRESET 11" },
+     { id: "bank_11", description: "EEPROM EXPANSION ADAPTER PRESET 12" },
+     { id: "bank_12", description: "EEPROM EXPANSION ADAPTER PRESET 13" },
+     { id: "bank_13", description: "EEPROM EXPANSION ADAPTER PRESET 14" },
+     { id: "bank_14", description: "EEPROM EXPANSION ADAPTER PRESET 15" },
+     { id: "bank_15", description: "EEPROM EXPANSION ADAPTER PRESET 16" },
+     { id: "bank_16", description: "EEPROM EXPANSION ADAPTER PRESET 17" },
+     { id: "bank_17", description: "EEPROM EXPANSION ADAPTER PRESET 18" },
+     { id: "bank_18", description: "EEPROM EXPANSION ADAPTER PRESET 19" },
+     { id: "bank_19", description: "EEPROM EXPANSION ADAPTER PRESET 20" }
    ];
 
    let arrayAnalysisL = null;
@@ -981,26 +909,12 @@
    window.addEventListener('DOMContentLoaded', () => {
      lucide.createIcons();
      buildVocalPresetsUiList();
-     buildSystemPresetsDropdownRegistry();
      setupControlListeners();
      triggerAnimationFrameLoop();
    });
 
-   function buildSystemPresetsDropdownRegistry() {
-     const selectEl = document.getElementById('selSystemPreset');
-     if(!selectEl) return;
-     selectEl.innerHTML = '';
-     globalDevicePresetsRegistry.forEach(item => {
-       const opt = document.createElement('option');
-       opt.value = item.id;
-       opt.textContent = item.desc;
-       selectEl.appendChild(opt);
-     });
-   }
-
    function buildVocalPresetsUiList() {
      const container = document.getElementById('vocalPresetList');
-     if(!container) return;
      container.innerHTML = '';
      vocalPresetsDataset.forEach((pst, idx) => {
        const btn = document.createElement('button');
@@ -1032,10 +946,8 @@
      syncHardwareParametersToNodes();
      
      const led = document.getElementById('ledVocalDsp');
-     if(led) {
-       led.classList.add('on');
-       setTimeout(() => { led.classList.remove('on'); }, 200);
-     }
+     led.classList.add('on');
+     setTimeout(() => { led.classList.remove('on'); }, 200);
    }
 
    function instantiateAudioEngineCtx() {
@@ -1077,12 +989,13 @@
    function buildChannelDSPGraph(ch, indexSignalChannel) {
      ch.inputGain = audioCtx.createGain();
      ch.analyser = audioCtx.createAnalyser();
-     ch.analyser.fftSize = 1024;
+     ch.analyser.fftSize = 1024; // High frequency resolution
      ch.analyser.smoothingTimeConstant = 0.55;
      
      splitterInput.connect(ch.inputGain, indexSignalChannel);
      ch.inputGain.connect(ch.analyser);
      
+     // Linkwitz-Riley Filter Cascades
      ch.fSub = audioCtx.createBiquadFilter(); ch.fSub.type = "lowpass"; ch.fSub.Q.value = 0.707;
      ch.fLowMidH = audioCtx.createBiquadFilter(); ch.fLowMidH.type = "highpass"; ch.fLowMidH.Q.value = 0.707;
      ch.fLowMidL = audioCtx.createBiquadFilter(); ch.fLowMidL.type = "lowpass"; ch.fLowMidL.Q.value = 0.707;
@@ -1101,6 +1014,7 @@
      ch.fMidHighL.connect(xoverSum);
      ch.fHigh.connect(xoverSum);
 
+     // 12 PEAKING GQ STRIP FILTERS ALLOCATION
      ch.gqFilters = [];
      const structuralFreqs = [25, 50, 100, 200, 400, 800, 1500, 3000, 5000, 8000, 12000, 16000];
      for(let i=0; i<12; i++) {
@@ -1207,9 +1121,10 @@
      chL.fHigh.frequency.setValueAtTime(isXoverOn ? highHpfL : 20, audioCtx.currentTime);
      chR.fHigh.frequency.setValueAtTime(isXoverOn ? highHpfR : 20, audioCtx.currentTime);
 
+     // Sync Gain Modifiers
      const trimMid = Math.pow(10, parseFloat(document.getElementById('lowMidGain').value) / 20);
-     if (chL.fLowMidL.gain) chL.fLowMidL.gain.setValueAtTime(trimMid, audioCtx.currentTime);
-     if (chR.fLowMidL.gain) chR.fLowMidL.gain.setValueAtTime(trimMid, audioCtx.currentTime);
+     chL.fLowMidL.gain?.setValueAtTime(trimMid, audioCtx.currentTime);
+     chR.fLowMidL.gain?.setValueAtTime(trimMid, audioCtx.currentTime);
 
      for(let i=0; i<12; i++) {
        let valL = parseFloat(document.getElementById(`gqL_${i}`).value);
@@ -1368,13 +1283,11 @@
      };
 
      document.getElementById('btnSavePreset').onclick = () => { 
-       const sel = document.getElementById('selSystemPreset').value;
-       alert(`EEPROM Sector Flashed Successfully on target slot [${sel.toUpperCase()}]. Memory locked.`); 
+       alert("EEPROM Sector Flashed Successfully."); 
      };
      document.getElementById('btnLoadPreset').onclick = () => {
        const bank = document.getElementById('selSystemPreset').value;
-       const match = globalDevicePresetsRegistry.find(x => x.id === bank);
-       alert(`Recalling hardware matrix parameters from: ${match ? match.desc : bank.toUpperCase()}`);
+       alert(`Recalling complete hardware state from registry allocation: ${bank.toUpperCase()}`);
      };
    }
 
@@ -1547,6 +1460,6 @@
      }
      rootTarget.innerHTML = html;
    }
-  </script>
+   </script>
  </body>
 </html>
