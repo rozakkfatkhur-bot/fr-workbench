@@ -1,0 +1,989 @@
+const express = require('express');
+const cors = require('cors');
+const { exec } = require('child_process');
+const path = require('path');
+
+const app = express();
+const PORT = 3000;
+
+app.use(cors());
+app.use(express.json());
+
+// =========================================================================
+// BACKEND ENDPOINT: Memproses Link YouTube & Mengirimkan Audio Stream
+// =========================================================================
+app.get('/api/youtube', (req, res) => {
+    const videoUrl = req.query.url;
+    if (!videoUrl) {
+        return res.status(400).json({ error: 'URL YouTube diperlukan' });
+    }
+
+    console.log(`[FR AUDIO ENGINE] Mengalirkan audio dari: ${videoUrl}`);
+
+    // Menggunakan yt-dlp untuk mengambil audio berformat mp3/m4a secara langsung ke stdout
+    const ytDlp = exec(`yt-dlp -f bestaudio -o - "${videoUrl}"`);
+
+    res.setHeader('Content-Type', 'audio/mpeg');
+    ytDlp.stdout.pipe(res);
+
+    ytDlp.stderr.on('data', (data) => {
+        // Log internal monitoring proses streaming
+    });
+
+    ytDlp.on('close', (code) => {
+        if (code !== 0) console.error(`[FR AUDIO ENGINE] yt-dlp selesai dengan kode eror ${code}`);
+    });
+});
+
+// =========================================================================
+// FRONTEND ROUTE: Menyajikan Interface Web langsung dari server ini
+// =========================================================================
+app.get('/', (req, res) => {
+    res.send(`
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FR Audio X78 Series - Pro Digital Mixer & DLMS</title>
+    <style>
+        :root {
+            --bg-main: #0c0e11;
+            --bg-surface: #161920;
+            --bg-strip: #222733;
+            --accent-green: #00ff66;
+            --accent-blue: #00e5ff;
+            --accent-orange: #ff9900;
+            --accent-red: #ff3366;
+            --text-main: #e2e8f0;
+            --text-muted: #515f73;
+            --border-color: #2a3241;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            color: var(--text-main);
+            overflow-x: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Top Header */
+        header {
+            background: linear-gradient(180deg, #161920 0%, #0c0e11 100%);
+            border-bottom: 2px solid var(--border-color);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 60px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .brand h1 {
+            font-size: 20px;
+            letter-spacing: 3px;
+            font-weight: 900;
+            background: linear-gradient(45deg, #fff, #888);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .brand .model-badge {
+            background: var(--accent-red);
+            color: white;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 2px 10px;
+            border-radius: 4px;
+            box-shadow: 0 0 12px rgba(255, 51, 102, 0.5);
+        }
+
+        .system-status {
+            display: flex;
+            gap: 20px;
+            font-size: 11px;
+            color: #888;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--accent-green);
+            border-radius: 5px;
+            box-shadow: 0 0 8px var(--accent-green);
+        }
+
+        /* Workspace Layout */
+        .workspace {
+            display: grid;
+            grid-template-columns: 340px 1fr;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        @media (max-width: 1024px) {
+            .workspace {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto 1fr;
+            }
+        }
+
+        /* DLMS & RTA Sidebar Panel */
+        .dsp-panel {
+            background-color: var(--bg-surface);
+            border-right: 2px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            padding: 15px;
+            gap: 15px;
+        }
+
+        @media (max-width: 1024px) {
+            .dsp-panel {
+                max-height: 280px;
+            }
+        }
+
+        .panel-section {
+            background-color: rgba(0,0,0,0.3);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 12px;
+        }
+
+        .panel-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--accent-blue);
+            margin-bottom: 10px;
+            font-weight: 700;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .analyzer-container {
+            width: 100%;
+            height: 110px;
+            background-color: #050608;
+            border-radius: 4px;
+            border: 1px solid #1f242e;
+        }
+
+        .analyzer-canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        .matrix-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 4px;
+            text-align: center;
+            font-size: 10px;
+        }
+
+        .matrix-cell {
+            background: var(--bg-strip);
+            padding: 6px 2px;
+            border-radius: 3px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            color: #888;
+        }
+
+        .matrix-cell.active {
+            background: var(--accent-orange);
+            color: black;
+            font-weight: bold;
+            box-shadow: 0 0 5px var(--accent-orange);
+        }
+
+        /* Mixer Console Surface Track */
+        .mixer-surface {
+            display: flex;
+            overflow-x: auto;
+            background-color: var(--bg-main);
+            padding: 15px;
+            gap: 12px;
+            align-items: stretch;
+        }
+
+        /* Pro Channel Strip UI */
+        .channel-strip {
+            background: linear-gradient(180deg, var(--bg-surface) 0%, #101318 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            width: 125px;
+            min-width: 125px;
+            display: flex;
+            flex-direction: column;
+            padding: 10px 6px;
+            position: relative;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+        }
+
+        .channel-strip.master-track {
+            background: linear-gradient(180deg, #241822 0%, #0e0a0e 100%);
+            border: 1px solid #542d50;
+            margin-left: auto;
+            width: 140px;
+            min-width: 140px;
+        }
+
+        .ch-header {
+            text-align: center;
+            margin-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 6px;
+        }
+
+        .ch-num {
+            font-size: 10px;
+            font-weight: bold;
+            color: var(--accent-blue);
+        }
+
+        .ch-name {
+            font-size: 12px;
+            font-weight: bold;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Audio Source Selectors */
+        .source-selector {
+            background: #090a0d;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 5px;
+            margin-bottom: 10px;
+        }
+
+        .source-selector label {
+            display: block;
+            font-size: 8px;
+            color: #64748b;
+            text-transform: uppercase;
+            margin-bottom: 3px;
+            font-weight: bold;
+        }
+
+        .source-selector input[type="file"] {
+            display: none;
+        }
+
+        .file-label-btn {
+            display: block;
+            background: var(--bg-strip);
+            font-size: 9px;
+            text-align: center;
+            padding: 4px 0;
+            border-radius: 3px;
+            cursor: pointer;
+            border: 1px solid #323a4b;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: #cbd5e1;
+        }
+
+        .yt-input-group {
+            display: flex;
+            margin-top: 5px;
+        }
+
+        .yt-url-input {
+            width: 100%;
+            background: #000;
+            border: 1px solid #2d3545;
+            color: var(--accent-green);
+            font-size: 9px;
+            padding: 3px;
+            border-radius: 3px;
+            outline: none;
+            text-align: center;
+        }
+
+        /* 12-Tone Parametric EQ rack Knobs Layout */
+        .eq-rack {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 6px;
+            background: rgba(0,0,0,0.3);
+            padding: 6px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            border: 1px solid #232935;
+        }
+
+        .knob-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        .knob-box span {
+            font-size: 8px;
+            color: #64748b;
+            margin-top: 2px;
+            font-weight: bold;
+        }
+
+        .knob {
+            width: 28px;
+            height: 28px;
+            background: radial-gradient(circle, #3a4454 40%, #171b22 100%);
+            border-radius: 50%;
+            border: 2px solid #48566c;
+            position: relative;
+            cursor: pointer;
+            transform: rotate(0deg);
+            transition: transform 0.1s ease;
+        }
+
+        .knob::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 50%;
+            width: 2px;
+            height: 8px;
+            background-color: var(--accent-blue);
+            transform: translateX(-50%);
+        }
+
+        /* Pro Channel Control Buttons (Mute, Solo, Phase, PFL) */
+        .ch-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 4px;
+            margin-bottom: 10px;
+        }
+
+        .btn-ctrl {
+            background: var(--bg-strip);
+            border: 1px solid #323a4b;
+            color: #94a3b8;
+            font-size: 8px;
+            font-weight: bold;
+            padding: 4px 0;
+            border-radius: 3px;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .btn-ctrl.mute-btn.active {
+            background: var(--accent-red);
+            color: white;
+            box-shadow: 0 0 8px var(--accent-red);
+            border-color: #ff6688;
+        }
+
+        .btn-ctrl.active-blue {
+            background: var(--accent-blue);
+            color: black;
+            font-weight: bold;
+            box-shadow: 0 0 8px var(--accent-blue);
+        }
+
+        .btn-ctrl.active-orange {
+            background: var(--accent-orange);
+            color: black;
+            font-weight: bold;
+            box-shadow: 0 0 8px var(--accent-orange);
+        }
+
+        /* Fader Dock Area */
+        .fader-dock {
+            display: flex;
+            flex: 1;
+            justify-content: center;
+            position: relative;
+            padding: 10px 0;
+            height: 210px;
+        }
+
+        /* Volume VU Meter */
+        .vu-meter-container {
+            width: 7px;
+            background-color: #050608;
+            border-radius: 2px;
+            position: relative;
+            overflow: hidden;
+            margin-right: 12px;
+            border: 1px solid #1e242e;
+        }
+
+        .vu-bar {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 0%;
+            background: linear-gradient(to top, var(--accent-green) 65%, var(--accent-orange) 85%, var(--accent-red) 100%);
+            transition: height 0.05s ease;
+        }
+
+        /* Slider Line */
+        .fader-track-container {
+            position: relative;
+            width: 24px;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+        }
+
+        .fader-scale {
+            position: absolute;
+            left: -14px;
+            height: 100%;
+            width: 10px;
+            font-size: 7px;
+            color: #475569;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            text-align: right;
+            pointer-events: none;
+        }
+
+        .main-fader {
+            -webkit-appearance: none;
+            transform: rotate(-90deg);
+            width: 170px;
+            height: 4px;
+            background: #000;
+            border-radius: 2px;
+            position: absolute;
+            top: 80px;
+            outline: none;
+            cursor: pointer;
+            border: 1px solid #1e242e;
+        }
+
+        .main-fader::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 26px;
+            background: linear-gradient(90deg, #555 0%, #ddd 50%, #555 100%);
+            border: 1px solid #000;
+            border-radius: 2px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.6);
+        }
+
+        /* Pan Controls & Display Value */
+        .pan-container {
+            margin-top: auto;
+            text-align: center;
+            font-size: 9px;
+            color: #64748b;
+            border-top: 1px solid var(--border-color);
+            padding-top: 6px;
+        }
+
+        .pan-slider {
+            width: 100%;
+            -webkit-appearance: none;
+            background: #050608;
+            height: 3px;
+            margin-top: 4px;
+        }
+
+        .pan-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 6px;
+            height: 10px;
+            background: var(--accent-blue);
+            cursor: pointer;
+        }
+
+        .val-disp {
+            background: #000;
+            color: var(--accent-green);
+            font-family: monospace;
+            font-size: 9px;
+            text-align: center;
+            padding: 2px 0;
+            border-radius: 2px;
+            margin-bottom: 5px;
+            border: 1px solid #1e242e;
+        }
+
+        footer {
+            background-color: #050608;
+            border-top: 1px solid var(--border-color);
+            padding: 5px 20px;
+            font-size: 11px;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 30px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand">
+            <h1>FR AUDIO</h1>
+            <div class="model-badge">X78 SERIES</div>
+        </div>
+        <div class="system-status">
+            <div class="status-item">
+                <div class="status-dot"></div>
+                <span>CORE ENGINE: FLOATING 64-BIT</span>
+            </div>
+            <div class="status-item">
+                <span style="color: var(--accent-blue);">WEB-AUDIO LIVE PRO</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="workspace">
+        <div class="dsp-panel">
+            <div class="panel-section">
+                <div class="panel-title">MAIN REALTIME ANALYZER <span style="color: var(--accent-green);">FFT RTA</span></div>
+                <div class="analyzer-container">
+                    <canvas id="rtaCanvas" class="analyzer-canvas"></canvas>
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <div class="panel-title">DLMS INTERNAL 4-WAY CROSSOVER NETWORKS</div>
+                <div style="font-size: 10px; margin-bottom: 8px; display:flex; justify-content:space-between; color:#94a3b8;">
+                    <span>HPF (LOW CUT): 32Hz</span>
+                    <span>LPF (HIGH CUT): 19.5kHz</span>
+                </div>
+                <div class="matrix-grid">
+                    <div class="matrix-cell active">SUB 18"</div>
+                    <div class="matrix-cell active">LOW 15"</div>
+                    <div class="matrix-cell active">MID 10"</div>
+                    <div class="matrix-cell active">HI HORN</div>
+                    <div class="matrix-cell" style="background:#400; color:#ff8888; font-weight:bold;">LIMIT</div>
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <div class="panel-title">L & R AUDIO MATRIX OUTPUTS ROUTING</div>
+                <div class="matrix-grid" id="matrixRouting"></div>
+            </div>
+        </div>
+
+        <div class="mixer-surface" id="mixerConsole">
+            <div class="channel-strip master-track" id="masterChannel">
+                <div class="ch-header">
+                    <div class="ch-num">LR ST</div>
+                    <div class="ch-name" style="color: var(--accent-red); font-weight: 900;">MASTER BUS</div>
+                </div>
+                
+                <div class="val-disp" id="m-vol-disp">0.0 dB</div>
+
+                <div class="fader-dock">
+                    <div class="vu-meter-container" style="width: 5px;">
+                        <div class="vu-bar" id="m-vu-l"></div>
+                    </div>
+                    <div class="vu-meter-container" style="width: 5px; margin-right: 15px;">
+                        <div class="vu-bar" id="m-vu-r"></div>
+                    </div>
+                    <div class="fader-track-container">
+                        <div class="fader-scale">
+                            <span>+10</span><span>0</span><span>-5</span><span>-10</span><span>-20</span><span>-40</span><span>-inf</span>
+                        </div>
+                        <input type="range" class="main-fader" id="masterFader" min="0" max="1.5" step="0.01" value="1">
+                    </div>
+                </div>
+
+                <div class="pan-container">
+                    <span>OUTPUT MATRIX</span>
+                    <div class="val-disp" style="color: var(--accent-blue); margin-top: 4px; font-weight: bold;">MAIN L-R</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div>SYSTEM STATUS: ONLINE // LATENCY: &lt; 1.8ms</div>
+        <div>FR AUDIO CORE EMULATOR INTERFACE v1.2</div>
+    </footer>
+
+    <script>
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx;
+        let masterGain;
+        let mainAnalyser;
+
+        const channels = [];
+        const TOTAL_CHANNELS = 8;
+        const BACKEND_SERVER = window.location.origin;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new AudioContext();
+                masterGain = audioCtx.createGain();
+                masterGain.gain.value = 1;
+
+                mainAnalyser = audioCtx.createAnalyser();
+                mainAnalyser.fftSize = 256;
+
+                masterGain.connect(mainAnalyser);
+                mainAnalyser.connect(audioCtx.destination);
+
+                startVisualizer();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        const mixerConsole = document.getElementById('mixerConsole');
+        const masterChannel = document.getElementById('masterChannel');
+
+        // Membangun Tampilan Mixer 8 Channel
+        for (let i = 1; i <= TOTAL_CHANNELS; i++) {
+            createChannelStripUI(i);
+        }
+
+        function createChannelStripUI(chNum) {
+            const strip = document.createElement('div');
+            strip.className = 'channel-strip';
+            strip.id = `ch-strip-${chNum}`;
+
+            strip.innerHTML = `
+                <div class="ch-header">
+                    <div class="ch-num">INPUT 0${chNum}</div>
+                    <div class="ch-name" id="ch-title-${chNum}">LINE CH-${chNum}</div>
+                </div>
+
+                <div class="source-selector">
+                    <label>Audio Source</label>
+                    <label class="file-label-btn" for="file-ch-${chNum}" id="lbl-ch-${chNum}">Pilih File HP</label>
+                    <input type="file" id="file-ch-${chNum}" accept="audio/*">
+                    <div class="yt-input-group">
+                        <input type="text" class="yt-url-input" id="yt-ch-${chNum}" placeholder="Ketik Link YouTube...">
+                    </div>
+                </div>
+
+                <div class="eq-rack">
+                    <div class="knob-box"><div class="knob" id="eq-low-${chNum}"></div><span>LOW</span></div>
+                    <div class="knob-box"><div class="knob" id="eq-mid1-${chNum}"></div><span>M-LOW</span></div>
+                    <div class="knob-box"><div class="knob" id="eq-mid2-${chNum}"></div><span>M-HI</span></div>
+                    <div class="knob-box"><div class="knob" id="eq-hi-${chNum}"></div><span>HIGH</span></div>
+                </div>
+
+                <div class="ch-buttons">
+                    <button class="btn-ctrl" id="phase-${chNum}">Ø 180</button>
+                    <button class="btn-ctrl" id="pfl-${chNum}">PFL</button>
+                    <button class="btn-ctrl mute-btn" id="mute-${chNum}">MUTE</button>
+                    <button class="btn-ctrl" style="color:var(--accent-orange);" id="solo-${chNum}">SOLO</button>
+                </div>
+
+                <div class="val-disp" id="vol-disp-${chNum}">0.0 dB</div>
+
+                <div class="fader-dock">
+                    <div class="vu-meter-container"><div class="vu-bar" id="vu-${chNum}"></div></div>
+                    <div class="fader-track-container">
+                        <input type="range" class="main-fader" id="fader-${chNum}" min="0" max="1.5" step="0.01" value="0.8">
+                    </div>
+                </div>
+
+                <div class="pan-container">
+                    <span>PAN ST</span>
+                    <input type="range" class="pan-slider" id="pan-${chNum}" min="-1" max="1" step="0.1" value="0">
+                </div>
+            `;
+
+            mixerConsole.insertBefore(strip, masterChannel);
+            setupChannelDSP(chNum);
+        }
+
+        function setupChannelDSP(chNum) {
+            let chData = {
+                id: chNum,
+                audioElement: new Audio(),
+                sourceNode: null, gainNode: null, phaseGainNode: null, panNode: null, 
+                eqNodes: { low: null, mid1: null, mid2: null, hi: null }, 
+                analyserNode: null,
+                isMuted: false, isPhaseInverted: false, isSoloactive: false,
+                eqGains: { low: 0, mid1: 0, mid2: 0, hi: 0 } // dB status
+            };
+
+            chData.audioElement.crossOrigin = "anonymous";
+            chData.audioElement.loop = true;
+
+            // Event Handler input Musik lokal
+            document.getElementById(`file-ch-${chNum}`).addEventListener('change', function(e) {
+                initAudio();
+                const file = e.target.files[0];
+                if (file) {
+                    document.getElementById(`lbl-ch-${chNum}`).innerText = file.name;
+                    document.getElementById(`ch-title-${chNum}`).innerText = file.name;
+                    connectAndPlay(chNum, URL.createObjectURL(file));
+                }
+            });
+
+            // Event Handler YouTube Input
+            document.getElementById(`yt-ch-${chNum}`).addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    initAudio();
+                    const url = e.target.value;
+                    if(url) {
+                        document.getElementById(`ch-title-${chNum}`).innerText = "Streaming YouTube...";
+                        connectAndPlay(chNum, \`\${BACKEND_SERVER}/api/youtube?url=\${encodeURIComponent(url)}\`);
+                    }
+                }
+            });
+
+            // Fader Volume Control
+            const fader = document.getElementById(`fader-${chNum}`);
+            fader.addEventListener('input', function() {
+                const val = parseFloat(this.value);
+                if (chData.gainNode && !chData.isMuted) {
+                    chData.gainNode.gain.setValueAtTime(val, audioCtx.currentTime);
+                }
+                const db = (20 * Math.log10(val || 0.0001)).toFixed(1);
+                document.getElementById(\`vol-disp-\${chNum}\`).innerText = val === 0 ? '-inf dB' : \`\${db} dB\`;
+            });
+
+            // Mute Button Sinyal
+            document.getElementById(`mute-${chNum}`).addEventListener('click', function() {
+                chData.isMuted = !chData.isMuted;
+                this.classList.toggle('active', chData.isMuted);
+                updateChannelVolume(chNum);
+            });
+
+            // Solo Button Sinyal
+            document.getElementById(`solo-${chNum}`).addEventListener('click', function() {
+                chData.isSoloactive = !chData.isSoloactive;
+                this.classList.toggle('active-orange', chData.isSoloactive);
+                updateGlobalSoloLogic();
+            });
+
+            // Phase Invert Realtime (Ø 180)
+            document.getElementById(`phase-${chNum}`).addEventListener('click', function() {
+                chData.isPhaseInverted = !chData.isPhaseInverted;
+                this.classList.toggle('active-blue', chData.isPhaseInverted);
+                if (chData.phaseGainNode) {
+                    chData.phaseGainNode.gain.setValueAtTime(chData.isPhaseInverted ? -1 : 1, audioCtx.currentTime);
+                }
+            });
+
+            // Stereo Panoramic Adjuster
+            document.getElementById(`pan-${chNum}`).addEventListener('input', function() {
+                if (chData.panNode) chData.panNode.pan.setValueAtTime(parseFloat(this.value), audioCtx.currentTime);
+            });
+
+            // Interaktif Putaran Knob EQ + Perubahan Frekuensi Audio Asli
+            const bands = ['low', 'mid1', 'mid2', 'hi'];
+            bands.forEach(band => {
+                const knob = document.getElementById(\`eq-\${band}-\${chNum}\`);
+                let clickCount = 0;
+                knob.addEventListener('click', function() {
+                    clickCount = (clickCount + 1) % 7; 
+                    // 0: 0dB, 1: +4dB, 2: +8dB, 3: +12dB, 4: -12dB, 5: -8dB, 6: -4dB
+                    let gainVal = 0;
+                    if(clickCount === 1) gainVal = 4;
+                    else if(clickCount === 2) gainVal = 8;
+                    else if(clickCount === 3) gainVal = 12;
+                    else if(clickCount === 4) gainVal = -12;
+                    else if(clickCount === 5) gainVal = -8;
+                    else if(clickCount === 6) gainVal = -4;
+
+                    chData.eqGains[band] = gainVal;
+                    this.style.transform = \`rotate(\${clickCount * 45}deg)\`;
+
+                    if (chData.eqNodes[band]) {
+                        chData.eqNodes[band].gain.setValueAtTime(gainVal, audioCtx.currentTime);
+                    }
+                });
+            });
+
+            channels.push(chData);
+        }
+
+        function updateChannelVolume(chNum) {
+            let ch = channels[chNum - 1];
+            if (!ch.gainNode) return;
+            const faderVal = parseFloat(document.getElementById(`fader-${chNum}`).value);
+            
+            // Cek status Solo global
+            const anySoloActive = channels.some(c => c.isSoloactive);
+            
+            if (ch.isMuted) {
+                ch.gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+            } else if (anySoloActive && !ch.isSoloactive) {
+                // Ada channel lain yang di-solo, matikan suara channel ini
+                ch.gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+            } else {
+                ch.gainNode.gain.setValueAtTime(faderVal, audioCtx.currentTime);
+            }
+        }
+
+        function updateGlobalSoloLogic() {
+            for (let i = 1; i <= TOTAL_CHANNELS; i++) {
+                updateChannelVolume(i);
+            }
+        }
+
+        function connectAndPlay(chNum, srcUrl) {
+            let ch = channels[chNum - 1];
+            ch.audioElement.src = srcUrl;
+            
+            if (!ch.sourceNode) {
+                ch.sourceNode = audioCtx.createMediaElementSource(ch.audioElement);
+                ch.gainNode = audioCtx.createGain();
+                ch.phaseGainNode = audioCtx.createGain();
+                ch.panNode = audioCtx.createStereoPanner();
+                ch.analyserNode = audioCtx.createAnalyser();
+                ch.analyserNode.fftSize = 32;
+
+                // Set initial phase
+                ch.phaseGainNode.gain.value = ch.isPhaseInverted ? -1 : 1;
+
+                // Filter Grafik Audio (Low, Mid-Low, Mid-High, High)
+                ch.eqNodes.low = audioCtx.createBiquadFilter();
+                ch.eqNodes.low.type = 'lowshelf';
+                ch.eqNodes.low.frequency.value = 100;
+                ch.eqNodes.low.gain.value = ch.eqGains.low;
+
+                ch.eqNodes.mid1 = audioCtx.createBiquadFilter();
+                ch.eqNodes.mid1.type = 'peaking';
+                ch.eqNodes.mid1.frequency.value = 450;
+                ch.eqNodes.mid1.gain.value = ch.eqGains.mid1;
+
+                ch.eqNodes.mid2 = audioCtx.createBiquadFilter();
+                ch.eqNodes.mid2.type = 'peaking';
+                ch.eqNodes.mid2.frequency.value = 3000;
+                ch.eqNodes.mid2.gain.value = ch.eqGains.mid2;
+
+                ch.eqNodes.hi = audioCtx.createBiquadFilter();
+                ch.eqNodes.hi.type = 'highshelf';
+                ch.eqNodes.hi.frequency.value = 12000;
+                ch.eqNodes.hi.gain.value = ch.eqGains.hi;
+
+                // Routing Audio DSP Node Pipeline
+                ch.sourceNode.connect(ch.phaseGainNode);
+                ch.phaseGainNode.connect(ch.eqNodes.low);
+                ch.eqNodes.low.connect(ch.eqNodes.mid1);
+                ch.eqNodes.mid1.connect(ch.eqNodes.mid2);
+                ch.eqNodes.mid2.connect(ch.eqNodes.hi);
+                ch.eqNodes.hi.connect(ch.panNode);
+                ch.panNode.connect(ch.gainNode);
+                ch.gainNode.connect(ch.analyserNode);
+                ch.analyserNode.connect(masterGain);
+            }
+
+            ch.audioElement.play().catch(e => console.log("Aktivasi interaksi intermitten: ", e));
+            updateChannelVolume(chNum);
+            trackVUMeter(chNum);
+        }
+
+        function trackVUMeter(chNum) {
+            const ch = channels[chNum - 1];
+            const vuBar = document.getElementById(\`vu-\${chNum}\\`);
+            if(!vuBar) return;
+            const dataArray = new Uint8Array(ch.analyserNode.frequencyBinCount);
+
+            function update() {
+                if (!ch.audioElement.paused && ch.analyserNode) {
+                    ch.analyserNode.getByteFrequencyData(dataArray);
+                    let total = 0;
+                    for (let i = 0; i < dataArray.length; i++) total += dataArray[i];
+                    let avg = total / dataArray.length;
+                    vuBar.style.height = \`\${Math.min((avg / 255) * 100 * 1.6, 100)}%\`;
+                    requestAnimationFrame(update);
+                } else {
+                    vuBar.style.height = '0%';
+                }
+            }
+            update();
+        }
+
+        // Master Volume Controls
+        const masterFader = document.getElementById('masterFader');
+        masterFader.addEventListener('input', function() {
+            const val = parseFloat(this.value);
+            if(masterGain) masterGain.gain.setValueAtTime(val, audioCtx.currentTime);
+            const db = (20 * Math.log10(val || 0.0001)).toFixed(1);
+            document.getElementById('m-vol-disp').innerText = val === 0 ? '-inf dB' : \`\${db} dB\`;
+        });
+
+        // Main FFT Analyzer Canvas Graphical Generator
+        function startVisualizer() {
+            const canvas = document.getElementById('rtaCanvas');
+            const ctx = canvas.getContext('2d');
+            const dataArray = new Uint8Array(mainAnalyser.frequencyBinCount);
+
+            function draw() {
+                requestAnimationFrame(draw);
+                mainAnalyser.getByteFrequencyData(dataArray);
+
+                ctx.fillStyle = '#050608';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                const barWidth = (canvas.width / dataArray.length) * 1.5;
+                let barHeight, x = 0;
+
+                for (let i = 0; i < dataArray.length; i++) {
+                    barHeight = dataArray[i] / 2;
+                    ctx.fillStyle = \`rgb(0, \${barHeight + 110}, 255)\`;
+                    ctx.fillRect(x, canvas.height - barHeight, barWidth - 1, barHeight);
+                    x += barWidth;
+                }
+                
+                let masterPeak = dataArray[12] || 0; 
+                document.getElementById('m-vu-l').style.height = \`\${Math.min((masterPeak/255)*100*1.6, 100)}%\`;
+                document.getElementById('m-vu-r').style.height = \`\${Math.min((masterPeak/255)*100*1.4, 100)}%\`;
+            }
+            draw();
+        }
+
+        // Output Matriks Routing Panel Inserts
+        const matrixRouting = document.getElementById('matrixRouting');
+        const matrixOutputs = ['SUB', 'LOW', 'MID', 'HI', 'AUX1', 'AUX2', 'M-L', 'M-R', 'MATRIX1', 'MATRIX2'];
+        matrixOutputs.forEach(out => {
+            const div = document.createElement('div');
+            div.className = 'matrix-cell';
+            if(['SUB','M-L','M-R'].includes(out)) div.classList.add('active');
+            div.innerText = out;
+            matrixRouting.appendChild(div);
+        });
+    </script>
+</body>
+</html>
+    `);
+});
+
+app.listen(PORT, () => {
+    console.log(`================================================================`);
+    console.log(`  FR AUDIO X78 SERIES DIGITAL MIXER CONSOLE PLATFORM BERJALAN`);
+    console.log(`  Buka browser Anda dan akses ke: http://localhost:${PORT}`);
+    console.log(`================================================================`);
+});
