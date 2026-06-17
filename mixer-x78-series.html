@@ -1,496 +1,916 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FR Audio X78 Series - Web Mixer</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #1a1a1a;
-            color: #fff;
-            overflow-x: hidden;
-        }
+&lt;!DOCTYPE html&gt;
+&lt;html lang="id"&gt;
+&lt;head&gt;
+  &lt;meta charset="UTF-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+  &lt;title&gt;FR AUDIO X78 SERIES - Digital Web Mixer&lt;/title&gt;
 
-        .header {
-            background: linear-gradient(135deg, #2c3e50, #34495e);
-            padding: 20px;
-            text-align: center;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-        }
+  &lt;style&gt;
+    :root {
+      --bg-main: #07090d;
+      --bg-panel: #111722;
+      --bg-panel-2: #151d2a;
+      --bg-strip: #192232;
+      --bg-strip-dark: #0d121b;
+      --accent: #00d9ff;
+      --accent-2: #ffcc00;
+      --accent-red: #ff3355;
+      --accent-green: #00ff88;
+      --accent-purple: #9b5cff;
+      --text: #e8f2ff;
+      --muted: #7d8da3;
+      --line: #283548;
+      --shadow: rgba(0, 0, 0, 0.55);
+      --radius: 18px;
+    }
 
-        .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 5px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      user-select: none;
+    }
 
-        .header p {
-            color: #bdc3c7;
-            font-size: 0.9em;
-        }
+    body {
+      background:
+        radial-gradient(circle at top left, rgba(0, 217, 255, 0.16), transparent 32%),
+        radial-gradient(circle at top right, rgba(155, 92, 255, 0.12), transparent 30%),
+        linear-gradient(135deg, #05070a, #0b1018 45%, #05070a);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: auto;
+    }
 
-        .mixer-container {
-            display: flex;
-            padding: 20px;
-            gap: 15px;
-            overflow-x: auto;
-            background: #2c3e50;
-            min-height: calc(100vh - 100px);
-        }
+    .app {
+      min-width: 1320px;
+      padding: 22px;
+    }
 
-        .channel {
-            background: linear-gradient(180deg, #34495e, #2c3e50);
-            border-radius: 10px;
-            padding: 15px;
-            min-width: 120px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.4);
-            border: 2px solid #4a5f7f;
-            position: relative;
-        }
+    .topbar {
+      height: 96px;
+      background: linear-gradient(180deg, #172131, #0d131d);
+      border: 1px solid #2d3c52;
+      border-radius: var(--radius);
+      box-shadow: 0 18px 45px var(--shadow), inset 0 1px 0 rgba(255,255,255,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 24px;
+      margin-bottom: 18px;
+      position: relative;
+      overflow: hidden;
+    }
 
-        .channel.youtube {
-            border-color: #e74c3c;
-            background: linear-gradient(180deg, #c0392b, #2c3e50);
-        }
+    .topbar::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, transparent, rgba(0,217,255,0.10), transparent),
+        repeating-linear-gradient(
+          90deg,
+          transparent 0,
+          transparent 24px,
+          rgba(255,255,255,0.025) 25px
+        );
+      pointer-events: none;
+    }
 
-        .channel.effects {
-            border-color: #3498db;
-            background: linear-gradient(180deg, #2980b9, #2c3e50);
-        }
+    .brand {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
 
-        .channel-label {
-            text-align: center;
-            font-weight: bold;
-            margin-bottom: 10px;
-            padding: 8px;
-            background: rgba(0,0,0,0.3);
-            border-radius: 5px;
-            font-size: 0.85em;
-            text-transform: uppercase;
-        }
+    .brand h1 {
+      letter-spacing: 2px;
+      font-size: 30px;
+      color: #ffffff;
+      text-shadow: 0 0 18px rgba(0,217,255,0.8);
+    }
 
-        .channel.youtube .channel-label {
-            background: #e74c3c;
-        }
+    .brand span {
+      color: var(--muted);
+      font-size: 13px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+    }
 
-        .channel.effects .channel-label {
-            background: #3498db;
-        }
+    .display {
+      position: relative;
+      z-index: 2;
+      width: 410px;
+      height: 58px;
+      background: linear-gradient(180deg, #050b0f, #07131a);
+      border: 1px solid rgba(0,217,255,0.45);
+      border-radius: 14px;
+      box-shadow: inset 0 0 28px rgba(0,217,255,0.12), 0 0 18px rgba(0,217,255,0.14);
+      padding: 10px 14px;
+      overflow: hidden;
+    }
 
-        .meter {
-            width: 100%;
-            height: 150px;
-            background: #1a1a1a;
-            border-radius: 5px;
-            margin-bottom: 15px;
-            position: relative;
-            overflow: hidden;
-            border: 1px solid #555;
-        }
+    .display .line1 {
+      color: var(--accent);
+      font-size: 15px;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+    }
 
-        .meter-bar {
-            position: absolute;
-            bottom: 0;
-            width: 100%;
-            background: linear-gradient(to top, #27ae60, #f39c12, #e74c3c);
-            transition: height 0.1s ease;
-            height: 0%;
-        }
+    .display .line2 {
+      color: #bdefff;
+      font-size: 12px;
+      white-space: nowrap;
+      animation: marquee 10s linear infinite;
+    }
 
-        .fader-container {
-            height: 200px;
-            position: relative;
-            margin: 15px 0;
-            display: flex;
-            justify-content: center;
-        }
+    @keyframes marquee {
+      0% { transform: translateX(100%); }
+      100% { transform: translateX(-120%); }
+    }
 
-        .fader {
-            -webkit-appearance: slider-vertical;
-            width: 40px;
-            height: 100%;
-            background: linear-gradient(to top, #555, #888);
-            border-radius: 20px;
-            outline: none;
-            cursor: pointer;
-        }
+    .global-controls {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
 
-        .fader::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 50px;
-            height: 30px;
-            background: linear-gradient(135deg, #3498db, #2980b9);
-            border-radius: 5px;
-            cursor: pointer;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
-        }
+    .transport-btn {
+      width: 46px;
+      height: 46px;
+      border-radius: 14px;
+      border: 1px solid #34465f;
+      background: linear-gradient(180deg, #202c3d, #101722);
+      color: white;
+      font-size: 17px;
+      cursor: pointer;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.10), 0 8px 18px rgba(0,0,0,0.35);
+      transition: 0.15s;
+    }
 
-        .fader::-moz-range-thumb {
-            width: 50px;
-            height: 30px;
-            background: linear-gradient(135deg, #3498db, #2980b9);
-            border-radius: 5px;
-            cursor: pointer;
-            border: none;
-        }
+    .transport-btn:hover {
+      transform: translateY(-2px);
+      border-color: var(--accent);
+      box-shadow: 0 0 20px rgba(0,217,255,0.25);
+    }
 
-        .pan-control {
-            margin: 10px 0;
-        }
+    .transport-btn.active {
+      color: #07110c;
+      background: linear-gradient(180deg, #00ff99, #00aa66);
+      border-color: #00ff99;
+    }
 
-        .pan-knob {
-            width: 100%;
-            height: 8px;
-            background: #555;
-            border-radius: 4px;
-            cursor: pointer;
-        }
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 270px;
+      gap: 18px;
+      align-items: stretch;
+    }
 
-        .pan-knob::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 20px;
-            height: 20px;
-            background: #f39c12;
-            border-radius: 50%;
-            cursor: pointer;
-        }
+    .mixer-frame {
+      background: linear-gradient(180deg, #121a27, #0b1018);
+      border: 1px solid #29374c;
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: 0 22px 60px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.06);
+    }
 
-        .pan-knob::-moz-range-thumb {
-            width: 20px;
-            height: 20px;
-            background: #f39c12;
-            border-radius: 50%;
-            cursor: pointer;
-            border: none;
-        }
+    .mixer-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      padding: 0 6px;
+    }
 
-        .controls {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            margin-top: 10px;
-        }
+    .mixer-header h2 {
+      font-size: 16px;
+      letter-spacing: 2px;
+      color: #dcecff;
+      text-transform: uppercase;
+    }
 
-        .btn {
-            padding: 8px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 0.8em;
-            transition: all 0.2s;
-            text-transform: uppercase;
-        }
+    .status-pill {
+      font-size: 12px;
+      color: var(--accent-green);
+      padding: 7px 12px;
+      border: 1px solid rgba(0,255,136,0.35);
+      border-radius: 999px;
+      background: rgba(0,255,136,0.08);
+    }
 
-        .btn-mute {
-            background: #95a5a6;
-            color: #fff;
-        }
+    .channels {
+      display: grid;
+      grid-template-columns: repeat(10, 1fr);
+      gap: 10px;
+    }
 
-        .btn-mute.active {
-            background: #e74c3c;
-        }
+    .channel {
+      min-height: 710px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.04), transparent 20%),
+        linear-gradient(180deg, var(--bg-strip), var(--bg-strip-dark));
+      border: 1px solid #2b3a50;
+      border-radius: 18px;
+      padding: 10px 9px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 12px 25px rgba(0,0,0,0.35);
+      position: relative;
+      overflow: hidden;
+    }
 
-        .btn-solo {
-            background: #95a5a6;
-            color: #fff;
-        }
+    .channel::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 5px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      opacity: 0.75;
+    }
 
-        .btn-solo.active {
-            background: #f39c12;
-        }
+    .channel.yt::after {
+      background: linear-gradient(90deg, transparent, #ff3355, transparent);
+    }
 
-        .btn-record {
-            background: #95a5a6;
-            color: #fff;
-        }
+    .channel.fx::after {
+      background: linear-gradient(90deg, transparent, #9b5cff, transparent);
+    }
 
-        .btn-record.active {
-            background: #e74c3c;
-            animation: pulse 1s infinite;
-        }
+    .ch-title {
+      text-align: center;
+      margin-top: 5px;
+      margin-bottom: 8px;
+    }
 
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.6; }
-        }
+    .ch-title strong {
+      display: block;
+      font-size: 14px;
+      letter-spacing: 1px;
+    }
 
-        .eq-section {
-            margin: 10px 0;
-            padding: 10px;
-            background: rgba(0,0,0,0.3);
-            border-radius: 5px;
-        }
+    .ch-title span {
+      color: var(--muted);
+      font-size: 10px;
+      text-transform: uppercase;
+    }
 
-        .eq-label {
-            font-size: 0.7em;
-            margin-bottom: 5px;
-            color: #bdc3c7;
-        }
+    .tiny-screen {
+      height: 34px;
+      background: #061018;
+      border: 1px solid rgba(0,217,255,0.25);
+      border-radius: 8px;
+      color: var(--accent);
+      font-size: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 4px;
+      margin-bottom: 9px;
+      overflow: hidden;
+    }
 
-        .eq-knob {
-            width: 100%;
-            height: 6px;
-            background: #555;
-            border-radius: 3px;
-        }
+    .file-row {
+      margin-bottom: 8px;
+    }
 
-        .eq-knob::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 15px;
-            height: 15px;
-            background: #16a085;
-            border-radius: 50%;
-            cursor: pointer;
-        }
+    .file-label {
+      display: block;
+      text-align: center;
+      width: 100%;
+      background: linear-gradient(180deg, #26364c, #121a26);
+      border: 1px solid #3a4d67;
+      border-radius: 9px;
+      color: #d9edff;
+      padding: 7px 4px;
+      font-size: 10px;
+      cursor: pointer;
+      transition: 0.15s;
+    }
 
-        .volume-display {
-            text-align: center;
-            font-size: 0.8em;
-            color: #3498db;
-            margin-top: 5px;
-            font-weight: bold;
-        }
+    .file-label:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
 
-        .master-section {
-            background: linear-gradient(180deg, #8e44ad, #2c3e50);
-            border: 2px solid #9b59b6;
-            min-width: 150px;
-        }
+    input[type="file"] {
+      display: none;
+    }
 
-        .fx-send {
-            margin: 10px 0;
-            padding: 8px;
-            background: rgba(0,0,0,0.2);
-            border-radius: 5px;
-        }
+    .yt-input {
+      width: 100%;
+      border: 1px solid #3a4d67;
+      background: #071018;
+      color: #fff;
+      border-radius: 8px;
+      padding: 7px;
+      font-size: 10px;
+      outline: none;
+      margin-bottom: 7px;
+    }
 
-        .fx-label {
-            font-size: 0.7em;
-            margin-bottom: 5px;
-        }
+    .yt-input:focus {
+      border-color: #ff3355;
+    }
 
-        .phase-invert {
-            margin: 5px 0;
-        }
+    .yt-btn {
+      width: 100%;
+      border: 1px solid #743040;
+      background: linear-gradient(180deg, #ff3355, #8e1529);
+      color: #fff;
+      border-radius: 8px;
+      padding: 7px 4px;
+      font-size: 10px;
+      cursor: pointer;
+      margin-bottom: 8px;
+    }
 
-        .btn-phase {
-            background: #34495e;
-            color: #fff;
-            width: 100%;
-        }
+    .knob-section {
+      display: grid;
+      gap: 8px;
+      margin-top: 8px;
+      margin-bottom: 10px;
+    }
 
-        .btn-phase.active {
-            background: #9b59b6;
-        }
+    .knob-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+    }
 
-        @media (max-width: 768px) {
-            .header h1 {
-                font-size: 1.5em;
-            }
-            
-            .channel {
-                min-width: 100px;
-                padding: 10px;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <h1>FR Audio X78 Series</h1>
-        <p>Professional Web Audio Mixer - 10 Channel Digital Console</p>
-    </div>
+    .knob {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 35% 30%, #53677f, #1c2736 48%, #080d14 70%),
+        conic-gradient(from 210deg, var(--accent) 0deg, var(--accent) 120deg, #2d3a4b 121deg, #2d3a4b 300deg);
+      border: 1px solid #4b5f78;
+      box-shadow: inset 0 2px 5px rgba(255,255,255,0.13), 0 5px 10px rgba(0,0,0,0.4);
+      position: relative;
+    }
 
-    <div class="mixer-container" id="mixerContainer">
-        <!-- Channels akan di-generate oleh JavaScript -->
-    </div>
+    .knob::before {
+      content: "";
+      position: absolute;
+      width: 3px;
+      height: 15px;
+      background: #e9f8ff;
+      border-radius: 999px;
+      left: 50%;
+      top: 5px;
+      transform: translateX(-50%);
+      box-shadow: 0 0 8px rgba(0,217,255,0.8);
+    }
 
-    <script>
-        // Konfigurasi channel
-        const channelConfig = [
-            { id: 1, name: 'Channel 1', type: 'normal' },
-            { id: 2, name: 'Channel 2', type: 'normal' },
-            { id: 3, name: 'Channel 3', type: 'normal' },
-            { id: 4, name: 'Channel 4', type: 'normal' },
-            { id: 5, name: 'Channel 5', type: 'normal' },
-            { id: 6, name: 'Channel 6', type: 'normal' },
-            { id: 7, name: 'Channel 7', type: 'normal' },
-            { id: 8, name: 'Channel 8', type: 'normal' },
-            { id: 9, name: 'YouTube', type: 'youtube' },
-            { id: 10, name: 'Effects', type: 'effects' }
-        ];
+    .knob-block label {
+      font-size: 9px;
+      color: var(--muted);
+      letter-spacing: 1px;
+    }
 
-        // State untuk setiap channel
-        const channelStates = {};
+    .knob-block input[type="range"] {
+      width: 70px;
+      accent-color: var(--accent);
+    }
 
-        // Inisialisasi state
-        channelConfig.forEach(ch => {
-            channelStates[ch.id] = {
-                volume: 75,
-                pan: 50,
-                mute: false,
-                solo: false,
-                record: false,
-                phase: false,
-                eq: { high: 50, mid: 50, low: 50 },
-                fxSend: 0
-            };
-        });
+    .buttons {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+      margin: 8px 0;
+    }
 
-        // Generate channels
-        function createChannels() {
-            const container = document.getElementById('mixerContainer');
-            
-            channelConfig.forEach(ch => {
-                const channelDiv = document.createElement('div');
-                channelDiv.className = `channel ${ch.type}`;
-                channelDiv.innerHTML = `
-                    <div class="channel-label">${ch.name}</div>
-                    
-                    <div class="meter">
-                        <div class="meter-bar" id="meter-${ch.id}"></div>
-                    </div>
-                    
-                    <div class="eq-section">
-                        <div class="eq-label">High</div>
-                        <input type="range" class="eq-knob" min="0" max="100" value="50" 
-                               onchange="updateEQ(${ch.id}, 'high', this.value)">
-                        
-                        <div class="eq-label">Mid</div>
-                        <input type="range" class="eq-knob" min="0" max="100" value="50"
-                               onchange="updateEQ(${ch.id}, 'mid', this.value)">
-                        
-                        <div class="eq-label">Low</div>
-                        <input type="range" class="eq-knob" min="0" max="100" value="50"
-                               onchange="updateEQ(${ch.id}, 'low', this.value)">
-                    </div>
-                    
-                    <div class="pan-control">
-                        <div class="eq-label">Pan</div>
-                        <input type="range" class="pan-knob" min="0" max="100" value="50"
-                               onchange="updatePan(${ch.id}, this.value)">
-                    </div>
-                    
-                    <div class="fader-container">
-                        <input type="range" class="fader" min="0" max="100" value="75" orient="vertical"
-                               oninput="updateVolume(${ch.id}, this.value)">
-                    </div>
-                    
-                    <div class="volume-display" id="vol-${ch.id}">-6 dB</div>
-                    
-                    <div class="fx-send">
-                        <div class="fx-label">FX Send</div>
-                        <input type="range" class="eq-knob" min="0" max="100" value="0"
-                               onchange="updateFX(${ch.id}, this.value)">
-                    </div>
-                    
-                    <div class="controls">
-                        <button class="btn btn-mute" onclick="toggleMute(${ch.id}, this)">Mute</button>
-                        <button class="btn btn-solo" onclick="toggleSolo(${ch.id}, this)">Solo</button>
-                        <button class="btn btn-record" onclick="toggleRecord(${ch.id}, this)">Rec</button>
-                        <button class="btn btn-phase" onclick="togglePhase(${ch.id}, this)">Ø</button>
-                    </div>
-                `;
-                
-                container.appendChild(channelDiv);
-            });
+    .small-btn {
+      border: 1px solid #3b4e67;
+      background: linear-gradient(180deg, #263348, #111924);
+      color: #dcecff;
+      border-radius: 8px;
+      padding: 7px 2px;
+      font-size: 10px;
+      cursor: pointer;
+      transition: 0.15s;
+    }
 
-            // Add Master Channel
-            const masterDiv = document.createElement('div');
-            masterDiv.className = 'channel master-section';
-            masterDiv.innerHTML = `
-                <div class="channel-label">Master</div>
-                
-                <div class="meter">
-                    <div class="meter-bar" id="meter-master"></div>
-                </div>
-                
-                <div class="fader-container">
-                    <input type="range" class="fader" min="0" max="100" value="80" orient="vertical"
-                           oninput="updateMasterVolume(this.value)">
-                </div>
-                
-                <div class="volume-display" id="vol-master">0 dB</div>
-            `;
-            container.appendChild(masterDiv);
-        }
+    .small-btn:hover {
+      border-color: var(--accent);
+    }
 
-        // Update functions
-        function updateVolume(channelId, value) {
-            channelStates[channelId].volume = value;
-            const db = ((value - 75) * 0.8).toFixed(1);
-            document.getElementById(`vol-${channelId}`).textContent = `${db} dB`;
-            animateMeter(channelId);
-        }
+    .small-btn.mute.active {
+      background: linear-gradient(180deg, #ff3355, #8a1325);
+      border-color: #ff3355;
+      color: #fff;
+    }
 
-        function updateMasterVolume(value) {
-            const db = ((value - 80) * 0.8).toFixed(1);
-            document.getElementById('vol-master').textContent = `${db} dB`;
-            animateMeter('master');
-        }
+    .small-btn.solo.active {
+      background: linear-gradient(180deg, #ffcc00, #a56f00);
+      border-color: #ffcc00;
+      color: #1b1300;
+    }
 
-        function updatePan(channelId, value) {
-            channelStates[channelId].pan = value;
-        }
+    .small-btn.live.active {
+      background: linear-gradient(180deg, #00ff88, #008c51);
+      border-color: #00ff88;
+      color: #00170c;
+    }
 
-        function updateEQ(channelId, band, value) {
-            channelStates[channelId].eq[band] = value;
-        }
+    .meter-area {
+      display: flex;
+      justify-content: center;
+      gap: 5px;
+      height: 108px;
+      margin: 10px 0;
+    }
 
-        function updateFX(channelId, value) {
-            channelStates[channelId].fxSend = value;
-        }
+    .meter {
+      width: 12px;
+      height: 108px;
+      background: #05080d;
+      border: 1px solid #2c3848;
+      border-radius: 999px;
+      position: relative;
+      overflow: hidden;
+    }
 
-        function toggleMute(channelId, btn) {
-            channelStates[channelId].mute = !channelStates[channelId].mute;
-            btn.classList.toggle('active');
-        }
+    .meter-fill {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 0%;
+      border-radius: 999px;
+      background: linear-gradient(0deg, #00ff88 0%, #aaff00 55%, #ffcc00 75%, #ff3355 100%);
+      box-shadow: 0 0 12px rgba(0,255,136,0.45);
+      transition: height 0.07s linear;
+    }
 
-        function toggleSolo(channelId, btn) {
-            channelStates[channelId].solo = !channelStates[channelId].solo;
-            btn.classList.toggle('active');
-        }
+    .fader-wrap {
+      height: 210px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 2px;
+      position: relative;
+    }
 
-        function toggleRecord(channelId, btn) {
-            channelStates[channelId].record = !channelStates[channelId].record;
-            btn.classList.toggle('active');
-        }
+    .fader-scale {
+      position: absolute;
+      left: 5px;
+      height: 185px;
+      width: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      color: #596a80;
+      font-size: 8px;
+      text-align: right;
+    }
 
-        function togglePhase(channelId, btn) {
-            channelStates[channelId].phase = !channelStates[channelId].phase;
-            btn.classList.toggle('active');
-        }
+    .fader {
+      writing-mode: bt-lr;
+      -webkit-appearance: slider-vertical;
+      appearance: slider-vertical;
+      width: 34px;
+      height: 190px;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
 
-        // Animasi meter
-        function animateMeter(id) {
-            const meter = document.getElementById(`meter-${id}`);
-            if (meter) {
-                const randomHeight = Math.random() * 80 + 20;
-                meter.style.height = randomHeight + '%';
-            }
-        }
+    .value {
+      text-align: center;
+      font-size: 10px;
+      color: #b9cadc;
+      margin-top: 3px;
+    }
 
-        // Simulasi meter animation
-        setInterval(() => {
-            channelConfig.forEach(ch => {
-                if (!channelStates[ch.id].mute) {
-                    animateMeter(ch.id);
-                }
-            });
-            animateMeter('master');
-        }, 100);
+    .pan-row {
+      margin-top: 8px;
+      text-align: center;
+    }
 
-        // Initialize
-        createChannels();
-    </script>
-</body>
-</html>
+    .pan-row label {
+      display: block;
+      font-size: 9px;
+      color: var(--muted);
+      margin-bottom: 3px;
+    }
+
+    .pan-row input {
+      width: 82px;
+      accent-color: var(--accent-2);
+    }
+
+    .master-panel {
+      background: linear-gradient(180deg, #141d2b, #090e15);
+      border: 1px solid #29374c;
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: 0 22px 60px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.06);
+    }
+
+    .master-title {
+      text-align: center;
+      margin-bottom: 12px;
+    }
+
+    .master-title h2 {
+      font-size: 20px;
+      letter-spacing: 2px;
+      color: #fff;
+      text-shadow: 0 0 12px rgba(0,217,255,0.55);
+    }
+
+    .master-title span {
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: 2px;
+    }
+
+    .master-screen {
+      background: #061018;
+      border: 1px solid rgba(0,217,255,0.35);
+      border-radius: 12px;
+      height: 95px;
+      padding: 12px;
+      margin-bottom: 14px;
+      box-shadow: inset 0 0 25px rgba(0,217,255,0.12);
+    }
+
+    .master-screen .big {
+      color: var(--accent);
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+
+    .master-screen .small {
+      font-size: 11px;
+      color: #9fc7d5;
+      line-height: 1.5;
+    }
+
+    .master-meter {
+      height: 180px;
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .master-meter .meter {
+      width: 28px;
+      height: 180px;
+    }
+
+    .master-fader-box {
+      height: 245px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 8px;
+    }
+
+    .master-fader {
+      writing-mode: bt-lr;
+      -webkit-appearance: slider-vertical;
+      appearance: slider-vertical;
+      height: 230px;
+      width: 44px;
+      accent-color: var(--accent-green);
+    }
+
+    .master-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .master-buttons button {
+      padding: 10px 5px;
+      border-radius: 10px;
+      border: 1px solid #3b4e67;
+      background: linear-gradient(180deg, #263348, #111924);
+      color: #dcecff;
+      cursor: pointer;
+    }
+
+    .master-buttons button:hover {
+      border-color: var(--accent);
+    }
+
+    .rec.active {
+      background: linear-gradient(180deg, #ff3355, #8a1325);
+      border-color: #ff3355;
+    }
+
+    .yt-player-panel {
+      margin-top: 18px;
+      background: linear-gradient(180deg, #151d2a, #080d14);
+      border: 1px solid #29374c;
+      border-radius: var(--radius);
+      padding: 14px;
+      box-shadow: 0 18px 45px rgba(0,0,0,0.45);
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 14px;
+      align-items: stretch;
+    }
+
+    .yt-box {
+      background: #05070a;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid #3b4e67;
+      min-height: 160px;
+    }
+
+    .yt-box iframe {
+      width: 100%;
+      height: 100%;
+      min-height: 160px;
+      border: none;
+    }
+
+    .fx-panel {
+      background: #0a1018;
+      border: 1px solid #283548;
+      border-radius: 14px;
+      padding: 12px;
+    }
+
+    .fx-panel h3 {
+      font-size: 14px;
+      letter-spacing: 2px;
+      margin-bottom: 10px;
+      color: var(--accent-purple);
+    }
+
+    .fx-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .fx-control {
+      background: #101824;
+      border: 1px solid #283548;
+      border-radius: 12px;
+      padding: 10px;
+      text-align: center;
+    }
+
+    .fx-control label {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      margin-bottom: 8px;
+    }
+
+    .fx-control input {
+      width: 100%;
+      accent-color: var(--accent-purple);
+    }
+
+    .footer {
+      margin-top: 18px;
+      color: #6f8096;
+      font-size: 12px;
+      text-align: center;
+      letter-spacing: 1px;
+    }
+
+    @media (max-width: 900px) {
+      .app {
+        min-width: 1200px;
+      }
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+
+&lt;body&gt;
+  &lt;div class="app"&gt;
+
+    &lt;div class="topbar"&gt;
+      &lt;div class="brand"&gt;
+        &lt;h1&gt;FR AUDIO X78 SERIES&lt;/h1&gt;
+        &lt;span&gt;Modern Digital Web Mixer&lt;/span&gt;
+      &lt;/div&gt;
+
+      &lt;div class="display"&gt;
+        &lt;div class="line1" id="systemStatus"&gt;SYSTEM READY&lt;/div&gt;
+        &lt;div class="line2"&gt;8 INPUT CHANNELS · 1 YOUTUBE CHANNEL · 1 FX CHANNEL · DIGITAL MASTER BUS&lt;/div&gt;
+      &lt;/div&gt;
+
+      &lt;div class="global-controls"&gt;
+        &lt;button class="transport-btn" id="btnPower" title="Power"&gt;⏻&lt;/button&gt;
+        &lt;button class="transport-btn" id="btnPlayAll" title="Play All"&gt;▶&lt;/button&gt;
+        &lt;button class="transport-btn" id="btnStopAll" title="Stop All"&gt;■&lt;/button&gt;
+        &lt;button class="transport-btn" id="btnReset" title="Reset"&gt;↺&lt;/button&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;div class="layout"&gt;
+      &lt;main class="mixer-frame"&gt;
+        &lt;div class="mixer-header"&gt;
+          &lt;h2&gt;Mixer Functions&lt;/h2&gt;
+          &lt;div class="status-pill" id="audioState"&gt;Audio Engine: Standby&lt;/div&gt;
+        &lt;/div&gt;
+
+        &lt;div class="channels" id="channels"&gt;&lt;/div&gt;
+      &lt;/main&gt;
+
+      &lt;aside class="master-panel"&gt;
+        &lt;div class="master-title"&gt;
+          &lt;h2&gt;MASTER&lt;/h2&gt;
+          &lt;span&gt;MAIN OUT L/R&lt;/span&gt;
+        &lt;/div&gt;
+
+        &lt;div class="master-screen"&gt;
+          &lt;div class="big" id="masterDb"&gt;0 dB&lt;/div&gt;
+          &lt;div class="small"&gt;
+            Sample Rate: 48 kHz&lt;br&gt;
+            Bus: Stereo&lt;br&gt;
+            Mode: Web Audio Digital
+          &lt;/div&gt;
+        &lt;/div&gt;
+
+        &lt;div class="master-meter"&gt;
+          &lt;div class="meter"&gt;&lt;div class="meter-fill" id="masterMeterL"&gt;&lt;/div&gt;&lt;/div&gt;
+          &lt;div class="meter"&gt;&lt;div class="meter-fill" id="masterMeterR"&gt;&lt;/div&gt;&lt;/div&gt;
+        &lt;/div&gt;
+
+        &lt;div class="master-fader-box"&gt;
+          &lt;input class="master-fader" id="masterFader" type="range" min="0" max="1.4" step="0.01" value="1"&gt;
+        &lt;/div&gt;
+
+        &lt;div class="value" id="masterValue"&gt;MASTER 100%&lt;/div&gt;
+
+        &lt;div class="master-buttons"&gt;
+          &lt;button id="btnMasterMute"&gt;MUTE&lt;/button&gt;
+          &lt;button class="rec" id="btnRecord"&gt;REC&lt;/button&gt;
+          &lt;button id="btnLimiter"&gt;LIMITER&lt;/button&gt;
+          &lt;button id="btnMonitor"&gt;MONITOR&lt;/button&gt;
+        &lt;/div&gt;
+      &lt;/aside&gt;
+    &lt;/div&gt;
+
+    &lt;section class="yt-player-panel"&gt;
+      &lt;div class="yt-box" id="ytBox"&gt;
+        &lt;div style="height:160px;display:flex;align-items:center;justify-content:center;color:#7d8da3;font-size:13px;text-align:center;padding:20px;"&gt;
+          YouTube Channel Preview
+        &lt;/div&gt;
+      &lt;/div&gt;
+
+      &lt;div class="fx-panel"&gt;
+        &lt;h3&gt;GLOBAL EFFECT PROCESSOR&lt;/h3&gt;
+        &lt;div class="fx-grid"&gt;
+          &lt;div class="fx-control"&gt;
+            &lt;label&gt;REVERB&lt;/label&gt;
+            &lt;input id="globalReverb" type="range" min="0" max="1" step="0.01" value="0.15"&gt;
+          &lt;/div&gt;
+          &lt;div class="fx-control"&gt;
+            &lt;label&gt;DELAY&lt;/label&gt;
+            &lt;input id="globalDelay" type="range" min="0" max="1" step="0.01" value="0.12"&gt;
+          &lt;/div&gt;
+          &lt;div class="fx-control"&gt;
+            &lt;label&gt;FILTER&lt;/label&gt;
+            &lt;input id="globalFilter" type="range" min="200" max="18000" step="1" value="18000"&gt;
+          &lt;/div&gt;
+          &lt;div class="fx-control"&gt;
+            &lt;label&gt;DRIVE&lt;/label&gt;
+            &lt;input id="globalDrive" type="range" min="0" max="1" step="0.01" value="0"&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/section&gt;
+
+    &lt;div class="footer"&gt;
+      FR AUDIO X78 SERIES · Digital Mixer Interface · Built with HTML, CSS, JavaScript, and Web Audio API
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;script&gt;
+    const channelCount = 10;
+
+    const channelTypes = [
+      "INPUT", "INPUT", "INPUT", "INPUT",
+      "INPUT", "INPUT", "INPUT", "INPUT",
+      "YOUTUBE", "FX"
+    ];
+
+    const channelNames = [
+      "CH 1", "CH 2", "CH 3", "CH 4",
+      "CH 5", "CH 6", "CH 7", "CH 8",
+      "YT", "FX"
+    ];
+
+    let audioContext = null;
+    let masterGain = null;
+    let masterAnalyser = null;
+    let masterData = null;
+    let compressor = null;
+    let masterMuted = false;
+    let limiterOn = false;
+    let monitorOn = false;
+    let recorderOn = false;
+
+    const channels = [];
+    const channelContainer = document.getElementById("channels");
+
+    function dbFromGain(value) {
+      if (value &lt;= 0.001) return "-∞ dB";
+      const db = 20 * Math.log10(value);
+      return db.toFixed(1) + " dB";
+    }
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function createAudioEngine() {
+      if (audioContext) return;
+
+      audioContext = new AudioContext();
+
+      masterGain = audioContext.createGain();
+      masterGain.gain.value = Number(document.getElementById("masterFader").value);
+
+      compressor = audioContext.createDynamicsCompressor();
+      compressor.threshold.value = -6;
+      compressor.knee.value = 12;
+      compressor.ratio.value = 8;
+      compressor.attack.value = 0.003;
+      compressor.release.value = 0.25;
+
+      masterAnalyser = audioContext.createAnalyser();
+      masterAnalyser.fftSize = 256;
+      masterData = new Uint8Array(masterAnalyser.frequencyBinCount);
+
+      masterGain.connect(masterAnalyser);
+      masterAnalyser.connect(audioContext.destination);
+
+      document.getElementById("audioState").textContent = "Audio Engine: Running";
+      document.getElementById("systemStatus").textContent = "AUDIO ENGINE ONLINE";
+      document.getElementById("btnPower").classList.add("active");
+    }
+
+    function buildChannel(index) {
+      const type = channelTypes[index];
+      const isInput = type === "INPUT";
+      const isYoutube = type === "YOUTUBE";
+      const isFx = type === "FX";
+
+      const ch = document.createElement("div");
+      ch.className = "channel";
+      if (isYoutube) ch.classList.add("yt");
+      if (isFx) ch.classList.add("fx");
+
+      let loadArea = "";
+
+      if (isInput) {
+        loadArea =
+          '&lt;div class="file-row"&gt;' +
+            '&lt;label class="file-label" for="file' + index + '"&gt;LOAD AUDIO&lt;/label&gt;' +
+            '&lt;input id="file' + index + '" type="file" accept="audio/*"&gt;' +
+          '&lt;/div&gt;';
+      }
+
+      if (isYoutube) {
+        loadArea =
+          '&lt;input class="yt-input" id="ytInput" placeholder="Paste link YouTube"&gt;' +
+          '&lt;button class="yt-btn" id="ytLoad"&gt;LOAD YT&lt;/button&gt;';
+      }
+
+      if (isFx) {
+        loadArea =
+          '&lt;div class="tiny-screen"&gt;FX RETURN BUS&lt;/div&gt;';
+      }
+
+      ch.innerHTML =
+        '&lt;div class="ch-title"&gt;' +
+          '&lt;strong&gt;' + channelNames[index] + '&lt;/strong&gt;' +
+          '&lt;span&gt;' + type + '&lt;/span&gt;' +
+        '&lt;/div&gt;' +
+
+        '&lt;div class="tiny-screen" id="screen' + index + '"&gt;NO SOURCE&lt;/div&gt;' +
+        loadArea +
+
+        '&lt;div class="knob-section"&gt;' +
+          createKnob(index, "gain", "GAIN", 0, 2, 0.01, 1) +
+          createKnob(index, "high", "HIGH", -18, 18, 0.1, 0) +
+          createKnob(index, "mid", "MID", -18, 18, 0.1, 0) +
+          createKnob(index, "low", "LOW", -18, 18, 0.1, 0) +
+        '&lt;/div&gt;' +
+
+        '&lt;div class="buttons"&gt;' +
+          '&lt;button class="small-btn mute" id="mute' + index + '"&gt;MUTE&lt;/button&gt;' +
+          '&lt;button class="small-btn solo" id="solo' + index + '"&gt;SOLO&lt;/button&gt;' +
+          (isInput ? '&lt;button class="small-btn live" id="live' + index + '"&gt;LIVE&lt;/button&gt;' : '&lt;button class="small-btn" disabled&gt;LIVE&lt;/button&gt;') +
+          '&lt;
