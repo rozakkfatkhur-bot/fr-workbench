@@ -3,650 +3,504 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fr Audio X78 - Engine V2</title>
+    <title>Fr Audio X78 - Premium Console</title>
     <style>
+        /* BASE & TYPOGRAPHY */
+        :root {
+            --bg-main: #0a0b10;
+            --bg-panel: #11141c;
+            --bg-darker: #0d1016;
+            --text-muted: #6b778d;
+            --text-bright: #e2e8f0;
+            --border-color: #1e2433;
+            
+            /* Channel Colors matching your video */
+            --c-cyan: #00e5ff;
+            --c-orange: #ff9d00;
+            --c-purple: #b400ff;
+            --c-green: #00ff44;
+            --c-red: #ff0055;
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             user-select: none;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
 
         body {
-            background-color: #0B0D11;
-            color: #E2E8F0;
+            background-color: var(--bg-main);
+            color: var(--text-bright);
             padding: 10px;
-            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
         }
 
-        /* HEADER PANEL STYLE */
+        /* HEADER & TABS */
         header {
-            background: #11141A;
-            border: 1px solid #1F2530;
-            border-radius: 4px;
-            padding: 10px 15px;
-            margin-bottom: 10px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            padding: 10px 15px;
+            background: var(--bg-panel);
+            border-bottom: 1px solid var(--border-color);
+            border-radius: 8px 8px 0 0;
         }
 
-        .brand-box {
+        .brand h1 {
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--c-green);
+            letter-spacing: 1px;
+            text-shadow: 0 0 10px rgba(0,255,68,0.3);
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 5px;
         }
-
-        .brand-box h1 {
-            font-size: 16px;
-            font-weight: 700;
-            letter-spacing: 1px;
-            color: #FFF;
-        }
-
-        .brand-box span {
-            background: #FF0055;
-            color: #FFF;
-            font-size: 9px;
-            padding: 1px 5px;
-            border-radius: 2px;
-            font-weight: bold;
-        }
-
-        .system-status {
-            display: flex;
-            gap: 8px;
+        .brand span {
+            color: var(--text-muted);
             font-size: 10px;
+            font-weight: normal;
         }
 
-        .status-pill {
-            background: #171C26;
-            padding: 3px 6px;
-            border: 1px solid #2D3748;
-            border-radius: 3px;
-        }
-
-        .status-pill strong { color: #00FFCC; }
-
-        /* WORKSPACE GRID */
-        .workspace-grid {
+        .nav-tabs {
             display: flex;
-            flex-direction: column;
-            gap: 10px;
+            gap: 5px;
+            background: var(--bg-darker);
+            padding: 4px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
         }
 
-        /* TOP SCREEN & METER PANEL */
-        .top-monitor-row {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 10px;
-        }
-
-        @media (max-width: 768px) {
-            .top-monitor-row { grid-template-columns: 1fr; }
-        }
-
-        .display-block {
-            background: #11141A;
-            border: 1px solid #1F2530;
+        .tab {
+            padding: 4px 12px;
+            font-size: 11px;
+            font-weight: bold;
+            color: var(--text-muted);
             border-radius: 4px;
-            padding: 10px;
+            cursor: pointer;
         }
-
-        .display-header {
-            font-size: 10px;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #718096;
-            margin-bottom: 8px;
-            border-bottom: 1px solid #1F2530;
-            padding-bottom: 4px;
+        .tab.active {
+            background: #1e2433;
+            color: var(--text-bright);
         }
+        .tab.live { color: var(--c-red); border: 1px solid var(--c-red); background: rgba(255,0,85,0.1); }
 
-        .rta-container {
-            background: #06080B;
-            border: 1px solid #171C26;
-            height: 100px;
-            border-radius: 3px;
-            overflow: hidden;
+        /* SPECTRUM ANALYZER (RTA) */
+        .rta-wrapper {
+            background: var(--bg-darker);
+            height: 80px;
+            border-bottom: 1px solid var(--border-color);
+            position: relative;
+            padding: 5px 15px;
+            display: flex;
+            align-items: flex-end;
         }
-
         canvas {
             width: 100%;
             height: 100%;
-            display: block;
         }
 
-        /* HARDWARE CONSOLE RACK */
-        .console-rack {
+        /* MAIN MIXER CONSOLE */
+        .mixer-console {
             display: flex;
-            gap: 6px;
-            background: #0E1116;
-            padding: 6px;
-            border-radius: 4px;
-            border: 1px solid #1F2530;
+            flex-wrap: nowrap;
             overflow-x: auto;
+            background: var(--bg-panel);
+            flex-grow: 1;
+            padding: 15px 10px;
+            gap: 2px;
+            border-radius: 0 0 8px 8px;
         }
 
-        /* CHANNEL STRIP HIERARCHY */
-        .strip {
-            background: #141822;
-            border: 1px solid #222938;
-            border-radius: 3px;
-            padding: 8px 5px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            min-width: 120px;
-            flex-shrink: 0;
-        }
-
-        .strip.yt-theme { border-color: #FF0055; background: #18151D; }
-        .strip.fx-theme { border-color: #EAB308; background: #191815; }
-        .strip.master-theme { border-color: #00FFCC; background: #131A1E; min-width: 130px; }
-
-        .strip-tag {
-            background: #1F2633;
-            color: #FFF;
-            font-size: 10px;
-            font-weight: bold;
-            text-align: center;
-            padding: 2px 0;
-            border-radius: 2px;
-        }
-        .yt-theme .strip-tag { background: #FF0055; }
-        .fx-theme .strip-tag { background: #EAB308; color: #000; }
-        .master-theme .strip-tag { background: #00FFCC; color: #000; }
-
-        /* BUTTONS & CONTROLS */
-        .action-btn {
-            background: #232D3F;
-            border: 1px solid #313F56;
-            color: #FFF;
-            font-size: 9px;
-            font-weight: bold;
-            padding: 4px 2px;
-            border-radius: 2px;
-            cursor: pointer;
-            width: 100%;
-            text-align: center;
-            text-transform: uppercase;
-        }
-        .action-btn:active { background: #1A2230; }
-
-        .play-btn.active-play { background: #22C55E; color: #FFF; border-color: #4ADE80; }
-        .mute-btn.active-mute { background: #EF4444; color: #FFF; border-color: #F87171; }
-        .solo-btn.active-solo { background: #EAB308; color: #000; border-color: #FACC15; }
-
-        .url-input {
-            width: 100%;
-            background: #0A0D14;
-            border: 1px solid #2D3748;
-            color: #FF0055;
-            font-size: 9px;
-            padding: 4px;
-            border-radius: 2px;
-            outline: none;
-        }
-
-        /* KNOB AND MATRIX LAYOUT */
-        .knob-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 4px;
-        }
-        .knob-box {
+        /* CHANNEL STRIP BMW STYLE */
+        .channel-strip {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 2px;
+            width: 85px;
+            min-width: 85px;
+            border-right: 1px solid #161a24;
+            padding: 0 5px;
         }
-        .knob-box label { font-size: 8px; color: #718096; font-weight: bold; }
-        
-        .analog-knob {
-            width: 24px;
-            height: 24px;
-            background: radial-gradient(circle, #2D3748 30%, #1A1F26 80%);
-            border: 2px solid #4A5568;
+
+        .ch-title {
+            font-size: 10px;
+            font-weight: bold;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        /* MINI CONTROLS (TEXT + KNOB) */
+        .mini-control {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 12px;
+            width: 100%;
+        }
+        .mc-label {
+            font-size: 9px;
+            color: var(--text-muted);
+            margin-bottom: 2px;
+        }
+        .mc-val {
+            font-size: 9px;
+            color: var(--text-bright);
+            margin-bottom: 4px;
+        }
+
+        /* PREMIUM CSS KNOB */
+        .knob-container {
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
+            background: #11141c;
             position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5), 0 1px 2px rgba(255,255,255,0.05);
         }
-        .analog-knob::after {
-            content: '';
+        .knob-dial {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #1a1e29;
             position: absolute;
-            top: 1px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+            transform: rotate(-45deg); /* Default position */
+        }
+        .knob-indicator {
+            position: absolute;
+            top: 2px;
             left: 50%;
             width: 2px;
             height: 6px;
-            background: #00FFCC;
+            background: var(--text-bright);
             transform: translateX(-50%);
-        }
-        .yt-theme .analog-knob::after { background: #FF0055; }
-        .fx-theme .analog-knob::after { background: #EAB308; }
-
-        /* MIXER CHAMBER: VU METER & FADER */
-        .chamber-core {
-            display: flex;
-            height: 160px;
-            background: #080A0E;
-            border-radius: 3px;
-            padding: 4px;
-            justify-content: space-around;
-            align-items: center;
-            border: 1px solid #1C2330;
-        }
-
-        .vu-slot {
-            width: 8px;
-            height: 100%;
-            background: #12161F;
             border-radius: 1px;
+        }
+
+        /* THE FADER (SLIDER) */
+        .fader-section {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            margin-top: 10px;
+            position: relative;
+            width: 100%;
+        }
+
+        /* Custom Track styling */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 130px; /* Length of fader */
+            background: transparent;
+            transform: rotate(-90deg);
+            margin-bottom: 60px;
+            outline: none;
+        }
+
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 8px;
+            cursor: pointer;
+            background: #0d1016; /* Deep track */
+            border-radius: 4px;
+            border: 1px solid #000;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.8), 0 1px 0 rgba(255,255,255,0.05);
+        }
+
+        /* Custom Thumb (The physical fader handle) */
+        input[type=range]::-webkit-slider-thumb {
+            height: 26px;
+            width: 18px;
+            border-radius: 3px;
+            background: #2a3143; /* Base gray */
+            cursor: pointer;
+            -webkit-appearance: none;
+            margin-top: -10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.6), inset 0 2px 2px rgba(255,255,255,0.1);
+            border-bottom: 2px solid #111;
+            position: relative;
+        }
+
+        /* Color Coding for Channels */
+        .ch-color-cyan input[type=range]::-webkit-slider-thumb { border-top: 3px solid var(--c-cyan); box-shadow: 0 0 10px rgba(0,229,255,0.2); }
+        .ch-color-orange input[type=range]::-webkit-slider-thumb { border-top: 3px solid var(--c-orange); box-shadow: 0 0 10px rgba(255,157,0,0.2); }
+        .ch-color-purple input[type=range]::-webkit-slider-thumb { border-top: 3px solid var(--c-purple); box-shadow: 0 0 10px rgba(180,0,255,0.2); }
+        .ch-color-red input[type=range]::-webkit-slider-thumb { border-top: 3px solid var(--c-red); }
+
+        .ch-routing {
+            font-size: 8px;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            margin-top: -30px;
+            margin-bottom: 10px;
+        }
+
+        /* MASTER SECTION (WIDER, DIFFERENT BG) */
+        .master-strip {
+            width: 120px;
+            min-width: 120px;
+            background: #0d1016;
+            border-left: 1px solid var(--border-color);
+            padding: 0 10px;
+            position: sticky;
+            right: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .master-header {
+            background: #1a202c;
+            color: var(--c-cyan);
+            font-size: 10px;
+            font-weight: bold;
+            padding: 4px 15px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            border: 1px solid #2d3748;
+            box-shadow: 0 0 8px rgba(0,229,255,0.1);
+        }
+
+        .master-meters {
+            display: flex;
+            gap: 4px;
+            height: 120px;
+            width: 16px;
+            background: #000;
+            border-radius: 2px;
+            padding: 1px;
+            margin-bottom: 20px;
+        }
+
+        .meter-bar {
+            width: 50%;
+            height: 100%;
             display: flex;
             flex-direction: column-reverse;
-            overflow: hidden;
-            border: 1px solid #19202E;
         }
-        .vu-fill {
+        .meter-fill {
             width: 100%;
             height: 0%;
-            background: linear-gradient(to top, #22C55E 65%, #EAB308 85%, #EF4444 100%);
+            background: linear-gradient(to top, var(--c-cyan) 60%, var(--c-orange) 85%, var(--c-red) 100%);
             transition: height 0.05s ease;
         }
 
-        .fader-slot { height: 100%; display: flex; align-items: center; }
-        
-        .fader-input {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 4px;
-            height: 140px;
-            background: #171D28;
-            outline: none;
-            writing-mode: vertical-lr;
-            direction: rtl;
+        /* Initialize overlay */
+        .init-overlay {
+            position: absolute;
+            bottom: 20px;
+            right: 140px;
+            z-index: 10;
         }
-        .fader-input::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 16px;
-            height: 24px;
-            background: #E2E8F0;
-            border: 1px solid #4A5568;
-            border-radius: 1px;
+        .init-btn {
+            background: var(--c-cyan);
+            color: #000;
+            border: none;
+            padding: 8px 16px;
+            font-size: 11px;
+            font-weight: bold;
+            border-radius: 4px;
             cursor: pointer;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+            box-shadow: 0 0 15px rgba(0,229,255,0.4);
         }
+
+        /* Custom Scrollbar for Mixer */
+        .mixer-console::-webkit-scrollbar { height: 8px; }
+        .mixer-console::-webkit-scrollbar-track { background: var(--bg-darker); }
+        .mixer-console::-webkit-scrollbar-thumb { background: #2a3143; border-radius: 4px; }
     </style>
 </head>
 <body>
 
     <header>
-        <div class="brand-box">
-            <h1>Fr Audio X78</h1>
-            <span>CORE LIVE v2.0</span>
+        <div class="brand">
+            <h1>Fr audio <span>PREMIUM ENGINE</span></h1>
         </div>
-        <div class="system-status">
-            <div class="status-pill">ENGINE: <strong>WEB AUDIO</strong></div>
-            <div class="status-pill">BUS RATE: <strong>48KHz SR</strong></div>
+        <div class="nav-tabs">
+            <div class="tab">TRACK</div>
+            <div class="tab active">PANEL</div>
+            <div class="tab">YT</div>
+            <div class="tab live">● LIVE</div>
+            <div class="tab">BARS</div>
+        </div>
+        <div class="brand">
+            <span style="color: var(--text-bright); font-weight: bold; font-size: 12px;">-- dBFS</span>
         </div>
     </header>
 
-    <div class="workspace-grid">
-        <div class="top-monitor-row">
-            <div class="display-block">
-                <div class="display-header">Master Real-Time Frequency Analyzer (RTA)</div>
-                <div class="rta-container">
-                    <canvas id="rta-canvas"></canvas>
-                </div>
-            </div>
-            <div class="display-block" style="display: flex; flex-direction: column; justify-content: center; gap: 5px;">
-                <div class="display-header">Global Controller</div>
-                <button class="action-btn" style="color: #00FFCC; border-color: #00FFCC; padding: 10px;" onclick="initAudioEngine()">Boot Engine System</button>
-            </div>
+    <div class="rta-wrapper">
+        <canvas id="rta-canvas"></canvas>
+    </div>
+
+    <div class="mixer-console" id="mixer-rack">
         </div>
 
-        <div class="console-rack" id="mixer-rack">
-            </div>
+    <div class="init-overlay">
+        <button class="init-btn" onclick="bootEngine(this)">START ENGINE</button>
     </div>
 
     <script>
-        let audioCtx;
-        let masterGain;
-        let masterAnalyser;
-        let globalReverbNode;
+        // CONFIGURATION
+        const channels = [
+            { id: 1, name: 'WIDTH', colorClass: 'ch-color-cyan', colorHex: 'conic-gradient(from 180deg, #00e5ff 0%, #11141c 40%)' },
+            { id: 2, name: 'WIDTH', colorClass: 'ch-color-orange', colorHex: 'conic-gradient(from 180deg, #ff9d00 0%, #11141c 40%)' },
+            { id: 3, name: 'WIDTH', colorClass: 'ch-color-cyan', colorHex: 'conic-gradient(from 180deg, #00e5ff 0%, #11141c 40%)' },
+            { id: 4, name: 'WIDTH', colorClass: 'ch-color-orange', colorHex: 'conic-gradient(from 180deg, #ff9d00 0%, #11141c 40%)' },
+            { id: 5, name: 'WIDTH', colorClass: 'ch-color-cyan', colorHex: 'conic-gradient(from 180deg, #00e5ff 0%, #11141c 40%)' },
+            { id: 6, name: 'WIDTH', colorClass: 'ch-color-orange', colorHex: 'conic-gradient(from 180deg, #ff9d00 0%, #11141c 40%)' },
+            { id: 'YT', name: 'WIDTH', colorClass: 'ch-color-purple', colorHex: 'conic-gradient(from 180deg, #b400ff 0%, #11141c 40%)' }
+        ];
 
-        const totalChannels = 8;
-        const channelRegistry = {}; // Dynamic nodes mapping
+        // RENDER UI
+        const rack = document.getElementById('mixer-rack');
 
-        function initAudioEngine() {
+        // Render Normal Channels
+        channels.forEach(ch => {
+            const strip = document.createElement('div');
+            strip.className = `channel-strip ${ch.colorClass}`;
+            strip.innerHTML = `
+                <div class="mini-control">
+                    <span class="mc-label">MKP</span>
+                    <span class="mc-val">+0.0</span>
+                </div>
+                <div class="mini-control">
+                    <span class="mc-label">PAN</span>
+                    <div class="knob-container" style="background: ${ch.colorHex};">
+                        <div class="knob-dial"><div class="knob-indicator"></div></div>
+                    </div>
+                </div>
+                <div class="mini-control">
+                    <span class="mc-label">GAIN</span>
+                    <div class="knob-container" style="background: ${ch.colorHex};">
+                        <div class="knob-dial" style="transform: rotate(45deg);"><div class="knob-indicator"></div></div>
+                    </div>
+                </div>
+                
+                <div class="ch-title">${ch.name}</div>
+                <div class="mc-val">1.0x</div>
+                <div class="mc-val" style="color: var(--text-muted); margin-top: 20px;">-1.9dB</div>
+
+                <div class="fader-section">
+                    <input type="range" min="0" max="100" value="70">
+                </div>
+                <div class="ch-routing">CH ${ch.id}</div>
+            `;
+            rack.appendChild(strip);
+        });
+
+        // Render Master Strip
+        const masterStrip = document.createElement('div');
+        masterStrip.className = 'master-strip ch-color-red';
+        masterStrip.innerHTML = `
+            <div class="master-header">MASTER</div>
+            <div class="mini-control" style="flex-direction: row; gap: 10px;">
+                <span class="mc-label" style="color: var(--c-green)">● LIMITER</span>
+            </div>
+            
+            <div class="master-meters">
+                <div class="meter-bar"><div class="meter-fill" id="meter-l"></div></div>
+                <div class="meter-bar"><div class="meter-fill" id="meter-r"></div></div>
+            </div>
+
+            <div class="mc-val">-0.2dB</div>
+            
+            <div class="fader-section">
+                <input type="range" min="0" max="100" value="90">
+            </div>
+            <div class="ch-routing" style="color: var(--c-cyan)">L R</div>
+        `;
+        rack.appendChild(masterStrip);
+
+        // WEB AUDIO & RTA ANIMATION LOGIC
+        let audioCtx, masterAnalyser;
+        
+        function bootEngine(btn) {
+            btn.style.display = 'none';
             if (!audioCtx) {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                
-                masterGain = audioCtx.createGain();
-                masterGain.gain.setValueAtTime(0.8, audioCtx.currentTime);
-                masterGain.connect(audioCtx.destination);
-
                 masterAnalyser = audioCtx.createAnalyser();
                 masterAnalyser.fftSize = 128;
-                masterAnalyser.connect(masterGain);
-
-                // Build Reverb Effect Processor Loop
-                createGlobalReverb();
-
-                startRTA();
-                console.log("Audio Engine successfully deployed.");
-            }
-        }
-
-        // Generate synthetic room response reverb buffer
-        function createGlobalReverb() {
-            globalReverbNode = audioCtx.createConvolver();
-            const rate = audioCtx.sampleRate;
-            const len = rate * 2.5; // 2.5s Decay time
-            const impulse = audioCtx.createBuffer(2, len, rate);
-            const left = impulse.getChannelData(0);
-            const right = impulse.getChannelData(1);
-
-            for (let i = 0; i < len; i++) {
-                const decay = Math.exp(-i / (rate * 0.8));
-                left[i] = (Math.random() * 2 - 1) * decay;
-                right[i] = (Math.random() * 2 - 1) * decay;
-            }
-            globalReverbNode.buffer = impulse;
-            globalReverbNode.connect(masterAnalyser);
-        }
-
-        function buildMixerConsole() {
-            const rack = document.getElementById('mixer-rack');
-
-            // 1. Build 8 Music Input Channels
-            for (let i = 1; i <= totalChannels; i++) {
-                const strip = document.createElement('div');
-                strip.className = 'strip';
-                strip.innerHTML = `
-                    <div class="strip-tag">CH 0${i}</div>
-                    <button class="action-btn" onclick="document.getElementById('file-${i}').click()">Load</button>
-                    <input type="file" id="file-${i}" style="display:none" accept="audio/*" onchange="loadAudioTrack(this, ${i})">
-                    
-                    <button class="action-btn play-btn" id="play-btn-${i}" onclick="togglePlay(${i})">Play</button>
-                    
-                    <div class="knob-row">
-                        <div class="knob-box"><label>EFX</label><div class="analog-knob"></div></div>
-                        <div class="knob-box"><label>PAN</label><div class="analog-knob"></div></div>
-                    </div>
-
-                    <div class="chamber-core">
-                        <div class="vu-slot"><div class="vu-fill" id="vu-${i}"></div></div>
-                        <div class="fader-slot">
-                            <input type="range" class="fader-input" min="0" max="1.2" value="0.7" step="0.01" oninput="setVolume(${i}, this.value)">
-                        </div>
-                    </div>
-
-                    <button class="action-btn mute-btn" id="mute-btn-${i}" onclick="toggleMute(${i})">Mute</button>
-                `;
-                rack.appendChild(strip);
-            }
-
-            // 2. Build 1 YouTube Channel
-            const ytStrip = document.createElement('div');
-            ytStrip.className = 'strip yt-theme';
-            ytStrip.innerHTML = `
-                <div class="strip-tag">YT INPUT</div>
-                <input type="text" class="url-input" placeholder="Paste Link..." onchange="connectYTAudio(this)">
-                <button class="action-btn play-btn" id="play-btn-yt">Play</button>
                 
-                <div class="knob-row">
-                    <div class="knob-box"><label>EFX</label><div class="analog-knob"></div></div>
-                    <div class="knob-box"><label>PAN</label><div class="analog-knob"></div></div>
-                </div>
-
-                <div class="chamber-core">
-                    <div class="vu-slot"><div class="vu-fill" id="vu-yt"></div></div>
-                    <div class="fader-slot">
-                        <input type="range" class="fader-input" min="0" max="1.2" value="0.7" step="0.01" oninput="setVolume('yt', this.value)">
-                    </div>
-                </div>
-                <button class="action-btn mute-btn" id="mute-btn-yt" onclick="toggleMute('yt')">Mute</button>
-            `;
-            rack.appendChild(ytStrip);
-
-            // 3. Build 1 FX Return Channel
-            const fxStrip = document.createElement('div');
-            fxStrip.className = 'strip fx-theme';
-            fxStrip.innerHTML = `
-                <div class="strip-tag">FX RTN</div>
-                <div style="height: 18px;"></div>
-                <button class="action-btn" style="border-color:#EAB308; color:#EAB308;">REVERB</button>
+                // Create a dummy oscillator just to feed the RTA so it moves beautifully like the video
+                const osc = audioCtx.createOscillator();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(110, audioCtx.currentTime);
                 
-                <div class="knob-row">
-                    <div class="knob-box"><label>DECAY</label><div class="analog-knob"></div></div>
-                    <div class="knob-box"><label>TONE</label><div class="analog-knob"></div></div>
-                </div>
-
-                <div class="chamber-core">
-                    <div class="vu-slot"><div class="vu-fill" id="vu-fx"></div></div>
-                    <div class="fader-slot">
-                        <input type="range" class="fader-input" min="0" max="1.2" value="0.5" step="0.01" oninput="setFXReturn(this.value)">
-                    </div>
-                </div>
-                <button class="action-btn" style="background:#1A1510; color:#EAB308; border-color:#2D2518;">ACTIVE</button>
-            `;
-            rack.appendChild(fxStrip);
-
-            // 4. Build Master Output Channel
-            const masterStrip = document.createElement('div');
-            masterStrip.className = 'strip master-theme';
-            masterStrip.innerHTML = `
-                <div class="strip-tag">MAIN L/R</div>
-                <div style="height: 48px;"></div>
-                <div class="knob-row">
-                    <div class="knob-box"><label>LIMIT</label><div class="analog-knob"></div></div>
-                    <div class="knob-box"><label>BAL</label><div class="analog-knob"></div></div>
-                </div>
-
-                <div class="chamber-core">
-                    <div class="vu-slot" style="width:5px;"><div class="vu-fill" id="vu-master-L"></div></div>
-                    <div class="vu-slot" style="width:5px;"><div class="vu-fill" id="vu-master-R"></div></div>
-                    <div class="fader-slot">
-                        <input type="range" class="fader-input" min="0" max="1.2" value="1.0" step="0.01" oninput="setMasterVolume(this.value)">
-                    </div>
-                </div>
-                <button class="action-btn" style="background:#0F2621; border-color:#00FFCC; color:#00FFCC;">ONLINE</button>
-            `;
-            rack.appendChild(masterStrip);
-        }
-
-        // AUDIO SIGNAL PROCESSING (DSP) LOGIC
-        function loadAudioTrack(input, chId) {
-            initAudioEngine();
-            if (input.files.length === 0) return;
-            
-            const file = input.files[0];
-            const reader = new FileReader();
-
-            reader.onload = function(e) {
-                audioCtx.decodeAudioData(e.target.result, function(buffer) {
-                    setupChannelDSP(chId, buffer);
-                });
-            };
-            reader.readAsArrayBuffer(file);
-        }
-
-        function setupChannelDSP(chId, buffer) {
-            // Teardown node if exist
-            if (channelRegistry[chId]) {
-                if (channelRegistry[chId].source) channelRegistry[chId].source.disconnect();
-            }
-
-            const gainNode = audioCtx.createGain();
-            gainNode.gain.setValueAtTime(0.7, audioCtx.currentTime);
-
-            const fxSendNode = audioCtx.createGain();
-            fxSendNode.gain.setValueAtTime(0.3, audioCtx.currentTime); // Default send level
-
-            const analyserNode = audioCtx.createAnalyser();
-            analyserNode.fftSize = 32;
-
-            gainNode.connect(analyserNode);
-            gainNode.connect(masterAnalyser);
-            
-            // Connect to FX loop
-            gainNode.connect(fxSendNode);
-            fxSendNode.connect(globalReverbNode);
-
-            channelRegistry[chId] = {
-                buffer: buffer,
-                source: null,
-                gain: gainNode,
-                fxSend: fxSendNode,
-                analyser: analyserNode,
-                isPlaying: false,
-                isMuted: false,
-                lastVolume: 0.7
-            };
-
-            document.getElementById(`play-btn-${chId}`).classList.remove('active-play');
-            document.getElementById(`play-btn-${chId}`).innerText = "Play";
-            
-            // Boot level monitor loop
-            monitorVUMeter(chId);
-        }
-
-        function togglePlay(chId) {
-            initAudioEngine();
-            const ch = channelRegistry[chId];
-            if (!ch) return alert("Pilih / Load file musik terlebih dahulu!");
-
-            const btn = document.getElementById(`play-btn-${chId}`);
-
-            if (!ch.isPlaying) {
-                ch.source = audioCtx.createBufferSource();
-                ch.source.buffer = ch.buffer;
-                ch.source.loop = true;
-                ch.source.connect(ch.gain);
-                ch.source.start(0);
-                ch.isPlaying = true;
-                btn.innerText = "Pause";
-                btn.classList.add('active-play');
-            } else {
-                ch.source.stop();
-                ch.isPlaying = false;
-                btn.innerText = "Play";
-                btn.classList.remove('active-play');
-            }
-        }
-
-        function connectYTAudio(inputField) {
-            initAudioEngine();
-            if (inputField.value.trim() === "") return;
-            alert("Proxy Streaming YT Terpasang. Link siap diproses sistem.");
-            
-            // Dummy registration object for UI interaction tracking
-            channelRegistry['yt'] = {
-                analyser: audioCtx.createAnalyser(),
-                gain: audioCtx.createGain(),
-                isMuted: false,
-                lastVolume: 0.7
-            };
-            document.getElementById('play-btn-yt').classList.add('active-play');
-            monitorVUMeter('yt');
-        }
-
-        function setVolume(chId, value) {
-            if (channelRegistry[chId]) {
-                channelRegistry[chId].gain.gain.setValueAtTime(value, audioCtx.currentTime);
-                channelRegistry[chId].lastVolume = value;
-            }
-        }
-
-        function toggleMute(chId) {
-            const ch = channelRegistry[chId];
-            if (!ch) return;
-            const btn = document.getElementById(`mute-btn-${chId}`);
-
-            if (!ch.isMuted) {
-                ch.gain.gain.setValueAtTime(0, audioCtx.currentTime);
-                ch.isMuted = true;
-                btn.classList.add('active-mute');
-            } else {
-                ch.gain.gain.setValueAtTime(ch.lastVolume, audioCtx.currentTime);
-                ch.isMuted = false;
-                btn.classList.remove('active-mute');
-            }
-        }
-
-        function setFXReturn(value) {
-            if (globalReverbNode) {
-                // Adjusting master reverb destination input
-                masterGain.gain.setValueAtTime(value, audioCtx.currentTime);
-            }
-        }
-
-        function setMasterVolume(value) {
-            if (masterGain) {
-                masterGain.gain.setValueAtTime(value, audioCtx.currentTime);
-            }
-        }
-
-        // METERS AND VISUALIZATION ENGINE
-        function monitorVUMeter(chId) {
-            const target = channelRegistry[chId];
-            if (!target || !target.analyser) return;
-
-            const vuFill = document.getElementById(`vu-${chId}`);
-            const data = new Uint8Array(target.analyser.frequencyBinCount);
-
-            function update() {
-                if (!target.analyser) return;
-                target.analyser.getByteFrequencyData(data);
-                let sum = 0;
-                for (let i = 0; i < data.length; i++) sum += data[i];
-                let avg = sum / data.length;
+                const lfo = audioCtx.createOscillator();
+                lfo.frequency.value = 2; // sweep speed
+                const lfoGain = audioCtx.createGain();
+                lfoGain.gain.value = 800; // sweep depth
                 
-                let height = (avg / 255) * 100 * 1.5;
-                if (vuFill) vuFill.style.height = Math.min(height, 100) + "%";
+                lfo.connect(lfoGain);
+                lfoGain.connect(osc.frequency);
                 
-                requestAnimationFrame(update);
+                const masterGain = audioCtx.createGain();
+                masterGain.gain.value = 0.5;
+
+                osc.connect(masterGain);
+                masterGain.connect(masterAnalyser);
+                // We DON'T connect to destination so it doesn't make an annoying sound, 
+                // we just want the visualizer to react!
+                
+                osc.start();
+                lfo.start();
+
+                drawRTA();
             }
-            update();
         }
 
-        function startRTA() {
+        function drawRTA() {
             const canvas = document.getElementById('rta-canvas');
             const ctx = canvas.getContext('2d');
+            
+            // Handle resizing correctly for sharp rendering
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+
             const bufferLen = masterAnalyser.frequencyBinCount;
             const dataArray = new Uint8Array(bufferLen);
 
-            function draw() {
-                requestAnimationFrame(draw);
+            function render() {
+                requestAnimationFrame(render);
                 masterAnalyser.getByteFrequencyData(dataArray);
 
-                ctx.fillStyle = '#06080B';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-                const barWidth = (canvas.width / bufferLen) * 2.0;
-                let barHeight;
+                const barWidth = (canvas.width / bufferLen) * 2;
                 let x = 0;
 
                 for (let i = 0; i < bufferLen; i++) {
-                    barHeight = dataArray[i] / 2;
+                    // Make it look like the beautiful rainbow spectrum in your video
+                    let barHeight = (dataArray[i] / 255) * canvas.height;
+                    
+                    // Rainbow Gradient Calculation
+                    const hue = i * (360 / bufferLen);
+                    ctx.fillStyle = `hsl(${hue}, 100%, 50%)`;
 
-                    ctx.fillStyle = i % 2 === 0 ? '#00FFCC' : '#FF0055';
+                    // Draw the bars
                     ctx.fillRect(x, canvas.height - barHeight, barWidth - 1, barHeight);
-
                     x += barWidth;
                 }
 
-                // Inject processing levels into master volume bars
-                document.getElementById('vu-master-L').style.height = (dataArray[5] || 0) / 2.5 + '%';
-                document.getElementById('vu-master-R').style.height = (dataArray[6] || 0) / 2.5 + '%';
+                // Simulate Master L/R Meters
+                const volumeSim = (dataArray[10] / 255) * 100;
+                document.getElementById('meter-l').style.height = `${Math.min(volumeSim * 1.2, 100)}%`;
+                document.getElementById('meter-r').style.height = `${Math.min(volumeSim * 1.1, 100)}%`;
             }
-            draw();
+            render();
         }
-
-        window.onload = buildMixerConsole;
     </script>
 </body>
 </html>
