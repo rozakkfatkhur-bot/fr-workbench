@@ -3,504 +3,494 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fr Audio X78 - Premium Console</title>
+    <title>FR Audio X78 Series - Web Mixer</title>
     <style>
-        /* BASE & TYPOGRAPHY */
-        :root {
-            --bg-main: #0a0b10;
-            --bg-panel: #11141c;
-            --bg-darker: #0d1016;
-            --text-muted: #6b778d;
-            --text-bright: #e2e8f0;
-            --border-color: #1e2433;
-            
-            /* Channel Colors matching your video */
-            --c-cyan: #00e5ff;
-            --c-orange: #ff9d00;
-            --c-purple: #b400ff;
-            --c-green: #00ff44;
-            --c-red: #ff0055;
-        }
-
         * {
-            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            user-select: none;
+            box-sizing: border-box;
         }
 
         body {
-            background-color: var(--bg-main);
-            color: var(--text-bright);
-            padding: 10px;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a1a;
+            color: #fff;
+            overflow-x: hidden;
         }
 
-        /* HEADER & TABS */
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 15px;
-            background: var(--bg-panel);
-            border-bottom: 1px solid var(--border-color);
-            border-radius: 8px 8px 0 0;
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
         }
 
-        .brand h1 {
-            font-size: 16px;
-            font-weight: 800;
-            color: var(--c-green);
-            letter-spacing: 1px;
-            text-shadow: 0 0 10px rgba(0,255,68,0.3);
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        .brand span {
-            color: var(--text-muted);
-            font-size: 10px;
-            font-weight: normal;
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
         }
 
-        .nav-tabs {
-            display: flex;
-            gap: 5px;
-            background: var(--bg-darker);
-            padding: 4px;
-            border-radius: 6px;
-            border: 1px solid var(--border-color);
+        .header p {
+            color: #bdc3c7;
+            font-size: 0.9em;
         }
 
-        .tab {
-            padding: 4px 12px;
-            font-size: 11px;
-            font-weight: bold;
-            color: var(--text-muted);
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .tab.active {
-            background: #1e2433;
-            color: var(--text-bright);
-        }
-        .tab.live { color: var(--c-red); border: 1px solid var(--c-red); background: rgba(255,0,85,0.1); }
-
-        /* SPECTRUM ANALYZER (RTA) */
-        .rta-wrapper {
-            background: var(--bg-darker);
-            height: 80px;
-            border-bottom: 1px solid var(--border-color);
-            position: relative;
-            padding: 5px 15px;
+        .mixer-container {
             display: flex;
-            align-items: flex-end;
-        }
-        canvas {
-            width: 100%;
-            height: 100%;
-        }
-
-        /* MAIN MIXER CONSOLE */
-        .mixer-console {
-            display: flex;
-            flex-wrap: nowrap;
+            padding: 20px;
+            gap: 15px;
             overflow-x: auto;
-            background: var(--bg-panel);
-            flex-grow: 1;
-            padding: 15px 10px;
-            gap: 2px;
-            border-radius: 0 0 8px 8px;
+            background: #2c3e50;
+            min-height: calc(100vh - 100px);
         }
 
-        /* CHANNEL STRIP BMW STYLE */
-        .channel-strip {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 85px;
-            min-width: 85px;
-            border-right: 1px solid #161a24;
-            padding: 0 5px;
+        .channel {
+            background: linear-gradient(180deg, #34495e, #2c3e50);
+            border-radius: 10px;
+            padding: 15px;
+            min-width: 120px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+            border: 2px solid #4a5f7f;
+            position: relative;
         }
 
-        .ch-title {
-            font-size: 10px;
+        .channel.youtube {
+            border-color: #e74c3c;
+            background: linear-gradient(180deg, #c0392b, #2c3e50);
+        }
+
+        .channel.effects {
+            border-color: #3498db;
+            background: linear-gradient(180deg, #2980b9, #2c3e50);
+        }
+
+        .channel-label {
+            text-align: center;
             font-weight: bold;
-            color: var(--text-muted);
             margin-bottom: 10px;
+            padding: 8px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 5px;
+            font-size: 0.85em;
             text-transform: uppercase;
         }
 
-        /* MINI CONTROLS (TEXT + KNOB) */
-        .mini-control {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-bottom: 12px;
+        .channel.youtube .channel-label {
+            background: #e74c3c;
+        }
+
+        .channel.effects .channel-label {
+            background: #3498db;
+        }
+
+        .meter {
             width: 100%;
-        }
-        .mc-label {
-            font-size: 9px;
-            color: var(--text-muted);
-            margin-bottom: 2px;
-        }
-        .mc-val {
-            font-size: 9px;
-            color: var(--text-bright);
-            margin-bottom: 4px;
-        }
-
-        /* PREMIUM CSS KNOB */
-        .knob-container {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            background: #11141c;
-            position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5), 0 1px 2px rgba(255,255,255,0.05);
-        }
-        .knob-dial {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: #1a1e29;
-            position: absolute;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.4);
-            transform: rotate(-45deg); /* Default position */
-        }
-        .knob-indicator {
-            position: absolute;
-            top: 2px;
-            left: 50%;
-            width: 2px;
-            height: 6px;
-            background: var(--text-bright);
-            transform: translateX(-50%);
-            border-radius: 1px;
-        }
-
-        /* THE FADER (SLIDER) */
-        .fader-section {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-end;
-            margin-top: 10px;
-            position: relative;
-            width: 100%;
-        }
-
-        /* Custom Track styling */
-        input[type=range] {
-            -webkit-appearance: none;
-            width: 130px; /* Length of fader */
-            background: transparent;
-            transform: rotate(-90deg);
-            margin-bottom: 60px;
-            outline: none;
-        }
-
-        input[type=range]::-webkit-slider-runnable-track {
-            width: 100%;
-            height: 8px;
-            cursor: pointer;
-            background: #0d1016; /* Deep track */
-            border-radius: 4px;
-            border: 1px solid #000;
-            box-shadow: inset 0 1px 3px rgba(0,0,0,0.8), 0 1px 0 rgba(255,255,255,0.05);
-        }
-
-        /* Custom Thumb (The physical fader handle) */
-        input[type=range]::-webkit-slider-thumb {
-            height: 26px;
-            width: 18px;
-            border-radius: 3px;
-            background: #2a3143; /* Base gray */
-            cursor: pointer;
-            -webkit-appearance: none;
-            margin-top: -10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.6), inset 0 2px 2px rgba(255,255,255,0.1);
-            border-bottom: 2px solid #111;
-            position: relative;
-        }
-
-        /* Color Coding for Channels */
-        .ch-color-cyan input[type=range]::-webkit-slider-thumb { border-top: 3px solid var(--c-cyan); box-shadow: 0 0 10px rgba(0,229,255,0.2); }
-        .ch-color-orange input[type=range]::-webkit-slider-thumb { border-top: 3px solid var(--c-orange); box-shadow: 0 0 10px rgba(255,157,0,0.2); }
-        .ch-color-purple input[type=range]::-webkit-slider-thumb { border-top: 3px solid var(--c-purple); box-shadow: 0 0 10px rgba(180,0,255,0.2); }
-        .ch-color-red input[type=range]::-webkit-slider-thumb { border-top: 3px solid var(--c-red); }
-
-        .ch-routing {
-            font-size: 8px;
-            color: var(--text-muted);
-            letter-spacing: 1px;
-            margin-top: -30px;
-            margin-bottom: 10px;
-        }
-
-        /* MASTER SECTION (WIDER, DIFFERENT BG) */
-        .master-strip {
-            width: 120px;
-            min-width: 120px;
-            background: #0d1016;
-            border-left: 1px solid var(--border-color);
-            padding: 0 10px;
-            position: sticky;
-            right: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .master-header {
-            background: #1a202c;
-            color: var(--c-cyan);
-            font-size: 10px;
-            font-weight: bold;
-            padding: 4px 15px;
-            border-radius: 4px;
+            height: 150px;
+            background: #1a1a1a;
+            border-radius: 5px;
             margin-bottom: 15px;
-            border: 1px solid #2d3748;
-            box-shadow: 0 0 8px rgba(0,229,255,0.1);
-        }
-
-        .master-meters {
-            display: flex;
-            gap: 4px;
-            height: 120px;
-            width: 16px;
-            background: #000;
-            border-radius: 2px;
-            padding: 1px;
-            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #555;
         }
 
         .meter-bar {
-            width: 50%;
-            height: 100%;
-            display: flex;
-            flex-direction: column-reverse;
-        }
-        .meter-fill {
+            position: absolute;
+            bottom: 0;
             width: 100%;
+            background: linear-gradient(to top, #27ae60, #f39c12, #e74c3c);
+            transition: height 0.1s ease;
             height: 0%;
-            background: linear-gradient(to top, var(--c-cyan) 60%, var(--c-orange) 85%, var(--c-red) 100%);
-            transition: height 0.05s ease;
         }
 
-        /* Initialize overlay */
-        .init-overlay {
-            position: absolute;
-            bottom: 20px;
-            right: 140px;
-            z-index: 10;
+        .fader-container {
+            height: 200px;
+            position: relative;
+            margin: 15px 0;
+            display: flex;
+            justify-content: center;
         }
-        .init-btn {
-            background: var(--c-cyan);
-            color: #000;
+
+        .fader {
+            -webkit-appearance: slider-vertical;
+            width: 40px;
+            height: 100%;
+            background: linear-gradient(to top, #555, #888);
+            border-radius: 20px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .fader::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 50px;
+            height: 30px;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        }
+
+        .fader::-moz-range-thumb {
+            width: 50px;
+            height: 30px;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            border-radius: 5px;
+            cursor: pointer;
             border: none;
-            padding: 8px 16px;
-            font-size: 11px;
-            font-weight: bold;
+        }
+
+        .pan-control {
+            margin: 10px 0;
+        }
+
+        .pan-knob {
+            width: 100%;
+            height: 8px;
+            background: #555;
             border-radius: 4px;
             cursor: pointer;
-            box-shadow: 0 0 15px rgba(0,229,255,0.4);
         }
 
-        /* Custom Scrollbar for Mixer */
-        .mixer-console::-webkit-scrollbar { height: 8px; }
-        .mixer-console::-webkit-scrollbar-track { background: var(--bg-darker); }
-        .mixer-console::-webkit-scrollbar-thumb { background: #2a3143; border-radius: 4px; }
+        .pan-knob::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #f39c12;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .pan-knob::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: #f39c12;
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .btn {
+            padding: 8px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.8em;
+            transition: all 0.2s;
+            text-transform: uppercase;
+        }
+
+        .btn-mute {
+            background: #95a5a6;
+            color: #fff;
+        }
+
+        .btn-mute.active {
+            background: #e74c3c;
+        }
+
+        .btn-solo {
+            background: #95a5a6;
+            color: #fff;
+        }
+
+        .btn-solo.active {
+            background: #f39c12;
+        }
+
+        .btn-record {
+            background: #95a5a6;
+            color: #fff;
+        }
+
+        .btn-record.active {
+            background: #e74c3c;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .eq-section {
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 5px;
+        }
+
+        .eq-label {
+            font-size: 0.7em;
+            margin-bottom: 5px;
+            color: #bdc3c7;
+        }
+
+        .eq-knob {
+            width: 100%;
+            height: 6px;
+            background: #555;
+            border-radius: 3px;
+        }
+
+        .eq-knob::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 15px;
+            height: 15px;
+            background: #16a085;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .volume-display {
+            text-align: center;
+            font-size: 0.8em;
+            color: #3498db;
+            margin-top: 5px;
+            font-weight: bold;
+        }
+
+        .master-section {
+            background: linear-gradient(180deg, #8e44ad, #2c3e50);
+            border: 2px solid #9b59b6;
+            min-width: 150px;
+        }
+
+        .fx-send {
+            margin: 10px 0;
+            padding: 8px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 5px;
+        }
+
+        .fx-label {
+            font-size: 0.7em;
+            margin-bottom: 5px;
+        }
+
+        .phase-invert {
+            margin: 5px 0;
+        }
+
+        .btn-phase {
+            background: #34495e;
+            color: #fff;
+            width: 100%;
+        }
+
+        .btn-phase.active {
+            background: #9b59b6;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.5em;
+            }
+            
+            .channel {
+                min-width: 100px;
+                padding: 10px;
+            }
+        }
     </style>
 </head>
 <body>
-
-    <header>
-        <div class="brand">
-            <h1>Fr audio <span>PREMIUM ENGINE</span></h1>
-        </div>
-        <div class="nav-tabs">
-            <div class="tab">TRACK</div>
-            <div class="tab active">PANEL</div>
-            <div class="tab">YT</div>
-            <div class="tab live">● LIVE</div>
-            <div class="tab">BARS</div>
-        </div>
-        <div class="brand">
-            <span style="color: var(--text-bright); font-weight: bold; font-size: 12px;">-- dBFS</span>
-        </div>
-    </header>
-
-    <div class="rta-wrapper">
-        <canvas id="rta-canvas"></canvas>
+    <div class="header">
+        <h1>FR Audio X78 Series</h1>
+        <p>Professional Web Audio Mixer - 10 Channel Digital Console</p>
     </div>
 
-    <div class="mixer-console" id="mixer-rack">
-        </div>
-
-    <div class="init-overlay">
-        <button class="init-btn" onclick="bootEngine(this)">START ENGINE</button>
+    <div class="mixer-container" id="mixerContainer">
+        <!-- Channels akan di-generate oleh JavaScript -->
     </div>
 
     <script>
-        // CONFIGURATION
-        const channels = [
-            { id: 1, name: 'WIDTH', colorClass: 'ch-color-cyan', colorHex: 'conic-gradient(from 180deg, #00e5ff 0%, #11141c 40%)' },
-            { id: 2, name: 'WIDTH', colorClass: 'ch-color-orange', colorHex: 'conic-gradient(from 180deg, #ff9d00 0%, #11141c 40%)' },
-            { id: 3, name: 'WIDTH', colorClass: 'ch-color-cyan', colorHex: 'conic-gradient(from 180deg, #00e5ff 0%, #11141c 40%)' },
-            { id: 4, name: 'WIDTH', colorClass: 'ch-color-orange', colorHex: 'conic-gradient(from 180deg, #ff9d00 0%, #11141c 40%)' },
-            { id: 5, name: 'WIDTH', colorClass: 'ch-color-cyan', colorHex: 'conic-gradient(from 180deg, #00e5ff 0%, #11141c 40%)' },
-            { id: 6, name: 'WIDTH', colorClass: 'ch-color-orange', colorHex: 'conic-gradient(from 180deg, #ff9d00 0%, #11141c 40%)' },
-            { id: 'YT', name: 'WIDTH', colorClass: 'ch-color-purple', colorHex: 'conic-gradient(from 180deg, #b400ff 0%, #11141c 40%)' }
+        // Konfigurasi channel
+        const channelConfig = [
+            { id: 1, name: 'Channel 1', type: 'normal' },
+            { id: 2, name: 'Channel 2', type: 'normal' },
+            { id: 3, name: 'Channel 3', type: 'normal' },
+            { id: 4, name: 'Channel 4', type: 'normal' },
+            { id: 5, name: 'Channel 5', type: 'normal' },
+            { id: 6, name: 'Channel 6', type: 'normal' },
+            { id: 7, name: 'Channel 7', type: 'normal' },
+            { id: 8, name: 'Channel 8', type: 'normal' },
+            { id: 9, name: 'YouTube', type: 'youtube' },
+            { id: 10, name: 'Effects', type: 'effects' }
         ];
 
-        // RENDER UI
-        const rack = document.getElementById('mixer-rack');
+        // State untuk setiap channel
+        const channelStates = {};
 
-        // Render Normal Channels
-        channels.forEach(ch => {
-            const strip = document.createElement('div');
-            strip.className = `channel-strip ${ch.colorClass}`;
-            strip.innerHTML = `
-                <div class="mini-control">
-                    <span class="mc-label">MKP</span>
-                    <span class="mc-val">+0.0</span>
-                </div>
-                <div class="mini-control">
-                    <span class="mc-label">PAN</span>
-                    <div class="knob-container" style="background: ${ch.colorHex};">
-                        <div class="knob-dial"><div class="knob-indicator"></div></div>
-                    </div>
-                </div>
-                <div class="mini-control">
-                    <span class="mc-label">GAIN</span>
-                    <div class="knob-container" style="background: ${ch.colorHex};">
-                        <div class="knob-dial" style="transform: rotate(45deg);"><div class="knob-indicator"></div></div>
-                    </div>
-                </div>
-                
-                <div class="ch-title">${ch.name}</div>
-                <div class="mc-val">1.0x</div>
-                <div class="mc-val" style="color: var(--text-muted); margin-top: 20px;">-1.9dB</div>
-
-                <div class="fader-section">
-                    <input type="range" min="0" max="100" value="70">
-                </div>
-                <div class="ch-routing">CH ${ch.id}</div>
-            `;
-            rack.appendChild(strip);
+        // Inisialisasi state
+        channelConfig.forEach(ch => {
+            channelStates[ch.id] = {
+                volume: 75,
+                pan: 50,
+                mute: false,
+                solo: false,
+                record: false,
+                phase: false,
+                eq: { high: 50, mid: 50, low: 50 },
+                fxSend: 0
+            };
         });
 
-        // Render Master Strip
-        const masterStrip = document.createElement('div');
-        masterStrip.className = 'master-strip ch-color-red';
-        masterStrip.innerHTML = `
-            <div class="master-header">MASTER</div>
-            <div class="mini-control" style="flex-direction: row; gap: 10px;">
-                <span class="mc-label" style="color: var(--c-green)">● LIMITER</span>
-            </div>
+        // Generate channels
+        function createChannels() {
+            const container = document.getElementById('mixerContainer');
             
-            <div class="master-meters">
-                <div class="meter-bar"><div class="meter-fill" id="meter-l"></div></div>
-                <div class="meter-bar"><div class="meter-fill" id="meter-r"></div></div>
-            </div>
-
-            <div class="mc-val">-0.2dB</div>
-            
-            <div class="fader-section">
-                <input type="range" min="0" max="100" value="90">
-            </div>
-            <div class="ch-routing" style="color: var(--c-cyan)">L R</div>
-        `;
-        rack.appendChild(masterStrip);
-
-        // WEB AUDIO & RTA ANIMATION LOGIC
-        let audioCtx, masterAnalyser;
-        
-        function bootEngine(btn) {
-            btn.style.display = 'none';
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                masterAnalyser = audioCtx.createAnalyser();
-                masterAnalyser.fftSize = 128;
-                
-                // Create a dummy oscillator just to feed the RTA so it moves beautifully like the video
-                const osc = audioCtx.createOscillator();
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(110, audioCtx.currentTime);
-                
-                const lfo = audioCtx.createOscillator();
-                lfo.frequency.value = 2; // sweep speed
-                const lfoGain = audioCtx.createGain();
-                lfoGain.gain.value = 800; // sweep depth
-                
-                lfo.connect(lfoGain);
-                lfoGain.connect(osc.frequency);
-                
-                const masterGain = audioCtx.createGain();
-                masterGain.gain.value = 0.5;
-
-                osc.connect(masterGain);
-                masterGain.connect(masterAnalyser);
-                // We DON'T connect to destination so it doesn't make an annoying sound, 
-                // we just want the visualizer to react!
-                
-                osc.start();
-                lfo.start();
-
-                drawRTA();
-            }
-        }
-
-        function drawRTA() {
-            const canvas = document.getElementById('rta-canvas');
-            const ctx = canvas.getContext('2d');
-            
-            // Handle resizing correctly for sharp rendering
-            canvas.width = canvas.parentElement.clientWidth;
-            canvas.height = canvas.parentElement.clientHeight;
-
-            const bufferLen = masterAnalyser.frequencyBinCount;
-            const dataArray = new Uint8Array(bufferLen);
-
-            function render() {
-                requestAnimationFrame(render);
-                masterAnalyser.getByteFrequencyData(dataArray);
-
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-                const barWidth = (canvas.width / bufferLen) * 2;
-                let x = 0;
-
-                for (let i = 0; i < bufferLen; i++) {
-                    // Make it look like the beautiful rainbow spectrum in your video
-                    let barHeight = (dataArray[i] / 255) * canvas.height;
+            channelConfig.forEach(ch => {
+                const channelDiv = document.createElement('div');
+                channelDiv.className = `channel ${ch.type}`;
+                channelDiv.innerHTML = `
+                    <div class="channel-label">${ch.name}</div>
                     
-                    // Rainbow Gradient Calculation
-                    const hue = i * (360 / bufferLen);
-                    ctx.fillStyle = `hsl(${hue}, 100%, 50%)`;
+                    <div class="meter">
+                        <div class="meter-bar" id="meter-${ch.id}"></div>
+                    </div>
+                    
+                    <div class="eq-section">
+                        <div class="eq-label">High</div>
+                        <input type="range" class="eq-knob" min="0" max="100" value="50" 
+                               onchange="updateEQ(${ch.id}, 'high', this.value)">
+                        
+                        <div class="eq-label">Mid</div>
+                        <input type="range" class="eq-knob" min="0" max="100" value="50"
+                               onchange="updateEQ(${ch.id}, 'mid', this.value)">
+                        
+                        <div class="eq-label">Low</div>
+                        <input type="range" class="eq-knob" min="0" max="100" value="50"
+                               onchange="updateEQ(${ch.id}, 'low', this.value)">
+                    </div>
+                    
+                    <div class="pan-control">
+                        <div class="eq-label">Pan</div>
+                        <input type="range" class="pan-knob" min="0" max="100" value="50"
+                               onchange="updatePan(${ch.id}, this.value)">
+                    </div>
+                    
+                    <div class="fader-container">
+                        <input type="range" class="fader" min="0" max="100" value="75" orient="vertical"
+                               oninput="updateVolume(${ch.id}, this.value)">
+                    </div>
+                    
+                    <div class="volume-display" id="vol-${ch.id}">-6 dB</div>
+                    
+                    <div class="fx-send">
+                        <div class="fx-label">FX Send</div>
+                        <input type="range" class="eq-knob" min="0" max="100" value="0"
+                               onchange="updateFX(${ch.id}, this.value)">
+                    </div>
+                    
+                    <div class="controls">
+                        <button class="btn btn-mute" onclick="toggleMute(${ch.id}, this)">Mute</button>
+                        <button class="btn btn-solo" onclick="toggleSolo(${ch.id}, this)">Solo</button>
+                        <button class="btn btn-record" onclick="toggleRecord(${ch.id}, this)">Rec</button>
+                        <button class="btn btn-phase" onclick="togglePhase(${ch.id}, this)">Ø</button>
+                    </div>
+                `;
+                
+                container.appendChild(channelDiv);
+            });
 
-                    // Draw the bars
-                    ctx.fillRect(x, canvas.height - barHeight, barWidth - 1, barHeight);
-                    x += barWidth;
-                }
-
-                // Simulate Master L/R Meters
-                const volumeSim = (dataArray[10] / 255) * 100;
-                document.getElementById('meter-l').style.height = `${Math.min(volumeSim * 1.2, 100)}%`;
-                document.getElementById('meter-r').style.height = `${Math.min(volumeSim * 1.1, 100)}%`;
-            }
-            render();
+            // Add Master Channel
+            const masterDiv = document.createElement('div');
+            masterDiv.className = 'channel master-section';
+            masterDiv.innerHTML = `
+                <div class="channel-label">Master</div>
+                
+                <div class="meter">
+                    <div class="meter-bar" id="meter-master"></div>
+                </div>
+                
+                <div class="fader-container">
+                    <input type="range" class="fader" min="0" max="100" value="80" orient="vertical"
+                           oninput="updateMasterVolume(this.value)">
+                </div>
+                
+                <div class="volume-display" id="vol-master">0 dB</div>
+            `;
+            container.appendChild(masterDiv);
         }
+
+        // Update functions
+        function updateVolume(channelId, value) {
+            channelStates[channelId].volume = value;
+            const db = ((value - 75) * 0.8).toFixed(1);
+            document.getElementById(`vol-${channelId}`).textContent = `${db} dB`;
+            animateMeter(channelId);
+        }
+
+        function updateMasterVolume(value) {
+            const db = ((value - 80) * 0.8).toFixed(1);
+            document.getElementById('vol-master').textContent = `${db} dB`;
+            animateMeter('master');
+        }
+
+        function updatePan(channelId, value) {
+            channelStates[channelId].pan = value;
+        }
+
+        function updateEQ(channelId, band, value) {
+            channelStates[channelId].eq[band] = value;
+        }
+
+        function updateFX(channelId, value) {
+            channelStates[channelId].fxSend = value;
+        }
+
+        function toggleMute(channelId, btn) {
+            channelStates[channelId].mute = !channelStates[channelId].mute;
+            btn.classList.toggle('active');
+        }
+
+        function toggleSolo(channelId, btn) {
+            channelStates[channelId].solo = !channelStates[channelId].solo;
+            btn.classList.toggle('active');
+        }
+
+        function toggleRecord(channelId, btn) {
+            channelStates[channelId].record = !channelStates[channelId].record;
+            btn.classList.toggle('active');
+        }
+
+        function togglePhase(channelId, btn) {
+            channelStates[channelId].phase = !channelStates[channelId].phase;
+            btn.classList.toggle('active');
+        }
+
+        // Animasi meter
+        function animateMeter(id) {
+            const meter = document.getElementById(`meter-${id}`);
+            if (meter) {
+                const randomHeight = Math.random() * 80 + 20;
+                meter.style.height = randomHeight + '%';
+            }
+        }
+
+        // Simulasi meter animation
+        setInterval(() => {
+            channelConfig.forEach(ch => {
+                if (!channelStates[ch.id].mute) {
+                    animateMeter(ch.id);
+                }
+            });
+            animateMeter('master');
+        }, 100);
+
+        // Initialize
+        createChannels();
     </script>
 </body>
 </html>
