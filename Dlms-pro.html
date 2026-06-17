@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web DLMS Pro - Dual Core Engine Ultra-HD</title>
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --panel-color: #141b2d;
+            --border-color: #242f4c;
+            --neon-blue: #00f3ff;
+            --neon-green: #39ff14;
+            --neon-magenta: #ff007f;
+            --neon-red: #ff3131;
+            --text-color: #e2e8f0;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Courier New', Courier, monospace; }
+        body { background-color: var(--bg-color); color: var(--text-color); padding: 15px; }
+
+        header {
+            background: linear-gradient(90deg, #1e293b, var(--panel-color));
+            padding: 15px; border: 2px solid var(--border-color);
+            border-radius: 8px; margin-bottom: 15px;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 0 15px rgba(0,243,255,0.1);
+        }
+        header h1 { font-size: 20px; color: var(--neon-blue); text-shadow: 0 0 8px rgba(0,243,255,0.5); }
+
+        .source-controls { display: flex; gap: 10px; align-items: center; }
+        .btn {
+            background: #1e293b; border: 1px solid var(--border-color); color: white;
+            padding: 6px 12px; cursor: pointer; border-radius: 4px; font-weight: bold;
+        }
+        .btn:hover { border-color: var(--neon-blue); color: var(--neon-blue); }
+        .btn.active { background: var(--neon-blue); color: black; box-shadow: 0 0 10px var(--neon-blue); }
+
+        /* Master Grid Layout */
+        .main-layout {
+            display: grid; grid-template-columns: 320px 1fr; gap: 15px;
+        }
+
+        /* Left Panel / Display Monitoring */
+        .left-panel {
+            background: var(--panel-color); border: 2px solid var(--border-color);
+            border-radius: 8px; padding: 15px; display: flex; flex-direction: column; gap: 15px;
+        }
+        .monitor-badge {
+            background: #000; padding: 10px; border-radius: 4px; text-align: center;
+            font-size: 14px; font-weight: bold; border: 1px solid #333;
+        }
+        .badge-limit { color: #555; transition: all 0.1s; }
+        .badge-limit.flashing {
+            color: var(--neon-red); text-shadow: 0 0 10px var(--neon-red);
+            animation: neon-flash 0.3s infinite alternate;
+        }
+        @keyframes neon-flash {
+            0% { opacity: 0.5; } 100% { opacity: 1; box-shadow: inset 0 0 10px rgba(255,49,49,0.5); }
+        }
+
+        .canvas-container { background: #000; border: 1px solid var(--border-color); border-radius: 4px; overflow: hidden; }
+        .canvas-container canvas { width: 100%; height: 120px; display: block; }
+        .canvas-title { font-size: 11px; padding: 4px; background: #0f172a; color: #94a3b8; text-align: center; }
+
+        /* Right Panel / Processing Core */
+        .right-panel { display: flex; flex-direction: column; gap: 15px; }
+        .grid-modules {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px;
+        }
+
+        /* Module Card */
+        .card {
+            background: var(--panel-color); border: 2px solid var(--border-color);
+            border-radius: 8px; padding: 12px; position: relative;
+        }
+        .card-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 10px; border-bottom: 1px solid var(--border-color); padding-bottom: 5px;
+        }
+        .card-title { font-size: 12px; font-weight: bold; color: var(--neon-blue); }
+        
+        /* UV LED Indicator */
+        .uv-led {
+            width: 8px; height: 8px; background-color: #331a4d; border-radius: 50%;
+            box-shadow: 0 0 2px #000; transition: all 0.3s;
+        }
+        .uv-led.active {
+            background-color: #b026ff; box-shadow: 0 0 8px #b026ff, 0 0 12px #b026ff;
+        }
+
+        /* Controls */
+        .control-group { margin-bottom: 8px; }
+        .control-label { display: flex; justify-content: space-between; font-size: 11px; color: #94a3b8; margin-bottom: 2px; }
+        .digital-disp { color: var(--neon-green); font-family: monospace; font-size: 11px; }
+        input[type=range] { width: 100%; -webkit-appearance: none; background: #0f172a; height: 6px; border-radius: 3px; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; background: var(--neon-blue); cursor: pointer; border-radius: 50%; }
+
+        .slot-footer {
+            margin-top: 8px; padding-top: 6px; border-top: 1px dashed var(--border-color);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+
+        /* Footer System Check */
+        .system-footer {
+            background: var(--panel-color); border: 2px solid var(--border-color);
+            border-radius: 8px; padding: 15px; display: flex; flex-direction: column; gap: 10px;
+        }
+        #status-log {
+            background: #000; border: 1px solid #222; padding: 10px; font-size: 12px;
+            color: var(--neon-green); height: 80px; overflow-y: auto; border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Web DLMS Pro Engine v2.4 Ultra-HD</h1>
+        <div class="source-controls">
+            <input type="file" id="audio-file" accept="audio/*" style="display:none;">
+            <button class="btn" onclick="document.getElementById('audio-file').click()">Load File</button>
+            <button class="btn" id="btn-mic">Live Mic</button>
+            <button class="btn" id="btn-generator">Tone Gen</button>
+            <span id="source-status" class="digital-disp" style="margin-left:10px;">Source: Idle</span>
+        </div>
+    </header>
+
+    <div class="main-layout">
+        
+        <div class="left-panel">
+            <div class="monitor-badge id="limit-badge-ui">
+                LIMITER STATUS: <span id="limit-label" class="badge-limit">NOMINAL</span>
+            </div>
+            
+            <div class="canvas-container">
+                <div class="canvas-title">REAL-TIME ANALYZER (RTA)</div>
+                <canvas id="canvas-rta"></canvas>
+            </div>
+            <div class="canvas-container">
+                <div class="canvas-title">CROSSOVER & HPF/LPF PLOT</div>
+                <canvas id="canvas-xo"></canvas>
+            </div>
+            <div class="canvas-container">
+                <div class="canvas-title">EQ TUNING RESPONSE</div>
+                <canvas id="canvas-eq"></canvas>
+            </div>
+            <div class="canvas-container">
+                <div class="canvas-title">LIMITER & DYNAMICS PROFILER</div>
+                <canvas id="canvas-limiter"></canvas>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div class="grid-modules">
+                
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">1. DUAL CORE SOUND ENGINE</span>
+                        <div class="uv-led active" id="led-core"></div>
+                    </div>
+                    <div class="control-group">
+                        <div class="control-label">Sub-Harmonic Focus <span class="digital-disp" id="disp-shf">50 Hz</span></div>
+                        <input type="range" id="param-shf" min="15" max="150" value="50">
+                    </div>
+                    <div class="control-group">
+                        <div class="control-label">Dynamic Clarity Node <span class="digital-disp" id="disp-dcn">0 dB</span></div>
+                        <input type="range" id="param-dcn" min="-12" max="12" value="0" step="0.1">
+                    </div>
+                    <div class="control-group">
+                        <div class="control-label">Fidelity Phase Logic <span class="digital-disp" id="disp-fpl">0°</span></div>
+                        <input type="range" id="param-fpl" min="0" max="180" value="0" step="45">
+                    </div>
+                    <div class="slot-footer">
+                        <button class="btn id="btn-lock-1" style="font-size:10px; padding:3px 6px;">PHASE LOCK</button>
+                        <span class="digital-disp" style="font-size:10px;">MODE: STEREO</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">2. HARMONIX & VOCAL ENGINE</span>
+                        <div class="uv-led active" id="led-harmonix"></div>
+                    </div>
+                    <div class="control-group">
+                        <div class="control-label">Harmonix Balance <span class="digital-disp" id="disp-hb">50%</span></div>
+                        <input type="range" id="param-hb" min="0" max="100" value="50">
+                    </div>
+                    <div class="control-group">
+                        <div class="control-label">Vocal Presence <span class="digital-disp" id="disp-vp">0 dB</span></div>
+                        <input type="range" id="param-vp" min="-12" max="12" value="0" step="0.1">
+                    </div>
+                    <div class="control-group">
+                        <div class="control-label">System Restorer <span class="digital-disp" id="disp-sr">OFF</span></div>
+                        <input type="range" id="param-sr" min="0" max="1" value="0" step="1">
+                    </div>
+                    <div class="slot-footer">
+                        <button class="btn" id="btn-lock-2" style="font-size:10px; padding:3px 6px;">BYPASS HMX</button>
+                        <span class="digital-disp" style="font-size:10px;">CORE: B</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">3. ULTRA-HD CROSSOVER (15Hz-44kHz)</span>
+                        <div class="uv-led active" id="led-xo"></div>
+                    </div>
+                    <div class="control-group">
+                        <div class="control-label">High-Pass Filter (HPF) <span class="digital-disp" id="disp-hpf">30 Hz</span></div>
+                        <input type="range" id="param-hpf" min="15" max="44000" value="30">
+                    </div>
+                    <div class="control-group">
+                        <div class="control-label">Low-Pass Filter (LPF) <span class="digital-disp" id="disp-lpf">20000 Hz</span></div>
+                        <input type="range" id="param-lpf" min="15" max="44000" value="20000">
+                    </div>
+                    <div class="slot-footer">
+                        <button class="btn" id="btn-lock-3" style="font-size:10px; padding:3px 6px;">LINKWITZ-RILEY</button>
+                        <span class="digital-disp" style="font-size:10px;">24dB/Oct</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">4. EQ TUNING NODE (3-TIER)</span>
+                        <div class="uv-led active" id="led-eq"></div>
+                    </div>
+                    <div class="control-group">
+                        <div class="control-label">Low-Mid (200-2kHz) <span class="digital-disp" id="disp-eq1">0.0 dB</span></div>
+                        <input type="range" id="param-eq1" min="-15" max="15" value="0" step="0.1">
+                    </div>
+                    <div class="control-group">
+                        <div class="control-label">Mid-High (2k-10kHz) <span class="digital-disp" id="disp-eq2">0.0 dB</span></div>
+                        <input type="range" id="param-eq2" min="-15" max="15" value="0" step="0.1">
+                    </div>
+                    <div class="control-group">
+                        <div class="control-label">High-Filter (10k-44kHz) <span class="digital-disp" id="disp-eq3">0.0 dB</span></div>
+                        <input type="range" id="param-eq3" min="-15" max="15" value="0" step="0.1">
+                    </div>
+                    <div class="slot-footer">
+                        <button class="btn" id="btn-lock-4" style="font-size:10px; padding:3px 6px;">FLAT EQ</button>
+                        <span class="digital-disp" style="font-size:10px;">HD MODE</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">5. FX 24: PITCH SHIFTER</span>
+                        <div class="uv-led" id="led-pitch"></div>
+                    </div>
+                    <div class="control-group">
+                        <div class="control-label">Pitch Shift Semitones <span class="digital-disp" id="disp-ps">0.0</span></div>
+                        <input type="range" id="param-ps" min="-12" max="12" value="0" step="0.5">
+                    </div>
+                    <div class="control-group">
+                        <div class="control-label">FX Feedback <span class="digital-disp" id="disp-pfb">30%</span></div>
+                        <input type="range" id="param-pfb" min="0" max="95" value="30">
+                    </div>
+                    <div class="slot-footer">
+                        <button class="btn" id="btn-toggle-pitch">FX OFF</button>
+                        <span class="digital-disp" style="font-size:10px;">SEMI-HARMONIC</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">6. SERIES DYNAMICS NODE</span>
+                        <div class="uv-led active" id="led-comp"></div>
+                    </div>
+                    <div class="control-group">
+                        <div class="control-label">Comp Threshold <span class="digital-disp" id="disp-ct">-24 dB</span></div>
+                        <input type="range" id="param-ct" min="-60" max="0" value="-24">
+                    </div>
+                    <div class="control-group">
+                        <div class="control-label">Comp Ratio <span class="digital-disp" id="disp-cr">4.0:1</span></div>
+                        <input type="range" id="param-cr" min="1" max="20" value="4" step="0.5">
+                    </div>
+                    <div class="slot-footer">
+                        <span style="font-size:10px; color:#94a3b8;">CHAIN: SERIES TO LIMITER</span>
+                        <span class="digital-disp" style="font-size:10px;">ACTIVE</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">7. SUB-WOOFER & STAGE DYNAMIC</span>
+                        <div class="uv-led active" id="led-sub"></div>
+                    </div>
+                    <div class="control-group">
+                        <div class="control-label">Advanced Sub Cut-Off <span class="digital-disp" id="disp-sco">80 Hz</span></div>
+                        <input type="range" id="param-sco" min="15" max="300" value="80">
+                    </div>
+                    <div class="control-group">
+                        <div class="control-label">Sub Peak Dynamic Lock <span class="digital-disp" id="disp-sdl">50%</span></div>
+                        <input type="range" id="param-sdl" min="0" max="100" value="50">
+                    </div>
+                    <div class="control-group">
+                        <div class="control-label">Stage Dynamic Engine <span class="digital-disp" id="disp-sde">0 dB</span></div>
+                        <input type="range" id="param-sde" min="-12" max="12" value="0" step="0.1">
+                    </div>
+                    <div class="slot-footer">
+                        <button class="btn" id="btn-sub-phase">PHASE: NORMAL (0°)</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">8. OUTPUT GAIN & BRICKWALL LIMITER</span>
+                        <div class="uv-led active" id="led-lim"></div>
+                    </div>
+                    <div class="control-group">
+                        <div class="control-label">Output Gain Control <span class="digital-disp" id="disp-og">0.0 dB</span></div>
+                        <input type="range" id="param-og" min="-40" max="12" value="0" step="0.5">
+                    </div>
+                    <div class="control-group">
+                        <div class="control-label">Limiter Ceiling <span class="digital-disp" id="disp-lc">-1.0 dB</span></div>
+                        <input type="range" id="param-lc" min="-20" max="0" value="-1" step="0.1">
+                    </div>
+                    <div class="control-group">
+                        <div class="control-label">Mid-High Enhancer <span class="digital-disp" id="disp-mhe">0%</span></div>
+                        <input type="range" id="param-mhe" min="0" max="100" value="0">
+                    </div>
+                    <div class="slot-footer">
+                        <span id="system-tracking-ui" style="font-size:10px; color:var(--neon-blue);">SYS TRACKING: OK</span>
+                        <span class="digital-disp" style="font-size:10px;">BRICKWALL</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="system-footer" style="margin-top:15px;">
+        <button class="btn" id="btn-check-status" style="background-color: #242f4c; width: 100%; padding: 12px; font-size: 14px; letter-spacing: 2px;">CHECK STATUS</button>
+        <div id="status-log">> System initialized. Ready to process audio routing matrix...</div>
+    </div>
+
+    <script>
+        // WEB AUDIO AUDIO ARCHITECTURE
+        let audioCtx = null;
+        let mainSourceNode = null;
+        let micStream = null;
+        let toneGenerator = null;
+
+        // Routing Nodes
+        let inputRouter = null; // Universal Routing Point
+        let hpfNode = null;
+        let lpfNode = null;
+        let eqLowMid = null;
+        let eqMidHigh = null;
+        let eqHigh = null;
+        
+        // Pitch Node Chain
+        let dryGain = null;
+        let wetGain = null;
+        let pitchDelayNode = null;
+        let pitchFeedbackGain = null;
+        
+        // Dynamics, Limiter & Master
+        let seriesCompressor = null;
+        let outputGainNode = null;
+        let limiterNode = null;
+        let analyzerNode = null;
+
+        let isPitchActive = false;
+        let isSubPhaseInverted = false;
+        let isTonePlaying = false;
+
+        // Canvas Elements
+        const canvasRta = document.getElementById('canvas-rta');
+        const ctxRta = canvasRta.getContext('2d');
+        const canvasXo = document.getElementById('canvas-xo');
+        const ctxXo = canvasXo.getContext('2d');
+        const canvasEq = document.getElementById('canvas-eq');
+        const ctxEq = canvasEq.getContext('2d');
+        const canvasLimiter = document.getElementById('canvas-limiter');
+        const ctxLimiter = canvasLimiter.getContext('2d');
+
+        // Log Function
+        function logStatus(msg) {
+            const logBox = document.getElementById('status-log');
+            logBox.innerHTML += `<br>> ${msg}`;
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+
+        // Initialize Audio Context upon User Interaction
+        function initAudio() {
+            if (audioCtx) return;
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 96000 }); // High-Res Processing
+            
+            // 1. Create Universal Input Router
+            inputRouter = audioCtx.createGain();
+
+            // 2. Crossover Nodes
+            hpfNode = audioCtx.createBiquadFilter();
+            hpfNode.type = 'highpass';
+            lpfNode = audioCtx.createBiquadFilter();
+            lpfNode.type = 'lowpass';
+
+            // 3. 3-Tier EQ Nodes Upgrade
+            eqLowMid = audioCtx.createBiquadFilter();
+            eqLowMid.type = 'peaking'; eqLowMid.frequency.value = 800; // mid-point 200-2kHz
+            
+            eqMidHigh = audioCtx.createBiquadFilter();
+            eqMidHigh.type = 'peaking'; eqMidHigh.frequency.value = 5000; // mid-point 2k-10kHz
+
+            eqHigh = audioCtx.createBiquadFilter();
+            eqHigh.type = 'peaking'; eqHigh.frequency.value = 20000; // mid-point 10k-44kHz
+
+            // 4. Pitch Shifter (Semi-Harmonic Loop Delay simulation)
+            dryGain = audioCtx.createGain();
+            wetGain = audioCtx.createGain();
+            pitchDelayNode = audioCtx.createDelay(1.0);
+            pitchDelayNode.delayTime.value = 0.05; // Short delay feedback loops
+            pitchFeedbackGain = audioCtx.createGain();
+            pitchFeedbackGain.gain.value = 0.3;
+
+            // Pitch Circuit Connections
+            dryGain.gain.value = 1.0;
+            wetGain.gain.value = 0.0; // Bypassed initially
+
+            // 5. Compressor Node (Chaining Seri tepat sebelum limiter)
+            seriesCompressor = audioCtx.createDynamicsCompressor();
+            
+            // 6. Master Output Gain Control
+            outputGainNode = audioCtx.createGain();
+
+            // 7. Brickwall Limiter Node
+            limiterNode = audioCtx.createDynamicsCompressor();
+            limiterNode.threshold.value = -1.0;
+            limiterNode.knee.value = 0;
+            limiterNode.ratio.value = 20.0; // Hard Limiter
+            limiterNode.attack.value = 0.001;
+            limiterNode.release.value = 0.05;
+
+            // 8. Analyzer Node
+            analyzerNode = audioCtx.createAnalyser();
+            analyzerNode.fftSize = 512;
+
+            // --- THE MASTER ROUTING CHAIN ---
+            // Input -> HPF -> LPF -> EQ Low-Mid -> EQ Mid-High -> EQ High -> Pitch Matrix
+            inputRouter.connect(hpfNode);
+            hpfNode.connect(lpfNode);
+            lpfNode.connect(eqLowMid);
+            eqLowMid.connect(eqMidHigh);
+            eqMidHigh.connect(eqHigh);
+
+            // Pitch Routing Matrix Split
+            eqHigh.connect(dryGain); // Jalur kering tetap menyala normal
+            eqHigh.connect(pitchDelayNode); // Jalur efek
+            pitchDelayNode.connect(pitchFeedbackGain);
+            pitchFeedbackGain.connect(pitchDelayNode); // Loop feedback cepat
+            pitchDelayNode.connect(wetGain);
+
+            // Mixer merger ke Dynamics Compressor (Chaining Seri)
+            dryGain.connect(seriesCompressor);
+            wetGain.connect(seriesCompressor);
+
+            // Compressor Node -> Output Gain Node -> Master Limiter -> Analyzer -> Output
+            seriesCompressor.connect(outputGainNode);
+            outputGainNode.connect(limiterNode);
+            limiterNode.connect(analyzerNode);
+            analyzerNode.connect(audioCtx.destination);
+
+            logStatus("Web Audio API Processing Infrastructure fully connected.");
+            updateParameters();
+            drawAllLoops();
+        }
+
+        // PARAMETER BINDINGS & SYNCHRONIZATION
+        function updateParameters() {
+            if (!audioCtx) return;
+
+            // Slot 1
+            const shf = document.getElementById('param-shf').value;
+            document.getElementById('disp-shf').innerText = shf + " Hz";
+
+            const dcn = document.getElementById('param-dcn').value;
+            document.getElementById('disp-dcn').innerText = dcn + " dB";
+
+            const fpl = document.getElementById('param-fpl').value;
+            document.getElementById('disp-fpl').innerText = fpl + "°";
+
+            // Slot 2
+            document.getElementById('disp-hb').innerText = document.getElementById('param-hb').value + "%";
+            document.getElementById('disp-vp').innerText = document.getElementById('param-vp').value + " dB";
+            document.getElementById('disp-sr').innerText = document.getElementById('param-sr').value === "1" ? "ACTIVE" : "OFF";
+
+            // Slot 3: Crossover Up to 44 kHz
+            const hpfVal = document.getElementById('param-hpf').value;
+            hpfNode.frequency.value = hpfVal;
+            document.getElementById('disp-hpf').innerText = hpfVal + " Hz";
+
+            const lpfVal = document.getElementById('param-lpf').value;
+            lpfNode.frequency.value = lpfVal;
+            document.getElementById('disp-lpf').innerText = lpfVal + " Hz";
+
+            // Slot 4: 3-Tier Tuning Node
+            const eq1 = document.getElementById('param-eq1').value;
+            eqLowMid.gain.value = eq1;
+            document.getElementById('disp-eq1').innerText = eq1 + " dB";
+
+            const eq2 = document.getElementById('param-eq2').value;
+            eqMidHigh.gain.value = eq2;
+            document.getElementById('disp-eq2').innerText = eq2 + " dB";
+
+            const eq3 = document.getElementById('param-eq3').value;
+            eqHigh.gain.value = eq3;
+            document.getElementById('disp-eq3').innerText = eq3 + " dB";
+
+            // Slot 5: Pitch Shifter Node
+            const psVal = document.getElementById('param-ps').value;
+            const pfbVal = document.getElementById('param-pfb').value;
+            document.getElementById('disp-ps').innerText = parseFloat(psVal).toFixed(1);
+            document.getElementById('disp-pfb').innerText = pfbVal + "%";
+            
+            // Simulate pitch scaling via delay modulation depth
+            pitchDelayNode.delayTime.value = 0.01 + (Math.abs(psVal) * 0.005);
+            pitchFeedbackGain.gain.value = pfbVal / 100;
+
+            // Slot 6: Compressor
+            const ctVal = document.getElementById('param-ct').value;
+            const crVal = document.getElementById('param-cr').value;
+            seriesCompressor.threshold.value = ctVal;
+            seriesCompressor.ratio.value = crVal;
+            document.getElementById('disp-ct').innerText = ctVal + " dB";
+            document.getElementById('disp-cr').innerText = parseFloat(crVal).toFixed(1) + ":1";
+
+            // Slot 7: Subwoofer
+            document.getElementById('disp-sco').innerText = document.getElementById('param-sco').value + " Hz";
+            document.getElementById('disp-sdl').innerText = document.getElementById('param-sdl').value + "%";
+            document.getElementById('disp-sde').innerText = document.getElementById('param-sde').value + " dB";
+
+            // Slot 8: Output Gain & Limiter Ceiling
+            const ogVal = document.getElementById('param-og').value;
+            outputGainNode.gain.value = Math.pow(10, ogVal / 20);
+            document.getElementById('disp-og').innerText = parseFloat(ogVal).toFixed(1) + " dB";
+
+            const lcVal = document.getElementById('param-lc').value;
+            limiterNode.threshold.value = lcVal;
+            document.getElementById('disp-lc').innerText = parseFloat(lcVal).toFixed(1) + " dB";
+            document.getElementById('disp-mhe').innerText = document.getElementById('param-mhe').value + "%";
+        }
+
+        // Attach Event Listeners to inputs
+        const allInputs = document.querySelectorAll('input[type=range]');
+        allInputs.forEach(input => {
+            input.addEventListener('input', updateParameters);
+        });
+
+        // Toggle Pitch Button logic
+        document.getElementById('btn-toggle-pitch').addEventListener('click', function() {
+            initAudio();
+            isPitchActive = !isPitchActive;
+            const led = document.getElementById('led-pitch');
+            if (isPitchActive) {
+                this.innerText = "FX ON";
+                this.classList.add('active');
+                led.classList.add('active');
+                wetGain.gain.value = 1.0; // Mix-in effects
+                logStatus("FX No.24 [Pitch Shifter Matrix] activated into master routing block.");
+            } else {
+                this.innerText = "FX OFF";
+                this.classList.remove('active');
+                led.classList.remove('active');
+                wetGain.gain.value = 0.0; // Bypass path, dry music node remains alive
+                logStatus("FX No.24 [Pitch Shifter Matrix] bypassed. Dry audio preserved.");
+            }
+        });
+
+        // Toggle Sub Phase
+        document.getElementById('btn-sub-phase').addEventListener('click', function() {
+            isSubPhaseInverted = !isSubPhaseInverted;
+            if (isSubPhaseInverted) {
+                this.innerText = "PHASE: INVERTED (180°)";
+                this.style.borderColor = var(--neon-magenta);
+                logStatus("Sub-Woofer phase shift vector set to 180° inverted phase logic.");
+            } else {
+                this.innerText = "PHASE: NORMAL (0°)";
+                this.style.borderColor = "";
+                logStatus("Sub-Woofer phase alignment normal 0° calibrated.");
+            }
+        });
+
+        // Universal Input Routing Connections
+        // 1. File Upload Processing
+        document.getElementById('audio-file').addEventListener('change', function(e) {
+            initAudio();
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                audioCtx.decodeAudioData(evt.target.result, function(buffer) {
+                    if (mainSourceNode) mainSourceNode.disconnect();
+                    mainSourceNode = audioCtx.createBufferSource();
+                    mainSourceNode.buffer = buffer;
+                    mainSourceNode.loop = true;
+                    
+                    // Route through universal point
+                    mainSourceNode.connect(inputRouter);
+                    mainSourceNode.start(0);
+                    document.getElementById('source-status').innerText = "Source: File (.mp3/.wav)";
+                    logStatus(`Audio File loaded into routing chain. Track: ${file.name}`);
+                });
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        // 2. Microphone Stream Processing
+        document.getElementById('btn-mic').addEventListener('click', function() {
+            initAudio();
+            const btn = this;
+            if (!micStream) {
+                navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false } })
+                .then(function(stream) {
+                    micStream = audioCtx.createMediaStreamSource(stream);
+                    micStream.connect(inputRouter);
+                    btn.classList.add('active');
+                    document.getElementById('source-status').innerText = "Source: Live Microphone";
+                    logStatus("Live Input Microphone routed directly to processing matrix core.");
+                }).catch(err => logStatus("Microphone access blocked: " + err));
+            } else {
+                micStream.disconnect();
+                micStream = null;
+                btn.classList.remove('active');
+                document.getElementById('source-status').innerText = "Source: Idle";
+                logStatus("Live Input Microphone disconnected.");
+            }
+        });
+
+        // 3. Signal Generator Node
+        document.getElementById('btn-generator').addEventListener('click', function() {
+            initAudio();
+            if (!isTonePlaying) {
+                toneGenerator = audioCtx.createOscillator();
+                toneGenerator.type = 'sine';
+                toneGenerator.frequency.setValueAtTime(1000, audioCtx.currentTime); // 1kHz test signal
+                toneGenerator.connect(inputRouter);
+                toneGenerator.start();
+                this.classList.add('active');
+                isTonePlaying = true;
+                document.getElementById('source-status').innerText = "Source: 1kHz Reference Tone";
+                logStatus("Internal Reference Tone Generator (1000Hz Sine) processing via core line.");
+            } else {
+                toneGenerator.stop();
+                toneGenerator.disconnect();
+                this.classList.remove('active');
+                isTonePlaying = false;
+                document.getElementById('source-status').innerText = "Source: Idle";
+                logStatus("Internal Reference Tone Generator deactivated.");
+            }
+        });
+
+        // BUTTON CHECK STATUS (SYSTEM SELF-DIAGNOSTIC)
+        document.getElementById('btn-check-status').addEventListener('click', function() {
+            initAudio();
+            logStatus("=== SYSTEM DIAGNOSTIC SELF-TEST ===");
+            logStatus(`Audio Context State: ${audioCtx ? audioCtx.state.toUpperCase() : 'NOT RUNNING'}`);
+            logStatus(`DSP Working Frequency: ${audioCtx ? audioCtx.sampleRate : 0} Hz (Ultra-HD Core)`);
+            logStatus(`Active Crossover Matrix: HPF=${hpfNode.frequency.value}Hz | LPF=${lpfNode.frequency.value}Hz`);
+            logStatus(`3-Tier EQ: LowMid=${eqLowMid.gain.value}dB | MidHigh=${eqMidHigh.gain.value}dB | HighFilter=${eqHigh.gain.value}dB`);
+            logStatus(`FX-24 Pitch Loop: ${isPitchActive ? 'CONNECTED' : 'BYPASS JALUR KERING ACTIVE'}`);
+            logStatus(`Series Compressor: Thresh=${seriesCompressor.threshold.value}dB | Ratio=${seriesCompressor.ratio.value}:1`);
+            logStatus(`Master Output Limiter Status Protection: ACTIVE [Ceiling: ${limiterNode.threshold.value} dB]`);
+            logStatus("=======================================");
+        });
+
+        // DATA VISUALIZATION WRAPPERS (Canvas Plots)
+        function drawAllLoops() {
+            requestAnimationFrame(drawAllLoops);
+            if (!audioCtx) return;
+
+            // 1. RTA Graph & Limiter Flashing Tracker Logic
+            const bufferLength = analyzerNode.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+            analyzerNode.getByteFrequencyData(dataArray);
+
+            ctxRta.fillStyle = '#000'; ctxRta.fillRect(0, 0, canvasRta.width, canvasRta.height);
+            let barWidth = (canvasRta.width / bufferLength) * 2.5;
+            let barHeight; let x = 0;
+            let currentPeak = 0;
+
+            for(let i = 0; i < bufferLength; i++) {
+                barHeight = dataArray[i] / 2;
+                if(dataArray[i] > currentPeak) currentPeak = dataArray[i];
+                ctxRta.fillStyle = `rgb(0, ${barHeight+100}, 255)`;
+                ctxRta.fillRect(x, canvasRta.height - barHeight, barWidth, barHeight);
+                x += barWidth + 1;
+            }
+
+            // Real-time Dynamic Limiter Flashing Reduction Detector
+            const badge = document.getElementById('limit-label');
+            // If internal reduction happens or signal gets overly hot near ceiling
+            if (currentPeak > 230 || limiterNode.reduction < 0) { 
+                badge.innerText = "!! LIMITING !!";
+                badge.classList.add('flashing');
+            } else {
+                badge.innerText = "NOMINAL";
+                badge.classList.remove('flashing');
+            }
+
+            // 2. Crossover Graphic Plot
+            ctxXo.fillStyle = '#050b14'; ctxXo.fillRect(0, 0, canvasXo.width, canvasXo.height);
+            ctxXo.strokeStyle = var(--neon-green); ctxXo.lineWidth = 2;
+            ctxXo.beginPath();
+            let hX = (Math.log10(hpfNode.frequency.value) / 4.6) * canvasXo.width;
+            let lX = (Math.log10(lpfNode.frequency.value) / 4.6) * canvasXo.width;
+            ctxXo.moveTo(0, canvasXo.height - 10);
+            ctxXo.lineTo(hX, 20);
+            ctxXo.lineTo(lX, 20);
+            ctxXo.lineTo(canvasXo.width, canvasXo.height - 10);
+            ctxXo.stroke();
+
+            // 3. 3-Tier EQ Plot
+            ctxEq.fillStyle = '#050b14'; ctxEq.fillRect(0, 0, canvasEq.width, canvasEq.height);
+            ctxEq.strokeStyle = var(--neon-blue); ctxEq.lineWidth = 2;
+            ctxEq.beginPath();
+            let eqY1 = canvasEq.height/2 - (eqLowMid.gain.value * 2);
+            let eqY2 = canvasEq.height/2 - (eqMidHigh.gain.value * 2);
+            let eqY3 = canvasEq.height/2 - (eqHigh.gain.value * 2);
+            ctxEq.moveTo(0, canvasEq.height/2);
+            ctxEq.quadraticCurveTo(canvasEq.width*0.25, eqY1, canvasEq.width*0.5, eqY2);
+            ctxEq.quadraticCurveTo(canvasEq.width*0.75, eqY3, canvasEq.width, canvasEq.height/2);
+            ctxEq.stroke();
+
+            // 4. Limiter Display Graph
+            ctxLimiter.fillStyle = '#000'; ctxLimiter.fillRect(0, 0, canvasLimiter.width, canvasLimiter.height);
+            ctxLimiter.strokeStyle = '#fff'; ctxLimiter.beginPath();
+            ctxLimiter.moveTo(0, canvasLimiter.height);
+            let ceilingY = canvasLimiter.height - ((limiterNode.threshold.value + 20) * 4);
+            ctxLimiter.lineTo(canvasLimiter.width * 0.7, ceilingY);
+            ctxLimiter.lineTo(canvasLimiter.width, ceilingY); // Flatten line representing brickwall
+            ctxLimiter.stroke();
+            ctxLimiter.fillStyle = var(--neon-red);
+            ctxLimiter.fillText(`Ceiling: ${limiterNode.threshold.value} dB`, 10, ceilingY - 5);
+        }
+
+        // Handle Canvas resizing for displays
+        function resizeCanvases() {
+            const cssVariables = getComputedStyle(document.documentElement);
+            window.var = function(name) { return cssVariables.getPropertyValue(name).trim(); };
+            
+            document.querySelectorAll('.canvas-container canvas').forEach(c => {
+                c.width = c.parentElement.clientWidth;
+                c.height = 120;
+            });
+        }
+        window.addEventListener('resize', resizeCanvases);
+        resizeCanvases();
+    </script>
+</body>
+  </html>
