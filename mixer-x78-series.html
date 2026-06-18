@@ -155,9 +155,9 @@
     }
     .display-tab.active{background:linear-gradient(180deg,#2b6b95,#194664);border-color:#4a96bf;color:#ecf9ff}
     .mixer-scroll{overflow-x:auto}
-    .mixer{display:grid;grid-template-columns:repeat(8,88px) 88px 88px 96px 108px 108px;gap:6px;padding:10px;background:#1a1f25}
+    .mixer{display:grid;grid-template-columns:repeat(8,98px) 108px 94px 96px 108px 108px;gap:6px;padding:10px;background:#1a1f25}
     .channel{
-      min-height:520px;border:1px solid #38424c;border-radius:4px;background:linear-gradient(180deg,#252b32,#1a1f24);
+      min-height:590px;border:1px solid #38424c;border-radius:4px;background:linear-gradient(180deg,#252b32,#1a1f24);
       box-shadow:inset 0 1px 0 rgba(255,255,255,.04), inset 0 -1px 0 rgba(0,0,0,.65);
       display:flex;flex-direction:column;padding:6px;position:relative;
     }
@@ -184,6 +184,27 @@
       color:#d7c791;font-size:7px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
     }
     .fx-send-btn.active{background:linear-gradient(180deg,#9d7326,#644714);border-color:#d3a84a;color:#fff8dc;box-shadow:0 0 8px rgba(243,189,83,.18)}
+    
+    /* Control Deck Styles */
+    .media-deck{
+      margin-top:6px;border:1px solid #2f363d;background:#13181d;padding:4px;border-radius:3px;
+    }
+    .load-btn{
+      width:100%;height:18px;background:linear-gradient(180deg,#2d3945,#1e262e);border:1px solid #414f5d;
+      color:#b9c7d4;font-size:7px;font-weight:700;border-radius:2px;text-transform:uppercase;display:block;text-align:center;line-height:16px;cursor:pointer;
+    }
+    .deck-controls{
+      display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin-top:3px;
+    }
+    .deck-btn{
+      height:17px;border:1px solid #36424d;background:#1c232a;color:#a0b0be;font-size:7px;display:flex;align-items:center;justify-content:center;border-radius:2px;
+    }
+    .deck-btn:hover{background:#26303a;color:#fff}
+    .deck-btn.active{background:#1b5d84;border-color:#327fa8;color:#fff}
+    .yt-input-box{
+      width:100%;height:18px;background:#0d1115;border:1px solid #333d47;color:#fff;font-family:'Space Mono',monospace;font-size:7px;padding:0 3px;border-radius:2px;
+    }
+
     .button-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;margin-top:6px}
     .mini-btn{
       height:17px;border-radius:2px;border:1px solid #44505b;background:linear-gradient(180deg,#2d353e,#1c2228);
@@ -560,7 +581,7 @@
        <span>FX ENGINE READY</span>
       </div>
      </div>
-     <p data-template-id="footer-note" class="canva-text">Drag & drop audio files to live channels for multitrack streaming</p>
+     <p data-template-id="footer-note" class="canva-text">Drag & drop audio files or use the channel load buttons for playback</p>
     </footer>
    </main>
   </div>
@@ -694,14 +715,12 @@
         channelNodes[idx] = {
           input: inputGain, low: lowEq, mid: midEq, high: highEq,
           pan: panner, gain: chGain, fxSend: fxSendGain, analyser: analyser,
-          sourceNode: null, isMuted: false, isSoloed: false, phaseInverted: false,
-          gainValue: 1.0, panValue: 0.0, lowVal: 0, midVal: 0, highVal: 0, auxVal: 0
+          sourceNode: null, fileSource: null, isMuted: false, isSoloed: false, phaseInverted: false,
+          gainValue: 1.0, panValue: 0.0, lowVal: 0, midVal: 0, highVal: 0, auxVal: 0, audioBuffer: null
         };
 
         // Channel Specific Input Hooks
-        if (ch.type === 'live') {
-          setupLiveHardwareInput(idx);
-        } else if (ch.type === 'youtube') {
+        if (ch.type === 'youtube') {
           setupSyntheticStreamInput(idx);
         }
       });
@@ -714,35 +733,23 @@
       globalDelayNode.connect(channelNodes[9].input);
     }
 
-    function setupLiveHardwareInput(idx) {
-      // Hardware system mic listener mapping
-      navigator.mediaDevices.getUserMedia({ audio: true, video: false }).then(stream => {
-        if (!audioCtx || !channelNodes[idx]) return;
-        const source = audioCtx.createMediaStreamSource(stream);
-        source.connect(channelNodes[idx].input);
-        channelNodes[idx].sourceNode = source;
-      }).catch(() => {
-        // Fallback silently if hardware mic permission isn't provided
-      });
-    }
-
     function setupSyntheticStreamInput(idx) {
-      // Simulate rich streaming telemetry logic via continuous complex waveform layers
       if (!audioCtx) return;
       const osc1 = audioCtx.createOscillator();
       const osc2 = audioCtx.createOscillator();
       const oscGain = audioCtx.createGain();
       
-      osc1.type = 'triangle'; osc1.frequency.setValueAtTime(55, audioCtx.currentTime); // Low rhythmic line
+      osc1.type = 'triangle'; osc1.frequency.setValueAtTime(55, audioCtx.currentTime);
       osc2.type = 'sine'; osc2.frequency.setValueAtTime(220, audioCtx.currentTime);
       
-      oscGain.gain.setValueAtTime(0.02, audioCtx.currentTime); // Keep output safe
+      oscGain.gain.setValueAtTime(0.02, audioCtx.currentTime);
       osc1.connect(oscGain);
       osc2.connect(oscGain);
       oscGain.connect(channelNodes[idx].input);
       
       osc1.start();
       osc2.start();
+      channelNodes[idx].sourceNode = oscGain; // Keep reference
     }
 
     function injectDroppedFileAudio(idx, file) {
@@ -750,17 +757,47 @@
       const reader = new FileReader();
       reader.onload = function(e) {
         audioCtx.decodeAudioData(e.target.result).then(buffer => {
-          if (channelNodes[idx].fileSource) { try { channelNodes[idx].fileSource.stop(); } catch(err){} }
-          const source = audioCtx.createBufferSource();
-          source.buffer = buffer;
-          source.loop = true;
-          source.connect(channelNodes[idx].input);
-          source.start();
-          channelNodes[idx].fileSource = source;
+          channelNodes[idx].audioBuffer = buffer;
           document.querySelectorAll('.ch-source')[idx].textContent = file.name.substring(0,10).toUpperCase();
+          // Auto play upon loading
+          playChannelAudio(idx);
         });
       };
       reader.readAsArrayBuffer(file);
+    }
+
+    function playChannelAudio(idx) {
+      if (!audioCtx) initAudioEngine();
+      if (!channelNodes[idx].audioBuffer) return;
+      
+      stopChannelAudio(idx);
+      
+      const source = audioCtx.createBufferSource();
+      source.buffer = channelNodes[idx].audioBuffer;
+      source.loop = true;
+      source.connect(channelNodes[idx].input);
+      source.start();
+      channelNodes[idx].fileSource = source;
+      
+      updateDeckVisuals(idx, 'play');
+    }
+
+    function stopChannelAudio(idx) {
+      if (channelNodes[idx] && channelNodes[idx].fileSource) {
+        try { channelNodes[idx].fileSource.stop(); } catch(err){}
+        channelNodes[idx].fileSource = null;
+      }
+      updateDeckVisuals(idx, 'stop');
+    }
+
+    function updateDeckVisuals(idx, state) {
+      const channelEl = document.querySelector(`.channel[data-index="${idx}"]`);
+      if (!channelEl) return;
+      channelEl.querySelectorAll('.deck-btn').forEach(btn => btn.classList.remove('active'));
+      if (state !== 'stop') {
+        const targetBtn = channelEl.querySelector(`.deck-btn[data-action="${state}"]`);
+        if (targetBtn) targetBtn.classList.add('active');
+      }
     }
 
     function updateDspEffectsParams() {
@@ -781,7 +818,6 @@
     function createInputChannel(ch,index){
       const el=document.createElement('article');
       el.className='channel'+(index===0?' selected':'');
-      if (index === 8) el.className += ' fx-channel'; // style special youtube channel slightly distinct
       el.dataset.index=index;
       el.innerHTML=`
         <div class="ch-header">
@@ -791,6 +827,18 @@
         <div class="knob-row">
           ${['GAIN','PAN','LOW','MID','HIGH','AUX'].map(label=>`<div class="knob-wrap"><div class="knob" data-role="${label.toLowerCase()}"></div><div class="knob-label">${label}</div></div>`).join('')}
         </div>
+        
+        <div class="media-deck">
+          <label class="load-btn">
+            Load Audio <input type="file" accept="audio/*" class="hidden file-loader">
+          </label>
+          <div class="deck-controls">
+            <button class="deck-btn" data-action="play" title="Play"><i data-lucide="play" style="width:10px;"></i></button>
+            <button class="deck-btn" data-action="pause" title="Pause"><i data-lucide="pause" style="width:10px;"></i></button>
+            <button class="deck-btn" data-action="stop" title="Stop"><i data-lucide="square" style="width:10px;"></i></button>
+          </div>
+        </div>
+
         <button class="fx-send-btn ${fxAssigned.has(index)?'active':''}" type="button">FX SEND</button>
         <div class="button-grid">
           <button class="mini-btn mute" type="button">M</button>
@@ -808,7 +856,20 @@
       makeSegments(el.querySelector('.level-meter'));
       bindChannel(el,index);
 
-      // Setup file drag drop capability explicitly for live multitrack tracks
+      // Media Deck Bindings
+      const fileIn = el.querySelector('.file-loader');
+      fileIn.addEventListener('change', e => {
+        if (e.target.files.length > 0) injectDroppedFileAudio(index, e.target.files[0]);
+      });
+
+      el.querySelector('.deck-btn[data-action="play"]').addEventListener('click', () => playChannelAudio(index));
+      el.querySelector('.deck-btn[data-action="stop"]').addEventListener('click', () => stopChannelAudio(index));
+      el.querySelector('.deck-btn[data-action="pause"]').addEventListener('click', () => {
+        if (audioCtx) {
+          if (audioCtx.state === 'running') updateDeckVisuals(index, 'pause');
+        }
+      });
+
       el.addEventListener('dragover', e => e.preventDefault());
       el.addEventListener('drop', e => {
         e.preventDefault();
@@ -816,6 +877,58 @@
           injectDroppedFileAudio(index, e.dataTransfer.files[0]);
         }
       });
+    }
+
+    function createYoutubeChannel(ch, index){
+      const el=document.createElement('article');
+      el.className='channel fx-channel';
+      el.dataset.index=index;
+      el.innerHTML=`
+        <div class="ch-header">
+          <div><div class="ch-name">${ch.name}</div><div class="ch-source">${ch.src}</div></div>
+          <div class="tiny-status live"></div>
+        </div>
+        <div class="knob-row">
+          ${['GAIN','PAN','LOW','MID','HIGH','AUX'].map(label=>`<div class="knob-wrap"><div class="knob" data-role="${label.toLowerCase()}"></div><div class="knob-label">${label}</div></div>`).join('')}
+        </div>
+        
+        <div class="media-deck">
+          <input type="text" class="yt-input-box" placeholder="Paste YT Link/ID...">
+          <div class="deck-controls">
+            <button class="deck-btn" data-action="play" title="Play"><i data-lucide="play" style="width:10px;"></i></button>
+            <button class="deck-btn" data-action="pause" title="Pause"><i data-lucide="pause" style="width:10px;"></i></button>
+            <button class="deck-btn" data-action="stop" title="Stop"><i data-lucide="square" style="width:10px;"></i></button>
+          </div>
+        </div>
+
+        <button class="fx-send-btn ${fxAssigned.has(index)?'active':''}" type="button">FX SEND</button>
+        <div class="button-grid">
+          <button class="mini-btn mute" type="button">M</button>
+          <button class="mini-btn solo" type="button">S</button>
+          <button class="mini-btn phase" type="button">Ø</button>
+        </div>
+        <div class="meter-fader-area">
+          <div class="level-meter"></div>
+          <div class="fader-lane"><div class="scale-lines"></div><div class="fader-cap" tabindex="0"></div></div>
+        </div>
+        <div class="fader-readout">-3.8 dB</div>
+        <div class="channel-footer">${ch.num}</div>
+      `;
+      mixer.appendChild(el);
+      makeSegments(el.querySelector('.level-meter'));
+      bindChannel(el, index);
+
+      // YT UI Control behaviors
+      const linkInput = el.querySelector('.yt-input-box');
+      el.querySelector('.deck-btn[data-action="play"]').addEventListener('click', () => {
+        if(!audioCtx) initAudioEngine();
+        updateDeckVisuals(index, 'play');
+        if(linkInput.value) {
+          document.querySelectorAll('.ch-source')[index].textContent = 'LINK LINKED';
+        }
+      });
+      el.querySelector('.deck-btn[data-action="pause"]').addEventListener('click', () => updateDeckVisuals(index, 'pause'));
+      el.querySelector('.deck-btn[data-action="stop"]').addEventListener('click', () => updateDeckVisuals(index, 'stop'));
     }
 
     function createFxChannel(ch, index){
@@ -830,7 +943,7 @@
         <div class="knob-row">
           ${['PRE','DAMP','TIME','DIFF','WIDTH','LEVEL'].map(label=>`<div class="knob-wrap"><div class="knob" data-role="${label.toLowerCase()}"></div><div class="knob-label">${label}</div></div>`).join('')}
         </div>
-        <button class="fx-send-btn active" type="button" id="fxPresetBtn">VOCAL PLATE</button>
+        <button class="fx-send-btn active" type="button" id="fxPresetBtn" style="margin-top:43px;">VOCAL PLATE</button>
         <div class="button-grid">
           <button class="mini-btn mute" type="button">M</button>
           <button class="mini-btn solo" type="button">S</button>
@@ -861,7 +974,7 @@
         <div class="knob-row">
           ${['TRIM','BAL','LOW','MID','HIGH','DIM'].map(l=>`<div class="knob-wrap"><div class="knob"></div><div class="knob-label">${l}</div></div>`).join('')}
         </div>
-        <button class="fx-send-btn" type="button">STEREO ${label}</button>
+        <button class="fx-send-btn" type="button" style="margin-top:43px;">STEREO ${label}</button>
         <div class="button-grid">
           <button class="mini-btn mute" type="button">M</button>
           <button class="mini-btn solo" type="button">DIM</button>
@@ -881,7 +994,8 @@
 
     // Generate Layout mapping
     channelDefs.forEach((ch, idx) => {
-      if (idx < 9) createInputChannel(ch, idx);
+      if (idx < 8) createInputChannel(ch, idx);
+      else if (idx === 8) createYoutubeChannel(ch, idx);
       else createFxChannel(ch, idx);
     });
     createMasterChannel('L');
@@ -1028,8 +1142,8 @@
       
       const ch=channelDefs[index];
       document.getElementById('overviewChannelName').textContent=`CH ${ch.num} · ${ch.name}`;
-      document.getElementById('eqChannelName').textContent=`CH ${ch.num} · ${ch.name}`;
-      document.getElementById('dynChannelName').textContent=`CH ${ch.num} · ${ch.name}`;
+      if(document.getElementById('eqChannelName')) document.getElementById('eqChannelName').textContent=`CH ${ch.num} · ${ch.name}`;
+      if(document.getElementById('dynChannelName')) document.getElementById('dynChannelName').textContent=`CH ${ch.num} · ${ch.name}`;
       document.getElementById('sideNumber').textContent=ch.num;
       document.getElementById('sideName').textContent=ch.name;
       updateSidePanel();
@@ -1043,13 +1157,12 @@
     }
 
     function redrawEqDisplay() {
-      if (!audioCtx || !channelNodes[selectedIndex]) return;
+      if (!audioCtx || !channelNodes[selectedIndex] || !document.getElementById('eqNodeLow')) return;
       const node = channelNodes[selectedIndex];
       const lG = node.low.gain.value || 0;
       const mG = node.mid.gain.value || 0;
       const hG = node.high.gain.value || 0;
 
-      // Transform EQ settings inside real interactive geometric curve mapping
       const yL = 80 - (lG * 3);
       const yM = 80 - (mG * 3);
       const yH = 80 - (hG * 3);
@@ -1196,7 +1309,6 @@
     const uintBuffer = new Uint8Array(16);
     function animateMeters(){
       if (audioCtx && audioCtx.state === 'running') {
-        // Read each strip individual analyzer nodes real data
         document.querySelectorAll('.channel[data-index]').forEach(el => {
           const idx = Number(el.dataset.index);
           const node = channelNodes[idx];
@@ -1207,7 +1319,7 @@
             node.analyser.getByteFrequencyData(uintBuffer);
             let sum = 0;
             for(let i=0; i<16; i++) sum += uintBuffer[i];
-            level = Math.floor((sum / 16) / 14); // convert scale range
+            level = Math.floor((sum / 16) / 14);
           }
           
           leds.forEach((led, i) => {
@@ -1219,7 +1331,6 @@
             }
           });
 
-          // Link data overview bars mapping if chosen channel matches loop context index
           if (idx === selectedIndex) {
             const overviewBars = [...document.getElementById('overviewLgMeter').children];
             overviewBars.forEach((b, bi) => {
@@ -1229,7 +1340,6 @@
           }
         });
 
-        // Update Global Masters hardware meters elements
         if (masterLeftAnalyser && masterRightAnalyser) {
           const masterLChannels = [...document.querySelector('.channel[data-role="master-l"] .level-meter').children];
           const masterRChannels = [...document.querySelector('.channel[data-role="master-r"] .level-meter').children];
@@ -1247,7 +1357,6 @@
         }
 
       } else {
-        // Flat line idle state
         document.querySelectorAll('.level-meter').forEach(m => {
           [...m.children].forEach(l => l.className = 'led');
         });
