@@ -1,916 +1,301 @@
-
-&lt;!DOCTYPE html&gt;
-&lt;html lang="id"&gt;
-&lt;head&gt;
-  &lt;meta charset="UTF-8"&gt;
-  &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
-  &lt;title&gt;FR AUDIO X78 SERIES - Digital Web Mixer&lt;/title&gt;
-
-  &lt;style&gt;
-    :root {
-      --bg-main: #07090d;
-      --bg-panel: #111722;
-      --bg-panel-2: #151d2a;
-      --bg-strip: #192232;
-      --bg-strip-dark: #0d121b;
-      --accent: #00d9ff;
-      --accent-2: #ffcc00;
-      --accent-red: #ff3355;
-      --accent-green: #00ff88;
-      --accent-purple: #9b5cff;
-      --text: #e8f2ff;
-      --muted: #7d8da3;
-      --line: #283548;
-      --shadow: rgba(0, 0, 0, 0.55);
-      --radius: 18px;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: Arial, Helvetica, sans-serif;
-      user-select: none;
-    }
-
-    body {
-      background:
-        radial-gradient(circle at top left, rgba(0, 217, 255, 0.16), transparent 32%),
-        radial-gradient(circle at top right, rgba(155, 92, 255, 0.12), transparent 30%),
-        linear-gradient(135deg, #05070a, #0b1018 45%, #05070a);
-      color: var(--text);
-      min-height: 100vh;
-      overflow-x: auto;
-    }
-
-    .app {
-      min-width: 1320px;
-      padding: 22px;
-    }
-
-    .topbar {
-      height: 96px;
-      background: linear-gradient(180deg, #172131, #0d131d);
-      border: 1px solid #2d3c52;
-      border-radius: var(--radius);
-      box-shadow: 0 18px 45px var(--shadow), inset 0 1px 0 rgba(255,255,255,0.08);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 18px 24px;
-      margin-bottom: 18px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .topbar::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background:
-        linear-gradient(90deg, transparent, rgba(0,217,255,0.10), transparent),
-        repeating-linear-gradient(
-          90deg,
-          transparent 0,
-          transparent 24px,
-          rgba(255,255,255,0.025) 25px
-        );
-      pointer-events: none;
-    }
-
-    .brand {
-      position: relative;
-      z-index: 2;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .brand h1 {
-      letter-spacing: 2px;
-      font-size: 30px;
-      color: #ffffff;
-      text-shadow: 0 0 18px rgba(0,217,255,0.8);
-    }
-
-    .brand span {
-      color: var(--muted);
-      font-size: 13px;
-      letter-spacing: 3px;
-      text-transform: uppercase;
-    }
-
-    .display {
-      position: relative;
-      z-index: 2;
-      width: 410px;
-      height: 58px;
-      background: linear-gradient(180deg, #050b0f, #07131a);
-      border: 1px solid rgba(0,217,255,0.45);
-      border-radius: 14px;
-      box-shadow: inset 0 0 28px rgba(0,217,255,0.12), 0 0 18px rgba(0,217,255,0.14);
-      padding: 10px 14px;
-      overflow: hidden;
-    }
-
-    .display .line1 {
-      color: var(--accent);
-      font-size: 15px;
-      letter-spacing: 1px;
-      margin-bottom: 6px;
-    }
-
-    .display .line2 {
-      color: #bdefff;
-      font-size: 12px;
-      white-space: nowrap;
-      animation: marquee 10s linear infinite;
-    }
-
-    @keyframes marquee {
-      0% { transform: translateX(100%); }
-      100% { transform: translateX(-120%); }
-    }
-
-    .global-controls {
-      position: relative;
-      z-index: 2;
-      display: flex;
-      gap: 12px;
-      align-items: center;
-    }
-
-    .transport-btn {
-      width: 46px;
-      height: 46px;
-      border-radius: 14px;
-      border: 1px solid #34465f;
-      background: linear-gradient(180deg, #202c3d, #101722);
-      color: white;
-      font-size: 17px;
-      cursor: pointer;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.10), 0 8px 18px rgba(0,0,0,0.35);
-      transition: 0.15s;
-    }
-
-    .transport-btn:hover {
-      transform: translateY(-2px);
-      border-color: var(--accent);
-      box-shadow: 0 0 20px rgba(0,217,255,0.25);
-    }
-
-    .transport-btn.active {
-      color: #07110c;
-      background: linear-gradient(180deg, #00ff99, #00aa66);
-      border-color: #00ff99;
-    }
-
-    .layout {
-      display: grid;
-      grid-template-columns: 1fr 270px;
-      gap: 18px;
-      align-items: stretch;
-    }
-
-    .mixer-frame {
-      background: linear-gradient(180deg, #121a27, #0b1018);
-      border: 1px solid #29374c;
-      border-radius: var(--radius);
-      padding: 16px;
-      box-shadow: 0 22px 60px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.06);
-    }
-
-    .mixer-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 14px;
-      padding: 0 6px;
-    }
-
-    .mixer-header h2 {
-      font-size: 16px;
-      letter-spacing: 2px;
-      color: #dcecff;
-      text-transform: uppercase;
-    }
-
-    .status-pill {
-      font-size: 12px;
-      color: var(--accent-green);
-      padding: 7px 12px;
-      border: 1px solid rgba(0,255,136,0.35);
-      border-radius: 999px;
-      background: rgba(0,255,136,0.08);
-    }
-
-    .channels {
-      display: grid;
-      grid-template-columns: repeat(10, 1fr);
-      gap: 10px;
-    }
-
-    .channel {
-      min-height: 710px;
-      background:
-        linear-gradient(180deg, rgba(255,255,255,0.04), transparent 20%),
-        linear-gradient(180deg, var(--bg-strip), var(--bg-strip-dark));
-      border: 1px solid #2b3a50;
-      border-radius: 18px;
-      padding: 10px 9px;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 12px 25px rgba(0,0,0,0.35);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .channel::after {
-      content: "";
-      position: absolute;
-      left: 0;
-      right: 0;
-      top: 0;
-      height: 5px;
-      background: linear-gradient(90deg, transparent, var(--accent), transparent);
-      opacity: 0.75;
-    }
-
-    .channel.yt::after {
-      background: linear-gradient(90deg, transparent, #ff3355, transparent);
-    }
-
-    .channel.fx::after {
-      background: linear-gradient(90deg, transparent, #9b5cff, transparent);
-    }
-
-    .ch-title {
-      text-align: center;
-      margin-top: 5px;
-      margin-bottom: 8px;
-    }
-
-    .ch-title strong {
-      display: block;
-      font-size: 14px;
-      letter-spacing: 1px;
-    }
-
-    .ch-title span {
-      color: var(--muted);
-      font-size: 10px;
-      text-transform: uppercase;
-    }
-
-    .tiny-screen {
-      height: 34px;
-      background: #061018;
-      border: 1px solid rgba(0,217,255,0.25);
-      border-radius: 8px;
-      color: var(--accent);
-      font-size: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 4px;
-      margin-bottom: 9px;
-      overflow: hidden;
-    }
-
-    .file-row {
-      margin-bottom: 8px;
-    }
-
-    .file-label {
-      display: block;
-      text-align: center;
-      width: 100%;
-      background: linear-gradient(180deg, #26364c, #121a26);
-      border: 1px solid #3a4d67;
-      border-radius: 9px;
-      color: #d9edff;
-      padding: 7px 4px;
-      font-size: 10px;
-      cursor: pointer;
-      transition: 0.15s;
-    }
-
-    .file-label:hover {
-      border-color: var(--accent);
-      color: var(--accent);
-    }
-
-    input[type="file"] {
-      display: none;
-    }
-
-    .yt-input {
-      width: 100%;
-      border: 1px solid #3a4d67;
-      background: #071018;
-      color: #fff;
-      border-radius: 8px;
-      padding: 7px;
-      font-size: 10px;
-      outline: none;
-      margin-bottom: 7px;
-    }
-
-    .yt-input:focus {
-      border-color: #ff3355;
-    }
-
-    .yt-btn {
-      width: 100%;
-      border: 1px solid #743040;
-      background: linear-gradient(180deg, #ff3355, #8e1529);
-      color: #fff;
-      border-radius: 8px;
-      padding: 7px 4px;
-      font-size: 10px;
-      cursor: pointer;
-      margin-bottom: 8px;
-    }
-
-    .knob-section {
-      display: grid;
-      gap: 8px;
-      margin-top: 8px;
-      margin-bottom: 10px;
-    }
-
-    .knob-block {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 3px;
-    }
-
-    .knob {
-      width: 42px;
-      height: 42px;
-      border-radius: 50%;
-      background:
-        radial-gradient(circle at 35% 30%, #53677f, #1c2736 48%, #080d14 70%),
-        conic-gradient(from 210deg, var(--accent) 0deg, var(--accent) 120deg, #2d3a4b 121deg, #2d3a4b 300deg);
-      border: 1px solid #4b5f78;
-      box-shadow: inset 0 2px 5px rgba(255,255,255,0.13), 0 5px 10px rgba(0,0,0,0.4);
-      position: relative;
-    }
-
-    .knob::before {
-      content: "";
-      position: absolute;
-      width: 3px;
-      height: 15px;
-      background: #e9f8ff;
-      border-radius: 999px;
-      left: 50%;
-      top: 5px;
-      transform: translateX(-50%);
-      box-shadow: 0 0 8px rgba(0,217,255,0.8);
-    }
-
-    .knob-block label {
-      font-size: 9px;
-      color: var(--muted);
-      letter-spacing: 1px;
-    }
-
-    .knob-block input[type="range"] {
-      width: 70px;
-      accent-color: var(--accent);
-    }
-
-    .buttons {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 6px;
-      margin: 8px 0;
-    }
-
-    .small-btn {
-      border: 1px solid #3b4e67;
-      background: linear-gradient(180deg, #263348, #111924);
-      color: #dcecff;
-      border-radius: 8px;
-      padding: 7px 2px;
-      font-size: 10px;
-      cursor: pointer;
-      transition: 0.15s;
-    }
-
-    .small-btn:hover {
-      border-color: var(--accent);
-    }
-
-    .small-btn.mute.active {
-      background: linear-gradient(180deg, #ff3355, #8a1325);
-      border-color: #ff3355;
-      color: #fff;
-    }
-
-    .small-btn.solo.active {
-      background: linear-gradient(180deg, #ffcc00, #a56f00);
-      border-color: #ffcc00;
-      color: #1b1300;
-    }
-
-    .small-btn.live.active {
-      background: linear-gradient(180deg, #00ff88, #008c51);
-      border-color: #00ff88;
-      color: #00170c;
-    }
-
-    .meter-area {
-      display: flex;
-      justify-content: center;
-      gap: 5px;
-      height: 108px;
-      margin: 10px 0;
-    }
-
-    .meter {
-      width: 12px;
-      height: 108px;
-      background: #05080d;
-      border: 1px solid #2c3848;
-      border-radius: 999px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .meter-fill {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      height: 0%;
-      border-radius: 999px;
-      background: linear-gradient(0deg, #00ff88 0%, #aaff00 55%, #ffcc00 75%, #ff3355 100%);
-      box-shadow: 0 0 12px rgba(0,255,136,0.45);
-      transition: height 0.07s linear;
-    }
-
-    .fader-wrap {
-      height: 210px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin-top: 2px;
-      position: relative;
-    }
-
-    .fader-scale {
-      position: absolute;
-      left: 5px;
-      height: 185px;
-      width: 16px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      color: #596a80;
-      font-size: 8px;
-      text-align: right;
-    }
-
-    .fader {
-      writing-mode: bt-lr;
-      -webkit-appearance: slider-vertical;
-      appearance: slider-vertical;
-      width: 34px;
-      height: 190px;
-      accent-color: var(--accent);
-      cursor: pointer;
-    }
-
-    .value {
-      text-align: center;
-      font-size: 10px;
-      color: #b9cadc;
-      margin-top: 3px;
-    }
-
-    .pan-row {
-      margin-top: 8px;
-      text-align: center;
-    }
-
-    .pan-row label {
-      display: block;
-      font-size: 9px;
-      color: var(--muted);
-      margin-bottom: 3px;
-    }
-
-    .pan-row input {
-      width: 82px;
-      accent-color: var(--accent-2);
-    }
-
-    .master-panel {
-      background: linear-gradient(180deg, #141d2b, #090e15);
-      border: 1px solid #29374c;
-      border-radius: var(--radius);
-      padding: 16px;
-      box-shadow: 0 22px 60px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.06);
-    }
-
-    .master-title {
-      text-align: center;
-      margin-bottom: 12px;
-    }
-
-    .master-title h2 {
-      font-size: 20px;
-      letter-spacing: 2px;
-      color: #fff;
-      text-shadow: 0 0 12px rgba(0,217,255,0.55);
-    }
-
-    .master-title span {
-      color: var(--muted);
-      font-size: 11px;
-      letter-spacing: 2px;
-    }
-
-    .master-screen {
-      background: #061018;
-      border: 1px solid rgba(0,217,255,0.35);
-      border-radius: 12px;
-      height: 95px;
-      padding: 12px;
-      margin-bottom: 14px;
-      box-shadow: inset 0 0 25px rgba(0,217,255,0.12);
-    }
-
-    .master-screen .big {
-      color: var(--accent);
-      font-size: 18px;
-      margin-bottom: 8px;
-    }
-
-    .master-screen .small {
-      font-size: 11px;
-      color: #9fc7d5;
-      line-height: 1.5;
-    }
-
-    .master-meter {
-      height: 180px;
-      display: flex;
-      justify-content: center;
-      gap: 12px;
-      margin-bottom: 14px;
-    }
-
-    .master-meter .meter {
-      width: 28px;
-      height: 180px;
-    }
-
-    .master-fader-box {
-      height: 245px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 8px;
-    }
-
-    .master-fader {
-      writing-mode: bt-lr;
-      -webkit-appearance: slider-vertical;
-      appearance: slider-vertical;
-      height: 230px;
-      width: 44px;
-      accent-color: var(--accent-green);
-    }
-
-    .master-buttons {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      margin-top: 12px;
-    }
-
-    .master-buttons button {
-      padding: 10px 5px;
-      border-radius: 10px;
-      border: 1px solid #3b4e67;
-      background: linear-gradient(180deg, #263348, #111924);
-      color: #dcecff;
-      cursor: pointer;
-    }
-
-    .master-buttons button:hover {
-      border-color: var(--accent);
-    }
-
-    .rec.active {
-      background: linear-gradient(180deg, #ff3355, #8a1325);
-      border-color: #ff3355;
-    }
-
-    .yt-player-panel {
-      margin-top: 18px;
-      background: linear-gradient(180deg, #151d2a, #080d14);
-      border: 1px solid #29374c;
-      border-radius: var(--radius);
-      padding: 14px;
-      box-shadow: 0 18px 45px rgba(0,0,0,0.45);
-      display: grid;
-      grid-template-columns: 260px 1fr;
-      gap: 14px;
-      align-items: stretch;
-    }
-
-    .yt-box {
-      background: #05070a;
-      border-radius: 14px;
-      overflow: hidden;
-      border: 1px solid #3b4e67;
-      min-height: 160px;
-    }
-
-    .yt-box iframe {
-      width: 100%;
-      height: 100%;
-      min-height: 160px;
-      border: none;
-    }
-
-    .fx-panel {
-      background: #0a1018;
-      border: 1px solid #283548;
-      border-radius: 14px;
-      padding: 12px;
-    }
-
-    .fx-panel h3 {
-      font-size: 14px;
-      letter-spacing: 2px;
-      margin-bottom: 10px;
-      color: var(--accent-purple);
-    }
-
-    .fx-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-    }
-
-    .fx-control {
-      background: #101824;
-      border: 1px solid #283548;
-      border-radius: 12px;
-      padding: 10px;
-      text-align: center;
-    }
-
-    .fx-control label {
-      display: block;
-      color: var(--muted);
-      font-size: 11px;
-      margin-bottom: 8px;
-    }
-
-    .fx-control input {
-      width: 100%;
-      accent-color: var(--accent-purple);
-    }
-
-    .footer {
-      margin-top: 18px;
-      color: #6f8096;
-      font-size: 12px;
-      text-align: center;
-      letter-spacing: 1px;
-    }
-
-    @media (max-width: 900px) {
-      .app {
-        min-width: 1200px;
-      }
-    }
-  &lt;/style&gt;
-&lt;/head&gt;
-
-&lt;body&gt;
-  &lt;div class="app"&gt;
-
-    &lt;div class="topbar"&gt;
-      &lt;div class="brand"&gt;
-        &lt;h1&gt;FR AUDIO X78 SERIES&lt;/h1&gt;
-        &lt;span&gt;Modern Digital Web Mixer&lt;/span&gt;
-      &lt;/div&gt;
-
-      &lt;div class="display"&gt;
-        &lt;div class="line1" id="systemStatus"&gt;SYSTEM READY&lt;/div&gt;
-        &lt;div class="line2"&gt;8 INPUT CHANNELS · 1 YOUTUBE CHANNEL · 1 FX CHANNEL · DIGITAL MASTER BUS&lt;/div&gt;
-      &lt;/div&gt;
-
-      &lt;div class="global-controls"&gt;
-        &lt;button class="transport-btn" id="btnPower" title="Power"&gt;⏻&lt;/button&gt;
-        &lt;button class="transport-btn" id="btnPlayAll" title="Play All"&gt;▶&lt;/button&gt;
-        &lt;button class="transport-btn" id="btnStopAll" title="Stop All"&gt;■&lt;/button&gt;
-        &lt;button class="transport-btn" id="btnReset" title="Reset"&gt;↺&lt;/button&gt;
-      &lt;/div&gt;
-    &lt;/div&gt;
-
-    &lt;div class="layout"&gt;
-      &lt;main class="mixer-frame"&gt;
-        &lt;div class="mixer-header"&gt;
-          &lt;h2&gt;Mixer Functions&lt;/h2&gt;
-          &lt;div class="status-pill" id="audioState"&gt;Audio Engine: Standby&lt;/div&gt;
-        &lt;/div&gt;
-
-        &lt;div class="channels" id="channels"&gt;&lt;/div&gt;
-      &lt;/main&gt;
-
-      &lt;aside class="master-panel"&gt;
-        &lt;div class="master-title"&gt;
-          &lt;h2&gt;MASTER&lt;/h2&gt;
-          &lt;span&gt;MAIN OUT L/R&lt;/span&gt;
-        &lt;/div&gt;
-
-        &lt;div class="master-screen"&gt;
-          &lt;div class="big" id="masterDb"&gt;0 dB&lt;/div&gt;
-          &lt;div class="small"&gt;
-            Sample Rate: 48 kHz&lt;br&gt;
-            Bus: Stereo&lt;br&gt;
-            Mode: Web Audio Digital
-          &lt;/div&gt;
-        &lt;/div&gt;
-
-        &lt;div class="master-meter"&gt;
-          &lt;div class="meter"&gt;&lt;div class="meter-fill" id="masterMeterL"&gt;&lt;/div&gt;&lt;/div&gt;
-          &lt;div class="meter"&gt;&lt;div class="meter-fill" id="masterMeterR"&gt;&lt;/div&gt;&lt;/div&gt;
-        &lt;/div&gt;
-
-        &lt;div class="master-fader-box"&gt;
-          &lt;input class="master-fader" id="masterFader" type="range" min="0" max="1.4" step="0.01" value="1"&gt;
-        &lt;/div&gt;
-
-        &lt;div class="value" id="masterValue"&gt;MASTER 100%&lt;/div&gt;
-
-        &lt;div class="master-buttons"&gt;
-          &lt;button id="btnMasterMute"&gt;MUTE&lt;/button&gt;
-          &lt;button class="rec" id="btnRecord"&gt;REC&lt;/button&gt;
-          &lt;button id="btnLimiter"&gt;LIMITER&lt;/button&gt;
-          &lt;button id="btnMonitor"&gt;MONITOR&lt;/button&gt;
-        &lt;/div&gt;
-      &lt;/aside&gt;
-    &lt;/div&gt;
-
-    &lt;section class="yt-player-panel"&gt;
-      &lt;div class="yt-box" id="ytBox"&gt;
-        &lt;div style="height:160px;display:flex;align-items:center;justify-content:center;color:#7d8da3;font-size:13px;text-align:center;padding:20px;"&gt;
-          YouTube Channel Preview
-        &lt;/div&gt;
-      &lt;/div&gt;
-
-      &lt;div class="fx-panel"&gt;
-        &lt;h3&gt;GLOBAL EFFECT PROCESSOR&lt;/h3&gt;
-        &lt;div class="fx-grid"&gt;
-          &lt;div class="fx-control"&gt;
-            &lt;label&gt;REVERB&lt;/label&gt;
-            &lt;input id="globalReverb" type="range" min="0" max="1" step="0.01" value="0.15"&gt;
-          &lt;/div&gt;
-          &lt;div class="fx-control"&gt;
-            &lt;label&gt;DELAY&lt;/label&gt;
-            &lt;input id="globalDelay" type="range" min="0" max="1" step="0.01" value="0.12"&gt;
-          &lt;/div&gt;
-          &lt;div class="fx-control"&gt;
-            &lt;label&gt;FILTER&lt;/label&gt;
-            &lt;input id="globalFilter" type="range" min="200" max="18000" step="1" value="18000"&gt;
-          &lt;/div&gt;
-          &lt;div class="fx-control"&gt;
-            &lt;label&gt;DRIVE&lt;/label&gt;
-            &lt;input id="globalDrive" type="range" min="0" max="1" step="0.01" value="0"&gt;
-          &lt;/div&gt;
-        &lt;/div&gt;
-      &lt;/div&gt;
-    &lt;/section&gt;
-
-    &lt;div class="footer"&gt;
-      FR AUDIO X78 SERIES · Digital Mixer Interface · Built with HTML, CSS, JavaScript, and Web Audio API
-    &lt;/div&gt;
-  &lt;/div&gt;
-
-  &lt;script&gt;
-    const channelCount = 10;
-
-    const channelTypes = [
-      "INPUT", "INPUT", "INPUT", "INPUT",
-      "INPUT", "INPUT", "INPUT", "INPUT",
-      "YOUTUBE", "FX"
-    ];
-
-    const channelNames = [
-      "CH 1", "CH 2", "CH 3", "CH 4",
-      "CH 5", "CH 6", "CH 7", "CH 8",
-      "YT", "FX"
-    ];
-
-    let audioContext = null;
-    let masterGain = null;
-    let masterAnalyser = null;
-    let masterData = null;
-    let compressor = null;
-    let masterMuted = false;
-    let limiterOn = false;
-    let monitorOn = false;
-    let recorderOn = false;
-
-    const channels = [];
-    const channelContainer = document.getElementById("channels");
-
-    function dbFromGain(value) {
-      if (value &lt;= 0.001) return "-∞ dB";
-      const db = 20 * Math.log10(value);
-      return db.toFixed(1) + " dB";
-    }
-
-    function clamp(value, min, max) {
-      return Math.max(min, Math.min(max, value));
-    }
-
-    function createAudioEngine() {
-      if (audioContext) return;
-
-      audioContext = new AudioContext();
-
-      masterGain = audioContext.createGain();
-      masterGain.gain.value = Number(document.getElementById("masterFader").value);
-
-      compressor = audioContext.createDynamicsCompressor();
-      compressor.threshold.value = -6;
-      compressor.knee.value = 12;
-      compressor.ratio.value = 8;
-      compressor.attack.value = 0.003;
-      compressor.release.value = 0.25;
-
-      masterAnalyser = audioContext.createAnalyser();
-      masterAnalyser.fftSize = 256;
-      masterData = new Uint8Array(masterAnalyser.frequencyBinCount);
-
-      masterGain.connect(masterAnalyser);
-      masterAnalyser.connect(audioContext.destination);
-
-      document.getElementById("audioState").textContent = "Audio Engine: Running";
-      document.getElementById("systemStatus").textContent = "AUDIO ENGINE ONLINE";
-      document.getElementById("btnPower").classList.add("active");
-    }
-
-    function buildChannel(index) {
-      const type = channelTypes[index];
-      const isInput = type === "INPUT";
-      const isYoutube = type === "YOUTUBE";
-      const isFx = type === "FX";
-
-      const ch = document.createElement("div");
-      ch.className = "channel";
-      if (isYoutube) ch.classList.add("yt");
-      if (isFx) ch.classList.add("fx");
-
-      let loadArea = "";
-
-      if (isInput) {
-        loadArea =
-          '&lt;div class="file-row"&gt;' +
-            '&lt;label class="file-label" for="file' + index + '"&gt;LOAD AUDIO&lt;/label&gt;' +
-            '&lt;input id="file' + index + '" type="file" accept="audio/*"&gt;' +
-          '&lt;/div&gt;';
-      }
-
-      if (isYoutube) {
-        loadArea =
-          '&lt;input class="yt-input" id="ytInput" placeholder="Paste link YouTube"&gt;' +
-          '&lt;button class="yt-btn" id="ytLoad"&gt;LOAD YT&lt;/button&gt;';
-      }
-
-      if (isFx) {
-        loadArea =
-          '&lt;div class="tiny-screen"&gt;FX RETURN BUS&lt;/div&gt;';
-      }
-
-      ch.innerHTML =
-        '&lt;div class="ch-title"&gt;' +
-          '&lt;strong&gt;' + channelNames[index] + '&lt;/strong&gt;' +
-          '&lt;span&gt;' + type + '&lt;/span&gt;' +
-        '&lt;/div&gt;' +
-
-        '&lt;div class="tiny-screen" id="screen' + index + '"&gt;NO SOURCE&lt;/div&gt;' +
-        loadArea +
-
-        '&lt;div class="knob-section"&gt;' +
-          createKnob(index, "gain", "GAIN", 0, 2, 0.01, 1) +
-          createKnob(index, "high", "HIGH", -18, 18, 0.1, 0) +
-          createKnob(index, "mid", "MID", -18, 18, 0.1, 0) +
-          createKnob(index, "low", "LOW", -18, 18, 0.1, 0) +
-        '&lt;/div&gt;' +
-
-        '&lt;div class="buttons"&gt;' +
-          '&lt;button class="small-btn mute" id="mute' + index + '"&gt;MUTE&lt;/button&gt;' +
-          '&lt;button class="small-btn solo" id="solo' + index + '"&gt;SOLO&lt;/button&gt;' +
-          (isInput ? '&lt;button class="small-btn live" id="live' + index + '"&gt;LIVE&lt;/button&gt;' : '&lt;button class="small-btn" disabled&gt;LIVE&lt;/button&gt;') +
-          '&lt;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FR AUDIO X78 Series - Digital Performance Mixer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;400;600&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f0c1b;
+        }
+        .font-digital {
+            font-family: 'Orbitron', sans-serif;
+        }
+        /* Custom Scrollbar for Mixer tracks if screen is small */
+        .mixer-container::-webkit-scrollbar {
+            height: 8px;
+        }
+        .mixer-container::-webkit-scrollbar-thumb {
+            background: #7c3aed;
+            border-radius: 4px;
+        }
+        /* Vertical Range Slider Styling (Faders) */
+        .fader-wrapper {
+            height: 280px;
+            position: relative;
+        }
+        .fader-input {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 8px;
+            height: 100%;
+            background: #e2e8f0;
+            border-radius: 4px;
+            outline: none;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .fader-input::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 32px;
+            height: 48px;
+            background: #ffffff;
+            border: 2px solid #7c3aed;
+            border-radius: 4px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3);
+            transition: background 0.1s;
+        }
+        .fader-input::-webkit-slider-thumb:hover {
+            background: #f5f3ff;
+        }
+        /* Violet Faders for YT & FX */
+        .fader-violet::-webkit-slider-thumb {
+            background: #7c3aed !important;
+            border: 2px solid #ffffff !important;
+        }
+        .fader-violet::-webkit-slider-thumb:hover {
+            background: #6d28d9 !important;
+        }
+    </style>
+</head>
+<body class="p-6 flex justify-center items-center min-h-screen text-slate-200">
+
+    <div class="w-full max-w-7xl bg-slate-900 border-4 border-purple-900 rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+        
+        <div class="p-4 bg-gradient-to-r from-slate-900 via-purple-950 to-slate-900 border-b-2 border-purple-800 grid grid-cols-12 gap-4 items-center">
+            <div class="col-span-3">
+                <h1 class="text-2xl font-black tracking-wider text-white flex items-center gap-2">
+                    <span class="bg-purple-600 text-white px-2 py-0.5 rounded text-sm">FR</span> AUDIO
+                </h1>
+                <p class="text-xs text-purple-300 font-semibold uppercase tracking-widest mt-0.5">X78 SERIES</p>
+                <span class="text-[10px] text-slate-400 block italic mt-1">The Violet and White Essence of Sound</span>
+            </div>
+
+            <div class="col-span-6 flex justify-around bg-slate-950/60 p-2 rounded-xl border border-purple-900/50">
+                <div class="text-center">
+                    <span class="text-[10px] text-slate-400 block uppercase font-bold mb-1">Gain</span>
+                    <div class="w-8 h-8 rounded-full border-2 border-purple-500 bg-slate-800 mx-auto flex items-center justify-center cursor-pointer hover:border-white transition">
+                        <div class="w-1 h-3 bg-white -mt-3 rounded-full transform rotate-45"></div>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <span class="text-[10px] text-slate-400 block uppercase font-bold mb-1">Gate</span>
+                    <div class="w-8 h-8 rounded-full border-2 border-purple-500 bg-slate-800 mx-auto flex items-center justify-center cursor-pointer hover:border-white transition">
+                        <div class="w-1 h-3 bg-purple-400 -mt-3 rounded-full transform -rotate-12"></div>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <span class="text-[10px] text-slate-400 block uppercase font-bold mb-1">Comp</span>
+                    <div class="w-8 h-8 rounded-full border-2 border-purple-500 bg-slate-800 mx-auto flex items-center justify-center cursor-pointer hover:border-white transition">
+                        <div class="w-1 h-3 bg-white -mt-3 rounded-full transform rotate-90"></div>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <span class="text-[10px] text-slate-400 block uppercase font-bold mb-1">EQ Low</span>
+                    <div class="w-8 h-8 rounded-full border-2 border-purple-500 bg-slate-800 mx-auto flex items-center justify-center cursor-pointer hover:border-white transition">
+                        <div class="w-1 h-3 bg-white -mt-3 rounded-full transform rotate-0"></div>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <span class="text-[10px] text-slate-400 block uppercase font-bold mb-1">EQ Mid</span>
+                    <div class="w-8 h-8 rounded-full border-2 border-purple-500 bg-slate-800 mx-auto flex items-center justify-center cursor-pointer hover:border-white transition">
+                        <div class="w-1 h-3 bg-white -mt-3 rounded-full transform rotate-45"></div>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <span class="text-[10px] text-slate-400 block uppercase font-bold mb-1">EQ High</span>
+                    <div class="w-8 h-8 rounded-full border-2 border-purple-500 bg-slate-800 mx-auto flex items-center justify-center cursor-pointer hover:border-white transition">
+                        <div class="w-1 h-3 bg-white -mt-3 rounded-full transform -rotate-45"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-span-3 bg-purple-950 border border-purple-500/40 p-2 rounded-lg font-digital shadow-inner">
+                <div class="flex justify-between text-[11px] text-purple-300 border-b border-purple-800 pb-1 mb-1">
+                    <span>DIGITAL EFFECTS</span>
+                    <span class="text-white">Page 1: FX View</span>
+                </div>
+                <div class="text-xs text-purple-200">
+                    <div class="flex justify-between py-0.5">
+                        <span>F1: Natural - AMBIENCE</span>
+                    </div>
+                    <div class="flex justify-between text-[11px] text-white bg-purple-900/60 px-1 rounded">
+                        <span>Decay (s)</span>
+                        <span class="text-green-400">0.29</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-11 bg-slate-950 p-2 gap-1 border-b border-slate-800 text-center text-[10px] font-bold tracking-wider uppercase text-slate-400">
+            <div class="border-r border-slate-800/40">Ch 1 <span class="block text-[8px] text-purple-400">Live/File</span></div>
+            <div class="border-r border-slate-800/40">Ch 2 <span class="block text-[8px] text-purple-400">Live/File</span></div>
+            <div class="border-r border-slate-800/40">Ch 3 <span class="block text-[8px] text-purple-400">Live/File</span></div>
+            <div class="border-r border-slate-800/40">Ch 4 <span class="block text-[8px] text-purple-400">Live/File</span></div>
+            <div class="border-r border-slate-800/40">Ch 5 <span class="block text-[8px] text-purple-400">Live/File</span></div>
+            <div class="border-r border-slate-800/40">Ch 6 <span class="block text-[8px] text-purple-400">Live/File</span></div>
+            <div class="border-r border-slate-800/40">Ch 7 <span class="block text-[8px] text-purple-400">Live/File</span></div>
+            <div class="border-r border-slate-800/40">Ch 8 <span class="block text-[8px] text-purple-400">Live/File</span></div>
+            <div class="bg-purple-900/20 text-purple-300 border-x border-purple-700/40">Ch 9 <span class="block text-[8px] text-red-400"><i class="fab fa-youtube"></i> YouTube</span></div>
+            <div class="bg-purple-950 text-purple-300 border-r border-purple-700/40">Ch 10 <span class="block text-[8px] text-violet-400">FX Master</span></div>
+            <div class="text-white bg-slate-900">Main <span class="block text-[8px] text-amber-400">Master LR</span></div>
+        </div>
+
+        <div class="grid grid-cols-11 bg-slate-950 px-2 py-3 gap-1 border-b-2 border-slate-800 h-24">
+            <script>
+                for (let i = 1; i <= 11; i++) {
+                    let isSpecial = i === 9 ? 'bg-purple-950/50' : (i === 10 ? 'bg-purple-900/40' : (i === 11 ? 'bg-slate-900' : ''));
+                    document.write(`
+                        <div class="flex flex-col justify-end gap-0.5 h-full px-2 ${isSpecial} rounded-sm">
+                            <div class="h-1 bg-red-500 w-full rounded-sm opacity-30 animate-pulse"></div>
+                            <div class="h-2 bg-amber-500 w-full rounded-sm opacity-40"></div>
+                            <div class="h-3 bg-green-500 w-full rounded-sm"></div>
+                            <div class="h-4 bg-green-500 w-full rounded-sm"></div>
+                            <div class="h-4 bg-green-500 w-full rounded-sm opacity-80"></div>
+                        </div>
+                    `);
+                }
+            </script>
+        </div>
+
+        <div class="grid grid-cols-11 bg-gradient-to-b from-white via-slate-100 to-slate-200 text-slate-800 p-2 gap-1 items-stretch rounded-b-xl mixer-container overflow-x-auto">
+            
+            <script>
+                for (let ch = 1; ch <= 8; ch++) {
+                    document.write(`
+                        <div class="flex flex-col items-center bg-white/80 border border-slate-300 rounded-lg p-2 shadow-sm text-center">
+                            <div class="w-full flex flex-col gap-1 mb-3">
+                                <button onclick="triggerAction('Ch ${ch}', 'Mute')" class="bg-slate-200 hover:bg-red-500 hover:text-white transition rounded text-[10px] py-1 font-bold shadow-sm uppercase">Mute</button>
+                                <button onclick="triggerAction('Ch ${ch}', 'Select')" class="bg-purple-100 border border-purple-300 text-purple-700 hover:bg-purple-600 hover:text-white transition rounded text-[10px] py-1 font-bold shadow-sm uppercase">Select</button>
+                            </div>
+                            
+                            <div class="w-full flex flex-col gap-1 mb-4">
+                                <label class="bg-slate-800 text-white rounded text-[9px] py-0.5 px-1 font-semibold flex items-center justify-center gap-1 cursor-pointer hover:bg-slate-700">
+                                    <i class="fa-solid fa-upload text-[8px]"></i> Load
+                                    <input type="file" class="hidden" onchange="alert('File loaded to Channel ${ch}')">
+                                </label>
+                                <button onclick="triggerAction('Ch ${ch}', 'Live Toggle')" class="bg-emerald-600 text-white rounded text-[9px] py-0.5 px-1 font-semibold hover:bg-emerald-700"><i class="fa-solid fa-microphone"></i> Live</button>
+                            </div>
+
+                            <div class="fader-wrapper w-full flex justify-center my-2">
+                                <span class="absolute left-2 text-[9px] text-slate-400 font-bold flex flex-col justify-between h-full py-1">
+                                    <span>+10</span><span>0</span><span>-10</span><span>-30</span><span>-∞</span>
+                                </span>
+                                <input type="range" min="0" max="100" value="70" class="fader-input" orient="vertical" oninput="updateVolume('Ch ${ch}', this.value)">
+                            </div>
+
+                            <div class="mt-2 bg-slate-900 text-white font-bold text-xs px-3 py-1 rounded-md shadow-inner w-full font-digital">
+                                CH 0${ch}
+                            </div>
+                        </div>
+                    `);
+                }
+            </script>
+
+            <div class="flex flex-col items-center bg-purple-50 border-2 border-purple-400 rounded-lg p-2 shadow-md text-center">
+                <div class="w-full flex flex-col gap-1 mb-3">
+                    <button onclick="triggerAction('YouTube', 'Mute')" class="bg-purple-200 hover:bg-red-500 hover:text-white transition rounded text-[10px] py-1 font-bold shadow-sm uppercase">Mute</button>
+                    <button onclick="triggerAction('YouTube', 'Select')" class="bg-purple-600 text-white hover:bg-purple-700 transition rounded text-[10px] py-1 font-bold shadow-sm uppercase">Select</button>
+                </div>
+
+                <div class="w-full flex flex-col gap-1 mb-4">
+                    <button onclick="prompt('Enter YouTube URL:', 'https://youtube.com/...')" class="bg-red-600 text-white rounded text-[9px] py-1 px-1 font-semibold hover:bg-red-700 flex items-center justify-center gap-1">
+                        <i class="fab fa-youtube"></i> Load YT
+                    </button>
+                    <div class="bg-slate-300 text-slate-500 rounded text-[9px] py-0.5 px-1 font-bold select-none cursor-not-allowed uppercase" title="Live streaming disabled for YouTube channel">
+                        <i class="fa-solid fa-ban"></i> No Live
+                    </div>
+                </div>
+
+                <div class="fader-wrapper w-full flex justify-center my-2">
+                    <span class="absolute left-2 text-[9px] text-purple-400 font-bold flex flex-col justify-between h-full py-1">
+                        <span>+10</span><span>0</span><span>-10</span><span>-30</span><span>-∞</span>
+                    </span>
+                    <input type="range" min="0" max="100" value="80" class="fader-input fader-violet" orient="vertical" oninput="updateVolume('YouTube', this.value)">
+                </div>
+
+                <div class="mt-2 bg-purple-700 text-white font-bold text-xs px-2 py-1 rounded-md shadow-inner w-full font-digital">
+                    CH 09
+                </div>
+            </div>
+
+            <div class="flex flex-col items-center bg-purple-100 border-2 border-purple-300 rounded-lg p-2 shadow-md text-center">
+                <div class="w-full flex flex-col gap-1 mb-3">
+                    <button onclick="triggerAction('FX Master', 'Mute')" class="bg-purple-200 hover:bg-red-500 hover:text-white transition rounded text-[10px] py-1 font-bold shadow-sm uppercase">Mute</button>
+                    <button onclick="triggerAction('FX Master', 'Select')" class="bg-purple-700 text-white hover:bg-purple-800 transition rounded text-[10px] py-1 font-bold shadow-sm uppercase">Select</button>
+                </div>
+
+                <div class="w-full flex flex-col gap-1 mb-4 text-[9px] font-bold text-purple-800">
+                    <span class="block bg-white border border-purple-300 rounded py-0.5">FX AMT: 64%</span>
+                    <span class="block bg-white border border-purple-300 rounded py-0.5">REV-TIME</span>
+                </div>
+
+                <div class="fader-wrapper w-full flex justify-center my-2">
+                    <span class="absolute left-2 text-[9px] text-purple-400 font-bold flex flex-col justify-between h-full py-1">
+                        <span>+10</span><span>0</span><span>-10</span><span>-30</span><span>-∞</span>
+                    </span>
+                    <input type="range" min="0" max="100" value="50" class="fader-input fader-violet" orient="vertical" oninput="updateVolume('FX Master', this.value)">
+                </div>
+
+                <div class="mt-2 bg-purple-900 text-white font-bold text-xs px-2 py-1 rounded-md shadow-inner w-full font-digital">
+                    FX MAIN
+                </div>
+            </div>
+
+            <div class="flex flex-col items-center bg-slate-800 border-2 border-slate-900 rounded-lg p-2 shadow-lg text-center text-white">
+                <div class="w-full flex flex-col gap-1 mb-3">
+                    <button onclick="triggerAction('Main Master', 'Clear Solo')" class="bg-amber-600 hover:bg-amber-700 transition text-white rounded text-[9px] py-1 font-bold uppercase">CLR Solo</button>
+                    <button onclick="triggerAction('Main Master', 'Main Select')" class="bg-slate-700 text-white border border-slate-600 rounded text-[10px] py-1 font-bold uppercase">Select</button>
+                </div>
+
+                <div class="w-full flex flex-col gap-1 mb-4 text-[9px] font-bold text-center">
+                    <div class="bg-slate-950 text-red-500 rounded py-0.5 border border-red-900 animate-pulse">L - MAIN - R</div>
+                </div>
+
+                <div class="fader-wrapper w-full flex justify-center my-2">
+                    <span class="absolute left-2 text-[9px] text-slate-400 font-bold flex flex-col justify-between h-full py-1">
+                        <span>+10</span><span>0</span><span>-10</span><span>-30</span><span>-∞</span>
+                    </span>
+                    <input type="range" min="0" max="100" value="75" class="fader-input" orient="vertical" oninput="updateVolume('Main Master', this.value)">
+                </div>
+
+                <div class="mt-2 bg-amber-500 text-slate-950 font-black text-xs px-2 py-1 rounded-md w-full font-digital shadow-md">
+                    MAIN
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="toast" class="fixed bottom-4 right-4 bg-purple-900 text-white text-xs px-4 py-2 rounded-lg shadow-lg opacity-0 transition-opacity duration-300 pointer-events-none">
+        Console Ready.
+    </div>
+
+    <script>
+        function updateVolume(channel, value) {
+            console.log(`${channel} Volume set to: ${value}%`);
+            // Here you can tie Web Audio API GainNode values later.
+        }
+
+        function triggerAction(channel, action) {
+            const toast = document.getElementById('toast');
+            toast.innerText = `${channel}: Action [${action}] Triggered`;
+            toast.classList.remove('opacity-0');
+            toast.classList.add('opacity-100');
+            
+            setTimeout(() => {
+                toast.classList.remove('opacity-100');
+                toast.classList.add('opacity-0');
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
