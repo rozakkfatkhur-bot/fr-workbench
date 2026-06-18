@@ -769,6 +769,22 @@
 
       // Hubungkan channel 10 Return fader untuk mengontrol sinyal balik FX
       globalFeedbackNode.connect(channelNodes[9].input);
+     // Tambahkan ini di dalam initAudioEngine() untuk menangkap real hardware input
+navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false } })
+.then(stream => {
+  // Buat source node dari input mic/soundcard fisik
+  const micSource = audioCtx.createMediaStreamSource(stream);
+  
+  // Hubungkan micSource ini ke Channel 1 input gain kamu
+  // Index 0 adalah CH 01 (KICK)
+  micSource.connect(channelNodes[0].input);
+  
+  console.log("Input Soundcard/Mic Fisik Berhasil Terhubung ke CH 01!");
+})
+.catch(err => {
+  console.error("Gagal mengakses input audio fisik: ", err);
+});
+
     }
 
     function setupSyntheticStreamInput(idx) {
