@@ -769,28 +769,23 @@
 
       // Hubungkan channel 10 Return fader untuk mengontrol sinyal balik FX
       globalFeedbackNode.connect(channelNodes[9].input);
-     /    // Tangkap input hardware secara multitrack & hubungkan ke sistem patching mixer
+         // Tangkap input hardware secara multitrack & hubungkan ke sistem patching mixer
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } })
       .then(stream => {
         const hardwareSource = audioCtx.createMediaStreamSource(stream);
         
-        // Buat split node agar input fisik bisa didistribusikan secara dinamis
-        // Pasang pengaman agar hanya mengalir jika channel diset ke mode STREAM
         channelNodes.forEach((chNode, idx) => {
-          if (idx < 8) { // Khusus CH 01 - CH 08
-            // Membuat gain node jembatan sebagai saklar otomatis
+          if (idx < 8) { 
             const liveSwitch = audioCtx.createGain();
             hardwareSource.connect(liveSwitch);
             liveSwitch.connect(chNode.input);
             
-            // Logika pendeteksi status: matikan fader live jika user melakukan 'Up File'
             setInterval(() => {
-              // Jika channel sedang memutar file atau tidak dalam mode streaming, matikan aliran mic fisik
               if (chNode.fileSource || !document.querySelector(`[data-channel="${idx}"]`)?.classList.contains('streaming-active')) {
                 liveSwitch.gain.value = 0;
               } else {
-                liveSwitch.gain.value = 1; // Aktifkan jika mode Live/Streaming dinyalakan
+                liveSwitch.gain.value = 1;
               }
             }, 200);
           }
@@ -801,6 +796,7 @@
         console.warn("Akses hardware audio eksternal ditangguhkan: ", err);
       });
     }
+     
     function setupSyntheticStreamInput(idx) {
       if (!audioCtx) return;
       const osc1 = audioCtx.createOscillator();
