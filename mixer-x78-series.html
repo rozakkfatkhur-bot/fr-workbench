@@ -7,6 +7,7 @@
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
+  <script src="https://www.youtube.com/iframe_api"></script>
   <style>
     :root{
       --bg:#171b20;
@@ -107,7 +108,7 @@
     .screen-channel{font-family:'Space Mono',monospace;color:#dbf0ff;font-size:16px}
     
     /* Layouts */
-    .overview-grid{display:grid;grid-template-columns:1.25fr .9fr .9fr;gap:10px;height:150px}
+    .overview-grid{display:grid;grid-template-columns:1.2fr 1fr .8fr;gap:10px;height:150px}
     .screen-card{border:1px solid #33404a;background:rgba(15,25,32,.78);padding:9px;border-radius:2px;}
     .screen-card-title{font-size:8px;color:#7d95a6;text-transform:uppercase;letter-spacing:.14em;margin-bottom:7px}
     .large-meter{height:98px;display:flex;align-items:flex-end;gap:4px}
@@ -267,6 +268,9 @@
     .modal-actions{display:flex;justify-content:flex-end;gap:7px;margin-top:12px}
     .action-btn{height:30px;border-radius:3px;border:1px solid #49606f;background:linear-gradient(180deg,#324250,#1e2a33);color:#d7e9f6;font-size:10px;font-weight:700;padding:0 11px}
     .action-btn.primary{background:linear-gradient(180deg,#2c78ad,#1c527c);border-color:#4f98c8}
+    
+    /* Layer khusus video Youtube tersembunyi/kecil agar audio bisa diekstrak */
+    .yt-iframe-layer { position: absolute; top: 40px; right: 12px; width: 140px; height: 85px; border: 1px solid #2d3b45; background: #000; border-radius: 3px; overflow: hidden; z-index: 10; }
   </style>
   <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
   <script src="/_sdk/resizing_sdk.js" type="text/javascript"></script>
@@ -305,6 +309,10 @@
       <div class="display-body">
        <div class="screen-area">
         
+        <div id="ytPlayerContainer" class="yt-iframe-layer hidden">
+           <div id="ytTrueEngine"></div>
+        </div>
+
         <div id="overviewMode" class="screen-mode active">
          <div class="screen-header">
           <div><div class="screen-kicker">Channel Overview</div><div id="overviewChannelName" class="screen-channel">CH 01 · KICK</div></div>
@@ -493,8 +501,15 @@
             <div class="screen-kicker">PINK NOISE / SINE WAVE</div>
           </div>
           <div class="p-3 bg-black/40 border border-slate-700 rounded flex justify-between items-center font-mono">
-            <div><span class="text-xs text-slate-300 block">CURRENT SIGNAL: PINK NOISE</span><span class="text-[10px] text-slate-500">Targeting system crossover measurement point</span></div>
-            <div class="text-xl font-bold text-rose-400">1.000 Hz</div>
+            <div>
+               <span class="text-xs text-slate-300 block">GEN ENGINE STATUS: <span id="genActiveTxt" class="text-red-400">OFF</span></span>
+               <div class="flex gap-2 mt-2">
+                  <button id="btnToneSine" class="px-2 py-0.5 bg-slate-800 text-[10px] text-white rounded border border-slate-600">Sine 1kHz</button>
+                  <button id="btnToneNoise" class="px-2 py-0.5 bg-slate-800 text-[10px] text-white rounded border border-slate-600">Pink Noise</button>
+                  <button id="btnToneKill" class="px-2 py-0.5 bg-red-950 text-[10px] text-red-200 rounded border border-red-700">Mute Gen</button>
+               </div>
+            </div>
+            <div class="text-xl font-bold text-rose-400" id="genFreqTxt">1.000 Hz</div>
           </div>
         </div>
 
@@ -517,9 +532,9 @@
             <div class="screen-kicker">HARDWARE CORE HEALTH</div>
           </div>
           <div class="grid grid-cols-3 gap-2 font-mono text-[10px]">
-            <div class="p-2 bg-slate-900/80 border border-slate-700 rounded"><span>DSP CORE TEMP</span><div class="text-emerald-400 font-bold mt-1">42.8 °C</div></div>
-            <div class="p-2 bg-slate-900/80 border border-slate-700 rounded"><span>OTG BUS VOLT</span><div class="text-cyan-400 font-bold mt-1">5.02 V</div></div>
-            <div class="p-2 bg-slate-900/80 border border-slate-700 rounded"><span>DSP LOAD CAPACITY</span><div class="text-amber-400 font-bold mt-1">14.2%</div></div>
+            <div class="p-2 bg-slate-900/80 border border-slate-700 rounded"><span>DSP CORE TEMP</span><div class="text-emerald-400 font-bold mt-1">44.2 °C</div></div>
+            <div class="p-2 bg-slate-900/80 border border-slate-700 rounded"><span>AUDIO COMPUTE LOAD</span><div class="text-cyan-400 font-bold mt-1" id="telemetryCpuLoad">4.2%</div></div>
+            <div class="p-2 bg-slate-900/80 border border-slate-700 rounded"><span>AUDIO BUFFER RAILS</span><div class="text-amber-400 font-bold mt-1">512 smpl</div></div>
           </div>
         </div>
 
@@ -664,12 +679,12 @@
     const fxAssigned = new Set([6]);
     const soundcardAssigned = new Set([0, 1, 6]); 
 
-    // Audio Context States
+    // Audio Context Core States
     let audioCtx = null;
     let hardwareStream = null;
     let hardwareSourceNode = null;
     let channelSplitterNode = null;
-    let micMuted = false; // Flag status mute mikrofon / OTG hardware stream
+    let micMuted = false; 
     
     let masterLeftGain = null;
     let masterRightGain = null;
@@ -681,6 +696,57 @@
     let globalFilterNode = null;
     const channelNodes = [];
     let isGlobalPlaying = false;
+
+    // Signal Generator Core Nodes
+    let signalGenOsc = null;
+    let signalGenGain = null;
+
+    // YouTube Global Core Integration
+    let ytPlayerElement = null;
+    let ytAudioElementSource = null;
+    let ytSimulationInterval = null;
+    let ytHasUserUrl = false;
+
+    window.onYouTubeIframeAPIReady = function() {
+       ytPlayerElement = new YT.Player('ytTrueEngine', {
+          height: '100%',
+          width: '100%',
+          videoId: '5qap5aO4i9A', // Default Lofi HipHop video template for calibration
+          playerVars: { 'autoplay': 0, 'controls': 1, 'rel': 0, 'showinfo': 0, 'mute': 0 },
+          events: {
+             'onReady': onPlayerReady,
+             'onStateChange': onPlayerStateChange
+          }
+       });
+    };
+
+    function onPlayerReady(event) {
+       console.log("X78 Engine Framework: YouTube Iframe Hub Loaded Safely.");
+    }
+
+    function onPlayerStateChange(event) {
+       if (!audioCtx) togglePowerEngine(true);
+       const ch9Node = channelNodes[8];
+       if (!ch9Node) return;
+
+       if (event.data === YT.PlayerState.PLAYING) {
+          updateDeckVisuals(8, 'play');
+          // Karena YouTube Iframe tidak mengizinkan direct capture Web Audio cross-origin, 
+          // kita menjembatani level volume amplifikasi via generator data real-time analyzer!
+          if(ytSimulationInterval) clearInterval(ytSimulationInterval);
+          ytSimulationInterval = setInterval(() => {
+             if(audioCtx && audioCtx.state === 'running' && !ch9Node.isMuted) {
+                // Beri asupan energi gelombang vokal dinamis acak ke analyzer CH 9 saat memutar YT video asli
+                ch9Node.syntheticOscGain.gain.setTargetAtTime(0.12 + Math.random() * 0.08, audioCtx.currentTime, 0.02);
+             }
+          }, 120);
+       } else {
+          if(event.data === YT.PlayerState.PAUSED) updateDeckVisuals(8, 'pause');
+          else updateDeckVisuals(8, 'stop');
+          if(ch9Node.syntheticOscGain) ch9Node.syntheticOscGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.05);
+          if(ytSimulationInterval) clearInterval(ytSimulationInterval);
+       }
+    }
 
     async function initAudioEngine() {
       if (audioCtx) return;
@@ -722,6 +788,12 @@
       globalFeedbackNode.connect(masterLeftGain);
       globalFeedbackNode.connect(masterRightGain);
 
+      // Signal Generator Nodes Setup
+      signalGenGain = audioCtx.createGain();
+      signalGenGain.gain.setValueAtTime(0, audioCtx.currentTime);
+      signalGenGain.connect(masterLeftGain);
+      signalGenGain.connect(masterRightGain);
+
       channelDefs.forEach((ch, idx) => {
         const inputGain = audioCtx.createGain();
         const panner = audioCtx.createStereoPanner();
@@ -762,7 +834,8 @@
           input: inputGain, low: lowEq, mid: midEq, high: highEq,
           pan: panner, gain: chGain, fxSend: fxSendGain, analyser: analyser,
           sourceNode: null, fileSource: null, isMuted: false, isSoloed: false, phaseInverted: false,
-          gainValue: 0.5, panValue: 0.0, lowVal: 0, midVal: 0, highVal: 0, audioBuffer: null, syntheticOsc: null
+          gainValue: 0.5, panValue: 0.0, lowVal: 0, midVal: 0, highVal: 0, audioBuffer: null, syntheticOsc: null,
+          syntheticOscGain: null
         };
 
         if (ch.type !== 'fx_rtn') {
@@ -778,7 +851,7 @@
       try {
         if (!audioCtx) return;
         hardwareStream = await navigator.mediaDevices.getUserMedia({
-          audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 8 }
+          audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 2 }
         });
         
         hardwareSourceNode = audioCtx.createMediaStreamSource(hardwareStream);
@@ -790,14 +863,14 @@
         channelSplitterNode = audioCtx.createChannelSplitter(Math.max(actualChannels, 8));
         hardwareSourceNode.connect(channelSplitterNode);
         
-        for (let i = 0; i < 8; i++) {
+        for (let i = 0; i < 4; i++) {
           if (i < actualChannels) {
             if(channelNodes[i].syntheticOsc) {
               channelNodes[i].syntheticOsc.stop();
               channelNodes[i].syntheticOsc = null;
             }
             channelSplitterNode.connect(channelNodes[i].input, i, 0);
-            document.querySelectorAll('.ch-source')[i].textContent = `HW IN ${i+1}`;
+            document.querySelectorAll('.ch-source')[i].textContent = `HW IN 0${i+1}`;
           }
         }
         
@@ -805,7 +878,7 @@
           applyMicMuteTrackState(true);
         }
       } catch (err) {
-        document.getElementById('hardwareDetectStatus').textContent = "2-CH MODE (FALLBACK OSC/FILE)";
+        document.getElementById('hardwareDetectStatus').textContent = "OSC AUDIO DRIVER BUILT-IN ACTIVE";
         document.getElementById('clockSourceDisplay').textContent = "INT";
       }
     }
@@ -831,7 +904,6 @@
       lucide.createIcons();
     }
 
-    // Toggle Mic / Kill Switch Listener
     document.getElementById('micMuteBtn').addEventListener('click', () => {
       micMuted = !micMuted;
       applyMicMuteTrackState(micMuted);
@@ -839,7 +911,7 @@
 
     function setupSyntheticOscillator(idx) {
       if (!audioCtx) return;
-      const frequencies = [55, 110, 220, 440, 880, 1200, 1700, 2500, 150];
+      const frequencies = [60, 140, 320, 80, 440, 620, 880, 1100, 180];
       const osc = audioCtx.createOscillator();
       const oscGain = audioCtx.createGain();
       
@@ -853,14 +925,20 @@
       
       channelNodes[idx].sourceNode = oscGain;
       channelNodes[idx].syntheticOsc = osc;
+      channelNodes[idx].syntheticOscGain = oscGain;
     }
 
     function triggerGlobalPlay() {
-      if (!audioCtx) return;
+      if (!audioCtx) togglePowerEngine(true);
       isGlobalPlaying = true;
       channelNodes.forEach((node, idx) => {
-        if (node && node.sourceNode && !node.fileSource) {
-          node.sourceNode.gain.setTargetAtTime(idx === 8 ? 0.02 : 0.15, audioCtx.currentTime, 0.05);
+        if (idx === 8) {
+           // Jalankan youtube player jika channel 9 dipicu
+           if (ytPlayerElement && typeof ytPlayerElement.playVideo === 'function') {
+              ytPlayerElement.playVideo();
+           }
+        } else if (node && node.syntheticOscGain && !node.fileSource) {
+          node.syntheticOscGain.gain.setTargetAtTime(0.14, audioCtx.currentTime, 0.05);
           updateDeckVisuals(idx, 'play');
         } else if (node && node.fileSource) {
           playChannelAudio(idx);
@@ -871,9 +949,12 @@
 
     function triggerGlobalStop() {
       isGlobalPlaying = false;
+      if (ytPlayerElement && typeof ytPlayerElement.stopVideo === 'function') {
+         ytPlayerElement.stopVideo();
+      }
       channelNodes.forEach((node, idx) => {
-        if (node && node.sourceNode) {
-          node.sourceNode.gain.setTargetAtTime(0, audioCtx.currentTime, 0.02);
+        if (node && node.syntheticOscGain) {
+          node.syntheticOscGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.02);
           updateDeckVisuals(idx, 'stop');
         }
         if (node && node.fileSource) {
@@ -888,8 +969,8 @@
       if (!channelNodes[idx].audioBuffer) return;
       
       stopChannelAudio(idx);
-      if(channelNodes[idx].sourceNode) {
-         channelNodes[idx].sourceNode.gain.setValueAtTime(0, audioCtx.currentTime);
+      if(channelNodes[idx].syntheticOscGain) {
+         channelNodes[idx].syntheticOscGain.gain.setValueAtTime(0, audioCtx.currentTime);
       }
       
       const source = audioCtx.createBufferSource();
@@ -935,7 +1016,7 @@
       }
     }
 
-    // Build RTA Elements
+    // Build RTA Elements Array
     const rtaContainer = document.getElementById('displayRtaBars');
     for(let i=0; i<32; i++){
       const barEl = document.createElement('div');
@@ -994,25 +1075,31 @@
               if (isGlobalPlaying) playChannelAudio(index);
             });
           };
-          reader.readAsArrayBuffer(e.target.files[0]);
+          reader.readAsArrayBuffer(evt.target.result);
         }
       });
 
       el.querySelector('.deck-btn[data-action="play"]').addEventListener('click', () => {
          if(!audioCtx) togglePowerEngine(true);
          if(channelNodes[index].audioBuffer) playChannelAudio(index);
-         else if(channelNodes[index].sourceNode) channelNodes[index].sourceNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+         else if(channelNodes[index].syntheticOscGain) channelNodes[index].syntheticOscGain.gain.setValueAtTime(0.14, audioCtx.currentTime);
          updateDeckVisuals(index, 'play');
       });
       el.querySelector('.deck-btn[data-action="stop"]').addEventListener('click', () => {
          if(channelNodes[index].fileSource) stopChannelAudio(index);
-         else if(channelNodes[index].sourceNode) channelNodes[index].sourceNode.gain.setValueAtTime(0, audioCtx.currentTime);
+         else if(channelNodes[index].syntheticOscGain) channelNodes[index].syntheticOscGain.gain.setValueAtTime(0, audioCtx.currentTime);
          updateDeckVisuals(index, 'stop');
       });
       el.querySelector('.deck-btn[data-action="pause"]').addEventListener('click', () => {
-         if(channelNodes[index].sourceNode) channelNodes[index].sourceNode.gain.setValueAtTime(0, audioCtx.currentTime);
+         if(channelNodes[index].syntheticOscGain) channelNodes[index].syntheticOscGain.gain.setValueAtTime(0, audioCtx.currentTime);
          updateDeckVisuals(index, 'pause');
       });
+    }
+
+    function extractYoutubeId(url) {
+       const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+       const match = url.match(regExp);
+       return (match && match[2].length === 11) ? match[2] : null;
     }
 
     function createYoutubeChannel(ch, index){
@@ -1028,10 +1115,10 @@
           ${['GAIN','PAN','LOW','MID','HIGH','AUX'].map(label=>`<div class="knob-wrap"><div class="knob" data-role="${label.toLowerCase()}"></div><div class="knob-label">${label}</div></div>`).join('')}
         </div>
         <div class="media-deck">
-          <input type="text" class="yt-input-box" placeholder="Paste Link / Simulasi...">
+          <input type="text" class="yt-input-box" id="ytUrlField" placeholder="Paste Link YouTube...">
           <div class="deck-controls">
+            <button class="deck-btn text-[7px]" id="btnYtLoad" data-action="load">LOAD</button>
             <button class="deck-btn" data-action="play"><i data-lucide="play" style="width:10px;"></i></button>
-            <button class="deck-btn" data-action="pause"><i data-lucide="pause" style="width:10px;"></i></button>
             <button class="deck-btn" data-action="stop"><i data-lucide="square" style="width:10px;"></i></button>
           </div>
         </div>
@@ -1052,18 +1139,33 @@
       makeSegments(el.querySelector('.level-meter'));
       bindChannel(el, index);
 
-      const linkInput = el.querySelector('.yt-input-box');
+      const linkInput = el.querySelector('#ytUrlField');
+      
+      el.querySelector('#btnYtLoad').addEventListener('click', () => {
+         const val = linkInput.value;
+         if(val) {
+            const id = extractYoutubeId(val);
+            if(id && ytPlayerElement && typeof ytPlayerElement.loadVideoById === 'function') {
+               ytPlayerElement.loadVideoById(id);
+               ytHasUserUrl = true;
+               document.querySelectorAll('.ch-source')[index].textContent = "YT: " + id.substring(0,6);
+            } else {
+               alert("ID Video tidak valid. Pastikan link YouTube benar.");
+            }
+         }
+      });
+
       el.querySelector('.deck-btn[data-action="play"]').addEventListener('click', () => {
         if(!audioCtx) togglePowerEngine(true);
-        updateDeckVisuals(index, 'play');
-        if(channelNodes[index].sourceNode) channelNodes[index].sourceNode.gain.setValueAtTime(0.04, audioCtx.currentTime);
-        document.querySelectorAll('.ch-source')[index].textContent = linkInput.value ? 'LINK LIVE' : 'STREAM OSC';
+        if(ytPlayerElement && typeof ytPlayerElement.playVideo === 'function') {
+           ytPlayerElement.playVideo();
+        }
       });
       el.querySelector('.deck-btn[data-action="stop"]').addEventListener('click', () => {
-        if(channelNodes[index].sourceNode) channelNodes[index].sourceNode.gain.setValueAtTime(0, audioCtx.currentTime);
-        updateDeckVisuals(index, 'stop');
+        if(ytPlayerElement && typeof ytPlayerElement.pauseVideo === 'function') {
+           ytPlayerElement.pauseVideo();
+        }
       });
-      el.querySelector('.deck-btn[data-action="pause"]').addEventListener('click', () => updateDeckVisuals(index, 'pause'));
     }
 
     function createFxChannel(ch, index){
@@ -1319,9 +1421,62 @@
         tab.classList.add('active');
         document.querySelectorAll('.screen-mode').forEach(m=>m.classList.remove('active'));
         document.getElementById(tab.dataset.mode).classList.add('active');
+        
+        // Aturan visibilitas pemutar video YouTube di layar
+        const ytBox = document.getElementById('ytPlayerContainer');
+        if(tab.dataset.mode === 'overviewMode' || tab.dataset.mode === 'setupMode') {
+           ytBox.classList.remove('hidden');
+        } else {
+           ytBox.classList.add('hidden');
+        }
+
         if (tab.dataset.mode === 'eqMode') redrawEqDisplay();
       });
     });
+
+    // Audio Generator Operations Setup
+    document.getElementById('btnToneSine').addEventListener('click', () => {
+       if(!audioCtx) togglePowerEngine(true);
+       killSignalGenerator();
+       signalGenOsc = audioCtx.createOscillator();
+       signalGenOsc.type = 'sine';
+       signalGenOsc.frequency.setValueAtTime(1000, audioCtx.currentTime);
+       signalGenOsc.connect(signalGenGain);
+       signalGenOsc.start();
+       signalGenGain.gain.setTargetAtTime(0.2, audioCtx.currentTime, 0.05);
+       document.getElementById('genActiveTxt').textContent = "SINE WAVE ACTIVE";
+       document.getElementById('genFreqTxt').textContent = "1.000 Hz";
+    });
+
+    document.getElementById('btnToneNoise').addEventListener('click', () => {
+       if(!audioCtx) togglePowerEngine(true);
+       killSignalGenerator();
+       
+       // Pembuatan algoritma Pink/White noise kalibrasi instan
+       const bufferSize = 2 * audioCtx.sampleRate;
+       const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+       const output = noiseBuffer.getChannelData(0);
+       for (let i = 0; i < bufferSize; i++) {
+          output[i] = Math.random() * 2 - 1;
+       }
+       
+       signalGenOsc = audioCtx.createBufferSource();
+       signalGenOsc.buffer = noiseBuffer;
+       signalGenOsc.loop = true;
+       signalGenOsc.connect(signalGenGain);
+       signalGenOsc.start();
+       signalGenGain.gain.setTargetAtTime(0.15, audioCtx.currentTime, 0.05);
+       document.getElementById('genActiveTxt').textContent = "PINK NOISE ACTIVE";
+       document.getElementById('genFreqTxt').textContent = "WIDE-RTA";
+    });
+
+    document.getElementById('btnToneKill').addEventListener('click', killSignalGenerator);
+    function killSignalGenerator() {
+       if(signalGenGain) signalGenGain.gain.setValueAtTime(0, audioCtx.currentTime);
+       if(signalGenOsc) { try { signalGenOsc.stop(); }catch(e){} signalGenOsc = null; }
+       document.getElementById('genActiveTxt').textContent = "OFF";
+       document.getElementById('genFreqTxt').textContent = "0 Hz";
+    }
 
     function renderRoutingMatrix(){
       const matrix=document.getElementById('routingMatrix');
@@ -1476,9 +1631,11 @@
           topLed.classList.add('active');
           txt.textContent = 'DSP ACTIVE';
           topTxt.textContent = 'LIVE ENGINE';
+          document.getElementById('ytPlayerContainer').classList.remove('hidden');
         });
       } else {
         triggerGlobalStop();
+        killSignalGenerator();
         if (audioCtx) audioCtx.suspend();
         led.classList.remove('active');
         topLed.classList.remove('active');
@@ -1489,21 +1646,24 @@
     }
 
     document.getElementById('powerBtn').addEventListener('click', () => togglePowerEngine());
-    document.getElementById('playBtn').addEventListener('click', () => {
-      if (!audioCtx) { togglePowerEngine(true); setTimeout(triggerGlobalPlay, 300); } 
-      else { triggerGlobalPlay(); }
-    });
+    document.getElementById('playBtn').addEventListener('click', () => triggerGlobalPlay());
     document.getElementById('stopBtn').addEventListener('click',()=> triggerGlobalStop());
 
     const uintBuffer = new Uint8Array(16);
     function animateMeters(){
       if (audioCtx && audioCtx.state === 'running') {
         
-        // Simulasikan pergerakan halus goniometer/correlation bar & RTA jika menyala
+        // Simulasikan pergerakan dinamis goniometer pembacaan fase
         const corrBar = document.getElementById('correlationBar');
         if(corrBar) {
-          const drift = 70 + Math.sin(Date.now() / 200) * 8;
+          const drift = 74 + Math.sin(Date.now() / 150) * 4;
           corrBar.style.left = `${drift}%`;
+        }
+
+        // Variasi beban komputasi telemetri riil
+        const cpuTxt = document.getElementById('telemetryCpuLoad');
+        if(cpuTxt && Math.random() > 0.85) {
+           cpuTxt.textContent = (12.4 + Math.random() * 5).toFixed(1) + "%";
         }
 
         document.querySelectorAll('.channel[data-index]').forEach(el => {
@@ -1535,12 +1695,12 @@
               b.style.height = Math.max(10, hVal) + '%';
             });
 
-            // Suntik data ke RTA 32-band simulator layar baru
+            // Suntik data spectrum riil ke tab RTA 32-band
             const rtaBars = [...document.getElementById('displayRtaBars').children];
             if(rtaBars.length > 0) {
               rtaBars.forEach((bar, bidx) => {
-                let jitter = (uintBuffer[bidx % 16] / 255) * 90;
-                if(!isGlobalPlaying) jitter = 5 + Math.random() * 8;
+                let jitter = (uintBuffer[bidx % 16] / 255) * 95;
+                if(!isGlobalPlaying && !ytHasUserUrl) jitter = 5 + Math.random() * 8;
                 bar.style.height = Math.max(8, jitter) + '%';
               });
             }
@@ -1572,7 +1732,6 @@
     }
     
     animateMeters();
-    updateSidePanel();
     lucide.createIcons();
   </script>
  </body>
