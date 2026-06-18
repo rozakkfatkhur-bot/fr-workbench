@@ -3,23 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FR AUDIO x78 Series - Pro Digital Mixer</title>
+    <title>FR AUDIO X78 Series - Professional Digital Mixer Console</title>
     <style>
         :root {
-            --bg-main: #0c0813;
-            --bg-strip: #140d21;
-            --bg-channel: #1b122c;
-            --bg-control: #23183a;
-            --accent-violet: #9d4edd;
-            --accent-glow: #e0aaff;
-            --text-pure: #ffffff;
-            --text-muted: #a5a1b8;
-            --border-color: #322250;
-            --knob-color: #4a3572;
-            --fader-track: #09050e;
-            --led-green: #390099;
-            --led-yellow: #9d4edd;
-            --led-red: #ff007f;
+            --bg-dark: #12161c;
+            --panel-bg: #1a1f26;
+            --panel-border: #2c3540;
+            --strip-bg: #1e242d;
+            --strip-accent: #28313d;
+            --text-main: #9cb1c9;
+            --text-bright: #e2f0ff;
+            --led-blue: #0099ff;
+            --led-blue-glow: rgba(0, 153, 255, 0.6);
+            --led-green: #00ff66;
+            --led-orange: #ff9900;
+            --led-red: #ff3333;
+            --fader-cap: #e6edf5;
+            --knob-glow: #0077cc;
         }
 
         * {
@@ -27,849 +27,1230 @@
             margin: 0;
             padding: 0;
             user-select: none;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
         body {
-            background-color: var(--bg-main);
-            color: var(--text-pure);
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            overflow-x: auto;
+        }
+
+        #console-container {
+            width: 1440px;
+            background: var(--panel-bg);
+            border: 4px solid #111418;
+            border-radius: 6px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.8), inset 0 2px 3px rgba(255,255,255,0.1);
             padding: 10px;
             display: flex;
             flex-direction: column;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        header {
-            background: linear-gradient(90deg, var(--bg-strip), var(--bg-main));
-            border: 1px solid var(--border-color);
-            padding: 10px 15px;
-            border-radius: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-            flex-wrap: wrap;
             gap: 10px;
-        }
-
-        .brand-logo h1 {
-            font-size: 20px;
-            font-weight: 800;
-            letter-spacing: 2px;
-            text-shadow: 0 0 10px var(--accent-violet);
-        }
-
-        .brand-logo span {
-            font-size: 9px;
-            color: var(--accent-glow);
-            text-transform: uppercase;
-        }
-
-        .global-controls {
-            display: flex;
-            gap: 10px;
-        }
-
-        .btn-system {
-            background: var(--bg-control);
-            border: 1px solid var(--border-color);
-            color: var(--text-pure);
-            padding: 6px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 11px;
-            font-weight: 600;
-            transition: all 0.2s;
-        }
-
-        .btn-system.active {
-            background: var(--accent-violet);
-            border-color: var(--accent-glow);
-            box-shadow: 0 0 10px var(--accent-violet);
-        }
-
-        /* Top Display Visualizer */
-        .analyzer-container {
-            background: var(--bg-strip);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            height: 90px;
-            margin-bottom: 10px;
             position: relative;
-            overflow: hidden;
         }
 
-        .analyzer-canvas {
-            width: 100%;
-            height: 100%;
-            display: block;
+        /* Top Control Bay */
+        .top-bay {
+            display: grid;
+            grid-template-columns: 320px 240px 240px 180px 420px;
+            gap: 10px;
+            height: 260px;
+            background: rgba(0,0,0,0.15);
+            border-bottom: 2px solid var(--panel-border);
+            padding-bottom: 10px;
         }
 
-        /* Responsive Main Mixer Workspace */
-        .mixer-container {
-            display: flex;
-            overflow-x: auto;
-            gap: 8px;
-            padding-bottom: 15px;
-            align-items: stretch;
-            flex-grow: 1;
-        }
-
-        /* Channel Strip Design */
-        .channel-strip {
-            background: var(--bg-channel);
-            border: 1px solid var(--border-color);
-            width: 135px;
-            min-width: 135px;
-            border-radius: 6px;
+        .panel-section {
+            background: var(--strip-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 4px;
+            padding: 8px;
             display: flex;
             flex-direction: column;
-            padding: 6px;
+            position: relative;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.4);
         }
 
-        .channel-strip.master-strip {
-            border: 2px solid var(--accent-violet);
-            width: 155px;
-            min-width: 155px;
-            background: linear-gradient(180deg, var(--bg-channel), var(--bg-strip));
-            position: sticky;
-            right: 0;
-            z-index: 10;
-            box-shadow: -5px 0 15px rgba(0,0,0,0.5);
-        }
-
-        .channel-header {
-            text-align: center;
-            padding-bottom: 4px;
-            border-bottom: 1px solid var(--border-color);
+        .panel-title {
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-bright);
             margin-bottom: 6px;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 3px;
         }
 
-        .channel-title {
-            font-size: 11px;
-            font-weight: 700;
-            color: var(--accent-glow);
+        /* EQ Display & Config */
+        #eq-canvas-container {
+            position: relative;
+            width: 100%;
+            height: 120px;
+            background: #090c10;
+            border: 1px solid #222;
+            border-radius: 3px;
         }
-
-        .control-group {
-            background: rgba(0,0,0,0.2);
-            border-radius: 4px;
-            padding: 5px 4px;
-            margin-bottom: 6px;
+        canvas { width: 100%; height: 100%; display: block; }
+        
+        .eq-controls-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 4px;
+            margin-top: 6px;
+        }
+        .eq-node-col {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 4px;
-            width: 100%;
-        }
-
-        .control-label {
             font-size: 8px;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            font-weight: 600;
+            text-align: center;
+            background: rgba(0,0,0,0.2);
+            padding: 3px;
+            border-radius: 2px;
+        }
+        .eq-node-col span { display: block; margin-bottom: 2px; color: var(--text-bright); font-weight: bold;}
+
+        /* Plugin Matrix */
+        .plugin-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 4px;
+            font-size: 9px;
+        }
+        .btn-plugin-toggle {
+            width: 28px;
+            height: 16px;
+            background: #2c3540;
+            border: 1px solid #455366;
+            border-radius: 2px;
+            color: #fff;
+            font-size: 8px;
+            cursor: pointer;
+        }
+        .btn-plugin-toggle.active {
+            background: var(--led-blue);
+            box-shadow: 0 0 5px var(--led-blue-glow);
+        }
+        .plugin-select {
+            flex-grow: 1;
+            background: #0d1117;
+            color: var(--text-bright);
+            border: 1px solid var(--panel-border);
+            font-size: 9px;
+            padding: 1px;
+            outline: none;
         }
 
-        /* Buttons & Matrices */
-        .btn-action {
-            background: var(--bg-control);
-            border: 1px solid var(--border-color);
-            color: var(--text-pure);
-            font-size: 9px;
-            font-weight: 700;
-            padding: 4px 0;
+        /* Routing Matrix & System Config */
+        .sys-btn {
+            background: linear-gradient(180deg, #3a4654, #232a33);
+            border: 1px solid #4a596b;
+            color: var(--text-bright);
+            font-size: 10px;
+            padding: 5px;
             border-radius: 3px;
             cursor: pointer;
-            width: 100%;
             text-align: center;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+        .sys-btn:active, .sys-btn.active {
+            background: var(--led-blue);
+            border-color: #00b3ff;
+            color: #fff;
         }
 
-        .btn-action.playing { background: #d90429; border-color: #ff4d4d; }
-
-        .matrix-buttons {
+        /* Matrix Display I/O */
+        .io-grid-container {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 3px;
+            grid-template-columns: repeat(13, 1fr);
+            gap: 2px;
+            flex-grow: 1;
+            background: #090c10;
+            padding: 4px;
+            border-radius: 3px;
+        }
+        .io-dot {
             width: 100%;
-        }
-
-        .btn-matrix {
-            font-size: 9px;
-            font-weight: 800;
-            padding: 3px 0;
-            border-radius: 2px;
-            background: #221936;
-            border: 1px solid var(--border-color);
-            color: var(--text-muted);
+            padding-bottom: 100%;
+            background: #222;
+            border-radius: 50%;
             cursor: pointer;
+            position: relative;
+        }
+        .io-dot.active { background: var(--led-green); box-shadow: 0 0 4px var(--led-green); }
+
+        /* Mixer Strips Layout */
+        .mixer-body {
+            display: flex;
+            gap: 4px;
+            background: #141920;
+            padding: 6px;
+            border-radius: 4px;
         }
 
-        .btn-matrix.m-active { background: #ff5400; color: #fff; }
-        .btn-matrix.s-active { background: #00f5d4; color: #000; }
-        .btn-matrix.bus-active { background: var(--accent-violet); color: #fff; }
+        .channels-scroll-region {
+            display: flex;
+            gap: 4px;
+        }
 
-        /* Knobs & Dials */
+        .master-region {
+            display: flex;
+            gap: 4px;
+            border-left: 3px solid #0d1117;
+            padding-left: 6px;
+        }
+
+        /* Fader Strip Component */
+        .channel-strip {
+            width: 72px;
+            background: linear-gradient(180deg, var(--strip-bg), var(--strip-accent));
+            border: 1px solid var(--panel-border);
+            border-radius: 3px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 6px 3px;
+            position: relative;
+        }
+        .channel-strip.selected {
+            border-color: var(--led-blue);
+            box-shadow: 0 0 8px rgba(0, 153, 255, 0.4);
+        }
+        .channel-strip.master-strip {
+            background: linear-gradient(180deg, #242b35, #161a20);
+            width: 76px;
+        }
+
+        .strip-header {
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--text-bright);
+            margin-bottom: 4px;
+            text-align: center;
+            width: 100%;
+            background: rgba(0,0,0,0.3);
+            padding: 2px 0;
+            border-radius: 2px;
+        }
+
+        /* Rotary Knob Component */
         .knob-container {
             position: relative;
             width: 32px;
             height: 32px;
-            cursor: ns-resize;
+            margin: 4px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-
-        .knob-render {
-            width: 100%;
-            height: 100%;
+        .knob-dial {
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
-            background: conic-gradient(from -135deg, var(--accent-violet) 0deg, var(--knob-color) 0deg);
-            border: 2px solid var(--bg-strip);
+            background: radial-gradient(circle, #455263 30%, #222933 100%);
+            border: 2px solid #111;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.2);
             position: relative;
             transform: rotate(0deg);
+            cursor: ns-resize;
         }
-
-        .knob-marker {
+        .knob-pointer {
             position: absolute;
             top: 2px;
             left: 50%;
             width: 2px;
-            height: 6px;
-            background-color: var(--text-pure);
+            height: 8px;
+            background-color: var(--led-blue);
             transform: translateX(-50%);
+            border-radius: 1px;
+        }
+        .knob-label {
+            font-size: 7px;
+            text-transform: uppercase;
+            color: var(--text-main);
+            text-align: center;
+            margin-top: -2px;
+            font-weight: 600;
         }
 
-        .knob-value-display {
-            font-size: 8px;
+        /* Push Buttons (Skeuomorphic mini buttons) */
+        .strip-btn {
+            width: 22px;
+            height: 15px;
+            font-size: 7.5px;
             font-weight: bold;
-        }
-
-        /* Dynamics Panel (Gate & Comp) */
-        .dynamics-row {
-            display: flex;
-            gap: 4px;
-            width: 100%;
-            justify-content: space-between;
-        }
-
-        .dyn-indicator {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: #221936;
-            border: 1px solid var(--border-color);
-        }
-        .dyn-indicator.active { background: #00f5d4; box-shadow: 0 0 5px #00f5d4; }
-
-        /* EQ Micro Area */
-        .eq-micro-container {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-        .eq-row {
+            color: #fff;
+            background: linear-gradient(180deg, #404c5a, #28303a);
+            border: 1px solid #1a2026;
+            border-radius: 2px;
+            cursor: pointer;
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            justify-content: center;
+            margin: 2px 0;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.4);
+        }
+        .strip-btn:active {
+            transform: translateY(0.5px);
+        }
+        .strip-btn.phase-btn.active { background: var(--led-orange); box-shadow: 0 0 4px var(--led-orange); }
+        .strip-btn.mute-btn.active { background: var(--led-red); box-shadow: 0 0 4px var(--led-red); }
+        .strip-btn.solo-btn.active { background: var(--led-green); box-shadow: 0 0 4px var(--led-green); }
+
+        .routing-selectors {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2px;
             width: 100%;
+            padding: 2px;
         }
-        .eq-row span { font-size: 7px; color: var(--text-muted); width: 16px; }
-        .eq-slider {
-            flex-grow: 1;
-            -webkit-appearance: none;
-            height: 3px;
-            background: var(--bg-main);
-            outline: none;
-        }
-        .eq-slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: var(--accent-violet);
+        .route-btn {
+            font-size: 7px;
+            padding: 1px 0;
+            background: #1d232a;
+            border: 1px solid #2d3742;
+            color: #708499;
+            border-radius: 1px;
             cursor: pointer;
+            text-align: center;
+        }
+        .route-btn.active {
+            background: #384756;
+            color: #fff;
+            border-color: #52677d;
         }
 
-        /* Fader & Meter Pro Area */
-        .fader-meter-area {
-            display: flex;
-            flex-grow: 1;
-            min-height: 160px;
-            justify-content: center;
-            gap: 10px;
-            padding-top: 10px;
+        /* Precision Fader Structure */
+        .fader-housing {
             position: relative;
-        }
-
-        .fader-container {
-            position: relative;
-            width: 20px;
-            height: 100%;
+            width: 24px;
+            height: 180px;
+            background: #0b0e12;
+            border-left: 2px solid #1b2129;
+            border-right: 2px solid #1b2129;
+            margin: 8px 0;
+            border-radius: 1px;
             display: flex;
             justify-content: center;
         }
-
         .fader-track-line {
             position: absolute;
-            width: 4px;
-            height: 100%;
-            background: var(--fader-track);
-            border-radius: 2px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #000;
         }
-
-        .fader-input {
+        .fader-ticks {
             position: absolute;
-            -webkit-appearance: none;
-            width: 100%;
-            height: 100%;
-            background: transparent;
-            outline: none;
-            transform: rotate(-90deg);
-            cursor: pointer;
-            margin: 0;
+            left: -12px;
+            right: -12px;
+            top: 0;
+            bottom: 0;
+            pointer-events: none;
+            background: repeating-linear-gradient(transparent, transparent 18px, rgba(255,255,255,0.07) 18px, rgba(255,255,255,0.07) 20px);
         }
-
-        .fader-input::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 16px;
-            height: 28px;
+        .fader-cap {
+            position: absolute;
+            width: 22px;
+            height: 36px;
+            background: linear-gradient(90deg, #d2dbe3 0%, #ffffff 30%, #a3b2bf 70%, #61707d 100%);
+            border: 1px solid #111;
             border-radius: 2px;
-            background: var(--text-pure);
-            border: 2px solid var(--accent-violet);
-            cursor: row-resize;
+            cursor: ns-resize;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.4);
+            top: 72px; /* standard default placement equivalent to 0dB */
+            left: -1px;
+        }
+        .fader-cap::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #ff2200;
+            transform: translateY(-50%);
+            box-shadow: 0 0 2px #ff2200;
         }
 
-        .meter-container {
+        /* Segmented VU Meter */
+        .vu-meter-container {
             width: 6px;
-            height: 100%;
-            background: #050308;
-            position: relative;
+            height: 180px;
+            background: #080a0d;
+            position: absolute;
+            right: 4px;
+            top: 96px;
             display: flex;
-            flex-direction: column-reverse;
+            flex-direction: column;
+            gap: 1px;
+            padding: 1px 0;
         }
-
-        .meter-fill {
-            width: 100%;
-            height: 0%;
-            background: linear-gradient(to top, var(--led-green) 0%, var(--led-green) 75%, var(--led-yellow) 75%, var(--led-yellow) 92%, var(--led-red) 92%, var(--led-red) 100%);
-            transition: height 0.05s ease-out;
-        }
-
-        /* Bottom Controls */
-        .bottom-bar {
-            background: var(--bg-strip);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 10px;
-            margin-top: 5px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .crossfader-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            width: 320px;
-        }
-
-        .crossfader-input {
+        .vu-segment {
             flex-grow: 1;
-            accent-color: var(--accent-violet);
+            width: 100%;
+            background: #151a21;
+            transition: background 0.05s ease;
         }
 
-        .crossfader-wrapper span { font-size: 9px; font-weight: bold; color: var(--text-muted); }
+        .master-vu {
+            width: 8px;
+            height: 220px;
+            background: #080a0d;
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+            margin-left: 2px;
+        }
 
-        .hidden-file { display: none; }
+        /* Auxiliary Infrastructure & Global States */
+        .audio-trigger-panel {
+            background: #1e252f;
+            border: 2px dashed #394759;
+            border-radius: 4px;
+            padding: 12px;
+            margin-bottom: 12px;
+            width: 1440px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .audio-trigger-panel h2 {
+            font-size: 14px;
+            color: var(--text-bright);
+        }
+        .demo-controls {
+            display: flex;
+            gap: 10px;
+        }
+        .status-pill {
+            padding: 4px 8px;
+            background: #ff3333;
+            color: white;
+            font-size: 11px;
+            font-weight: bold;
+            border-radius: 3px;
+            text-transform: uppercase;
+        }
+        .status-pill.initialized {
+            background: var(--led-green);
+        }
     </style>
 </head>
 <body>
 
-    <!-- Header Panel -->
-    <header>
-        <div class="brand-logo">
-            <h1>FR AUDIO</h1>
-            <span>The Violet and White Essence of Sound</span>
+    <div class="audio-trigger-panel">
+        <div>
+            <h2>FR AUDIO X78 Series Engine Status</h2>
+            <p style="font-size: 11px; color: var(--text-main); margin-top: 2px;">Interact with parameters or start oscillators to test the internal Web Audio mixing nodes matrix.</p>
         </div>
-        <div class="global-controls">
-            <button class="btn-system active" id="btnAudioEngine">ENGINE ACTIVE (AUTO)</button>
-            <button class="btn-system" id="btnLiveCapture" onclick="toggleLiveInput()">LIVE CAPTURE</button>
+        <div class="demo-controls">
+            <span id="engine-status-pill" class="status-pill">Engine Off</span>
+            <button class="sys-btn" id="btn-init-engine" style="background: var(--led-blue); color: white;">Boot Audio Engine</button>
+            <button class="sys-btn" id="btn-test-tone">Inject Test Oscillator</button>
         </div>
-    </header>
-
-    <!-- Master Waveform Display -->
-    <div class="analyzer-container">
-        <canvas id="masterVisualizer" class="analyzer-canvas"></canvas>
     </div>
 
-    <!-- Main Mixer Board Layout -->
-    <div class="mixer-container" id="mixerConsole">
-        <!-- Generasi Channel Otomatis via JS -->
-    </div>
+    <div id="console-container">
+        <div class="top-bay">
+            <div class="panel-section" style="grid-column: span 1;">
+                <div class="panel-title">CH 1 Parametric EQ Curve Display</div>
+                <div id="eq-canvas-container">
+                    <canvas id="eq-display"></canvas>
+                </div>
+            </div>
 
-    <!-- Panel Kontrol Bawah / Crossfader Matrix -->
-    <div class="bottom-bar">
-        <div class="crossfader-wrapper">
-            <span>BUS A</span>
-            <input type="range" class="crossfader-input" id="globalCrossfader" min="-1" max="1" step="0.01" value="0">
-            <span>BUS B</span>
+            <div class="panel-section">
+                <div class="panel-title">EQ Processing Nodes Configuration</div>
+                <div class="eq-controls-grid">
+                    <div class="eq-node-col"><span>F1 HPF</span><div class="knob-container"><div class="knob-dial" id="knob-eq1-f" data-min="20" data-max="200" data-val="60"><div class="knob-pointer"></div></div></div><div class="knob-label">60 Hz</div></div>
+                    <div class="eq-node-col"><span>F2 Low</span><div class="knob-container"><div class="knob-dial" id="knob-eq2-g" data-min="-15" data-max="15" data-val="0"><div class="knob-pointer"></div></div></div><div class="knob-label">0.0 dB</div></div>
+                    <div class="eq-node-col"><span>F3 Mid</span><div class="knob-container"><div class="knob-dial" id="knob-eq3-g" data-min="-15" data-max="15" data-val="0"><div class="knob-pointer"></div></div></div><div class="knob-label">0.0 dB</div></div>
+                    <div class="eq-node-col"><span>F4 HighM</span><div class="knob-container"><div class="knob-dial" id="knob-eq4-g" data-min="-15" data-max="15" data-val="0"><div class="knob-pointer"></div></div></div><div class="knob-label">0.0 dB</div></div>
+                    <div class="eq-node-col"><span>F5 High</span><div class="knob-container"><div class="knob-dial" id="knob-eq5-g" data-min="-15" data-max="15" data-val="0"><div class="knob-pointer"></div></div></div><div class="knob-label">0.0 dB</div></div>
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <div class="panel-title">DSP Plugins Insert Matrix</div>
+                <div class="plugin-row">
+                    <button class="btn-plugin-toggle" id="plug-1-toggle">ON</button>
+                    <select class="plugin-select" id="plug-1-type">
+                        <option value="none">Empty Slot</option>
+                        <option value="tape" selected>Vintage Tape saturator</option>
+                    </select>
+                </div>
+                <div class="plugin-row">
+                    <button class="btn-plugin-toggle" id="plug-2-toggle">OFF</button>
+                    <select class="plugin-select" id="plug-2-type">
+                        <option value="none" selected>Empty Slot</option>
+                        <option value="limiter">Brickwall Limiter</option>
+                    </select>
+                </div>
+                <div class="plugin-row">
+                    <button class="btn-plugin-toggle" id="plug-3-toggle">OFF</button>
+                    <select class="plugin-select" id="plug-3-type">
+                        <option value="none" selected>Empty Slot</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <div class="panel-title">Mixbus Auxiliary</div>
+                <button class="sys-btn active" style="font-size:9px; margin-bottom: 4px;">Mixbus 1 (Send)</button>
+                <button class="sys-btn" style="font-size:9px; margin-bottom:4px;">Mixbus 2 (Send)</button>
+                <button class="sys-btn" id="btn-global-mute" style="font-size:9px; background:#441111;">Emergency Kill</button>
+            </div>
+
+            <div class="panel-section">
+                <div class="panel-title">Digital Crossbar Matrix Input Routing Visualizer</div>
+                <div class="io-grid-container" id="matrix-visualizer">
+                    </div>
+            </div>
         </div>
-        <div style="font-size: 10px; color: var(--text-muted);">FR AUDIO Labs Inc. x78 Processing Engine ver 2.6</div>
+
+        <div class="mixer-body">
+            <div class="channels-scroll-region" id="channels-container">
+                </div>
+
+            <div class="master-region">
+                <div class="channel-strip master-strip" id="strip-g1">
+                    <div class="strip-header">GRP 1</div>
+                    <div class="knob-container"><div class="knob-dial knob-pan" data-min="-1" data-max="1" data-val="0"><div class="knob-pointer"></div></div></div><div class="knob-label">C</div>
+                    <button class="strip-btn solo-btn">S</button>
+                    <button class="strip-btn mute-btn">M</button>
+                    <div class="fader-housing">
+                        <div class="fader-track-line"></div>
+                        <div class="fader-ticks"></div>
+                        <div class="fader-cap" style="top: 54px;"></div>
+                    </div>
+                </div>
+                <div class="channel-strip master-strip" id="strip-g2">
+                    <div class="strip-header">GRP 2</div>
+                    <div class="knob-container"><div class="knob-dial knob-pan" data-min="-1" data-max="1" data-val="0"><div class="knob-pointer"></div></div></div><div class="knob-label">C</div>
+                    <button class="strip-btn solo-btn">S</button>
+                    <button class="strip-btn mute-btn">M</button>
+                    <div class="fader-housing">
+                        <div class="fader-track-line"></div>
+                        <div class="fader-ticks"></div>
+                        <div class="fader-cap" style="top: 54px;"></div>
+                    </div>
+                </div>
+                <div class="channel-strip master-strip" id="strip-g3">
+                    <div class="strip-header">GRP 3</div>
+                    <div class="knob-container"><div class="knob-dial knob-pan" data-min="-1" data-max="1" data-val="0"><div class="knob-pointer"></div></div></div><div class="knob-label">C</div>
+                    <button class="strip-btn solo-btn">S</button>
+                    <button class="strip-btn mute-btn">M</button>
+                    <div class="fader-housing">
+                        <div class="fader-track-line"></div>
+                        <div class="fader-ticks"></div>
+                        <div class="fader-cap" style="top: 54px;"></div>
+                    </div>
+                </div>
+
+                <div class="channel-strip master-strip" id="strip-master" style="width: 90px; background: linear-gradient(180deg, #2c3540, #11151a);">
+                    <div class="strip-header" style="color: #ffcc00; background: #000;">MASTER</div>
+                    <div class="knob-container"><div class="knob-dial knob-pan" data-min="-1" data-max="1" data-val="0"><div class="knob-pointer"></div></div></div><div class="knob-label">C</div>
+                    <div style="height: 22px;"></div>
+                    <button class="strip-btn mute-btn" id="master-mute-btn" style="width: 40px; height: 18px;">MUTE</button>
+                    <div style="display:flex; flex-direction:row; position:relative; width:100%; justify-content:center; gap: 4px;">
+                        <div class="fader-housing" style="height: 220px; width: 28px;">
+                            <div class="fader-track-line" style="width:3px;"></div>
+                            <div class="fader-ticks" style="background: repeating-linear-gradient(transparent, transparent 22px, rgba(255,255,255,0.09) 22px, rgba(255,255,255,0.09) 24px);"></div>
+                            <div class="fader-cap" id="master-fader-cap" style="top: 60px; width: 26px; height: 42px;"></div>
+                        </div>
+                        <div class="master-vu" id="master-vu-left"></div>
+                        <div class="master-vu" id="master-vu-right"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
+        /**
+         * FR AUDIO X78 SERIES CORE ENGINE INFRASTRUCTURE
+         * COMPLETE MONOLITHIC JAVASCRIPT ARCHITECTURE
+         */
+        
         let audioCtx = null;
-        let masterAnalyzer = null;
-        let masterLimiter = null;
-        const TOTAL_CHANNELS = 8;
+        let mainMasterGainNode = null;
+        const totalChannels = 13;
+        
+        // Data stores holding nodes references
         const channelsData = [];
-        const EQ_FREQUENCIES = [60, 150, 400, 1000, 3000, 8000, 15000]; // 7-Band Optimal Responsive EQ
+        const groupGains = { g1: null, g2: null, g3: null };
+        let selectedChannelIndex = 0; // default focused on CH 1
 
-        // Otomatis inisialisasi engine saat user klik area layar manapun (Solusi Bypass Kebijakan Browser)
-        window.addEventListener('click', () => {
-            if(!audioCtx) setupAudioCore();
-        }, { once: false });
+        // Initialize UI matrices elements
+        const channelsContainer = document.getElementById('channels-container');
+        const matrixVisualizer = document.getElementById('matrix-visualizer');
 
-        window.addEventListener('DOMContentLoaded', () => {
-            renderMixerSurface();
-            setupAudioCore(); // Coba jalankan langsung
-            window.addEventListener('resize', resizeCanvas);
+        // Create console strips array programmatically to guarantee complete integrity
+        for (let i = 1; i <= totalChannels; i++) {
+            // Strip structural generation matching the skeuomorphic blueprint file layout
+            const strip = document.createElement('div');
+            strip.className = `channel-strip ${i === 1 ? 'selected' : ''}`;
+            strip.id = `strip-ch-${i}`;
+            strip.setAttribute('data-index', i - 1);
+
+            strip.innerHTML = `
+                <div class="strip-header">CH ${i}</div>
+                
+                <div class="knob-container">
+                    <div class="knob-dial knob-gain" data-min="0" data-max="3" data-val="1"><div class="knob-pointer"></div></div>
+                </div>
+                <div class="knob-label">GAIN</div>
+
+                <button class="strip-btn phase-btn" title="Phase Invert">∅</button>
+                
+                <div class="knob-container">
+                    <div class="knob-dial knob-aux" data-min="0" data-max="1" data-val="0.2"><div class="knob-pointer"></div></div>
+                </div>
+                <div class="knob-label">AUX</div>
+
+                <div class="knob-container">
+                    <div class="knob-dial knob-pan" data-min="-1" data-max="1" data-val="0"><div class="knob-pointer"></div></div>
+                </div>
+                <div class="knob-label">PAN</div>
+
+                <div class="routing-selectors">
+                    <button class="route-btn active" data-bus="master">MST</button>
+                    <button class="route-btn" data-bus="g1">G1</button>
+                    <button class="route-btn" data-bus="g2">G2</button>
+                    <button class="route-btn" data-bus="g3">G3</button>
+                </div>
+
+                <button class="strip-btn solo-btn">SOLO</button>
+                <button class="strip-btn mute-btn">MUTE</button>
+
+                <div class="fader-housing">
+                    <div class="fader-track-line"></div>
+                    <div class="fader-ticks"></div>
+                    <div class="fader-cap" style="top: 72px;"></div>
+                </div>
+
+                <div class="vu-meter-container"></div>
+            `;
+
+            // Populate individual standard custom level meter segment stacks
+            const vuContainer = strip.querySelector('.vu-meter-container');
+            for(let v = 0; v < 16; v++) {
+                const seg = document.createElement('div');
+                seg.className = 'vu-segment';
+                vuContainer.appendChild(seg);
+            }
+
+            channelsContainer.appendChild(strip);
+
+            // Populate the Digital Crossbar Matrix top section block indicator
+            const dot = document.createElement('div');
+            dot.className = `io-dot ${i === 1 ? 'active' : ''}`;
+            dot.id = `matrix-dot-${i - 1}`;
+            dot.setAttribute('data-index', i - 1);
+            matrixVisualizer.appendChild(dot);
+        }
+
+        // Generate Master VU segment indicators dynamically
+        ['master-vu-left', 'master-vu-right'].forEach(id => {
+            const masterVuElem = document.getElementById(id);
+            for(let v = 0; v < 24; v++) {
+                const seg = document.createElement('div');
+                seg.className = 'vu-segment';
+                masterVuElem.appendChild(seg);
+            }
         });
 
-        function setupAudioCore() {
-            if (audioCtx && audioCtx.state !== 'suspended') return;
-            try {
-                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-                audioCtx = new AudioContextClass({ latencyHint: 'interactive', sampleRate: 44100 });
-                
-                masterAnalyzer = audioCtx.createAnalyser();
-                masterAnalyzer.fftSize = 256;
-                
-                masterLimiter = audioCtx.createDynamicsCompressor();
-                masterLimiter.threshold.setValueAtTime(-1.0, audioCtx.currentTime);
-                masterLimiter.ratio.setValueAtTime(12.0, audioCtx.currentTime);
-
-                masterLimiter.connect(masterAnalyzer);
-                masterAnalyzer.connect(audioCtx.destination);
-
-                // Re-connect channels if exist
-                for(let i=1; i<=TOTAL_CHANNELS; i++) {
-                    if(channelsData[i] && !channelsData[i].connected) connectChannelDSP(i);
-                }
-                setupMasterDSP();
-                startVisualLoops();
-                
-                document.getElementById('btnAudioEngine').innerText = "ENGINE RUNNING";
-                document.getElementById('btnAudioEngine').classList.add('active');
-            } catch(e) { console.log("Engine pending click interaction."); }
-        }
-
-        function renderMixerSurface() {
-            const consoleSurface = document.getElementById('mixerConsole');
-            consoleSurface.innerHTML = '';
-
-            // Render Channels 1-8
-            for (let i = 1; i <= TOTAL_CHANNELS; i++) {
-                consoleSurface.appendChild(createChannelHTML(i));
-            }
-            // Append Master Strip
-            consoleSurface.appendChild(createMasterHTML());
-            initializeDataObjects();
-        }
-
-        function createChannelHTML(id) {
-            const strip = document.createElement('div');
-            strip.className = `channel-strip`;
+        /**
+         * WEB AUDIO API ROUTING MATRIX ARCHITECTURE BUILDER
+         */
+        function initializeAudioEngine() {
+            if (audioCtx) return; // Prevent secondary invocation loops
             
-            let eqHTML = '';
-            EQ_FREQUENCIES.forEach((freq, idx) => {
-                let fLabel = freq >= 1000 ? (freq/1000) + 'k' : freq;
-                eqHTML += `
-                    <div class="eq-row">
-                        <span>${fLabel}</span>
-                        <input type="range" class="eq-slider" min="-10" max="10" step="1" value="0" oninput="setEQ(${id}, ${idx}, this.value)">
-                    </div>
-                `;
+            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+            audioCtx = new AudioContextClass();
+            
+            // Build Main Master Stereo Bus Control Pipeline
+            mainMasterGainNode = audioCtx.createGain();
+            mainMasterGainNode.gain.setValueAtTime(0.8, audioCtx.currentTime); // match fader default placement initialization
+            
+            const masterPannerNode = audioCtx.createStereoPanner();
+            
+            // Core Auxiliary FX Bus Reverb Loop Nodes
+            const auxReverbDelayNode = audioCtx.createDelay(2.0);
+            auxReverbDelayNode.delayTime.setValueAtTime(0.35, audioCtx.currentTime);
+            const auxFeedbackGain = audioCtx.createGain();
+            auxFeedbackGain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+            
+            // Loop feedback path back internally
+            auxReverbDelayNode.connect(auxFeedbackGain);
+            auxFeedbackGain.connect(auxReverbDelayNode);
+            auxFeedbackGain.connect(mainMasterGainNode); // Dump auxiliary wet output straight to master pipeline
+
+            // Allocate Group Gain Buses nodes
+            ['g1', 'g2', 'g3'].forEach(key => {
+                groupGains[key] = audioCtx.createGain();
+                groupGains[key].gain.setValueAtTime(0.7, audioCtx.currentTime);
+                groupGains[key].connect(mainMasterGainNode);
             });
 
-            strip.innerHTML = `
-                <div class="channel-header"><div class="channel-title">INPUT 0${id}</div></div>
-                <div class="control-group">
-                    <span class="control-label">Source</span>
-                    <button class="btn-action" onclick="loadTrack(${id})">LOAD FILE</button>
-                    <button class="btn-action" id="play-${id}" onclick="toggleTrack(${id})">PLAY</button>
-                    <input type="file" id="file-${id}" class="hidden-file" accept="audio/*" onchange="fileInputLoaded(${id}, event)">
-                </div>
-                <div class="control-group">
-                    <span class="control-label">Routing & Matrix</span>
-                    <div class="matrix-buttons">
-                        <button class="btn-matrix" id="mute-${id}" onclick="setMute(${id})">MUTE</button>
-                        <button class="btn-matrix" id="solo-${id}" onclick="setSolo(${id})">SOLO</button>
-                        <button class="btn-matrix bus-active" id="busA-${id}" onclick="setBus(${id}, 'A')">BUS A</button>
-                        <button class="btn-matrix" id="busB-${id}" onclick="setBus(${id}, 'B')">BUS B</button>
-                    </div>
-                </div>
-                <div class="control-group">
-                    <span class="control-label">Dynamics (Gate/Comp)</span>
-                    <div class="dynamics-row">
-                        <span style="font-size:7px;">GATE Threshold</span>
-                        <div class="dyn-indicator" id="gate-led-${id}"></div>
-                    </div>
-                    <input type="range" min="-60" max="0" value="-45" style="width:100%; accent-color:var(--accent-violet)" oninput="setGate(${id}, this.value)">
-                    <div class="dynamics-row" style="margin-top:2px;">
-                        <span style="font-size:7px;">COMP Ratio</span>
-                        <div class="dyn-indicator" id="comp-led-${id}"></div>
-                    </div>
-                    <input type="range" min="1" max="10" value="2" step="0.5" style="width:100%; accent-color:var(--accent-violet)" oninput="setComp(${id}, this.value)">
-                </div>
-                <div class="control-group">
-                    <span class="control-label">Gain / Pan</span>
-                    <div class="knob-container" onmousedown="knobDrag(event, ${id}, 'gain')">
-                        <div class="knob-render" id="k-gain-${id}"><div class="knob-marker"></div></div>
-                    </div>
-                    <div class="knob-value-display" id="v-gain-${id}">0.0 dB</div>
-                </div>
-                <div class="control-group">
-                    <span class="control-label">7-Band Parametric EQ</span>
-                    <div class="eq-micro-container">${eqHTML}</div>
-                </div>
-                <div class="fader-meter-area">
-                    <div class="fader-container">
-                        <div class="fader-track-line"></div>
-                        <input type="range" class="fader-input" min="0" max="1.3" step="0.01" value="1.0" oninput="setFader(${id}, this.value)">
-                    </div>
-                    <div class="meter-container">
-                        <div class="meter-fill" id="m-fill-${id}"></div>
-                    </div>
-                </div>
-            `;
-            return strip;
-        }
+            // Master Panner to Output Destination Terminal
+            mainMasterGainNode.connect(masterPannerNode);
+            masterPannerNode.connect(audioCtx.destination);
 
-        function createMasterHTML() {
-            const strip = document.createElement('div');
-            strip.className = `channel-strip master-strip`;
-            strip.innerHTML = `
-                <div class="channel-header"><div class="channel-title" style="color:#ff007f;">MASTER LR</div></div>
-                <div class="control-group">
-                    <span class="control-label">Master Balance</span>
-                    <div class="knob-container" onmousedown="knobDrag(event, 'master', 'pan')">
-                        <div class="knob-render" id="k-pan-master"><div class="knob-marker"></div></div>
-                    </div>
-                    <div class="knob-value-display" id="v-pan-master">CENTER</div>
-                </div>
-                <div class="control-group" style="flex-grow:1; justify-content:center;">
-                    <span class="control-label" style="color:var(--accent-glow)">System Security</span>
-                    <div style="font-size:8px; color:#ff007f; text-align:center; font-weight:bold; margin-top:5px;">BRICKWALL<br>LIMITER ACTIVE</div>
-                </div>
-                <div class="fader-meter-area" style="min-height:220px;">
-                    <div class="fader-container">
-                        <div class="fader-track-line"></div>
-                        <input type="range" class="fader-input" min="0" max="1.3" step="0.01" value="1.0" oninput="setMasterFader(this.value)">
-                    </div>
-                    <div class="meter-container" style="width:14px; display:flex; flex-direction:row; gap:2px; background:#000;">
-                        <div class="meter-fill" id="m-master-L" style="width:50%;"></div>
-                        <div class="meter-fill" id="m-master-R" style="width:50%;"></div>
-                    </div>
-                </div>
-            `;
-            return strip;
-        }
+            // Allocation loop constructing internal pipelines for all 13 channel blocks
+            for (let i = 0; i < totalChannels; i++) {
+                const inputGain = audioCtx.createGain();
+                const phaseShaper = audioCtx.createWaveShaper();
+                
+                // Program standard phase inversion function curve
+                const straightCurve = new Float32Array([ -1, 1 ]);
+                phaseShaper.curve = straightCurve; // Defaults to unified identity transformation matrix until active flag swaps it
 
-        function initializeDataObjects() {
-            for(let i=1; i<=TOTAL_CHANNELS; i++) {
-                channelsData[i] = {
-                    buffer: null, source: null, isPlaying: false, isMuted: false, isSoloed: false,
-                    bus: 'A', gainVal: 1.0, faderVal: 1.0, gateThreshold: -45, compRatio: 2,
-                    eqBands: new Array(7).fill(0),
-                    gainNode: null, faderNode: null, gateNode: null, compNode: null, eqNodes: [], analyzer: null, connected: false
+                // Parametric EQ Filter Segment Nodes Architecture Array per channel
+                const biquadFilters = [];
+                const filterTypes = ['highpass', 'lowshelf', 'peaking', 'peaking', 'highshelf'];
+                const filterDefaults = [60, 120, 1000, 3000, 8000];
+
+                let previousNode = phaseShaper;
+                for (let f = 0; f < 5; f++) {
+                    const filter = audioCtx.createBiquadFilter();
+                    filter.type = filterTypes[f];
+                    filter.frequency.setValueAtTime(filterDefaults[f], audioCtx.currentTime);
+                    filter.Q.setValueAtTime(1.0, audioCtx.currentTime);
+                    filter.gain.setValueAtTime(0.0, audioCtx.currentTime);
+                    
+                    previousNode.connect(filter);
+                    previousNode = filter;
+                    biquadFilters.push(filter);
+                }
+
+                // Core routing control points nodes
+                const stripChannelGain = audioCtx.createGain();
+                stripChannelGain.gain.setValueAtTime(0.7, audioCtx.currentTime); // Maps to 72px default layout placement
+                
+                const channelPanner = audioCtx.createStereoPanner();
+                const channelAuxSendGain = audioCtx.createGain();
+                channelAuxSendGain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+
+                // Tie signal track line downstream
+                previousNode.connect(stripChannelGain);
+                stripChannelGain.connect(channelPanner);
+                
+                // Hook auxiliary route paths up explicitly
+                stripChannelGain.connect(channelAuxSendGain);
+                channelAuxSendGain.connect(auxReverbDelayNode);
+
+                // Router terminal distribution mappings
+                const routes = {
+                    master: audioCtx.createGain(),
+                    g1: audioCtx.createGain(),
+                    g2: audioCtx.createGain(),
+                    g3: audioCtx.createGain()
                 };
-            }
-            channelsData['master'] = { faderVal: 1.0, panVal: 0.0, panNode: null };
-        }
 
-        function connectChannelDSP(id) {
-            if(!audioCtx) return;
-            const ch = channelsData[id];
-
-            ch.gainNode = audioCtx.createGain();
-            ch.faderNode = audioCtx.createGain();
-            ch.analyzer = audioCtx.createAnalyser();
-            ch.analyzer.fftSize = 32;
-
-            // Advanced Dynamics Architecture (Gate & Dynamics Comp integration)
-            ch.gateNode = audioCtx.createDynamicsCompressor(); 
-            ch.gateNode.threshold.setValueAtTime(ch.gateThreshold, audioCtx.currentTime);
-            ch.gateNode.ratio.setValueAtTime(20.0, audioCtx.currentTime); // Hard Gate simulation
-
-            ch.compNode = audioCtx.createDynamicsCompressor();
-            ch.compNode.threshold.setValueAtTime(-20, audioCtx.currentTime);
-            ch.compNode.ratio.setValueAtTime(ch.compRatio, audioCtx.currentTime);
-
-            let lastNode = ch.gainNode;
-            lastNode.connect(ch.gateNode);
-            lastNode = ch.gateNode;
-            lastNode.connect(ch.compNode);
-            lastNode = ch.compNode;
-
-            // Parametric EQ Cascading
-            ch.eqNodes = [];
-            for(let j=0; j<7; j++) {
-                const filter = audioCtx.createBiquadFilter();
-                filter.type = 'peaking';
-                filter.frequency.setValueAtTime(EQ_FREQUENCIES[j], audioCtx.currentTime);
-                filter.gain.setValueAtTime(0, audioCtx.currentTime);
-                lastNode.connect(filter);
-                ch.eqNodes.push(filter);
-                lastNode = filter;
-            }
-
-            lastNode.connect(ch.faderNode);
-            ch.faderNode.connect(ch.analyzer);
-            ch.faderNode.connect(masterLimiter); // Connect directly to master engine node
-            ch.connected = true;
-        }
-
-        function setupMasterDSP() {
-            if(!audioCtx) return;
-            channelsData['master'].panNode = audioCtx.createStereoPanner();
-            masterAnalyzer.connect(channelsData['master'].panNode);
-        }
-
-        // Operational Actions Handlers
-        function loadTrack(id) {
-            if(!audioCtx) setupAudioCore();
-            document.getElementById(`file-${id}`).click();
-        }
-
-        function fileInputLoaded(id, e) {
-            const file = e.target.files[0];
-            if(!file) return;
-            const reader = new FileReader();
-            reader.onload = function(evt) {
-                if(!audioCtx) return;
-                audioCtx.decodeAudioData(evt.target.result, (buf) => {
-                    channelsData[id].buffer = buf;
-                    document.getElementById(`play-${id}`).innerText = "READY";
-                });
-            };
-            reader.readAsArrayBuffer(file);
-        }
-
-        function toggleTrack(id) {
-            if(!audioCtx) setupAudioCore();
-            const ch = channelsData[id];
-            if(!ch.connected) connectChannelDSP(id);
-
-            if(ch.isPlaying) {
-                if(ch.source) ch.source.stop();
-                ch.isPlaying = false;
-                document.getElementById(`play-${id}`).innerText = "PLAY";
-                document.getElementById(`play-${id}`).classList.remove('playing');
-            } else {
-                if(!ch.buffer) return alert("Silakan Load File audio terlebih dahulu.");
-                ch.source = audioCtx.createBufferSource();
-                ch.source.buffer = ch.buffer;
-                ch.source.loop = true;
-                ch.source.connect(ch.gainNode);
-                ch.source.start(0);
-                ch.isPlaying = true;
-                document.getElementById(`play-${id}`).innerText = "STOP";
-                document.getElementById(`play-${id}`).classList.add('playing');
-            }
-        }
-
-        // DSP Realtime Modifiers
-        function setFader(id, val) {
-            channelsData[id].faderVal = parseFloat(val);
-            if(channelsData[id].faderNode) {
-                channelsData[id].faderNode.gain.setTargetAtTime(channelsData[id].faderVal, audioCtx.currentTime, 0.01);
-            }
-        }
-
-        function setEQ(id, band, val) {
-            channelsData[id].eqBands[band] = parseFloat(val);
-            if(channelsData[id].eqNodes[band]) {
-                channelsData[id].eqNodes[band].gain.setTargetAtTime(val, audioCtx.currentTime, 0.02);
-            }
-        }
-
-        function setMute(id) {
-            const ch = channelsData[id];
-            ch.isMuted = !ch.isMuted;
-            document.getElementById(`mute-${id}`).classList.toggle('m-active', ch.isMuted);
-            if(ch.faderNode) {
-                ch.faderNode.gain.setValueAtTime(ch.isMuted ? 0 : ch.faderVal, audioCtx.currentTime);
-            }
-        }
-
-        function setSolo(id) {
-            const ch = channelsData[id];
-            ch.isSoloed = !ch.isSoloed;
-            document.getElementById(`solo-${id}`).classList.toggle('s-active', ch.isSoloed);
-            
-            let anySolo = false;
-            for(let i=1; i<=TOTAL_CHANNELS; i++) { if(channelsData[i].isSoloed) anySolo = true; }
-
-            for(let i=1; i<=TOTAL_CHANNELS; i++) {
-                const target = channelsData[i];
-                if(!target.faderNode) continue;
-                if(anySolo) {
-                    target.faderNode.gain.setValueAtTime(target.isSoloed ? target.faderVal : 0, audioCtx.currentTime);
-                } else {
-                    target.faderNode.gain.setValueAtTime(target.isMuted ? 0 : target.faderVal, audioCtx.currentTime);
-                }
-            }
-        }
-
-        function setBus(id, targetBus) {
-            channelsData[id].bus = targetBus;
-            document.getElementById(`busA-${id}`).classList.toggle('bus-active', targetBus === 'A');
-            document.getElementById(`busB-${id}`).classList.toggle('bus-active', targetBus === 'B');
-        }
-
-        function setGate(id, val) {
-            channelsData[id].gateThreshold = parseFloat(val);
-            if(channelsData[id].gateNode) channelsData[id].gateNode.threshold.setValueAtTime(val, audioCtx.currentTime);
-        }
-
-        function setComp(id, val) {
-            channelsData[id].compRatio = parseFloat(val);
-            if(channelsData[id].compNode) channelsData[id].compNode.ratio.setValueAtTime(val, audioCtx.currentTime);
-        }
-
-        function setMasterFader(val) {
-            if(masterLimiter) masterLimiter.reduction.setValueAtTime(val, audioCtx.currentTime); 
-            if(audioCtx && masterAnalyzer) {
-                // Adjust gain level on output pipeline matrix
-            }
-        }
-
-        // Live Capture Function
-        function toggleLiveInput() {
-            if(!audioCtx) setupAudioCore();
-            navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-                const liveSource = audioCtx.createMediaStreamSource(stream);
-                if(!channelsData[1].connected) connectChannelDSP(1);
-                liveSource.connect(channelsData[1].gainNode);
-                document.getElementById('btnLiveCapture').classList.add('active');
-            }).catch(e => alert("Gagal akses device microphone / soundcard."));
-        }
-
-        // Knob Engine Drag Handler Logic 
-        let dragY = 0, dragVal = 0, dragId = null, dragType = null;
-        function knobDrag(e, id, type) {
-            e.preventDefault();
-            dragY = e.clientY;
-            dragId = id;
-            dragType = type;
-            dragVal = (id === 'master') ? channelsData['master'].panVal : channelsData[id].gainVal;
-            document.addEventListener('mousemove', knobMove);
-            document.addEventListener('mouseup', knobRelease);
-        }
-
-        function knobMove(e) {
-            let diff = dragY - e.clientY;
-            let target = dragVal + (diff * 0.01);
-            
-            if(dragType === 'gain') {
-                target = Math.max(0, Math.min(2, target));
-                channelsData[dragId].gainVal = target;
-                document.getElementById(`v-gain-${dragId}`).innerText = `${(20 * Math.log10(target || 0.001)).toFixed(1)} dB`;
-                if(channelsData[dragId].gainNode) channelsData[dragId].gainNode.gain.setValueAtTime(target, audioCtx.currentTime);
-                document.getElementById(`k-gain-${dragId}`).style.transform = `rotate(${(target * 135) - 135}deg)`;
-            } else if (dragType === 'pan') {
-                target = Math.max(-1, Math.min(1, target));
-                channelsData['master'].panVal = target;
-                document.getElementById('v-pan-master').innerText = target === 0 ? 'CENTER' : target < 0 ? `L ${Math.abs(Math.round(target*100))}` : `R ${Math.round(target*100)}`;
-                document.getElementById('k-pan-master').style.transform = `rotate(${target * 135}deg)`;
-            }
-        }
-
-        function knobRelease() {
-            document.removeEventListener('mousemove', knobMove);
-            document.removeEventListener('mouseup', knobRelease);
-        }
-
-        // Crossfader Real-Time Mixing Matrix 
-        document.getElementById('globalCrossfader').addEventListener('input', (e) => {
-            const xVal = parseFloat(e.target.value); // -1 (Full Bus A) to +1 (Full Bus B)
-            const gainA = Math.cos((xVal + 1) * Math.PI / 4);
-            const gainB = Math.sin((xVal + 1) * Math.PI / 4);
-
-            for(let i=1; i<=TOTAL_CHANNELS; i++) {
-                const ch = channelsData[i];
-                if(!ch.faderNode) continue;
-                if(ch.bus === 'A') ch.faderNode.gain.setValueAtTime(ch.faderVal * gainA, audioCtx.currentTime);
-                if(ch.bus === 'B') ch.faderNode.gain.setValueAtTime(ch.faderVal * gainB, audioCtx.currentTime);
-            }
-        });
-
-        // Loops Visualizations (LED Meter & Waveform)
-        function startVisualLoops() {
-            const canvas = document.getElementById('masterVisualizer');
-            const ctx = canvas.getContext('2d');
-            resizeCanvas();
-
-            const bufLen = masterAnalyzer.frequencyBinCount;
-            const dataArr = new Uint8Array(bufLen);
-
-            function render() {
-                requestAnimationFrame(render);
-                if(!audioCtx) return;
-
-                masterAnalyzer.getByteFrequencyData(dataArr);
-                ctx.fillStyle = '#0c0813';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                // Draw Spectrum Curve Line
-                ctx.strokeStyle = '#e0aaff';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                let slice = canvas.width / bufLen;
-                let x = 0;
-
-                for(let i=0; i<bufLen; i++) {
-                    let v = dataArr[i] / 128.0;
-                    let y = canvas.height - (v * (canvas.height / 2));
-                    if(i===0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-                    x += slice;
-                }
-                ctx.lineTo(canvas.width, canvas.height);
-                ctx.stroke();
-
-                // Dynamic LED Channel Processing Updates 
-                for(let i=1; i<=TOTAL_CHANNELS; i++) {
-                    const ch = channelsData[i];
-                    if(ch.connected && ch.isPlaying) {
-                        const mArr = new Uint8Array(16);
-                        ch.analyzer.getByteFrequencyData(mArr);
-                        let sum = 0; mArr.forEach(v => sum+=v);
-                        let lvl = Math.min(100, (sum / 16) * 0.8);
-                        document.getElementById(`m-fill-${i}`).style.height = `${lvl}%`;
-                        
-                        // Gate/Comp Active Indicator Simulation 
-                        document.getElementById(`gate-led-${i}`).classList.toggle('active', sum/16 > 10);
-                        document.getElementById(`comp-led-${i}`).classList.toggle('active', sum/16 > 80);
+                // Connect channel panner straight out into the individual bus gain nodes switches
+                for (const busKey in routes) {
+                    channelPanner.connect(routes[busKey]);
+                    if (busKey === 'master') {
+                        routes[busKey].connect(mainMasterGainNode);
+                        routes[busKey].gain.setValueAtTime(1.0, audioCtx.currentTime); // Enabled default routing lane
+                    } else {
+                        routes[busKey].connect(groupGains[busKey]);
+                        routes[busKey].gain.setValueAtTime(0.0, audioCtx.currentTime); // Muted by default layout settings
                     }
                 }
 
-                // Master Outputs LED Meter 
-                let mSum = 0; dataArr.forEach(v => mSum += v);
-                let mLvl = Math.min(100, (mSum / bufLen) * 1.2);
-                document.getElementById('m-master-L').style.height = `${mLvl * (1 - channelsData['master'].panVal)}%`;
-                document.getElementById('m-master-R').style.height = `${mLvl * (1 + channelsData['master'].panVal)}%`;
+                // Master Analyser configuration for accurate channel VU monitoring level computation
+                const channelAnalyser = audioCtx.createAnalyser();
+                channelAnalyser.fftSize = 32;
+                stripChannelGain.connect(channelAnalyser);
+
+                // Store object structure cache securely
+                channelsData.push({
+                    inputGain,
+                    phaseShaper,
+                    filters: biquadFilters,
+                    stripGain: stripChannelGain,
+                    panner: channelPanner,
+                    auxSendGain: channelAuxSendGain,
+                    routes,
+                    analyser: channelAnalyser,
+                    isMuted: false,
+                    isSoloed: false,
+                    isPhaseInverted: false
+                });
             }
-            render();
+
+            // Bind global structural analyzer listeners for final production VU tracking
+            setupMasterAnalysers(masterPannerNode);
+
+            document.getElementById('engine-status-pill').innerText = "Engine Alive";
+            document.getElementById('engine-status-pill').classList.add('initialized');
+            
+            // Engage continuous multi-thread visual rendering updates
+            requestAnimationFrame(processVUMetersUpdateCycle);
+            drawEQCurveGraph();
         }
 
-        function resizeCanvas() {
-            const cv = document.getElementById('masterVisualizer');
-            cv.width = cv.parentElement.clientWidth;
-            cv.height = cv.parentElement.clientHeight;
+        // Master output monitoring hooks infrastructure
+        let masterAnalyserL, masterAnalyserR;
+        function setupMasterAnalysers(targetPannerNode) {
+            const splitter = audioCtx.createChannelSplitter(2);
+            masterAnalyserL = audioCtx.createAnalyser();
+            masterAnalyserR = audioCtx.createAnalyser();
+            masterAnalyserL.fftSize = 32;
+            masterAnalyserR.fftSize = 32;
+            
+            targetPannerNode.connect(splitter);
+            splitter.connect(masterAnalyserL, 0);
+            splitter.connect(masterAnalyserR, 1);
         }
+
+        /**
+         * ROTARY SKEUOMORPHIC KNOB CONTROLLER LOGIC ENGINE
+         */
+        document.querySelectorAll('.knob-dial').forEach(knob => {
+            let startY = 0;
+            let currentVal = parseFloat(knob.getAttribute('data-val'));
+            const min = parseFloat(knob.getAttribute('data-min'));
+            const max = parseFloat(knob.getAttribute('data-max'));
+
+            // Map standard physical rotary limits to precise degrees transformation angles
+            function updateKnobRotationVisuals(val) {
+                const percent = (val - min) / (max - min);
+                const degrees = (percent * 270) - 135; // Standard sweep arcs matching vintage equipment architecture
+                knob.style.transform = `rotate(${degrees}deg)`;
+                
+                // Update inline labels with precision parsing
+                const label = knob.parentElement.nextElementSibling;
+                if (label && label.classList.contains('knob-label')) {
+                    if (knob.classList.contains('knob-pan')) {
+                        label.innerText = val === 0 ? 'C' : val > 0 ? `R ${val.toFixed(1)}` : `L ${Math.abs(val).toFixed(1)}`;
+                    } else if (knob.classList.contains('knob-gain') || knob.id.includes('-g')) {
+                        label.innerText = `${val > 0 ? '+' : ''}${val.toFixed(1)} dB`;
+                    } else {
+                        label.innerText = val >= 1000 ? `${(val/1000).toFixed(1)} kHz` : `${Math.round(val)} Hz`;
+                    }
+                }
+            }
+
+            // Render current hardware status indicators instantly upon execution boot
+            updateKnobRotationVisuals(currentVal);
+
+            knob.addEventListener('mousedown', e => {
+                startY = e.clientY;
+                document.addEventListener('mousemove', mouseMoveHandler);
+                document.addEventListener('mouseup', mouseUpHandler);
+            });
+
+            function mouseMoveHandler(e) {
+                const deltaY = startY - e.clientY; // drag upward increases value metrics
+                startY = e.clientY;
+                
+                const range = max - min;
+                const sensitivity = range / 200; // precision drag step scale parameter
+                
+                currentVal = Math.min(max, Math.max(min, currentVal + (deltaY * sensitivity)));
+                knob.setAttribute('data-val', currentVal);
+                updateKnobRotationVisuals(currentVal);
+
+                // Instantly pipe values directly to functional audio nodes parameters
+                if (!audioCtx) return;
+                const stripIndex = getStripIndexFromElement(knob);
+                
+                if (knob.classList.contains('knob-gain')) {
+                    if(stripIndex !== null) channelsData[stripIndex].inputGain.gain.setValueAtTime(currentVal, audioCtx.currentTime);
+                } else if (knob.classList.contains('knob-pan')) {
+                    if(stripIndex !== null) channelsData[stripIndex].panner.pan.setValueAtTime(currentVal, audioCtx.currentTime);
+                } else if (knob.classList.contains('knob-aux')) {
+                    if(stripIndex !== null) channelsData[stripIndex].auxSendGain.gain.setValueAtTime(currentVal, audioCtx.currentTime);
+                } else {
+                    // Update targeted active EQ Nodes mapping matrix arrays
+                    applyParametricEQValuesFromKnobs();
+                }
+            }
+
+            function mouseUpHandler() {
+                document.removeEventListener('mousemove', mouseMoveHandler);
+                document.removeEventListener('mouseup', mouseUpHandler);
+            }
+        });
+
+        function getStripIndexFromElement(elem) {
+            const parentStrip = elem.closest('.channel-strip');
+            if (!parentStrip || parentStrip.classList.contains('master-strip')) return null;
+            return parseInt(parentStrip.getAttribute('data-index'));
+        }
+
+        /**
+         * CONTINUOUS PRECISION GRAPHICAL EQUALIZER INTERACTIVE CANVAS CANVAS CONTEXT
+         */
+        const eqCanvas = document.getElementById('eq-display');
+        const eqCtx = eqCanvas.getContext('2d');
+
+        function drawEQCurveGraph() {
+            const width = eqCanvas.parentElement.clientWidth;
+            const height = eqCanvas.parentElement.clientHeight;
+            eqCanvas.width = width;
+            eqCanvas.height = height;
+
+            eqCtx.fillStyle = '#090c10';
+            eqCtx.fillRect(0, 0, width, height);
+
+            // Draw Frequency Grid Marker Bars
+            eqCtx.strokeStyle = 'rgba(255,255,255,0.06)';
+            eqCtx.lineWidth = 1;
+            for (let f = 100; f < 20000; f *= 2) {
+                const x = (Math.log10(f) - Math.log10(20)) / (Math.log10(20000) - Math.log10(20)) * width;
+                eqCtx.beginPath();
+                eqCtx.moveTo(x, 0);
+                eqCtx.lineTo(x, height);
+                eqCtx.stroke();
+            }
+
+            // Draw Flat Baseline Reference Point
+            eqCtx.strokeStyle = '#222d3a';
+            eqCtx.beginPath();
+            eqCtx.moveTo(0, height / 2);
+            eqCtx.lineTo(width, height / 2);
+            eqCtx.stroke();
+
+            // Fetch absolute knob metrics to approximate dynamic simulated visual display curves
+            const hpfFreq = parseFloat(document.getElementById('knob-eq1-f').getAttribute('data-val'));
+            const lowGain = parseFloat(document.getElementById('knob-eq2-g').getAttribute('data-val'));
+            const midGain = parseFloat(document.getElementById('knob-eq3-g').getAttribute('data-val'));
+            const himidGain = parseFloat(document.getElementById('knob-eq4-g').getAttribute('data-val'));
+            const highGain = parseFloat(document.getElementById('knob-eq5-g').getAttribute('data-val'));
+
+            // Plot Simulated EQ Node Curves Array Graphically
+            eqCtx.strokeStyle = varColor('--led-blue');
+            eqCtx.lineWidth = 2;
+            eqCtx.beginPath();
+
+            for (let x = 0; x < width; x++) {
+                const logPct = x / width;
+                const freq = Math.pow(10, Math.log10(20) + logPct * (Math.log10(20000) - Math.log10(20)));
+                
+                // Rough mathematical translation modeling responses for visualization processing curves
+                let responseDb = 0;
+                if (freq < hpfFreq) responseDb -= (hpfFreq - freq) * 0.4; // HPF attenuation simulation
+                responseDb += lowGain * Math.exp(-Math.pow(Math.log10(freq / 100), 2) * 2);
+                responseDb += midGain * Math.exp(-Math.pow(Math.log10(freq / 1000), 2) * 4);
+                responseDb += himidGain * Math.exp(-Math.pow(Math.log10(freq / 4000), 2) * 4);
+                responseDb += highGain * Math.exp(-Math.pow(Math.log10(freq / 12000), 2) * 2);
+
+                const y = (height / 2) - (responseDb * (height / 40)); 
+                if (x === 0) eqCtx.moveTo(x, y); else eqCtx.lineTo(x, y);
+            }
+            eqCtx.stroke();
+        }
+
+        function varColor(varName) {
+            return getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+        }
+
+        function applyParametricEQValuesFromKnobs() {
+            drawEQCurveGraph();
+            if (!audioCtx) return;
+
+            const hpfFreq = parseFloat(document.getElementById('knob-eq1-f').getAttribute('data-val'));
+            const lowGain = parseFloat(document.getElementById('knob-eq2-g').getAttribute('data-val'));
+            const midGain = parseFloat(document.getElementById('knob-eq3-g').getAttribute('data-val'));
+            const himidGain = parseFloat(document.getElementById('knob-eq4-g').getAttribute('data-val'));
+            const highGain = parseFloat(document.getElementById('knob-eq5-g').getAttribute('data-val'));
+
+            // Apply selected hardware parameters directly to channels filters array matrix node point mapping
+            const targetChannel = channelsData[selectedChannelIndex];
+            if(targetChannel) {
+                targetChannel.filters[0].frequency.setValueAtTime(hpfFreq, audioCtx.currentTime);
+                targetChannel.filters[1].gain.setValueAtTime(lowGain, audioCtx.currentTime);
+                targetChannel.filters[2].gain.setValueAtTime(midGain, audioCtx.currentTime);
+                targetChannel.filters[3].gain.setValueAtTime(himidGain, audioCtx.currentTime);
+                targetChannel.filters[4].gain.setValueAtTime(highGain, audioCtx.currentTime);
+            }
+        }
+
+        /**
+         * PRODUCTION INTEGRATED INTERACTIVE SLIDER MECHANICS (FADER TRACK PIPELINE)
+         */
+        document.querySelectorAll('.fader-housing').forEach(housing => {
+            const cap = housing.querySelector('.fader-cap');
+            let isDragging = false;
+            const trackHeight = housing.clientHeight - cap.clientHeight;
+
+            function updateFaderValuePlacement(clientY) {
+                const rect = housing.getBoundingClientRect();
+                let relativeTop = clientY - rect.top - (cap.clientHeight / 2);
+                relativeTop = Math.max(0, Math.min(trackHeight, relativeTop));
+                cap.style.top = `${relativeTop}px`;
+
+                // Calculate logarithmic level coefficients mapping exactly to modern hardware standard systems db curves
+                const linearPercent = 1 - (relativeTop / trackHeight); // 1.0 is full scale topmost value
+                
+                if (!audioCtx) return;
+
+                const parentStrip = housing.closest('.channel-strip');
+                if (parentStrip.id === 'strip-master') {
+                    // Update main stereo master bus destination values directly
+                    mainMasterGainNode.gain.setValueAtTime(linearPercent * 1.2, audioCtx.currentTime);
+                } else if (parentStrip.classList.contains('master-strip')) {
+                    // Group Bus volume handling
+                    const groupId = parentStrip.id.replace('strip-', '');
+                    if (groupGains[groupId]) groupGains[groupId].gain.setValueAtTime(linearPercent * 1.2, audioCtx.currentTime);
+                } else {
+                    // Standard Track Channel Processing Node Volume Allocation Pipeline
+                    const index = parseInt(parentStrip.getAttribute('data-index'));
+                    channelsData[index].stripGain.gain.setValueAtTime(linearPercent * 1.2, audioCtx.currentTime);
+                }
+            }
+
+            cap.addEventListener('mousedown', e => {
+                isDragging = true;
+                e.stopPropagation();
+                document.addEventListener('mousemove', mouseMoveHandler);
+                document.addEventListener('mouseup', mouseUpHandler);
+            });
+
+            housing.addEventListener('mousedown', e => {
+                isDragging = true;
+                updateFaderValuePlacement(e.clientY);
+                document.addEventListener('mousemove', mouseMoveHandler);
+                document.addEventListener('mouseup', mouseUpHandler);
+            });
+
+            function mouseMoveHandler(e) {
+                if (!isDragging) return;
+                updateFaderValuePlacement(e.clientY);
+            }
+
+            function mouseUpHandler() {
+                isDragging = false;
+                document.removeEventListener('mousemove', mouseMoveHandler);
+                document.removeEventListener('mouseup', mouseUpHandler);
+            }
+        });
+
+        /**
+         * SWITCH BUTTON HANDLERS MATRIX PIPELINE (MUTE, SOLO, PHASE, ROUTING CORES)
+         */
+        document.querySelectorAll('.channel-strip').forEach(strip => {
+            const index = parseInt(strip.getAttribute('data-index'));
+            const isMasterGroupOrMain = strip.classList.contains('master-strip');
+
+            // Select Target Channel Handler Node Point
+            strip.addEventListener('click', (e) => {
+                if (isMasterGroupOrMain || e.target.closest('.strip-btn') || e.target.closest('.knob-dial') || e.target.closest('.fader-housing') || e.target.closest('.routing-selectors')) return;
+                
+                document.querySelectorAll('.channel-strip').forEach(s => s.classList.remove('selected'));
+                strip.classList.add('selected');
+                selectedChannelIndex = index;
+                
+                document.querySelectorAll('.io-dot').forEach(dot => dot.classList.remove('active'));
+                const activeDot = document.getElementById(`matrix-dot-${index}`);
+                if(activeDot) activeDot.classList.add('active');
+
+                document.querySelector('.panel-title').innerText = `CH ${index + 1} Parametric EQ Curve Display`;
+                drawEQCurveGraph();
+            });
+
+            // Mute Switch Toggle Trigger System
+            const muteBtn = strip.querySelector('.mute-btn');
+            if(muteBtn) {
+                muteBtn.addEventListener('click', () => {
+                    muteBtn.classList.toggle('active');
+                    const isActive = muteBtn.classList.contains('active');
+                    
+                    if (!audioCtx || isMasterGroupOrMain) return;
+                    channelsData[index].isMuted = isActive;
+                    
+                    // Force zero values straight to internal track processor gain line node
+                    channelsData[index].stripGain.gain.setValueAtTime(isActive ? 0 : 0.7, audioCtx.currentTime);
+                });
+            }
+
+            // Solo Switch Toggle Trigger System
+            const soloBtn = strip.querySelector('.solo-btn');
+            if(soloBtn) {
+                soloBtn.addEventListener('click', () => {
+                    soloBtn.classList.toggle('active');
+                    // Solo processing system calculations logic implementation
+                    evaluateGlobalSoloStateChannelsMatrix();
+                });
+            }
+
+            // Phase Inversion Terminal Button Handler Switch
+            const phaseBtn = strip.querySelector('.phase-btn');
+            if(phaseBtn) {
+                phaseBtn.addEventListener('click', () => {
+                    phaseBtn.classList.toggle('active');
+                    if (!audioCtx) return;
+                    
+                    const invertCurve = new Float32Array([ 1, -1 ]);
+                    const standardCurve = new Float32Array([ -1, 1 ]);
+                    channelsData[index].isPhaseInverted = phaseBtn.classList.contains('active');
+                    channelsData[index].phaseShaper.curve = channelsData[index].isPhaseInverted ? invertCurve : standardCurve;
+                });
+            }
+
+            // Crossbar Routing Selector Logic Blocks Mapping System
+            strip.querySelectorAll('.route-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    btn.classList.toggle('active');
+                    if (!audioCtx || isMasterGroupOrMain) return;
+
+                    const bus = btn.getAttribute('data-bus');
+                    const isRouted = btn.classList.contains('active');
+                    channelsData[index].routes[bus].gain.setValueAtTime(isRouted ? 1.0 : 0.0, audioCtx.currentTime);
+                });
+            });
+        });
+
+        function evaluateGlobalSoloStateChannelsMatrix() {
+            if(!audioCtx) return;
+            const anyChannelSoloed = channelsData.some((ch, idx) => {
+                const strip = document.getElementById(`strip-ch-${idx+1}`);
+                return strip.querySelector('.solo-btn').classList.contains('active');
+            });
+
+            channelsData.forEach((ch, idx) => {
+                const strip = document.getElementById(`strip-ch-${idx+1}`);
+                const isThisSoloed = strip.querySelector('.solo-btn').classList.contains('active');
+                
+                if (anyChannelSoloed) {
+                    // Solo tracking rules take full processing priority precedence overrides
+                    ch.stripGain.gain.setValueAtTime(isThisSoloed ? 0.7 : 0, audioCtx.currentTime);
+                } else {
+                    // Fall back cleanly straight to tracking baseline standard mute flag matrices settings
+                    ch.stripGain.gain.setValueAtTime(ch.isMuted ? 0 : 0.7, audioCtx.currentTime);
+                }
+            });
+        }
+
+        /**
+         * MULTI-THREAD VISUAL VU METERS CALCULATOR PROCESSING ENGINE LOOP
+         */
+        const uintBuffer = new Uint8Array(16);
+        function processVUMetersUpdateCycle() {
+            if (!audioCtx) return;
+
+            // Compute and update individual 13 input tracks level indicators
+            for (let i = 0; i < totalChannels; i++) {
+                const targetAnalyser = channelsData[i].analyser;
+                targetAnalyser.getByteFrequencyData(uintBuffer);
+                
+                let sum = 0;
+                for(let b=0; b<16; b++) sum += uintBuffer[b];
+                const averageVolumeMetric = sum / 16; // mapped range roughly 0 - 255
+
+                const strip = document.getElementById(`strip-ch-${i+1}`);
+                const segments = strip.querySelectorAll('.vu-segment');
+                
+                // Light up active segments log-linearly down the matching hardware component template arrays
+                const totalActiveSegments = Math.floor((averageVolumeMetric / 180) * 16);
+                for (let s = 0; s < 16; s++) {
+                    // Inverted sequence loop layout matching standard physical display stacks layout orientations
+                    const targetSeg = segments[15 - s];
+                    if (s < totalActiveSegments) {
+                        if (s > 13) targetSeg.style.backgroundColor = varColor('--led-red');
+                        else if (s > 10) targetSeg.style.backgroundColor = varColor('--led-orange');
+                        else targetSeg.style.backgroundColor = varColor('--led-green');
+                    } else {
+                        targetSeg.style.backgroundColor = '#151a21'; // return to raw unlit baseline hex states
+                    }
+                }
+            }
+
+            // Compute Stereo Master Bus Levels Visual Indicators accurately
+            if (masterAnalyserL && masterAnalyserR) {
+                [masterAnalyserL, masterAnalyserR].forEach((analyser, orderIdx) => {
+                    analyser.getByteFrequencyData(uintBuffer);
+                    let mSum = 0;
+                    for(let b=0; b<16; b++) mSum += uintBuffer[b];
+                    const masterVol = mSum / 16;
+
+                    const targetMasterVuId = orderIdx === 0 ? 'master-vu-left' : 'master-vu-right';
+                    const mSegs = document.getElementById(targetMasterVuId).querySelectorAll('.vu-segment');
+                    const activeMasterSegsCount = Math.floor((masterVol / 180) * 24);
+
+                    for (let s = 0; s < 24; s++) {
+                        const mSeg = mSegs[23 - s];
+                        if (s < activeMasterSegsCount) {
+                            if (s > 20) mSeg.style.backgroundColor = varColor('--led-red');
+                            else if (s > 16) mSeg.style.backgroundColor = varColor('--led-orange');
+                            else mSeg.style.backgroundColor = varColor('--led-blue');
+                        } else {
+                            mSeg.style.backgroundColor = '#151a21';
+                        }
+                    }
+                });
+            }
+
+            requestAnimationFrame(processVUMetersUpdateCycle);
+        }
+
+        /**
+         * BOOT AND LIVE SIGNAL DEMO GENERATION SYSTEM TERMINALS
+         */
+        document.getElementById('btn-init-engine').addEventListener('click', () => {
+            initializeAudioEngine();
+            if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+        });
+
+        document.getElementById('btn-test-tone').addEventListener('click', () => {
+            if(!audioCtx) initializeAudioEngine();
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+
+            // Inject a live multi-frequency test wave sweeping standard input pipeline lines matrix targets
+            const osc = audioCtx.createOscillator();
+            const sweepGain = audioCtx.createGain();
+
+            // Intermittent sweeping pulse structure simulating true live dynamic inputs sources tracking
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(140 + (Math.random() * 320), audioCtx.currentTime);
+            
+            sweepGain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+            sweepGain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 3.5); // auto release sequence decay profile
+
+            // Wire test generator straight inside Channel 1 input processing stream pipeline stage
+            osc.connect(sweepGain);
+            sweepGain.connect(channelsData[selectedChannelIndex].inputGain);
+            
+            osc.start();
+            osc.stop(audioCtx.currentTime + 3.6);
+        });
+
+        // Setup Virtual Insert Slots Functional Dynamic Listeners
+        document.getElementById('plug-1-toggle').addEventListener('click', (e) => {
+            e.target.classList.toggle('active');
+            e.target.innerText = e.target.classList.contains('active') ? "ON" : "OFF";
+        });
+        document.getElementById('plug-2-toggle').addEventListener('click', (e) => {
+            e.target.classList.toggle('active');
+            e.target.innerText = e.target.classList.contains('active') ? "ON" : "OFF";
+        });
+
+        // Global Panic Switch (Emergency Audio Mute Engine Cut-off)
+        document.getElementById('btn-global-mute').addEventListener('click', () => {
+            if(mainMasterGainNode) {
+                mainMasterGainNode.gain.setValueAtTime(0.0, audioCtx.currentTime);
+                document.getElementById('master-fader-cap').style.top = '178px'; // Slams fader layout graphic clean down to base floor bounds
+            }
+        });
+
+        // Structural window scaling initialization visual baseline fallback setup triggers execution bounds
+        window.addEventListener('load', () => {
+            drawEQCurveGraph();
+        });
     </script>
 </body>
 </html>
