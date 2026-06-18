@@ -123,6 +123,7 @@
     .matrix-cell{height:24px;border:1px solid #2d3b45;background:#142029;display:flex;align-items:center;justify-content:center;font-size:8px;color:#7892a4}
     .matrix-cell.head{background:#1e2a33;color:#b8cce0;font-family:'Space Mono',monospace}
     .matrix-cell.on{background:#1b5d84;color:#dff4ff;border-color:#418aba;box-shadow:inset 0 0 0 1px rgba(115,202,255,.15)}
+    .matrix-cell.sc-on{background:#a35e12;color:#fffae0;border-color:#ba8041;box-shadow:inset 0 0 0 1px rgba(255,200,115,.15)}
     .fx-list{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
     .fx-preset{
       border:1px solid #32424d;background:#16212a;padding:8px 7px;color:#9fb2c2;font-size:9px;text-align:left;
@@ -136,6 +137,16 @@
     .setup-label{font-size:8px;color:#8298a9;text-transform:uppercase;letter-spacing:.14em}
     .setup-value{font-family:'Space Mono',monospace;color:#dfefff;font-size:20px;margin-top:14px}
     .setup-sub{font-size:8px;color:#6e8291;margin-top:8px;line-height:1.5}
+    
+    /* Multitrack Display Specifics */
+    .sc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px;}
+    .sc-box{border:1px solid #354652;background:#121b22;padding:8px;border-radius:3px;cursor:pointer;transition:0.15s;}
+    .sc-box:hover{border-color:#576f82;}
+    .sc-box.active{border-color:#d49037;background:linear-gradient(180deg,#3b2b16,#1c1409);}
+    .sc-label{font-size:8px;color:#8296a6;text-transform:uppercase;}
+    .sc-status{font-family:'Space Mono',monospace;font-size:11px;margin-top:4px;color:#cfdce6;}
+    .sc-box.active .sc-status{color:#ffdfad;}
+
     .right-display{
       border-left:1px solid #34414b;background:#152029;padding:10px
     }
@@ -154,6 +165,7 @@
       color:#9dafbf;font-size:8px;text-transform:uppercase;letter-spacing:.08em;border-radius:2px;
     }
     .display-tab.active{background:linear-gradient(180deg,#2b6b95,#194664);border-color:#4a96bf;color:#ecf9ff}
+    .display-tab.active-orange{background:linear-gradient(180deg,#b07223,#69400f);border-color:#cc9047;color:#fff2e0}
     .mixer-scroll{overflow-x:auto}
     .mixer{display:grid;grid-template-columns:repeat(8,98px) 108px 94px 96px 108px 108px;gap:6px;padding:10px;background:#1a1f25}
     .channel{
@@ -169,6 +181,7 @@
     .ch-source{font-size:8px;color:#83909d;line-height:1.2;text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
     .tiny-status{width:5px;height:5px;background:#587185;border-radius:50%;margin-top:3px}
     .tiny-status.live{background:#62e68b;box-shadow:0 0 7px rgba(98,230,139,.6)}
+    .tiny-status.multitrack{background:#f3bd53;box-shadow:0 0 7px rgba(243,189,83,.6)}
     .tiny-status.fx{background:#ffd35f;box-shadow:0 0 7px rgba(255,211,95,.6)}
     .knob-row{display:grid;grid-template-columns:repeat(2,1fr);gap:4px 3px;padding-top:7px}
     .knob-wrap{text-align:center}
@@ -185,7 +198,6 @@
     }
     .fx-send-btn.active{background:linear-gradient(180deg,#9d7326,#644714);border-color:#d3a84a;color:#fff8dc;box-shadow:0 0 8px rgba(243,189,83,.18)}
     
-    /* Control Deck Styles */
     .media-deck{
       margin-top:6px;border:1px solid #2f363d;background:#13181d;padding:4px;border-radius:3px;
     }
@@ -248,16 +260,13 @@
     .assign-row{display:flex;gap:5px;flex-wrap:wrap;margin-top:12px}
     .assign-chip{
       border:1px solid #3b4b56;background:#18232b;color:#9dafbe;padding:6px 8px;border-radius:2px;font-size:8px;
-      font-family:'Space Mono',monospace;cursor:pointer;
+      font-family:'Space Mono',monospace;
     }
     .assign-chip.active{background:#6c4e14;border-color:#d1a347;color:#fff0c7}
-    .assign-chip.active.soundcard-chip{background:#1c527c;border-color:#4f98c8;color:#fff}
     .modal-note{font-size:9px;color:#8396a6;line-height:1.5;margin-top:10px}
     .modal-actions{display:flex;justify-content:flex-end;gap:7px;margin-top:12px}
     .action-btn{height:30px;border-radius:3px;border:1px solid #49606f;background:linear-gradient(180deg,#324250,#1e2a33);color:#d7e9f6;font-size:10px;font-weight:700;padding:0 11px}
     .action-btn.primary{background:linear-gradient(180deg,#2c78ad,#1c527c);border-color:#4f98c8}
-    .soundcard-matrix-grid { display:grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px; }
-    .sc-card { border:1px solid #31414d; background:#152029; padding:10px; border-radius:4px; text-align:center;}
   </style>
   <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
   <script src="/_sdk/resizing_sdk.js" type="text/javascript"></script>
@@ -287,7 +296,7 @@
        <div class="display-title">
         X78 DIGITAL CONTROL SURFACE
        </div>
-       <div class="display-meta"><span>SCENE 005</span> <span>48 kHz</span> <span>LAT 1.3 ms</span>
+       <div class="display-meta"><span>SCENE 004</span> <span>48 kHz</span> <span>LAT 1.3 ms</span>
        </div>
       </div>
       <div class="display-body">
@@ -347,13 +356,13 @@
           </div>
           <div class="screen-card">
            <div class="screen-card-title">
-            Current FX Status
+            Current FX
            </div>
            <div style="font-family:'Space Mono',monospace;font-size:16px;color:#dceeff;margin-top:14px" id="screenFxName">
             Vocal Plate
            </div>
            <div style="font-size:8px;color:#7b91a4;margin-top:8px;text-transform:uppercase;letter-spacing:.1em">
-            FX Return Channel 10
+            FX Send
            </div>
            <div style="font-family:'Space Mono',monospace;font-size:20px;color:#ffd35f;margin-top:5px" id="screenFxSend">
             -12 dB
@@ -476,22 +485,75 @@
          </div>
          <div class="fx-list" id="fxList"></div>
         </div>
+        <div id="multitrackMode" class="screen-mode">
+         <div class="screen-header">
+          <div>
+           <div class="screen-kicker">
+            USB Live Soundcard Controller
+           </div>
+           <div class="screen-channel">
+            MULTITRACK ROUTING PATCH
+           </div>
+          </div>
+          <div class="screen-kicker" style="color:var(--amber)">
+           24-BIT / 48KHZ STREAM
+          </div>
+         </div>
+         <p style="font-size:9px;color:#89939f;margin-bottom:8px;">Pilih channel input (CH 01 - CH 08) di bawah untuk dikirim secara independen ke Live Soundcard Multitrack Bus Anda:</p>
+         <div class="sc-grid" id="soundcardGrid"></div>
+        </div>
         <div id="setupMode" class="screen-mode">
          <div class="screen-header">
           <div>
            <div class="screen-kicker">
-            Live Soundcard Multitrack
+            System Setup
            </div>
            <div class="screen-channel">
-            USB MULTITRACK RECORDING ASSIGN
+            DIGITAL CONSOLE CONFIG
            </div>
           </div>
           <div class="screen-kicker">
-           INTERFACES
+           ONLINE
           </div>
          </div>
-         <p style="font-size:10px; color:#a3b2c0; margin-bottom:8px;">Pilih channel input (1-8) di bawah ini untuk dikirim secara simultan ke Live Recording Soundcard Bus:</p>
-         <div class="soundcard-matrix-grid" id="soundcardScreenMatrix"></div>
+         <div class="setup-grid">
+          <div class="setup-card">
+           <div class="setup-label">
+            Clock Source
+           </div>
+           <div class="setup-value">
+            INT
+           </div>
+           <div class="setup-sub">
+            Stable internal master clock<br>
+            Jitter correction active
+           </div>
+          </div>
+          <div class="setup-card">
+           <div class="setup-label">
+            Sample Rate
+           </div>
+           <div class="setup-value">
+            48.0
+           </div>
+           <div class="setup-sub">
+            kHz processing engine<br>
+            24-bit summing bus
+           </div>
+          </div>
+          <div class="setup-card">
+           <div class="setup-label">
+            Scene Memory
+           </div>
+           <div class="setup-value">
+            004
+           </div>
+           <div class="setup-sub">
+            Live Vocal Set<br>
+            Autosafe armed
+           </div>
+          </div>
+         </div>
         </div>
        </div>
        <aside class="right-display">
@@ -522,11 +584,11 @@
          <span>FX Send</span><span id="sideFx">OFF</span>
         </div>
         <div class="mini-stat">
-         <span>Soundcard</span><span id="sideSoundcard">OFF</span>
+         <span>Soundcard</span><span id="sideSoundcard" style="color:var(--amber)">OFF</span>
         </div>
        </aside>
       </div>
-      <div class="tabbar"><button class="display-tab active" data-mode="overviewMode">Overview</button> <button class="display-tab" data-mode="eqMode">EQ</button> <button class="display-tab" data-mode="dynMode">Dynamics</button> <button class="display-tab" data-mode="routingMode">Routing</button> <button class="display-tab" data-mode="fxMode">FX Rack</button> <button class="display-tab" data-mode="setupMode">Soundcard</button>
+      <div class="tabbar"><button class="display-tab active" data-mode="overviewMode">Overview</button> <button class="display-tab" data-mode="eqMode">EQ</button> <button class="display-tab" data-mode="dynMode">Dynamics</button> <button class="display-tab" data-mode="routingMode">Routing</button> <button class="display-tab" data-mode="fxMode">FX Rack</button> <button class="display-tab" data-mode="multitrackMode" style="border-color:#cc9047;color:#fcdcb1;">Multitrack</button> <button class="display-tab" data-mode="setupMode">Setup</button>
       </div>
      </div>
     </section>
@@ -545,7 +607,7 @@
        <span>TRUE STEREO BUS</span>
       </div>
       <div class="footer-pill">
-       <span>FX ENGINE ALIVE</span>
+       <span>FX ENGINE REAL-DSP</span>
       </div>
      </div>
      <p data-template-id="footer-note" class="canva-text">Drag & drop audio files or use the channel load buttons for playback</p>
@@ -561,7 +623,7 @@
     </div>
     <div class="preset-grid" id="presetGrid"></div>
     <div class="modal-note">
-     Pilih satu preset FX utama lalu aktifkan channel mana saja yang ingin dikirim ke FX bus. Satu preset dapat digunakan oleh beberapa channel sekaligus secara berbarengan.
+     Pilih satu preset FX utama lalu aktifkan channel mana saja yang ingin dikirim ke FX bus. Satu preset dapat digunakan oleh beberapa channel sekaligus.
     </div>
     <div class="assign-row" id="assignRow"></div>
     <div class="modal-actions"><button id="clearAssignments" class="action-btn">Clear Assign</button> <button id="applyFx" class="action-btn primary">Apply FX Setup</button>
@@ -583,18 +645,18 @@
       {num:'10',name:'EFX RTN',src:'GLOBAL FX',type:'fx_rtn'}
     ];
     const presets = [
-      ['Vocal Plate','PLATE',0.02,1.8],['Warm Hall','HALL',0.04,2.5],['Bright Room','ROOM',0.01,0.8],['Studio Slap','DELAY',0.15,0.4],['Pop Doubler','DOUBLER',0.02,0.3],
-      ['Air Verb','REVERB',0.05,3.0],['Vintage Plate','PLATE',0.03,2.0],['Soft Chamber','ROOM',0.02,1.2],['Classic Echo','ECHO',0.30,0.5],['Wide Vocal','WIDTH',0.01,0.5],
-      ['Deep Hall','HALL',0.06,4.0],['Tape Slap','DELAY',0.08,0.3],['Modern Plate','PLATE',0.02,1.5],['Dream Verb','AMBIENT',0.08,5.0],['Short Room','ROOM',0.01,0.5],
-      ['Arena Vocal','HALL',0.05,3.5],['Silky Tail','REVERB',0.04,2.8],['Analog Echo','ECHO',0.25,0.4],['Pop Plate','PLATE',0.02,1.6],['Vox Space','SPACE',0.03,2.2],
-      ['Warm Chamber','ROOM',0.02,1.4],['Big Chorus','CHORUS',0.03,0.6],['Lead Shine','PLATE',0.01,1.4],['Air Delay','DELAY',0.40,0.4],['Live Stage','HALL',0.04,2.2]
+      ['Vocal Plate','PLATE',0.04,1.8],['Warm Hall','HALL',0.12,2.5],['Bright Room','ROOM',0.02,0.8],['Studio Slap','DELAY',0.18,0.4],['Pop Doubler','DOUBLER',0.03,0.3],
+      ['Air Verb','REVERB',0.25,3.0],['Vintage Plate','PLATE',0.06,2.0],['Soft Chamber','ROOM',0.04,1.2],['Classic Echo','ECHO',0.32,0.5],['Wide Vocal','WIDTH',0.02,0.5],
+      ['Deep Hall','HALL',0.45,4.0],['Tape Slap','DELAY',0.09,0.3],['Modern Plate','PLATE',0.05,1.5],['Dream Verb','AMBIENT',0.60,5.0],['Short Room','ROOM',0.02,0.5],
+      ['Arena Vocal','HALL',0.38,3.5],['Silky Tail','REVERB',0.22,2.8],['Analog Echo','ECHO',0.28,0.4],['Pop Plate','PLATE',0.04,1.6],['Vox Space','SPACE',0.15,2.2],
+      ['Warm Chamber','ROOM',0.05,1.4],['Big Chorus','CHORUS',0.06,0.6],['Lead Shine','PLATE',0.03,1.4],['Air Delay','DELAY',0.45,0.4],['Live Stage','HALL',0.14,2.2]
     ];
 
     const mixer = document.getElementById('mixer');
     let selectedIndex = 0;
     let currentPreset = 0;
-    const fxAssigned = new Set([6]); // default CH 7 vox aktif FX
-    const soundcardAssigned = new Set([0, 1, 6]); // default multi-assign soundcard recording
+    const fxAssigned = new Set([6]);
+    const soundcardAssigned = new Set([0, 1, 6]); // Default multitrack selections
 
     // Audio Context & Nodes Engine
     let audioCtx = null;
@@ -603,7 +665,7 @@
     let masterLeftAnalyser = null;
     let masterRightAnalyser = null;
     
-    // DSP Effect Engine Nodes
+    // Real DSP Engine Effects Bus Components
     let globalDelayNode = null;
     let globalFeedbackNode = null;
     let globalFilterNode = null;
@@ -625,7 +687,6 @@
       masterLeftAnalyser.fftSize = 64;
       masterRightAnalyser.fftSize = 64;
 
-      // Master Merging output
       const merger = audioCtx.createChannelMerger(2);
       masterLeftGain.connect(masterLeftAnalyser);
       masterRightGain.connect(masterRightAnalyser);
@@ -633,26 +694,28 @@
       masterRightGain.connect(merger, 0, 1);
       merger.connect(audioCtx.destination);
 
-      // GLOBAL REVERB/ECHO CORE PROCESSING ENGINE 
+      // Inisialisasi Real DSP FX Loop Architecture
       globalDelayNode = audioCtx.createDelay(2.0);
       globalFeedbackNode = audioCtx.createGain();
       globalFilterNode = audioCtx.createBiquadFilter();
       
-      globalFilterNode.type = 'peaking';
-      globalFilterNode.frequency.setValueAtTime(2500, audioCtx.currentTime);
-      globalFilterNode.Q.setValueAtTime(1.0, audioCtx.currentTime);
-      globalFilterNode.gain.setValueAtTime(4, audioCtx.currentTime);
+      globalFilterNode.type = 'lowpass';
+      globalFilterNode.frequency.setValueAtTime(3500, audioCtx.currentTime);
 
       const p = presets[currentPreset];
       globalDelayNode.delayTime.setValueAtTime(p[2], audioCtx.currentTime);
-      globalFeedbackNode.gain.setValueAtTime(Math.min(p[3] * 0.45, 0.8), audioCtx.currentTime);
+      globalFeedbackNode.gain.setValueAtTime(p[3] * 0.45, audioCtx.currentTime);
 
-      // FX Loop routing architecture
+      // Topology: Send -> Delay -> Filter -> Feedback Gain -> Loop Back ke Delay
       globalDelayNode.connect(globalFilterNode);
       globalFilterNode.connect(globalFeedbackNode);
-      globalFeedbackNode.connect(globalDelayNode); // feedback loop
+      globalFeedbackNode.connect(globalDelayNode);
 
-      // Build Audio Graph structure for each channel definition
+      // Gabungkan output FX Engine kembali ke Master Bus kiri/kanan
+      globalFeedbackNode.connect(masterLeftGain);
+      globalFeedbackNode.connect(masterRightGain);
+
+      // Buat struktur Audio Graph untuk masing-masing channel
       channelDefs.forEach((ch, idx) => {
         const inputGain = audioCtx.createGain();
         const panner = audioCtx.createStereoPanner();
@@ -670,11 +733,14 @@
         midEq.type = 'peaking'; midEq.Q.setValueAtTime(1.0, audioCtx.currentTime); midEq.frequency.setValueAtTime(2500, audioCtx.currentTime);
         highEq.type = 'highshelf'; highEq.frequency.setValueAtTime(8000, audioCtx.currentTime);
 
-        chGain.gain.setValueAtTime(idx === 9 ? 0.7 : 0.5, audioCtx.currentTime); 
-        fxSendGain.gain.setValueAtTime(fxAssigned.has(idx) ? 0.6 : 0.0, audioCtx.currentTime);
+        chGain.gain.setValueAtTime(idx === 9 ? 0.4 : 0.5, audioCtx.currentTime);
+        
+        // Atur pengiriman sinyal FX awal secara realtime berdasarkan set data
+        let initialFxLevel = fxAssigned.has(idx) ? 0.45 : 0.0;
+        fxSendGain.gain.setValueAtTime(initialFxLevel, audioCtx.currentTime);
         analyser.fftSize = 32;
 
-        // Chain Topology
+        // Chain routing diagram
         inputGain.connect(lowEq);
         lowEq.connect(midEq);
         midEq.connect(highEq);
@@ -682,20 +748,18 @@
         panner.connect(chGain);
         
         chGain.connect(analyser);
-
-        // Jika bukan channel FX Return, sambungkan jalur FX Send ke modul efek utama
-        if (idx < 9) {
-          chGain.connect(masterLeftGain);
-          chGain.connect(masterRightGain);
-          chGain.connect(fxSendGain);
-          fxSendGain.connect(globalDelayNode); // Sambungan langsung ke FX processor
-        }
+        chGain.connect(masterLeftGain);
+        chGain.connect(masterRightGain);
+        
+        // Koneksi pasca Fader langsung masuk ke FX Processing Engine
+        chGain.connect(fxSendGain);
+        fxSendGain.connect(globalDelayNode);
 
         channelNodes[idx] = {
           input: inputGain, low: lowEq, mid: midEq, high: highEq,
           pan: panner, gain: chGain, fxSend: fxSendGain, analyser: analyser,
           sourceNode: null, fileSource: null, isMuted: false, isSoloed: false, phaseInverted: false,
-          gainValue: 1.0, panValue: 0.0, lowVal: 0, midVal: 0, highVal: 0, auxVal: 0, audioBuffer: null
+          gainValue: 0.5, panValue: 0.0, lowVal: 0, midVal: 0, highVal: 0, audioBuffer: null
         };
 
         if (ch.type === 'youtube') {
@@ -703,10 +767,8 @@
         }
       });
 
-      // CHANNEL 10 (EFX RTN) bertindak sebagai penerima sinyal basah / wet FX output
-      globalDelayNode.connect(channelNodes[9].input);
-      channelNodes[9].gain.connect(masterLeftGain);
-      channelNodes[9].gain.connect(masterRightGain);
+      // Hubungkan channel 10 Return fader untuk mengontrol sinyal balik FX
+      globalFeedbackNode.connect(channelNodes[9].input);
     }
 
     function setupSyntheticStreamInput(idx) {
@@ -715,8 +777,8 @@
       const osc2 = audioCtx.createOscillator();
       const oscGain = audioCtx.createGain();
       
-      osc1.type = 'triangle'; osc1.frequency.setValueAtTime(55, audioCtx.currentTime);
-      osc2.type = 'sine'; osc2.frequency.setValueAtTime(220, audioCtx.currentTime);
+      osc1.type = 'triangle'; osc1.frequency.setValueAtTime(60, audioCtx.currentTime);
+      osc2.type = 'sine'; osc2.frequency.setValueAtTime(240, audioCtx.currentTime);
       
       oscGain.gain.setValueAtTime(0.02, audioCtx.currentTime);
       osc1.connect(oscGain);
@@ -778,8 +840,9 @@
     function updateDspEffectsParams() {
       if (!audioCtx || !globalDelayNode) return;
       const p = presets[currentPreset];
-      globalDelayNode.delayTime.setTargetAtTime(p[2], audioCtx.currentTime, 0.05);
-      globalFeedbackNode.gain.setTargetAtTime(Math.min(p[3] * 0.45, 0.85), audioCtx.currentTime, 0.05);
+      // Terapkan perubahan nilai secara konstan tanpa suara pop/click (smooth transition)
+      globalDelayNode.delayTime.setTargetAtTime(p[2], audioCtx.currentTime, 0.08);
+      globalFeedbackNode.gain.setTargetAtTime(p[3] * 0.45, audioCtx.currentTime, 0.08);
     }
 
     function makeSegments(container,count=18){
@@ -794,13 +857,16 @@
       const el=document.createElement('article');
       el.className='channel'+(index===0?' selected':'');
       el.dataset.index=index;
+      
+      let initialStatusClass = soundcardAssigned.has(index) ? 'tiny-status multitrack' : 'tiny-status live';
+      
       el.innerHTML=`
         <div class="ch-header">
           <div><div class="ch-name">${ch.name}</div><div class="ch-source">${ch.src}</div></div>
-          <div class="tiny-status live"></div>
+          <div class="${initialStatusClass}"></div>
         </div>
         <div class="knob-row">
-          ${['GAIN','PAN','LOW','MID','HIGH','AUX'].map(label=>`<div class="knob-wrap"><div class="knob" data-role="${label.toLowerCase()}"></div><div class="knob-label">${label}</div></div>`).join('')}
+          ${['GAIN','PAN','LOW','MID','HIGH','AUX/FX'].map(label=>`<div class="knob-wrap"><div class="knob" data-role="${label.includes('AUX')?'aux':label.toLowerCase()}"></div><div class="knob-label">${label}</div></div>`).join('')}
         </div>
         
         <div class="media-deck">
@@ -892,9 +958,7 @@
       el.querySelector('.deck-btn[data-action="play"]').addEventListener('click', () => {
         if(!audioCtx) initAudioEngine();
         updateDeckVisuals(index, 'play');
-        if(linkInput.value) {
-          document.querySelectorAll('.ch-source')[index].textContent = 'LINK LINKED';
-        }
+        if(linkInput.value) document.querySelectorAll('.ch-source')[index].textContent = 'LINK LINKED';
       });
       el.querySelector('.deck-btn[data-action="pause"]').addEventListener('click', () => updateDeckVisuals(index, 'pause'));
       el.querySelector('.deck-btn[data-action="stop"]').addEventListener('click', () => updateDeckVisuals(index, 'stop'));
@@ -922,7 +986,7 @@
           <div class="level-meter"></div>
           <div class="fader-lane"><div class="scale-lines"></div><div class="fader-cap" tabindex="0"></div></div>
         </div>
-        <div class="fader-readout">-2.5 dB</div>
+        <div class="fader-readout">-10.0 dB</div>
         <div class="channel-footer">FX</div>
       `;
       mixer.appendChild(el);
@@ -961,7 +1025,6 @@
       bindUtilityChannel(el, label.toLowerCase());
     }
 
-    // Generator Layout
     channelDefs.forEach((ch, idx) => {
       if (idx < 8) createInputChannel(ch, idx);
       else if (idx === 8) createYoutubeChannel(ch, idx);
@@ -991,8 +1054,11 @@
       el.querySelector('.fx-send-btn').addEventListener('click',()=>{
         if(fxAssigned.has(index)) fxAssigned.delete(index); else fxAssigned.add(index);
         el.querySelector('.fx-send-btn').classList.toggle('active',fxAssigned.has(index));
+        
+        // Integrasi Real-DSP: manipulasi volume auxiliary send langsung ke node delay
         if (audioCtx && channelNodes[index]) {
-          channelNodes[index].fxSend.gain.setValueAtTime(fxAssigned.has(index) ? 0.6 : 0.0, audioCtx.currentTime);
+          let currentAuxKnobVal = 0.45; 
+          channelNodes[index].fxSend.gain.setValueAtTime(fxAssigned.has(index) ? currentAuxKnobVal : 0.0, audioCtx.currentTime);
         }
         updateSidePanel();
         renderRoutingMatrix();
@@ -1002,7 +1068,7 @@
     }
 
     function bindUtilityChannel(el, type){
-      el.querySelectorAll('.mini-btn').forEach(btn=>btn.classList.toggle('active'));
+      el.querySelectorAll('.mini-btn').forEach(btn=>btn.addEventListener('click',()=>btn.classList.toggle('active')));
       bindKnobs(el, -1);
       
       const cap=el.querySelector('.fader-cap');
@@ -1062,6 +1128,10 @@
             } else if (role === 'high') {
               node.high.gain.setValueAtTime(value * 15, audioCtx.currentTime);
               if (index === selectedIndex) redrawEqDisplay();
+            } else if (role === 'aux') {
+              // Pengaruh knob aux secara berkala mempengaruhi level kiriman FX jika status diaktifkan
+              let targetAuxVol = fxAssigned.has(index) ? (value + 1) * 0.45 : 0.0;
+              node.fxSend.gain.setValueAtTime(targetAuxVol, audioCtx.currentTime);
             }
           }
         };
@@ -1121,9 +1191,9 @@
 
     function updateSidePanel(){
       document.getElementById('sideFx').textContent=fxAssigned.has(selectedIndex)?'ON':'OFF';
-      document.getElementById('sideSoundcard').textContent=soundcardAssigned.has(selectedIndex)?'RECORDING':'OFF';
+      document.getElementById('sideSoundcard').textContent=soundcardAssigned.has(selectedIndex)?'PATCHED':'OFF';
       document.getElementById('screenFxName').textContent=presets[currentPreset][0];
-      document.getElementById('screenFxSend').textContent=fxAssigned.has(selectedIndex)?'SENDING':'OFF';
+      document.getElementById('screenFxSend').textContent=fxAssigned.has(selectedIndex)?'-12 dB':'OFF';
     }
 
     function redrawEqDisplay() {
@@ -1153,7 +1223,6 @@
         document.querySelectorAll('.screen-mode').forEach(m=>m.classList.remove('active'));
         document.getElementById(tab.dataset.mode).classList.add('active');
         if (tab.dataset.mode === 'eqMode') redrawEqDisplay();
-        if (tab.dataset.mode === 'setupMode') renderSoundcardScreenMatrix();
       });
     });
 
@@ -1163,12 +1232,60 @@
       ['','CH1','CH2','CH3','CH4','CH5','CH6','CH7','CH8','CH9','FX'].forEach(label=>{
         const c=document.createElement('div'); c.className='matrix-cell head'; c.textContent=label; matrix.appendChild(c);
       });
-      [['MAIN',[1,1,1,1,1,1,1,1,1,0]],['AUX1',[0,0,1,1,1,1,0,0,1,0]],['AUX2',[0,0,0,1,1,1,1,1,0,0]],['FX',[...Array(10)].map((_,i)=>fxAssigned.has(i)?1:0)]].forEach(row=>{
+      [
+        ['MAIN',[1,1,1,1,1,1,1,1,1,0]],
+        ['AUX1',[0,0,1,1,1,1,0,0,1,0]],
+        ['LIVE SC',[...Array(10)].map((_,i)=>soundcardAssigned.has(i)?1:0)],
+        ['FX',[...Array(10)].map((_,i)=>fxAssigned.has(i)?1:0)]
+      ].forEach(row=>{
         const label=document.createElement('div'); label.className='matrix-cell head'; label.textContent=row[0]; matrix.appendChild(label);
-        row[1].forEach(v=>{ const c=document.createElement('div'); c.className='matrix-cell'+(v?' on':''); c.textContent=v?'●':'·'; matrix.appendChild(c); });
+        row[1].forEach((v, idx)=>{ 
+          let specialClass = '';
+          if (v && row[0] === 'LIVE SC') specialClass = ' sc-on';
+          else if (v) specialClass = ' on';
+          
+          const c=document.createElement('div'); 
+          c.className='matrix-cell' + specialClass; 
+          c.textContent=v?'●':'·'; 
+          matrix.appendChild(c); 
+        });
       });
     }
     renderRoutingMatrix();
+
+    // Render USB Multitrack Soundcard Panel System
+    function renderSoundcardGrid() {
+      const grid = document.getElementById('soundcardGrid');
+      grid.innerHTML = '';
+      channelDefs.forEach((ch, i) => {
+        if (i >= 8) return; // Khusus channel input fisik 1-8
+        const active = soundcardAssigned.has(i);
+        const box = document.createElement('div');
+        box.className = `sc-box ${active ? 'active' : ''}`;
+        box.innerHTML = `
+          <div class="sc-label">USB CH 0${i+1}</div>
+          <div class="sc-status">${ch.name}: ${active ? 'STREAMING' : 'IDLE'}</div>
+        `;
+        box.addEventListener('click', () => {
+          if (soundcardAssigned.has(i)) {
+            soundcardAssigned.delete(i);
+          } else {
+            soundcardAssigned.add(i);
+          }
+          renderSoundcardGrid();
+          renderRoutingMatrix();
+          updateSidePanel();
+          
+          // Sinkronisasi status LED indikator di strip channel mixer utama
+          const chHeaderLed = document.querySelector(`.channel[data-index="${i}"] .tiny-status`);
+          if (chHeaderLed) {
+            chHeaderLed.className = soundcardAssigned.has(i) ? 'tiny-status multitrack' : 'tiny-status live';
+          }
+        });
+        grid.appendChild(box);
+      });
+    }
+    renderSoundcardGrid();
 
     function renderFxList(){
       const list=document.getElementById('fxList');
@@ -1182,31 +1299,6 @@
       });
     }
     renderFxList();
-
-    // LIVE SOUNDCARD MULTITRACK MATRIX SYSTEM
-    function renderSoundcardScreenMatrix() {
-      const container = document.getElementById('soundcardScreenMatrix');
-      container.innerHTML = '';
-      channelDefs.slice(0, 8).forEach((ch, i) => {
-        const isActive = soundcardAssigned.has(i);
-        const card = document.createElement('div');
-        card.className = `sc-card cursor-pointer transition ${isActive ? 'bg-sky-950 border-sky-500 text-white' : 'bg-slate-900 border-slate-700 text-slate-400'}`;
-        card.innerHTML = `
-          <div style="font-size:7px; color:#7d95a6;">USB CH 0${i+1}</div>
-          <div style="font-family:'Space Mono',monospace; font-size:11px; font-weight:bold; margin-top:2px;">${ch.name}</div>
-          <div style="font-size:8px; margin-top:6px;" class="${isActive ? 'text-emerald-400' : 'text-slate-500'}">
-            ${isActive ? '● MULTI LIVE' : '○ BYPASS'}
-          </div>
-        `;
-        card.addEventListener('click', () => {
-          if (soundcardAssigned.has(i)) soundcardAssigned.delete(i);
-          else soundcardAssigned.add(i);
-          renderSoundcardScreenMatrix();
-          updateSidePanel();
-        });
-        container.appendChild(card);
-      });
-    }
 
     function openFxModal(){
       document.getElementById('fxModal').classList.add('open');
@@ -1261,8 +1353,9 @@
         const idx=Number(el.dataset.index);
         const sendBtn = el.querySelector('.fx-send-btn');
         if (sendBtn) sendBtn.classList.toggle('active',fxAssigned.has(idx));
+        
         if (audioCtx && channelNodes[idx]) {
-          channelNodes[idx].fxSend.gain.setValueAtTime(fxAssigned.has(idx) ? 0.6 : 0.0, audioCtx.currentTime);
+          channelNodes[idx].fxSend.gain.setValueAtTime(fxAssigned.has(idx) ? 0.45 : 0.0, audioCtx.currentTime);
         }
       });
       updateSidePanel();
@@ -1297,11 +1390,10 @@
       if (audioCtx.state === 'suspended') audioCtx.resume();
     });
     
-    document.getElementById('stopBtn').addEventListener('click',()=>{
+    document.getElementById('stopBtn').addEventListener('click',()=> {
       document.getElementById('playBtn').classList.remove('active');
     });
 
-    // Real VU Meters Core Telemetry Processing Loop
     const uintBuffer = new Uint8Array(16);
     function animateMeters(){
       if (audioCtx && audioCtx.state === 'running') {
