@@ -1,635 +1,3 @@
-<!doctype html>
-<html lang="en">
- <head><script src="/_sdk/telemetry_sdk.js"></script>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FR Audio X78 Series</title>
-  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
-  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
-  <style>
-    :root{
-      --bg:#171b20;
-      --panel:#22272d;
-      --panel2:#1d2228;
-      --panel3:#262c33;
-      --line:#3a4149;
-      --line-soft:#2d343b;
-      --text:#d7dde3;
-      --muted:#89939f;
-      --blue:#3c9cff;
-      --blue2:#68b7ff;
-      --green:#62e68b;
-      --yellow:#ffd35f;
-      --red:#ff5f6d;
-      --amber:#f3bd53;
-    }
-    *{box-sizing:border-box}
-    html,body{margin:0;width:100%;min-height:100%;background:#15191e;color:var(--text);font-family:'DM Sans',sans-serif}
-    body{overflow-x:auto}
-    button{font-family:inherit}
-    .app-shell{
-      width:100%;
-      min-height:calc(100 * min(var(--vh, 1vh), 1vh));
-      background:
-        radial-gradient(circle at top left, rgba(80,102,126,.16), transparent 25%),
-        linear-gradient(180deg,#20252b 0%,#171b20 100%);
-      padding:14px;
-    }
-    .console{
-      width:100%;
-      min-width:1180px;
-      max-width:1580px;
-      margin:0 auto;
-      border:1px solid #3b434c;
-      background:linear-gradient(180deg,#242a31,#1c2127);
-      box-shadow:0 18px 50px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.06), inset 0 -1px 0 rgba(0,0,0,.9);
-      border-radius:6px;
-      overflow:hidden;
-    }
-    .topbar{
-      height:54px;display:flex;align-items:center;justify-content:space-between;
-      padding:0 18px;border-bottom:1px solid #3b434c;background:linear-gradient(180deg,#2b3139,#20262c);
-    }
-    .brand-wrap{display:flex;align-items:center;gap:14px}
-    .brand-mark{
-      width:28px;height:28px;border-radius:4px;border:1px solid #4a5360;
-      background:linear-gradient(145deg,#1f252c,#12161a);display:flex;align-items:center;justify-content:center;
-      color:var(--blue2);box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 1px 3px rgba(0,0,0,.5)
-    }
-    .brand-mark svg{width:16px;height:16px}
-    .brand-title{font-size:16px;font-weight:700;letter-spacing:.08em;margin:0}
-    .brand-sub{font-size:10px;color:#9ba6b1;letter-spacing:.14em;text-transform:uppercase;margin:1px 0 0}
-    .top-actions{display:flex;align-items:center;gap:8px}
-    .tiny-led{width:6px;height:6px;border-radius:50%;background:#6ef19a;box-shadow:0 0 10px rgba(110,241,154,.8)}
-    .session-badge{
-      display:flex;align-items:center;gap:7px;border:1px solid #40505f;background:#1a2026;border-radius:3px;
-      padding:6px 9px;font-size:10px;color:#b8c5d0;letter-spacing:.08em;text-transform:uppercase;
-    }
-    .icon-btn{
-      border:1px solid #46515d;background:linear-gradient(180deg,#313942,#20262d);color:#cfd7de;border-radius:3px;
-      height:29px;min-width:32px;display:inline-flex;align-items:center;justify-content:center;
-      box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 1px 2px rgba(0,0,0,.45);transition:.18s ease;
-    }
-    .icon-btn:hover{border-color:#5a6a7a;color:#fff}
-    .icon-btn.active{border-color:#4f8fc4;color:#cdeaff;background:linear-gradient(180deg,#2e5f88,#1c3b57)}
-    .icon-btn svg{width:14px;height:14px}
-    .main-display-wrap{padding:10px;border-bottom:1px solid #313941;background:#1d2228}
-    .display-frame{
-      border:1px solid #3c4650;background:linear-gradient(180deg,#222930,#171d23);
-      border-radius:4px;box-shadow:inset 0 1px 0 rgba(255,255,255,.04), inset 0 -1px 0 rgba(0,0,0,.7);
-      overflow:hidden;
-    }
-    .display-top{
-      height:34px;display:flex;align-items:center;justify-content:space-between;padding:0 10px;
-      border-bottom:1px solid #33404a;background:linear-gradient(180deg,#26313a,#1a2229);
-    }
-    .display-title{font-family:'Space Mono',monospace;font-size:11px;color:#dcecff;letter-spacing:.08em}
-    .display-meta{display:flex;align-items:center;gap:14px;font-size:9px;text-transform:uppercase;color:#8ea1b2;letter-spacing:.09em}
-    .display-body{display:grid;grid-template-columns:1fr 255px;min-height:215px}
-    .screen-area{
-      position:relative;min-height:215px;padding:12px;
-      background:
-        linear-gradient(rgba(64,118,153,.11) 1px,transparent 1px) 0 0/100% 20px,
-        linear-gradient(90deg,rgba(64,118,153,.11) 1px,transparent 1px) 0 0/28px 100%,
-        radial-gradient(circle at top left,rgba(35,128,188,.12),transparent 40%),
-        #111a21;
-    }
-    .screen-mode{display:none;height:100%}
-    .screen-mode.active{display:block}
-    .screen-header{
-      display:flex;align-items:center;justify-content:space-between;margin-bottom:10px
-    }
-    .screen-kicker{font-size:9px;text-transform:uppercase;letter-spacing:.16em;color:#7f98aa}
-    .screen-channel{font-family:'Space Mono',monospace;color:#dbf0ff;font-size:16px}
-    .overview-grid{display:grid;grid-template-columns:1.25fr .9fr .9fr;gap:10px;height:150px}
-    .screen-card{border:1px solid #33404a;background:rgba(15,25,32,.78);padding:9px}
-    .screen-card-title{font-size:8px;color:#7d95a6;text-transform:uppercase;letter-spacing:.14em;margin-bottom:7px}
-    .large-meter{height:98px;display:flex;align-items:flex-end;gap:4px}
-    .bar{flex:1;background:linear-gradient(180deg,#5ed98a,#2f9d62);box-shadow:0 0 8px rgba(89,222,137,.25);min-height:8px}
-    .routing-mini{display:grid;grid-template-columns:repeat(2,1fr);gap:5px}
-    .route-chip{border:1px solid #31414d;background:#17222a;padding:6px}
-    .route-chip span{display:block}
-    .route-chip .a{font-size:7px;color:#788d9e;text-transform:uppercase;letter-spacing:.1em}
-    .route-chip .b{font-family:'Space Mono',monospace;font-size:10px;color:#d7e7f5;margin-top:3px}
-    .eq-svg{width:100%;height:145px}
-    .dyn-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-    .dyn-module{border:1px solid #31414d;background:#152029;padding:9px;height:135px}
-    .dyn-title{font-size:8px;text-transform:uppercase;color:#8aa0b1;letter-spacing:.14em}
-    .dyn-value{font-family:'Space Mono',monospace;color:#dbeeff;font-size:18px;margin-top:9px}
-    .dyn-scale{height:54px;background:linear-gradient(180deg,#1f2c34,#111820);border:1px solid #2f3d48;margin-top:10px;position:relative}
-    .dyn-fill{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(180deg,#5ab7ff,#2b6fa5)}
-    .routing-matrix{display:grid;grid-template-columns:65px repeat(10,1fr);gap:3px}
-    .matrix-cell{height:24px;border:1px solid #2d3b45;background:#142029;display:flex;align-items:center;justify-content:center;font-size:8px;color:#7892a4}
-    .matrix-cell.head{background:#1e2a33;color:#b8cce0;font-family:'Space Mono',monospace}
-    .matrix-cell.on{background:#1b5d84;color:#dff4ff;border-color:#418aba;box-shadow:inset 0 0 0 1px rgba(115,202,255,.15)}
-    .matrix-cell.sc-on{background:#a35e12;color:#fffae0;border-color:#ba8041;box-shadow:inset 0 0 0 1px rgba(255,200,115,.15)}
-    .fx-list{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
-    .fx-preset{
-      border:1px solid #32424d;background:#16212a;padding:8px 7px;color:#9fb2c2;font-size:9px;text-align:left;
-      border-radius:2px;min-height:42px;transition:.15s;
-    }
-    .fx-preset:hover{border-color:#4f7290;color:#e8f5ff}
-    .fx-preset.active{background:linear-gradient(180deg,#245b7f,#183e58);border-color:#5fa5d1;color:white}
-    .fx-preset small{display:block;color:#7f96a8;font-size:7px;margin-top:3px;text-transform:uppercase}
-    .setup-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-    .setup-card{height:130px;border:1px solid #33424c;background:#152029;padding:10px}
-    .setup-label{font-size:8px;color:#8298a9;text-transform:uppercase;letter-spacing:.14em}
-    .setup-value{font-family:'Space Mono',monospace;color:#dfefff;font-size:20px;margin-top:14px}
-    .setup-sub{font-size:8px;color:#6e8291;margin-top:8px;line-height:1.5}
-    
-    /* Multitrack Display Specifics */
-    .sc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px;}
-    .sc-box{border:1px solid #354652;background:#121b22;padding:8px;border-radius:3px;cursor:pointer;transition:0.15s;}
-    .sc-box:hover{border-color:#576f82;}
-    .sc-box.active{border-color:#d49037;background:linear-gradient(180deg,#3b2b16,#1c1409);}
-    .sc-label{font-size:8px;color:#8296a6;text-transform:uppercase;}
-    .sc-status{font-family:'Space Mono',monospace;font-size:11px;margin-top:4px;color:#cfdce6;}
-    .sc-box.active .sc-status{color:#ffdfad;}
-
-    .right-display{
-      border-left:1px solid #34414b;background:#152029;padding:10px
-    }
-    .side-title{font-size:8px;color:#8ba1b2;text-transform:uppercase;letter-spacing:.14em;margin-bottom:8px}
-    .selected-box{border:1px solid #354652;background:#101920;padding:9px;margin-bottom:9px}
-    .selected-num{font-family:'Space Mono',monospace;color:#d9f1ff;font-size:27px;letter-spacing:-.08em}
-    .selected-name{font-size:10px;color:#a7b9c8;letter-spacing:.12em;margin-top:2px}
-    .mini-stat{display:grid;grid-template-columns:1fr auto;gap:8px;border-bottom:1px solid #283842;padding:6px 0;font-size:9px}
-    .mini-stat span:first-child{color:#7d93a5;text-transform:uppercase;letter-spacing:.08em}
-    .mini-stat span:last-child{color:#d8e9f8;font-family:'Space Mono',monospace}
-    .tabbar{
-      display:flex;gap:4px;padding:7px 8px;background:#171f25;border-top:1px solid #2d3943
-    }
-    .display-tab{
-      flex:1;height:24px;border:1px solid #34434e;background:linear-gradient(180deg,#2a343d,#1b242b);
-      color:#9dafbf;font-size:8px;text-transform:uppercase;letter-spacing:.08em;border-radius:2px;
-    }
-    .display-tab.active{background:linear-gradient(180deg,#2b6b95,#194664);border-color:#4a96bf;color:#ecf9ff}
-    .display-tab.active-orange{background:linear-gradient(180deg,#b07223,#69400f);border-color:#cc9047;color:#fff2e0}
-    .mixer-scroll{overflow-x:auto}
-    .mixer{display:grid;grid-template-columns:repeat(8,98px) 108px 94px 96px 108px 108px;gap:6px;padding:10px;background:#1a1f25}
-    .channel{
-      min-height:590px;border:1px solid #38424c;border-radius:4px;background:linear-gradient(180deg,#252b32,#1a1f24);
-      box-shadow:inset 0 1px 0 rgba(255,255,255,.04), inset 0 -1px 0 rgba(0,0,0,.65);
-      display:flex;flex-direction:column;padding:6px;position:relative;
-    }
-    .channel.selected{border-color:#427fb2;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 0 0 1px rgba(58,143,214,.18)}
-    .channel.fx-channel{background:linear-gradient(180deg,#272d35,#1b2128);border-color:#4b5d69}
-    .channel.master-channel{background:linear-gradient(180deg,#27303a,#1c2229);border-color:#526575}
-    .ch-header{height:31px;display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1px solid #333d46;padding-bottom:4px;cursor:pointer}
-    .ch-name{font-family:'Space Mono',monospace;font-size:10px;color:#dce7f2}
-    .ch-source{font-size:8px;color:#83909d;line-height:1.2;text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
-    .tiny-status{width:5px;height:5px;background:#587185;border-radius:50%;margin-top:3px}
-    .tiny-status.live{background:#62e68b;box-shadow:0 0 7px rgba(98,230,139,.6)}
-    .tiny-status.multitrack{background:#f3bd53;box-shadow:0 0 7px rgba(243,189,83,.6)}
-    .tiny-status.fx{background:#ffd35f;box-shadow:0 0 7px rgba(255,211,95,.6)}
-    .knob-row{display:grid;grid-template-columns:repeat(2,1fr);gap:4px 3px;padding-top:7px}
-    .knob-wrap{text-align:center}
-    .knob-label{font-size:7px;text-transform:uppercase;letter-spacing:.08em;color:#8895a0;margin-top:2px}
-    .knob{
-      width:25px;height:25px;border-radius:50%;margin:0 auto;position:relative;
-      background:radial-gradient(circle at 34% 28%,#59636e 0 10%,#303840 26%,#171d22 63%,#0f1317 100%);
-      border:1px solid #59636e;box-shadow:inset 0 1px 2px rgba(255,255,255,.18), inset 0 -2px 4px rgba(0,0,0,.75),0 1px 2px rgba(0,0,0,.7);cursor:ns-resize;
-    }
-    .knob::after{content:"";position:absolute;left:50%;top:4px;width:2px;height:8px;border-radius:2px;background:#87cfff;transform:translateX(-50%);box-shadow:0 0 3px rgba(86,180,255,.7)}
-    .fx-send-btn{
-      margin-top:7px;height:20px;border:1px solid #5d5033;border-radius:2px;background:linear-gradient(180deg,#393424,#242015);
-      color:#d7c791;font-size:7px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
-    }
-    .fx-send-btn.active{background:linear-gradient(180deg,#9d7326,#644714);border-color:#d3a84a;color:#fff8dc;box-shadow:0 0 8px rgba(243,189,83,.18)}
-    
-    .media-deck{
-      margin-top:6px;border:1px solid #2f363d;background:#13181d;padding:4px;border-radius:3px;
-    }
-    .load-btn{
-      width:100%;height:18px;background:linear-gradient(180deg,#2d3945,#1e262e);border:1px solid #414f5d;
-      color:#b9c7d4;font-size:7px;font-weight:700;border-radius:2px;text-transform:uppercase;display:block;text-align:center;line-height:16px;cursor:pointer;
-    }
-    .deck-controls{
-      display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin-top:3px;
-    }
-    .deck-btn{
-      height:17px;border:1px solid #36424d;background:#1c232a;color:#a0b0be;font-size:7px;display:flex;align-items:center;justify-content:center;border-radius:2px;
-    }
-    .deck-btn:hover{background:#26303a;color:#fff}
-    .deck-btn.active{background:#1b5d84;border-color:#327fa8;color:#fff}
-    .yt-input-box{
-      width:100%;height:18px;background:#0d1115;border:1px solid #333d47;color:#fff;font-family:'Space Mono',monospace;font-size:7px;padding:0 3px;border-radius:2px;
-    }
-
-    .button-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;margin-top:6px}
-    .mini-btn{
-      height:17px;border-radius:2px;border:1px solid #44505b;background:linear-gradient(180deg,#2d353e,#1c2228);
-      color:#aeb9c4;font-size:7px;font-weight:700;box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 1px 1px rgba(0,0,0,.45);
-    }
-    .mini-btn.active.mute{background:linear-gradient(180deg,#9b3640,#62222a);border-color:#c15a63;color:#fff}
-    .mini-btn.active.solo{background:linear-gradient(180deg,#b79b37,#68561f);border-color:#d1b85c;color:#fff}
-    .mini-btn.active.phase{background:linear-gradient(180deg,#356c9b,#214766);border-color:#5a9ed0;color:#fff}
-    .meter-fader-area{display:grid;grid-template-columns:18px 1fr;gap:5px;flex:1;padding-top:8px}
-    .level-meter{border:1px solid #2f3942;background:#12171c;padding:3px 2px;display:flex;flex-direction:column-reverse;gap:2px}
-    .led{height:5px;background:#283039;border-radius:1px}
-    .led.on.green{background:#58df83;box-shadow:0 0 5px rgba(88,223,131,.45)}
-    .led.on.yellow{background:#f7d35e;box-shadow:0 0 5px rgba(247,211,94,.45)}
-    .led.on.red{background:#f4636c;box-shadow:0 0 5px rgba(244,99,108,.45)}
-    .fader-lane{position:relative;background:#161b20;border:1px solid #2e3740;box-shadow:inset 0 1px 3px rgba(0,0,0,.8);margin:0 7px}
-    .fader-lane::before{content:"";position:absolute;top:7px;bottom:7px;left:50%;width:2px;transform:translateX(-50%);background:linear-gradient(180deg,#56616d,#313940)}
-    .scale-lines{position:absolute;inset:7px -7px;background:repeating-linear-gradient(to bottom,transparent 0,transparent 20px,rgba(143,156,167,.3) 21px,transparent 22px);pointer-events:none}
-    .fader-cap{
-      position:absolute;left:50%;bottom:42%;transform:translateX(-50%);width:26px;height:42px;border-radius:3px;cursor:ns-resize;
-      background:linear-gradient(90deg,#7b858e 0 12%,#bcc5cc 12% 25%,#69737c 25% 48%,#ccd4db 48% 60%,#7b858e 60% 100%);
-      border:1px solid #a7b0b8;box-shadow:0 2px 5px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.6),inset 0 -1px 0 rgba(0,0,0,.35);
-    }
-    .fader-cap::after{content:"";position:absolute;left:3px;right:3px;top:19px;height:2px;background:#34404b}
-    .fader-readout{height:18px;margin-top:5px;text-align:center;font-family:'Space Mono',monospace;font-size:8px;color:#9db0c1}
-    .channel-footer{height:22px;margin-top:4px;border-top:1px solid #343e46;padding-top:5px;text-align:center;font-family:'Space Mono',monospace;font-size:9px;color:#d7e5f3}
-    .footer{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-top:1px solid #313941;background:#171c21;color:#7f8c98;font-size:9px;letter-spacing:.06em;text-transform:uppercase}
-    .footer-left{display:flex;gap:14px}
-    .footer-pill{display:flex;align-items:center;gap:5px}
-    .modal-backdrop{position:fixed;inset:0;background:rgba(4,7,10,.72);display:none;align-items:center;justify-content:center;z-index:50}
-    .modal-backdrop.open{display:flex}
-    .modal-panel{width:640px;border:1px solid #46515b;background:linear-gradient(180deg,#252c34,#1a2026);box-shadow:0 20px 60px rgba(0,0,0,.65);border-radius:6px;padding:14px}
-    .modal-head{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #36414b;padding-bottom:9px;margin-bottom:12px}
-    .modal-title{font-family:'Space Mono',monospace;font-size:12px;letter-spacing:.08em;color:#dfeeff}
-    .modal-close{background:none;border:0;color:#aebcca}
-    .preset-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
-    .preset-option{
-      border:1px solid #34434e;background:#17222a;padding:8px;color:#a9bbca;font-size:9px;text-align:left;border-radius:2px;
-    }
-    .preset-option.active{background:linear-gradient(180deg,#2a6892,#18445f);border-color:#5ca4cf;color:#fff}
-    .preset-option small{display:block;font-size:7px;color:#7e94a6;margin-top:3px;text-transform:uppercase}
-    .assign-row{display:flex;gap:5px;flex-wrap:wrap;margin-top:12px}
-    .assign-chip{
-      border:1px solid #3b4b56;background:#18232b;color:#9dafbe;padding:6px 8px;border-radius:2px;font-size:8px;
-      font-family:'Space Mono',monospace;
-    }
-    .assign-chip.active{background:#6c4e14;border-color:#d1a347;color:#fff0c7}
-    .modal-note{font-size:9px;color:#8396a6;line-height:1.5;margin-top:10px}
-    .modal-actions{display:flex;justify-content:flex-end;gap:7px;margin-top:12px}
-    .action-btn{height:30px;border-radius:3px;border:1px solid #49606f;background:linear-gradient(180deg,#324250,#1e2a33);color:#d7e9f6;font-size:10px;font-weight:700;padding:0 11px}
-    .action-btn.primary{background:linear-gradient(180deg,#2c78ad,#1c527c);border-color:#4f98c8}
-  </style>
-  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
-  <script src="/_sdk/resizing_sdk.js" type="text/javascript"></script>
- </head>
- <body data-template-id="__page-root">
-  <div class="app-shell">
-   <main class="console">
-    <header class="topbar">
-     <div class="brand-wrap">
-      <div class="brand-mark">
-       <i data-lucide="audio-lines"></i>
-      </div>
-      <div>
-       <h1 data-template-id="header-title" class="canva-text brand-title">FR AUDIO X78 SERIES</h1>
-       <p data-template-id="header-subtitle" class="canva-text brand-sub">10-Channel Digital DSP Mixing Engine</p>
-      </div>
-     </div>
-     <div class="top-actions">
-      <div data-template-id="session-badge" class="canva-tag session-badge">
-       <span class="tiny-led"></span><span>LIVE ENGINE</span>
-      </div><button id="powerBtn" class="icon-btn" aria-label="Power mixer"><i data-lucide="power"></i></button> <button id="playBtn" class="icon-btn" aria-label="Start playback"><i data-lucide="play"></i></button> <button id="stopBtn" class="icon-btn" aria-label="Stop playback"><i data-lucide="square"></i></button> <button id="settingsBtn" class="icon-btn" aria-label="Open FX preset settings"><i data-lucide="sliders-horizontal"></i></button>
-     </div>
-    </header>
-    <section class="main-display-wrap">
-     <div class="display-frame">
-      <div class="display-top">
-       <div class="display-title">
-        X78 DIGITAL CONTROL SURFACE
-       </div>
-       <div class="display-meta"><span>SCENE 004</span> <span>48 kHz</span> <span>LAT 1.3 ms</span>
-       </div>
-      </div>
-      <div class="display-body">
-       <div class="screen-area">
-        <div id="overviewMode" class="screen-mode active">
-         <div class="screen-header">
-          <div>
-           <div class="screen-kicker">
-            Channel Overview
-           </div>
-           <div id="overviewChannelName" class="screen-channel">
-            CH 01 · KICK
-           </div>
-          </div>
-          <div class="screen-kicker">
-           INPUT / MONO
-          </div>
-         </div>
-         <div class="overview-grid">
-          <div class="screen-card">
-           <div class="screen-card-title">
-            Input Activity
-           </div>
-           <div id="overviewLgMeter" class="large-meter">
-            <div class="bar" style="height:10%"></div>
-            <div class="bar" style="height:10%"></div>
-            <div class="bar" style="height:10%"></div>
-            <div class="bar" style="height:10%"></div>
-            <div class="bar" style="height:10%"></div>
-            <div class="bar" style="height:10%"></div>
-            <div class="bar" style="height:10%"></div>
-            <div class="bar" style="height:10%"></div>
-            <div class="bar" style="height:10%"></div>
-            <div class="bar" style="height:10%"></div>
-            <div class="bar" style="height:10%"></div>
-            <div class="bar" style="height:10%"></div>
-           </div>
-          </div>
-          <div class="screen-card">
-           <div class="screen-card-title">
-            Signal Path
-           </div>
-           <div class="routing-mini">
-            <div class="route-chip">
-             <span class="a">Preamp</span><span id="screenPreampVal" class="b">+14 dB</span>
-            </div>
-            <div class="route-chip">
-             <span class="a">Gate</span><span class="b">ON</span>
-            </div>
-            <div class="route-chip">
-             <span class="a">Comp</span><span class="b">3.2:1</span>
-            </div>
-            <div class="route-chip">
-             <span class="a">Bus</span><span class="b">L/R</span>
-            </div>
-           </div>
-          </div>
-          <div class="screen-card">
-           <div class="screen-card-title">
-            Current FX
-           </div>
-           <div style="font-family:'Space Mono',monospace;font-size:16px;color:#dceeff;margin-top:14px" id="screenFxName">
-            Vocal Plate
-           </div>
-           <div style="font-size:8px;color:#7b91a4;margin-top:8px;text-transform:uppercase;letter-spacing:.1em">
-            FX Send
-           </div>
-           <div style="font-family:'Space Mono',monospace;font-size:20px;color:#ffd35f;margin-top:5px" id="screenFxSend">
-            -12 dB
-           </div>
-          </div>
-         </div>
-        </div>
-        <div id="eqMode" class="screen-mode">
-         <div class="screen-header">
-          <div>
-           <div class="screen-kicker">
-            Parametric Equalizer
-           </div>
-           <div id="eqChannelName" class="screen-channel">
-            CH 01 · KICK
-           </div>
-          </div>
-          <div class="screen-kicker">
-           4-BAND EQ
-          </div>
-         </div>
-         <svg class="eq-svg" viewbox="0 0 800 160" preserveaspectratio="none"><defs>
-           <lineargradient id="eqGlow" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stop-color="#6ecaff" stop-opacity=".34" />
-            <stop offset="100%" stop-color="#6ecaff" stop-opacity=".02" />
-           </lineargradient>
-          </defs> <line x1="0" y1="80" x2="800" y2="80" stroke="#35505f" stroke-width="1" /> <path id="eqFillPath" d="M0,80 C120,80 140,80 220,80 C330,80 360,80 450,80 C560,80 630,80 800,80 L800,160 L0,160 Z" fill="url(#eqGlow)" /> <path id="eqLinePath" d="M0,80 C120,80 140,80 220,80 C330,80 360,80 450,80 C560,80 630,80 800,80" fill="none" stroke="#68c7ff" stroke-width="3" /> <circle id="eqNodeLow" cx="120" cy="80" r="5" fill="#9edcff" class="cursor-ns-resize" /> <circle id="eqNodeMid" cx="350" cy="80" r="5" fill="#9edcff" class="cursor-ns-resize" /> <circle id="eqNodeHigh" cx="680" cy="80" r="5" fill="#9edcff" class="cursor-ns-resize" />
-         </svg>
-        </div>
-        <div id="dynMode" class="screen-mode">
-         <div class="screen-header">
-          <div>
-           <div class="screen-kicker">
-            Dynamics Processor
-           </div>
-           <div id="dynChannelName" class="screen-channel">
-            CH 01 · KICK
-           </div>
-          </div>
-          <div class="screen-kicker">
-           GATE / COMPRESSOR
-          </div>
-         </div>
-         <div class="dyn-grid">
-          <div class="dyn-module">
-           <div class="dyn-title">
-            Threshold
-           </div>
-           <div class="dyn-value" id="dynThreshVal">
-            -18.5
-           </div>
-           <div class="dyn-scale">
-            <div id="dynThreshBar" class="dyn-fill" style="height:58%"></div>
-           </div>
-          </div>
-          <div class="dyn-module">
-           <div class="dyn-title">
-            Ratio
-           </div>
-           <div class="dyn-value">
-            3.2:1
-           </div>
-           <div class="dyn-scale">
-            <div class="dyn-fill" style="height:48%"></div>
-           </div>
-          </div>
-          <div class="dyn-module">
-           <div class="dyn-title">
-            Attack
-           </div>
-           <div class="dyn-value">
-            12 ms
-           </div>
-           <div class="dyn-scale">
-            <div class="dyn-fill" style="height:34%"></div>
-           </div>
-          </div>
-          <div class="dyn-module">
-           <div class="dyn-title">
-            Release
-           </div>
-           <div class="dyn-value">
-            180 ms
-           </div>
-           <div class="dyn-scale">
-            <div class="dyn-fill" style="height:64%"></div>
-           </div>
-          </div>
-         </div>
-        </div>
-        <div id="routingMode" class="screen-mode">
-         <div class="screen-header">
-          <div>
-           <div class="screen-kicker">
-            Routing Matrix
-           </div>
-           <div class="screen-channel">
-            INPUT ASSIGN / BUS MATRIX
-           </div>
-          </div>
-          <div class="screen-kicker">
-           L/R · AUX 1 · AUX 2 · FX
-          </div>
-         </div>
-         <div class="routing-matrix" id="routingMatrix"></div>
-        </div>
-        <div id="fxMode" class="screen-mode">
-         <div class="screen-header">
-          <div>
-           <div class="screen-kicker">
-            FX Rack 01
-           </div>
-           <div id="fxScreenTitle" class="screen-channel">
-            Vocal Plate
-           </div>
-          </div>
-          <div class="screen-kicker">
-           25 VOCAL PRESETS
-          </div>
-         </div>
-         <div class="fx-list" id="fxList"></div>
-        </div>
-        <div id="multitrackMode" class="screen-mode">
-         <div class="screen-header">
-          <div>
-           <div class="screen-kicker">
-            USB Live Soundcard Controller
-           </div>
-           <div class="screen-channel">
-            MULTITRACK ROUTING PATCH
-           </div>
-          </div>
-          <div class="screen-kicker" style="color:var(--amber)">
-           24-BIT / 48KHZ STREAM
-          </div>
-         </div>
-         <p style="font-size:9px;color:#89939f;margin-bottom:8px;">Pilih channel input (CH 01 - CH 08) di bawah untuk dikirim secara independen ke Live Soundcard Multitrack Bus Anda:</p>
-         <div class="sc-grid" id="soundcardGrid"></div>
-        </div>
-        <div id="setupMode" class="screen-mode">
-         <div class="screen-header">
-          <div>
-           <div class="screen-kicker">
-            System Setup
-           </div>
-           <div class="screen-channel">
-            DIGITAL CONSOLE CONFIG
-           </div>
-          </div>
-          <div class="screen-kicker">
-           ONLINE
-          </div>
-         </div>
-         <div class="setup-grid">
-          <div class="setup-card">
-           <div class="setup-label">
-            Clock Source
-           </div>
-           <div class="setup-value">
-            INT
-           </div>
-           <div class="setup-sub">
-            Stable internal master clock<br>
-            Jitter correction active
-           </div>
-          </div>
-          <div class="setup-card">
-           <div class="setup-label">
-            Sample Rate
-           </div>
-           <div class="setup-value">
-            48.0
-           </div>
-           <div class="setup-sub">
-            kHz processing engine<br>
-            24-bit summing bus
-           </div>
-          </div>
-          <div class="setup-card">
-           <div class="setup-label">
-            Scene Memory
-           </div>
-           <div class="setup-value">
-            004
-           </div>
-           <div class="setup-sub">
-            Live Vocal Set<br>
-            Autosafe armed
-           </div>
-          </div>
-         </div>
-        </div>
-       </div>
-       <aside class="right-display">
-        <div class="side-title">
-         Selected Channel
-        </div>
-        <div class="selected-box">
-         <div id="sideNumber" class="selected-num">
-          01
-         </div>
-         <div id="sideName" class="selected-name">
-          KICK
-         </div>
-        </div>
-        <div class="mini-stat">
-         <span>Gain</span><span id="sideGain">+14 dB</span>
-        </div>
-        <div class="mini-stat">
-         <span>Pan</span><span id="sidePan">C</span>
-        </div>
-        <div class="mini-stat">
-         <span>EQ</span><span>ON</span>
-        </div>
-        <div class="mini-stat">
-         <span>Comp</span><span>ON</span>
-        </div>
-        <div class="mini-stat">
-         <span>FX Send</span><span id="sideFx">OFF</span>
-        </div>
-        <div class="mini-stat">
-         <span>Soundcard</span><span id="sideSoundcard" style="color:var(--amber)">OFF</span>
-        </div>
-       </aside>
-      </div>
-      <div class="tabbar"><button class="display-tab active" data-mode="overviewMode">Overview</button> <button class="display-tab" data-mode="eqMode">EQ</button> <button class="display-tab" data-mode="dynMode">Dynamics</button> <button class="display-tab" data-mode="routingMode">Routing</button> <button class="display-tab" data-mode="fxMode">FX Rack</button> <button class="display-tab" data-mode="multitrackMode" style="border-color:#cc9047;color:#fcdcb1;">Multitrack</button> <button class="display-tab" data-mode="setupMode">Setup</button>
-      </div>
-     </div>
-    </section>
-    <div class="mixer-scroll">
-     <section id="mixer" class="mixer"></section>
-    </div>
-    <footer class="footer">
-     <div class="footer-left">
-      <div class="footer-pill">
-       <span id="dspLed" class="tiny-led" style="background:#89939f; box-shadow:none;"></span><span id="dspStatusText">DSP INACTIVE (CLICK POWER)</span>
-      </div>
-      <div class="footer-pill">
-       <span>48.0 kHz</span>
-      </div>
-      <div class="footer-pill">
-       <span>TRUE STEREO BUS</span>
-      </div>
-      <div class="footer-pill">
-       <span>FX ENGINE REAL-DSP</span>
-      </div>
-     </div>
-     <p data-template-id="footer-note" class="canva-text">Drag & drop audio files or use the channel load buttons for playback</p>
-    </footer>
-   </main>
-  </div>
-  <div id="fxModal" class="modal-backdrop" aria-hidden="true">
-   <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="fxModalTitle">
-    <div class="modal-head">
-     <div id="fxModalTitle" class="modal-title">
-      FX RACK · VOCAL PRESET ASSIGN
-     </div><button id="closeFxModal" class="modal-close" aria-label="Close FX modal"><i data-lucide="x"></i></button>
-    </div>
-    <div class="preset-grid" id="presetGrid"></div>
-    <div class="modal-note">
-     Pilih satu preset FX utama lalu aktifkan channel mana saja yang ingin dikirim ke FX bus. Satu preset dapat digunakan oleh beberapa channel sekaligus.
-    </div>
-    <div class="assign-row" id="assignRow"></div>
-    <div class="modal-actions"><button id="clearAssignments" class="action-btn">Clear Assign</button> <button id="applyFx" class="action-btn primary">Apply FX Setup</button>
-    </div>
-   </div>
-  </div>
   <script src="/_sdk/editing_sdk.js"></script>
   <script>
     const channelDefs = [
@@ -670,6 +38,10 @@
     let globalFeedbackNode = null;
     let globalFilterNode = null;
     const channelNodes = [];
+    
+    // Stream Mic Hardware Link
+    let micStream = null;
+    let micSourceNode = null;
 
     function initAudioEngine() {
       if (audioCtx) return;
@@ -726,6 +98,10 @@
         const fxSendGain = audioCtx.createGain();
         const analyser = audioCtx.createAnalyser();
 
+        // Node jembatan khusus untuk merouting input Mic Soundcard secara realtime
+        const liveRoutingGain = audioCtx.createGain();
+        liveRoutingGain.gain.setValueAtTime(soundcardAssigned.has(idx) ? 1.0 : 0.0, audioCtx.currentTime);
+
         inputGain.gain.setValueAtTime(1.0, audioCtx.currentTime);
         panner.pan.setValueAtTime(0, audioCtx.currentTime);
         
@@ -741,6 +117,7 @@
         analyser.fftSize = 32;
 
         // Chain routing diagram
+        liveRoutingGain.connect(inputGain);
         inputGain.connect(lowEq);
         lowEq.connect(midEq);
         midEq.connect(highEq);
@@ -756,7 +133,7 @@
         fxSendGain.connect(globalDelayNode);
 
         channelNodes[idx] = {
-          input: inputGain, low: lowEq, mid: midEq, high: highEq,
+          input: inputGain, liveRouting: liveRoutingGain, low: lowEq, mid: midEq, high: highEq,
           pan: panner, gain: chGain, fxSend: fxSendGain, analyser: analyser,
           sourceNode: null, fileSource: null, isMuted: false, isSoloed: false, phaseInverted: false,
           gainValue: 0.5, panValue: 0.0, lowVal: 0, midVal: 0, highVal: 0, audioBuffer: null
@@ -769,6 +146,38 @@
 
       // Hubungkan channel 10 Return fader untuk mengontrol sinyal balik FX
       globalFeedbackNode.connect(channelNodes[9].input);
+      
+      // Ambil akses mikrofon/soundcard eksternal fisik perangkat
+      initHardwareMicStream();
+    }
+
+    function initHardwareMicStream() {
+      if (!audioCtx) return;
+      navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } })
+        .then(stream => {
+          micStream = stream;
+          micSourceNode = audioCtx.createMediaStreamSource(stream);
+          
+          // Sambungkan source mic ke gerbang liveRouting masing-masing channel 1-8
+          channelNodes.forEach((node, idx) => {
+            if (idx < 8 && node.liveRouting) {
+              micSourceNode.connect(node.liveRouting);
+            }
+          });
+        })
+        .catch(err => {
+          console.warn("Akses mic ditolak atau tidak tersedia hardware input:", err);
+        });
+    }
+
+    function updateLiveRoutingStates() {
+      if (!audioCtx) return;
+      channelNodes.forEach((node, idx) => {
+        if (idx < 8 && node.liveRouting) {
+          const isPatched = soundcardAssigned.has(idx);
+          node.liveRouting.gain.setValueAtTime(isPatched ? 1.0 : 0.0, audioCtx.currentTime);
+        }
+      });
     }
 
     function setupSyntheticStreamInput(idx) {
@@ -797,6 +206,16 @@
         audioCtx.decodeAudioData(e.target.result).then(buffer => {
           channelNodes[idx].audioBuffer = buffer;
           document.querySelectorAll('.ch-source')[idx].textContent = file.name.substring(0,10).toUpperCase();
+          // Saat file diup/load, otomatis matikan routing mic langsung untuk ch ini agar tidak bertabrakan
+          if(idx < 8) {
+            soundcardAssigned.delete(idx);
+            renderSoundcardGrid();
+            renderRoutingMatrix();
+            updateSidePanel();
+            updateLiveRoutingStates();
+            const chHeaderLed = document.querySelector(`.channel[data-index="${idx}"] .tiny-status`);
+            if (chHeaderLed) chHeaderLed.className = 'tiny-status live';
+          }
           playChannelAudio(idx);
         });
       };
@@ -1275,6 +694,7 @@
           renderSoundcardGrid();
           renderRoutingMatrix();
           updateSidePanel();
+          updateLiveRoutingStates();
           
           // Sinkronisasi status LED indikator di strip channel mixer utama
           const chHeaderLed = document.querySelector(`.channel[data-index="${i}"] .tiny-status`);
@@ -1381,6 +801,10 @@
         led.style.background = '#89939f';
         led.style.boxShadow = 'none';
         txt.textContent = 'DSP INACTIVE';
+        if(micStream) {
+          micStream.getTracks().forEach(track => track.stop());
+          micStream = null;
+        }
       }
     });
 
@@ -1456,5 +880,3 @@
     updateSidePanel();
     lucide.createIcons();
   </script>
- </body>
-</html>
