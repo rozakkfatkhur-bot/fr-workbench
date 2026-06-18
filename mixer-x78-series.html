@@ -248,13 +248,16 @@
     .assign-row{display:flex;gap:5px;flex-wrap:wrap;margin-top:12px}
     .assign-chip{
       border:1px solid #3b4b56;background:#18232b;color:#9dafbe;padding:6px 8px;border-radius:2px;font-size:8px;
-      font-family:'Space Mono',monospace;
+      font-family:'Space Mono',monospace;cursor:pointer;
     }
     .assign-chip.active{background:#6c4e14;border-color:#d1a347;color:#fff0c7}
+    .assign-chip.active.soundcard-chip{background:#1c527c;border-color:#4f98c8;color:#fff}
     .modal-note{font-size:9px;color:#8396a6;line-height:1.5;margin-top:10px}
     .modal-actions{display:flex;justify-content:flex-end;gap:7px;margin-top:12px}
     .action-btn{height:30px;border-radius:3px;border:1px solid #49606f;background:linear-gradient(180deg,#324250,#1e2a33);color:#d7e9f6;font-size:10px;font-weight:700;padding:0 11px}
     .action-btn.primary{background:linear-gradient(180deg,#2c78ad,#1c527c);border-color:#4f98c8}
+    .soundcard-matrix-grid { display:grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px; }
+    .sc-card { border:1px solid #31414d; background:#152029; padding:10px; border-radius:4px; text-align:center;}
   </style>
   <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
   <script src="/_sdk/resizing_sdk.js" type="text/javascript"></script>
@@ -284,7 +287,7 @@
        <div class="display-title">
         X78 DIGITAL CONTROL SURFACE
        </div>
-       <div class="display-meta"><span>SCENE 004</span> <span>48 kHz</span> <span>LAT 1.3 ms</span>
+       <div class="display-meta"><span>SCENE 005</span> <span>48 kHz</span> <span>LAT 1.3 ms</span>
        </div>
       </div>
       <div class="display-body">
@@ -344,13 +347,13 @@
           </div>
           <div class="screen-card">
            <div class="screen-card-title">
-            Current FX
+            Current FX Status
            </div>
            <div style="font-family:'Space Mono',monospace;font-size:16px;color:#dceeff;margin-top:14px" id="screenFxName">
             Vocal Plate
            </div>
            <div style="font-size:8px;color:#7b91a4;margin-top:8px;text-transform:uppercase;letter-spacing:.1em">
-            FX Send
+            FX Return Channel 10
            </div>
            <div style="font-family:'Space Mono',monospace;font-size:20px;color:#ffd35f;margin-top:5px" id="screenFxSend">
             -12 dB
@@ -477,54 +480,18 @@
          <div class="screen-header">
           <div>
            <div class="screen-kicker">
-            System Setup
+            Live Soundcard Multitrack
            </div>
            <div class="screen-channel">
-            DIGITAL CONSOLE CONFIG
+            USB MULTITRACK RECORDING ASSIGN
            </div>
           </div>
           <div class="screen-kicker">
-           ONLINE
+           INTERFACES
           </div>
          </div>
-         <div class="setup-grid">
-          <div class="setup-card">
-           <div class="setup-label">
-            Clock Source
-           </div>
-           <div class="setup-value">
-            INT
-           </div>
-           <div class="setup-sub">
-            Stable internal master clock<br>
-            Jitter correction active
-           </div>
-          </div>
-          <div class="setup-card">
-           <div class="setup-label">
-            Sample Rate
-           </div>
-           <div class="setup-value">
-            48.0
-           </div>
-           <div class="setup-sub">
-            kHz processing engine<br>
-            24-bit summing bus
-           </div>
-          </div>
-          <div class="setup-card">
-           <div class="setup-label">
-            Scene Memory
-           </div>
-           <div class="setup-value">
-            004
-           </div>
-           <div class="setup-sub">
-            Live Vocal Set<br>
-            Autosafe armed
-           </div>
-          </div>
-         </div>
+         <p style="font-size:10px; color:#a3b2c0; margin-bottom:8px;">Pilih channel input (1-8) di bawah ini untuk dikirim secara simultan ke Live Recording Soundcard Bus:</p>
+         <div class="soundcard-matrix-grid" id="soundcardScreenMatrix"></div>
         </div>
        </div>
        <aside class="right-display">
@@ -555,11 +522,11 @@
          <span>FX Send</span><span id="sideFx">OFF</span>
         </div>
         <div class="mini-stat">
-         <span>Bus</span><span>L/R</span>
+         <span>Soundcard</span><span id="sideSoundcard">OFF</span>
         </div>
        </aside>
       </div>
-      <div class="tabbar"><button class="display-tab active" data-mode="overviewMode">Overview</button> <button class="display-tab" data-mode="eqMode">EQ</button> <button class="display-tab" data-mode="dynMode">Dynamics</button> <button class="display-tab" data-mode="routingMode">Routing</button> <button class="display-tab" data-mode="fxMode">FX Rack</button> <button class="display-tab" data-mode="setupMode">Setup</button>
+      <div class="tabbar"><button class="display-tab active" data-mode="overviewMode">Overview</button> <button class="display-tab" data-mode="eqMode">EQ</button> <button class="display-tab" data-mode="dynMode">Dynamics</button> <button class="display-tab" data-mode="routingMode">Routing</button> <button class="display-tab" data-mode="fxMode">FX Rack</button> <button class="display-tab" data-mode="setupMode">Soundcard</button>
       </div>
      </div>
     </section>
@@ -578,7 +545,7 @@
        <span>TRUE STEREO BUS</span>
       </div>
       <div class="footer-pill">
-       <span>FX ENGINE READY</span>
+       <span>FX ENGINE ALIVE</span>
       </div>
      </div>
      <p data-template-id="footer-note" class="canva-text">Drag & drop audio files or use the channel load buttons for playback</p>
@@ -594,7 +561,7 @@
     </div>
     <div class="preset-grid" id="presetGrid"></div>
     <div class="modal-note">
-     Pilih satu preset FX utama lalu aktifkan channel mana saja yang ingin dikirim ke FX bus. Satu preset dapat digunakan oleh beberapa channel sekaligus.
+     Pilih satu preset FX utama lalu aktifkan channel mana saja yang ingin dikirim ke FX bus. Satu preset dapat digunakan oleh beberapa channel sekaligus secara berbarengan.
     </div>
     <div class="assign-row" id="assignRow"></div>
     <div class="modal-actions"><button id="clearAssignments" class="action-btn">Clear Assign</button> <button id="applyFx" class="action-btn primary">Apply FX Setup</button>
@@ -626,7 +593,8 @@
     const mixer = document.getElementById('mixer');
     let selectedIndex = 0;
     let currentPreset = 0;
-    const fxAssigned = new Set([6]);
+    const fxAssigned = new Set([6]); // default CH 7 vox aktif FX
+    const soundcardAssigned = new Set([0, 1, 6]); // default multi-assign soundcard recording
 
     // Audio Context & Nodes Engine
     let audioCtx = null;
@@ -634,8 +602,11 @@
     let masterRightGain = null;
     let masterLeftAnalyser = null;
     let masterRightAnalyser = null;
+    
+    // DSP Effect Engine Nodes
     let globalDelayNode = null;
     let globalFeedbackNode = null;
+    let globalFilterNode = null;
     const channelNodes = [];
 
     function initAudioEngine() {
@@ -654,7 +625,7 @@
       masterLeftAnalyser.fftSize = 64;
       masterRightAnalyser.fftSize = 64;
 
-      // Master Merging to Hardware Destination
+      // Master Merging output
       const merger = audioCtx.createChannelMerger(2);
       masterLeftGain.connect(masterLeftAnalyser);
       masterRightGain.connect(masterRightAnalyser);
@@ -662,20 +633,24 @@
       masterRightGain.connect(merger, 0, 1);
       merger.connect(audioCtx.destination);
 
-      // Global Real FX Bus Engine (Ch 10 destination path)
-      globalDelayNode = audioCtx.createDelay(1.0);
+      // GLOBAL REVERB/ECHO CORE PROCESSING ENGINE 
+      globalDelayNode = audioCtx.createDelay(2.0);
       globalFeedbackNode = audioCtx.createGain();
+      globalFilterNode = audioCtx.createBiquadFilter();
       
+      globalFilterNode.type = 'peaking';
+      globalFilterNode.frequency.setValueAtTime(2500, audioCtx.currentTime);
+      globalFilterNode.Q.setValueAtTime(1.0, audioCtx.currentTime);
+      globalFilterNode.gain.setValueAtTime(4, audioCtx.currentTime);
+
       const p = presets[currentPreset];
       globalDelayNode.delayTime.setValueAtTime(p[2], audioCtx.currentTime);
-      globalFeedbackNode.gain.setValueAtTime(p[3] * 0.7, audioCtx.currentTime);
+      globalFeedbackNode.gain.setValueAtTime(Math.min(p[3] * 0.45, 0.8), audioCtx.currentTime);
 
-      globalDelayNode.connect(globalFeedbackNode);
-      globalFeedbackNode.connect(globalDelayNode); // Loop back for feedback echo
-
-      // Connect global FX return directly to master bus
-      globalDelayNode.connect(masterLeftGain);
-      globalDelayNode.connect(masterRightGain);
+      // FX Loop routing architecture
+      globalDelayNode.connect(globalFilterNode);
+      globalFilterNode.connect(globalFeedbackNode);
+      globalFeedbackNode.connect(globalDelayNode); // feedback loop
 
       // Build Audio Graph structure for each channel definition
       channelDefs.forEach((ch, idx) => {
@@ -695,11 +670,11 @@
         midEq.type = 'peaking'; midEq.Q.setValueAtTime(1.0, audioCtx.currentTime); midEq.frequency.setValueAtTime(2500, audioCtx.currentTime);
         highEq.type = 'highshelf'; highEq.frequency.setValueAtTime(8000, audioCtx.currentTime);
 
-        chGain.gain.setValueAtTime(idx === 9 ? 0.31 : 0.5, audioCtx.currentTime); // match defaults
-        fxSendGain.gain.setValueAtTime(fxAssigned.has(idx) ? 0.25 : 0.0, audioCtx.currentTime);
+        chGain.gain.setValueAtTime(idx === 9 ? 0.7 : 0.5, audioCtx.currentTime); 
+        fxSendGain.gain.setValueAtTime(fxAssigned.has(idx) ? 0.6 : 0.0, audioCtx.currentTime);
         analyser.fftSize = 32;
 
-        // Chain Routing topology
+        // Chain Topology
         inputGain.connect(lowEq);
         lowEq.connect(midEq);
         midEq.connect(highEq);
@@ -707,10 +682,14 @@
         panner.connect(chGain);
         
         chGain.connect(analyser);
-        chGain.connect(masterLeftGain);
-        chGain.connect(masterRightGain);
-        chGain.connect(fxSendGain);
-        fxSendGain.connect(globalDelayNode);
+
+        // Jika bukan channel FX Return, sambungkan jalur FX Send ke modul efek utama
+        if (idx < 9) {
+          chGain.connect(masterLeftGain);
+          chGain.connect(masterRightGain);
+          chGain.connect(fxSendGain);
+          fxSendGain.connect(globalDelayNode); // Sambungan langsung ke FX processor
+        }
 
         channelNodes[idx] = {
           input: inputGain, low: lowEq, mid: midEq, high: highEq,
@@ -719,18 +698,15 @@
           gainValue: 1.0, panValue: 0.0, lowVal: 0, midVal: 0, highVal: 0, auxVal: 0, audioBuffer: null
         };
 
-        // Channel Specific Input Hooks
         if (ch.type === 'youtube') {
           setupSyntheticStreamInput(idx);
         }
       });
 
-      // Special link channel 10 return element directly to manipulate feedback loop parameters
-      channelNodes[9].gain.disconnect(masterLeftGain);
-      channelNodes[9].gain.disconnect(masterRightGain);
-      globalDelayNode.disconnect(masterLeftGain);
-      globalDelayNode.disconnect(masterRightGain);
+      // CHANNEL 10 (EFX RTN) bertindak sebagai penerima sinyal basah / wet FX output
       globalDelayNode.connect(channelNodes[9].input);
+      channelNodes[9].gain.connect(masterLeftGain);
+      channelNodes[9].gain.connect(masterRightGain);
     }
 
     function setupSyntheticStreamInput(idx) {
@@ -749,7 +725,7 @@
       
       osc1.start();
       osc2.start();
-      channelNodes[idx].sourceNode = oscGain; // Keep reference
+      channelNodes[idx].sourceNode = oscGain;
     }
 
     function injectDroppedFileAudio(idx, file) {
@@ -759,7 +735,6 @@
         audioCtx.decodeAudioData(e.target.result).then(buffer => {
           channelNodes[idx].audioBuffer = buffer;
           document.querySelectorAll('.ch-source')[idx].textContent = file.name.substring(0,10).toUpperCase();
-          // Auto play upon loading
           playChannelAudio(idx);
         });
       };
@@ -801,10 +776,10 @@
     }
 
     function updateDspEffectsParams() {
-      if (!audioCtx) return;
+      if (!audioCtx || !globalDelayNode) return;
       const p = presets[currentPreset];
-      globalDelayNode.delayTime.setTargetAtTime(p[2], audioCtx.currentTime, 0.1);
-      globalFeedbackNode.gain.setTargetAtTime(p[3] * 0.7, audioCtx.currentTime, 0.1);
+      globalDelayNode.delayTime.setTargetAtTime(p[2], audioCtx.currentTime, 0.05);
+      globalFeedbackNode.gain.setTargetAtTime(Math.min(p[3] * 0.45, 0.85), audioCtx.currentTime, 0.05);
     }
 
     function makeSegments(container,count=18){
@@ -856,7 +831,6 @@
       makeSegments(el.querySelector('.level-meter'));
       bindChannel(el,index);
 
-      // Media Deck Bindings
       const fileIn = el.querySelector('.file-loader');
       fileIn.addEventListener('change', e => {
         if (e.target.files.length > 0) injectDroppedFileAudio(index, e.target.files[0]);
@@ -865,17 +839,13 @@
       el.querySelector('.deck-btn[data-action="play"]').addEventListener('click', () => playChannelAudio(index));
       el.querySelector('.deck-btn[data-action="stop"]').addEventListener('click', () => stopChannelAudio(index));
       el.querySelector('.deck-btn[data-action="pause"]').addEventListener('click', () => {
-        if (audioCtx) {
-          if (audioCtx.state === 'running') updateDeckVisuals(index, 'pause');
-        }
+        if (audioCtx && audioCtx.state === 'running') updateDeckVisuals(index, 'pause');
       });
 
       el.addEventListener('dragover', e => e.preventDefault());
       el.addEventListener('drop', e => {
         e.preventDefault();
-        if (e.dataTransfer.files.length > 0) {
-          injectDroppedFileAudio(index, e.dataTransfer.files[0]);
-        }
+        if (e.dataTransfer.files.length > 0) injectDroppedFileAudio(index, e.dataTransfer.files[0]);
       });
     }
 
@@ -918,7 +888,6 @@
       makeSegments(el.querySelector('.level-meter'));
       bindChannel(el, index);
 
-      // YT UI Control behaviors
       const linkInput = el.querySelector('.yt-input-box');
       el.querySelector('.deck-btn[data-action="play"]').addEventListener('click', () => {
         if(!audioCtx) initAudioEngine();
@@ -953,7 +922,7 @@
           <div class="level-meter"></div>
           <div class="fader-lane"><div class="scale-lines"></div><div class="fader-cap" tabindex="0"></div></div>
         </div>
-        <div class="fader-readout">-10.0 dB</div>
+        <div class="fader-readout">-2.5 dB</div>
         <div class="channel-footer">FX</div>
       `;
       mixer.appendChild(el);
@@ -992,7 +961,7 @@
       bindUtilityChannel(el, label.toLowerCase());
     }
 
-    // Generate Layout mapping
+    // Generator Layout
     channelDefs.forEach((ch, idx) => {
       if (idx < 8) createInputChannel(ch, idx);
       else if (idx === 8) createYoutubeChannel(ch, idx);
@@ -1023,7 +992,7 @@
         if(fxAssigned.has(index)) fxAssigned.delete(index); else fxAssigned.add(index);
         el.querySelector('.fx-send-btn').classList.toggle('active',fxAssigned.has(index));
         if (audioCtx && channelNodes[index]) {
-          channelNodes[index].fxSend.gain.setValueAtTime(fxAssigned.has(index) ? 0.35 : 0.0, audioCtx.currentTime);
+          channelNodes[index].fxSend.gain.setValueAtTime(fxAssigned.has(index) ? 0.6 : 0.0, audioCtx.currentTime);
         }
         updateSidePanel();
         renderRoutingMatrix();
@@ -1033,7 +1002,7 @@
     }
 
     function bindUtilityChannel(el, type){
-      el.querySelectorAll('.mini-btn').forEach(btn=>btn.addEventListener('click',()=>btn.classList.toggle('active')));
+      el.querySelectorAll('.mini-btn').forEach(btn=>btn.classList.toggle('active'));
       bindKnobs(el, -1);
       
       const cap=el.querySelector('.fader-cap');
@@ -1152,8 +1121,9 @@
 
     function updateSidePanel(){
       document.getElementById('sideFx').textContent=fxAssigned.has(selectedIndex)?'ON':'OFF';
+      document.getElementById('sideSoundcard').textContent=soundcardAssigned.has(selectedIndex)?'RECORDING':'OFF';
       document.getElementById('screenFxName').textContent=presets[currentPreset][0];
-      document.getElementById('screenFxSend').textContent=fxAssigned.has(selectedIndex)?'-12 dB':'OFF';
+      document.getElementById('screenFxSend').textContent=fxAssigned.has(selectedIndex)?'SENDING':'OFF';
     }
 
     function redrawEqDisplay() {
@@ -1183,6 +1153,7 @@
         document.querySelectorAll('.screen-mode').forEach(m=>m.classList.remove('active'));
         document.getElementById(tab.dataset.mode).classList.add('active');
         if (tab.dataset.mode === 'eqMode') redrawEqDisplay();
+        if (tab.dataset.mode === 'setupMode') renderSoundcardScreenMatrix();
       });
     });
 
@@ -1211,6 +1182,31 @@
       });
     }
     renderFxList();
+
+    // LIVE SOUNDCARD MULTITRACK MATRIX SYSTEM
+    function renderSoundcardScreenMatrix() {
+      const container = document.getElementById('soundcardScreenMatrix');
+      container.innerHTML = '';
+      channelDefs.slice(0, 8).forEach((ch, i) => {
+        const isActive = soundcardAssigned.has(i);
+        const card = document.createElement('div');
+        card.className = `sc-card cursor-pointer transition ${isActive ? 'bg-sky-950 border-sky-500 text-white' : 'bg-slate-900 border-slate-700 text-slate-400'}`;
+        card.innerHTML = `
+          <div style="font-size:7px; color:#7d95a6;">USB CH 0${i+1}</div>
+          <div style="font-family:'Space Mono',monospace; font-size:11px; font-weight:bold; margin-top:2px;">${ch.name}</div>
+          <div style="font-size:8px; margin-top:6px;" class="${isActive ? 'text-emerald-400' : 'text-slate-500'}">
+            ${isActive ? '● MULTI LIVE' : '○ BYPASS'}
+          </div>
+        `;
+        card.addEventListener('click', () => {
+          if (soundcardAssigned.has(i)) soundcardAssigned.delete(i);
+          else soundcardAssigned.add(i);
+          renderSoundcardScreenMatrix();
+          updateSidePanel();
+        });
+        container.appendChild(card);
+      });
+    }
 
     function openFxModal(){
       document.getElementById('fxModal').classList.add('open');
@@ -1266,7 +1262,7 @@
         const sendBtn = el.querySelector('.fx-send-btn');
         if (sendBtn) sendBtn.classList.toggle('active',fxAssigned.has(idx));
         if (audioCtx && channelNodes[idx]) {
-          channelNodes[idx].fxSend.gain.setValueAtTime(fxAssigned.has(idx) ? 0.35 : 0.0, audioCtx.currentTime);
+          channelNodes[idx].fxSend.gain.setValueAtTime(fxAssigned.has(idx) ? 0.6 : 0.0, audioCtx.currentTime);
         }
       });
       updateSidePanel();
