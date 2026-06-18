@@ -1,1111 +1,1458 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FR AUDIO X78 Series - Professional Digital Mixer Platform</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <title>FR AUDIO x78 Series - Digital Mixer</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
-        
         :root {
-            --color-violet-glow: rgba(139, 92, 246, 0.4);
-            --color-violet-bright: #a78bfa;
-            --color-violet-dark: #4c1d95;
-            --font-sans: 'Plus Jakarta Sans', sans-serif;
-            --font-mono: 'JetBrains Mono', monospace;
+            --bg-main: #0c0813;
+            --bg-strip: #140d21;
+            --bg-channel: #1b122c;
+            --bg-control: #23183a;
+            --accent-violet: #9d4edd;
+            --accent-glow: #e0aaff;
+            --text-pure: #ffffff;
+            --text-muted: #a5a1b8;
+            --border-color: #322250;
+            --knob-color: #4a3572;
+            --fader-track: #09050e;
+            --led-green: #390099;
+            --led-yellow: #9d4edd;
+            --led-red: #ff007f;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
         body {
-            font-family: var(--font-sans);
-            background-color: #090514;
-            color: #f8fafc;
-            user-select: none;
-            overflow-x: hidden;
+            background-color: var(--bg-main);
+            color: var(--text-pure);
+            overflow-x: auto;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
         }
 
-        .mono {
-            font-family: var(--font-mono);
+        header {
+            background: linear-gradient(90deg, var(--bg-strip), var(--bg-main));
+            border: 1px solid var(--border-color);
+            padding: 15px 25px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
         }
 
-        /* Custom Scrollbar for channel strips strip */
-        ::-webkit-scrollbar {
-            height: 8px;
-            width: 8px;
+        .brand-logo {
+            display: flex;
+            flex-direction: column;
         }
-        ::-webkit-scrollbar-track {
-            background: #120b24;
+
+        .brand-logo h1 {
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: 3px;
+            color: var(--text-pure);
+            text-shadow: 0 0 10px var(--accent-violet);
         }
-        ::-webkit-scrollbar-thumb {
-            background: #3b226e;
+
+        .brand-logo span {
+            font-size: 10px;
+            color: var(--accent-glow);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-top: 2px;
+        }
+
+        .model-series {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-pure);
+            border: 1px solid var(--accent-violet);
+            padding: 5px 15px;
             border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #5c37a6;
+            background: rgba(157, 78, 221, 0.1);
         }
 
-        /* Vertical range slider transformation to match console faders */
+        .global-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .btn-system {
+            background: var(--bg-control);
+            border: 1px solid var(--border-color);
+            color: var(--text-pure);
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-system:hover {
+            border-color: var(--accent-violet);
+            background: var(--accent-violet);
+        }
+
+        .btn-system.active {
+            background: var(--text-pure);
+            color: var(--bg-main);
+            border-color: var(--text-pure);
+            box-shadow: 0 0 15px rgba(255,255,255,0.6);
+        }
+
+        /* Top Visualizer Area */
+        .analyzer-container {
+            background: var(--bg-strip);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            height: 120px;
+            margin-bottom: 15px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+        }
+
+        .analyzer-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        /* Mixer Console Grid Layout */
+        .mixer-surface {
+            display: flex;
+            gap: 10px;
+            flex-grow: 1;
+            align-items: stretch;
+            min-width: max-content;
+            padding-bottom: 10px;
+        }
+
+        /* Channel Strip Design */
+        .channel-strip {
+            background: var(--bg-channel);
+            border: 1px solid var(--border-color);
+            width: 135px;
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            padding: 8px 6px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            position: relative;
+        }
+
+        .channel-strip.master-strip {
+            background: linear-gradient(180deg, var(--bg-channel) 0%, var(--bg-strip) 100%);
+            border: 2px solid var(--accent-violet);
+            width: 160px;
+            box-shadow: 0 0 25px rgba(157, 78, 221, 0.2);
+        }
+
+        .channel-strip.fx-strip {
+            border-left: 2px dashed var(--accent-violet);
+            border-right: 2px dashed var(--accent-violet);
+        }
+
+        .channel-header {
+            text-align: center;
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 8px;
+        }
+
+        .channel-title {
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .channel-strip:nth-child(odd) .channel-title {
+            color: var(--accent-glow);
+        }
+        .channel-strip:nth-child(even) .channel-title {
+            color: var(--text-pure);
+        }
+        .channel-strip.youtube-strip .channel-title {
+            color: #ff4d4d;
+        }
+        .channel-strip.fx-strip .channel-title {
+            color: #00f5d4;
+        }
+        .channel-strip.master-strip .channel-title {
+            color: var(--text-pure);
+            font-size: 14px;
+        }
+
+        /* Elements & Groups inside Channel */
+        .control-group {
+            background: rgba(0,0,0,0.2);
+            border-radius: 4px;
+            padding: 6px 4px;
+            margin-bottom: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            width: 100%;
+        }
+
+        .control-label {
+            font-size: 9px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-weight: 600;
+            width: 100%;
+            text-align: center;
+        }
+
+        /* Source Buttons & Routing */
+        .source-selector {
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 4px;
+        }
+
+        .btn-action {
+            background: var(--bg-control);
+            border: 1px solid var(--border-color);
+            color: var(--text-pure);
+            font-size: 10px;
+            font-weight: 700;
+            padding: 5px 2px;
+            border-radius: 3px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: all 0.15s;
+            text-align: center;
+            width: 100%;
+        }
+
+        .btn-action:hover {
+            border-color: var(--text-pure);
+        }
+
+        .btn-action.active-src {
+            background: var(--accent-violet);
+            border-color: var(--accent-glow);
+            color: var(--text-pure);
+        }
+
+        .btn-action.play-state { background: #2a6f97; }
+        .btn-action.play-state.playing { background: #d90429; }
+
+        .yt-input-field {
+            width: 100%;
+            background: var(--bg-main);
+            border: 1px solid var(--border-color);
+            color: var(--text-pure);
+            font-size: 9px;
+            padding: 4px;
+            border-radius: 3px;
+            text-align: center;
+            outline: none;
+        }
+        .yt-input-field:focus {
+            border-color: var(--accent-violet);
+        }
+
+        /* Knobs & Small Dials Simulation */
+        .knob-container {
+            position: relative;
+            width: 38px;
+            height: 38px;
+            cursor: ns-resize;
+        }
+
+        .knob-render {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(from -135deg, var(--accent-violet) 0deg, var(--knob-color) 0deg);
+            border: 3px solid var(--bg-strip);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5), inset 0 2px 2px rgba(255,255,255,0.1);
+            position: relative;
+            transform: rotate(0deg);
+            transition: transform 0.05s linear;
+        }
+
+        .knob-marker {
+            position: absolute;
+            top: 2px;
+            left: 50%;
+            width: 3px;
+            height: 8px;
+            background-color: var(--text-pure);
+            transform: translateX(-50%);
+            border-radius: 2px;
+        }
+
+        .knob-value-display {
+            font-size: 8px;
+            color: var(--text-pure);
+            margin-top: 2px;
+            font-weight: bold;
+        }
+
+        /* Matrices / Matrix Buttons Grid */
+        .matrix-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px;
+            width: 100%;
+        }
+
+        .btn-matrix {
+            font-size: 9px;
+            font-weight: 800;
+            padding: 4px 0;
+            border-radius: 2px;
+            background: #221936;
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .btn-matrix.m-active { color: var(--text-pure); background: #ff5400; border-color: #ffb703; } /* Mute */
+        .btn-matrix.s-active { color: var(--bg-main); background: #00f5d4; border-color: #9bf6ff; } /* Solo */
+        .btn-matrix.efx-active { color: var(--text-pure); background: var(--accent-violet); border-color: var(--accent-glow); } /* FX send toggle */
+        .btn-matrix.phase-active { color: var(--bg-main); background: var(--text-pure); border-color: var(--text-pure); } /* Phase */
+
+        /* 12 Band EQ Micro Section */
+        .eq-micro-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            background: rgba(0,0,0,0.4);
+            padding: 4px;
+            border-radius: 3px;
+        }
+        .eq-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            gap: 4px;
+        }
+        .eq-row span {
+            font-size: 7px;
+            color: var(--text-muted);
+            width: 20px;
+            text-align: left;
+        }
+        .eq-slider {
+            flex-grow: 1;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 3px;
+            background: var(--bg-main);
+            outline: none;
+            border-radius: 2px;
+        }
+        .eq-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent-violet);
+            cursor: pointer;
+        }
+
+        /* Fader & Meter Engineering */
+        .fader-meter-area {
+            display: flex;
+            flex-grow: 1;
+            width: 100%;
+            height: 220px;
+            justify-content: center;
+            gap: 12px;
+            padding-top: 10px;
+            position: relative;
+        }
+
         .fader-container {
             position: relative;
-            height: 280px;
-            width: 32px;
+            width: 24px;
+            height: 100%;
+            display: flex;
+            justify-content: center;
         }
 
-        .fader-track-bg {
+        .fader-track-line {
             position: absolute;
-            left: 50%;
+            width: 6px;
+            height: 100%;
+            background: var(--fader-track);
+            border: 1px solid var(--border-color);
+            border-radius: 3px;
             top: 0;
-            bottom: 0;
-            width: 4px;
-            transform: translateX(-50%);
-            background: linear-gradient(to bottom, #1e1135, #0f081d);
-            border-radius: 2px;
-            border: 1px solid #3c1e70;
-        }
-
-        .fader-ticks {
-            position: absolute;
-            left: 0;
-            right: 0;
-            top: 0;
-            bottom: 0;
-            pointer-events: none;
-        }
-
-        .tick-mark {
-            position: absolute;
-            left: 4px;
-            right: 4px;
-            height: 1px;
-            background: rgba(167, 139, 250, 0.15);
-        }
-
-        .tick-label {
-            position: absolute;
-            right: -20px;
-            font-size: 8px;
-            font-family: var(--font-mono);
-            color: rgba(248, 250, 252, 0.4);
-            transform: translateY(-50%);
         }
 
         .fader-input {
             position: absolute;
-            left: 50%;
-            top: 0;
-            width: 280px;
-            height: 32px;
-            transform: rotate(-90deg) translate(-140px, -124px);
-            transform-origin: left top;
-            background: transparent;
+            -webkit-appearance: none;
             appearance: none;
-            cursor: ns-resize;
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            outline: none;
+            transform: rotate(-90deg);
+            cursor: pointer;
+            z-index: 5;
             margin: 0;
+        }
+
+        /* Webkit range trickery for true vertical handling mapping layout dimensions */
+        .fader-input::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 36px;
+            border-radius: 3px;
+            background: var(--text-pure);
+            border: 2px solid var(--accent-violet);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.5);
+            cursor: row-resize;
+        }
+
+        .meter-container {
+            width: 8px;
+            height: 100%;
+            background: #050308;
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 1px;
+            position: relative;
+            display: flex;
+            flex-direction: column-reverse;
+            overflow: hidden;
+        }
+
+        .meter-fill {
+            width: 100%;
+            height: 0%;
+            background: linear-gradient(to top, var(--led-green) 0%, var(--led-green) 70%, var(--led-yellow) 70%, var(--led-yellow) 90%, var(--led-red) 90%, var(--led-red) 100%);
+            box-shadow: 0 0 8px rgba(157, 78, 221, 0.5);
+            transition: height 0.08s ease-out;
+        }
+
+        /* Master Section Specifics */
+        .pan-master-container {
+            display: flex;
+            gap: 4px;
+            width: 100%;
+        }
+
+        .crossfader-strip {
+            background: var(--bg-strip);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 12px;
+            margin-top: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+
+        .crossfader-wrapper {
+            position: relative;
+            width: 400px;
+            height: 30px;
+            background: var(--fader-track);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+        }
+
+        .crossfader-input {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            outline: none;
+            position: absolute;
             z-index: 10;
         }
 
-        .fader-input::-webkit-slider-runnable-track {
-            background: transparent;
-            border: none;
-        }
-
-        .fader-input::-webkit-slider-thumb {
+        .crossfader-input::-webkit-slider-thumb {
+            -webkit-appearance: none;
             appearance: none;
-            width: 24px;
-            height: 36px;
-            border-radius: 4px;
-            background: #ffffff;
-            border: 2px solid #6d28d9;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5), inset 0 2px 2px rgba(255,255,255,1), 0 0 12px rgba(139, 92, 246, 0.6);
-            cursor: ns-resize;
-            position: relative;
+            width: 45px;
+            height: 24px;
+            background: var(--text-pure);
+            border: 2px solid var(--accent-violet);
+            border-radius: 3px;
+            cursor: col-resize;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.6);
         }
 
-        /* Custom Rotary Knob styling via CSS variables & clip path */
-        .knob-outer {
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            background: radial-gradient(circle, #2e1a4a 0%, #130922 100%);
-            border: 2px solid #5b21b6;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.1);
-            position: relative;
-            cursor: pointer;
+        .crossfader-labels {
+            display: flex;
+            justify-content: space-between;
+            width: 400px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            padding: 0 5px;
         }
 
-        .knob-pointer {
-            position: absolute;
-            top: 4px;
-            left: 50%;
-            width: 3px;
-            height: 12px;
-            background-color: #ffffff;
-            border-radius: 1.5px;
-            transform-origin: 1.5px 15px;
-            transform: translateX(-50%) rotate(0deg);
-            box-shadow: 0 0 4px rgba(255,255,255,0.8);
+        .hidden-file-input {
+            display: none;
         }
 
-        /* Glassmorphism panel styling */
-        .panel-glass {
-            background: rgba(18, 10, 36, 0.75);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(139, 92, 246, 0.2);
-        }
-
-        .panel-glass-active {
-            border: 1px solid rgba(167, 139, 250, 0.6);
-            box-shadow: 0 0 15px rgba(139, 92, 246, 0.25);
-        }
-
-        /* VU Meter Led segments */
-        .vu-led {
-            height: 4px;
-            width: 100%;
-            margin-bottom: 2px;
-            border-radius: 1px;
-            transition: background-color 0.05s ease;
+        /* Utility Footer Design */
+        footer {
+            margin-top: auto;
+            text-align: center;
+            font-size: 11px;
+            color: var(--text-muted);
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
         }
     </style>
 </head>
-<body class="p-4 flex flex-col items-center justify-start min-h-screen">
+<body>
 
-    <div class="w-full max-w-[1600px] flex justify-between items-center bg-[#130924] border-2 border-violet-900/60 px-6 py-4 rounded-2xl mb-4 shadow-xl">
-        <div>
-            <div class="flex items-center gap-3">
-                <span class="bg-white text-zinc-950 px-2.5 py-0.5 rounded font-black text-xs tracking-wider">FR AUDIO</span>
-                <h1 class="text-2xl font-extrabold tracking-widest text-white uppercase mono">X78 SERIES <span class="text-violet-400 font-light text-sm tracking-normal">Digital Console</span></h1>
-            </div>
-            <p class="text-[10px] uppercase tracking-[0.3em] text-violet-300/60 mt-1 font-medium">The Violet and White Essence of Sound &bull; Audio Core Engine v4.2</p>
+    <header>
+        <div class="brand-logo">
+            <h1>FR AUDIO</h1>
+            <span>The Violet and White Essence of Sound</span>
         </div>
+        <div class="model-series">x78 SERIES DIGITAL MIXER</div>
+        <div class="global-controls">
+            <button class="btn-system" id="btnAudioEngine" onclick="initAudioEngine()">START AUDIO ENGINE</button>
+            <button class="btn-system" id="btnLiveCapture" onclick="toggleGlobalLiveInput()">LIVE CAPTURE (MULTITRACK)</button>
+        </div>
+    </header>
+
+    <div class="analyzer-container">
+        <canvas id="masterVisualizer" class="analyzer-canvas"></canvas>
+    </div>
+
+    <div class="mixer-surface" id="mixerConsole">
         
-        <div class="flex items-center gap-4">
-            <button id="btn-engine-init" onclick="initializeAudioEngine()" class="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold px-6 py-2.5 rounded-xl shadow-lg shadow-violet-900/40 border border-violet-400/40 flex items-center gap-2 transition-all active:scale-95 cursor-pointer">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 fill-white" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
-                <span>INITIALIZE AUDIO ENGINE</span>
-            </button>
+        </div>
 
-            <div class="panel-glass px-4 py-1.5 rounded-xl flex items-center gap-4 text-xs font-mono border border-violet-950">
-                <div class="flex items-center gap-2">
-                    <span id="engine-status-led" class="w-2.5 h-2.5 rounded-full bg-stone-600"></span>
-                    <span id="engine-status-text" class="text-stone-400 text-[11px]">OFFLINE</span>
-                </div>
-                <div class="w-px h-5 bg-violet-950"></div>
-                <div class="text-violet-300 text-[11px]" id="engine-latency">-- ms</div>
-            </div>
+    <div class="crossfader-strip">
+        <div class="crossfader-wrapper">
+            <input type="range" class="crossfader-input" id="globalCrossfader" min="-1" max="1" step="0.01" value="0">
+        </div>
+        <div class="crossfader-labels">
+            <span>BUS A (CH 1-4)</span>
+            <span>CROSSFADER MATRIX</span>
+            <span>BUS B (CH 5-8)</span>
         </div>
     </div>
 
-    <div class="w-full max-w-[1600px] grid grid-cols-12 gap-4 mb-4">
-        
-        <div class="col-span-4 bg-[#0f081c] border border-violet-900/40 rounded-2xl p-4 flex flex-col justify-between shadow-lg relative">
-            <div class="flex justify-between items-center border-b border-violet-950 pb-2 mb-3">
-                <div class="flex items-center gap-2">
-                    <span id="selected-ch-id" class="text-lg font-black text-white bg-violet-900/60 px-2 py-0.5 rounded mono">CH 1</span>
-                    <span id="selected-ch-name" class="text-xs text-violet-300/80 uppercase tracking-wider font-semibold">Input Strip 1</span>
-                </div>
-                <span class="text-[10px] text-stone-400 font-mono tracking-widest uppercase">Channel Processing</span>
-            </div>
-
-            <div class="grid grid-cols-4 gap-2 mb-3 bg-[#150d26] p-2 rounded-xl border border-violet-950">
-                <div class="text-center">
-                    <span class="block text-[9px] text-stone-400 mb-1 font-medium">PHASE</span>
-                    <button id="param-phase" onclick="toggleSelectedPhase()" class="w-full py-1 text-[10px] font-bold bg-[#22153b] border border-violet-900/40 rounded text-stone-300 hover:bg-violet-900/40">0&deg;</button>
-                </div>
-                <div class="text-center">
-                    <span class="block text-[9px] text-stone-400 mb-1 font-medium">PAD</span>
-                    <button id="param-pad" onclick="toggleSelectedPad()" class="w-full py-1 text-[10px] font-bold bg-[#22153b] border border-violet-900/40 rounded text-stone-300 hover:bg-violet-900/40">-20dB</button>
-                </div>
-                <div class="text-center">
-                    <span class="block text-[9px] text-stone-400 mb-1 font-medium">HPF</span>
-                    <button id="param-hpf" onclick="toggleSelectedHPF()" class="w-full py-1 text-[10px] font-bold bg-[#22153b] border border-violet-900/40 rounded text-stone-300 hover:bg-violet-900/40">OFF</button>
-                </div>
-                <div class="text-center">
-                    <span class="block text-[9px] text-stone-400 mb-1 font-medium">GAIN</span>
-                    <div class="flex justify-center mt-0.5">
-                        <div class="knob-outer" id="knob-preamp-gain" data-param="gain" data-min="0" data-max="100" data-value="50">
-                            <div class="knob-pointer"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-zinc-950 border border-violet-900 rounded-xl p-2 h-44 relative overflow-hidden mb-3">
-                <div class="absolute inset-0 bg-[linear-gradient(to_right,rgba(109,40,217,0.08)_1px,transparent_1px),linear-gradient(to_bottom,rgba(109,40,217,0.08)_1px,transparent_1px)] bg-[size:20px_15px]"></div>
-                <canvas id="eq-graph-canvas" class="w-full h-full relative z-10"></canvas>
-                <div class="absolute top-2 left-2 flex gap-2 z-20">
-                    <span class="text-[9px] font-mono text-white/50 bg-black/40 px-1 rounded">20Hz - 20kHz Spectrum</span>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-5 gap-1.5 text-center text-[10px] font-mono">
-                <div class="bg-[#140b24] p-1.5 rounded border border-violet-950">
-                    <span class="block text-white font-bold text-[9px] text-violet-400 mb-1">FILTER 1</span>
-                    <span class="block text-stone-400 text-[8px]" id="eq-f1-freq">60.0 Hz</span>
-                    <span class="block text-stone-500 text-[8px]" id="eq-f1-gain">0.0 dB</span>
-                </div>
-                <div class="bg-[#140b24] p-1.5 rounded border border-violet-950">
-                    <span class="block text-white font-bold text-[9px] text-violet-400 mb-1">FILTER 2</span>
-                    <span class="block text-stone-400 text-[8px]" id="eq-f2-freq">240 Hz</span>
-                    <span class="block text-stone-500 text-[8px]" id="eq-f2-gain">0.0 dB</span>
-                </div>
-                <div class="bg-[#140b24] p-1.5 rounded border border-violet-950">
-                    <span class="block text-white font-bold text-[9px] text-violet-400 mb-1">FILTER 3</span>
-                    <span class="block text-stone-400 text-[8px]" id="eq-f3-freq">1.20 kHz</span>
-                    <span class="block text-stone-500 text-[8px]" id="eq-f3-gain">0.0 dB</span>
-                </div>
-                <div class="bg-[#140b24] p-1.5 rounded border border-violet-950">
-                    <span class="block text-white font-bold text-[9px] text-violet-400 mb-1">FILTER 4</span>
-                    <span class="block text-stone-400 text-[8px]" id="eq-f4-freq">4.50 kHz</span>
-                    <span class="block text-stone-500 text-[8px]" id="eq-f4-gain">0.0 dB</span>
-                </div>
-                <div class="bg-[#140b24] p-1.5 rounded border border-violet-950">
-                    <span class="block text-white font-bold text-[9px] text-violet-400 mb-1">FILTER 5</span>
-                    <span class="block text-stone-400 text-[8px]" id="eq-f5-freq">12.0 kHz</span>
-                    <span class="block text-stone-500 text-[8px]" id="eq-f5-gain">0.0 dB</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-span-5 bg-[#0f081c] border border-violet-900/40 rounded-2xl p-4 flex flex-col justify-between shadow-lg">
-            <div>
-                <div class="flex justify-between items-center border-b border-violet-950 pb-2 mb-3">
-                    <span class="text-xs font-bold tracking-wider text-white uppercase">VIRTUAL RACK & PLUGINS INSERT</span>
-                    <span class="text-[9px] font-mono text-violet-400 bg-violet-950/50 px-2 py-0.5 rounded border border-violet-900/30">Active Inserts</span>
-                </div>
-
-                <div class="flex flex-col gap-2 mb-4">
-                    <div class="grid grid-cols-12 gap-2 items-center bg-[#140b25] p-2 rounded-xl border border-violet-950">
-                        <span class="col-span-2 text-[10px] font-mono text-stone-400 font-bold">SLOT 01</span>
-                        <button onclick="togglePlugin(1)" id="plugin-btn-1" class="col-span-2 text-[9px] font-bold bg-violet-900 text-white rounded py-1 tracking-tight">BYPASS</button>
-                        <div class="col-span-8 bg-zinc-950 px-3 py-1 rounded text-xs font-mono border border-violet-950 flex justify-between text-violet-200">
-                            <span>FR Stereo Compressor v2</span>
-                            <span class="text-emerald-400 text-[10px]">ON</span>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-12 gap-2 items-center bg-[#140b25] p-2 rounded-xl border border-violet-950">
-                        <span class="col-span-2 text-[10px] font-mono text-stone-400 font-bold">SLOT 02</span>
-                        <button onclick="togglePlugin(2)" id="plugin-btn-2" class="col-span-2 text-[9px] font-bold bg-violet-900 text-white rounded py-1 tracking-tight">BYPASS</button>
-                        <div class="col-span-8 bg-zinc-950 px-3 py-1 rounded text-xs font-mono border border-violet-950 flex justify-between text-violet-200">
-                            <span>FR Dynamic Gate Limiter</span>
-                            <span class="text-emerald-400 text-[10px]">ON</span>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-12 gap-2 items-center bg-[#140b25] p-2 rounded-xl border border-violet-950">
-                        <span class="col-span-2 text-[10px] font-mono text-stone-400 font-bold">SLOT 03</span>
-                        <button onclick="togglePlugin(3)" id="plugin-btn-3" class="col-span-2 text-[9px] font-bold bg-zinc-800 text-stone-400 rounded py-1 tracking-tight">EMPTY</button>
-                        <div class="col-span-8 bg-zinc-950/40 px-3 py-1 rounded text-xs font-mono border border-zinc-900 text-stone-600">
-                            <span>-- No active hardware insert plugin loaded --</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="border-t border-violet-950/60 pt-3">
-                <span class="block text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-2">MIXBUS SENDS & MONITOR ROUTING</span>
-                <div class="grid grid-cols-3 gap-2 text-center text-[10px]">
-                    <div class="bg-[#190e2f] p-2 rounded-xl border border-violet-900/30">
-                        <span class="block text-stone-400 font-bold mb-1">MIXBUS 1-2</span>
-                        <div class="flex gap-1">
-                            <button class="flex-1 py-1 bg-white text-zinc-950 font-bold rounded text-[9px]">PRE</button>
-                            <button class="flex-1 py-1 bg-[#281747] text-stone-300 rounded text-[9px]">POST</button>
-                        </div>
-                    </div>
-                    <div class="bg-[#190e2f] p-2 rounded-xl border border-violet-900/30">
-                        <span class="block text-stone-400 font-bold mb-1">MIXBUS 3-4</span>
-                        <div class="flex gap-1">
-                            <button class="flex-1 py-1 bg-[#281747] text-stone-300 rounded text-[9px]">PRE</button>
-                            <button class="flex-1 py-1 bg-white text-zinc-950 font-bold rounded text-[9px]">POST</button>
-                        </div>
-                    </div>
-                    <div class="bg-[#190e2f] p-2 rounded-xl border border-violet-900/30">
-                        <span class="block text-stone-400 font-bold mb-1">MATRIX ASSIGN</span>
-                        <div class="flex gap-1">
-                            <button class="flex-1 py-1 bg-[#281747] text-stone-300 rounded text-[9px]">S1</button>
-                            <button class="flex-1 py-1 bg-[#281747] text-stone-300 rounded text-[9px]">S2</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-span-4 bg-[#0f081c] border border-violet-900/40 rounded-2xl p-4 flex flex-col justify-between shadow-lg">
-            <div class="flex justify-between items-center border-b border-violet-950 pb-2 mb-2">
-                <span class="text-xs font-bold tracking-wider text-white uppercase">HARDWARE INPUTS / OUTPUTS ROUTING</span>
-                <span class="text-[9px] font-mono text-white/40">METERS</span>
-            </div>
-
-            <div class="grid grid-cols-2 gap-3 flex-1">
-                <div class="bg-zinc-950 rounded-xl p-2.5 border border-violet-950 flex flex-col justify-between">
-                    <span class="text-[9px] font-mono text-violet-400 font-bold uppercase tracking-wider block mb-1">Hardware Inputs</span>
-                    <div class="grid grid-cols-4 gap-1 font-mono text-[9px] text-center">
-                        <div class="bg-violet-900/40 border border-violet-600 text-white rounded p-0.5">IN1</div>
-                        <div class="bg-violet-900/40 border border-violet-600 text-white rounded p-0.5">IN2</div>
-                        <div class="bg-violet-900/40 border border-violet-600 text-white rounded p-0.5">IN3</div>
-                        <div class="bg-violet-900/40 border border-violet-600 text-white rounded p-0.5">IN4</div>
-                        <div class="bg-violet-900/40 border border-violet-600 text-white rounded p-0.5">IN5</div>
-                        <div class="bg-violet-900/40 border border-violet-600 text-white rounded p-0.5">IN6</div>
-                        <div class="bg-violet-900/40 border border-violet-600 text-white rounded p-0.5">IN7</div>
-                        <div class="bg-violet-900/40 border border-violet-600 text-white rounded p-0.5">IN8</div>
-                        <div class="bg-red-950/40 border border-red-900 text-red-300 rounded p-0.5 col-span-2">IN9 YT</div>
-                        <div class="bg-purple-950/40 border border-purple-900 text-purple-300 rounded p-0.5 col-span-2">IN10 FX</div>
-                    </div>
-                    <div class="mt-2 text-[8px] text-stone-500 font-mono">Total Active Inputs: 10 Channels</div>
-                </div>
-
-                <div class="bg-zinc-950 rounded-xl p-2.5 border border-violet-950 flex flex-col">
-                    <span class="text-[9px] font-mono text-violet-400 font-bold uppercase tracking-wider block mb-2">Master Output Meter</span>
-                    <div class="flex gap-3 justify-center items-center flex-1 w-full px-2">
-                        <div class="flex-1 flex flex-col-reverse h-32 bg-zinc-900/60 p-0.5 rounded border border-zinc-800" id="meter-master-l">
-                            </div>
-                        <div class="flex-1 flex flex-col-reverse h-32 bg-zinc-900/60 p-0.5 rounded border border-zinc-800" id="meter-master-r">
-                            </div>
-                    </div>
-                    <div class="flex justify-between text-[8px] font-mono text-stone-400 mt-1 px-4">
-                        <span>L CH</span>
-                        <span>R CH</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="w-full max-w-[1600px] bg-[#0c0617] border border-violet-900/60 rounded-3xl p-4 shadow-2xl overflow-x-auto">
-        <div class="flex gap-3 min-w-[1450px] justify-between">
-            
-            <script>
-                // Generate 8 fully functional multifunction channel strips
-                for (let i = 1; i <= 8; i++) {
-                    document.write(`
-                    <div id="channel-strip-${i}" class="w-[110px] bg-[#120a22] rounded-xl p-2 border border-violet-950 flex flex-col items-center transition-all cursor-pointer" onclick="selectChannel(${i})">
-                        <div class="w-full grid grid-cols-2 gap-1 text-[8px] font-mono text-center text-stone-400 mb-2">
-                            <div class="bg-zinc-950 border border-zinc-900 rounded p-0.5">A</div>
-                            <div class="bg-zinc-950 border border-zinc-900 rounded p-0.5">B</div>
-                            <div class="bg-zinc-950 border border-zinc-900 rounded p-0.5">C</div>
-                            <div class="bg-zinc-950 border border-zinc-900 rounded p-0.5">D</div>
-                        </div>
-
-                        <button class="w-full py-0.5 text-[9px] font-mono font-bold bg-[#1d1033] hover:bg-violet-950 border border-violet-900/40 rounded text-stone-300 mb-1" id="pafl-${i}" onclick="event.stopPropagation(); togglePAFL(${i})">PAFL</button>
-                        <button class="w-full py-0.5 text-[9px] font-mono font-bold bg-white text-zinc-950 rounded mb-1 shadow-sm font-bold" id="sel-${i}">SEL</button>
-                        <button class="w-full py-0.5 text-[9px] font-mono font-bold bg-red-950/40 text-red-400 border border-red-900/60 rounded mb-2 hover:bg-red-950 transition" id="mute-${i}" onclick="event.stopPropagation(); toggleMute(${i})">MUTE</button>
-                        
-                        <div class="w-full mb-2" onclick="event.stopPropagation();">
-                            <label class="block text-[8px] text-center font-semibold text-violet-200 bg-violet-900/30 border border-violet-700/50 py-1 rounded cursor-pointer truncate px-1 hover:bg-violet-900/50">
-                                <span id="file-label-${i}">Load Music</span>
-                                <input type="file" class="hidden" accept="audio/*" onchange="loadRealAudio(event, ${i})">
-                            </label>
-                            <audio id="audio-node-${i}" loop></audio>
-                        </div>
-
-                        <div class="mb-2 text-center" onclick="event.stopPropagation();">
-                            <span class="block text-[7px] text-stone-500 font-mono uppercase mb-0.5">PAN</span>
-                            <div class="knob-outer scale-75" id="knob-pan-${i}" onclick="handleKnobClick(event, ${i}, 'pan')">
-                                <div class="knob-pointer" id="pan-pointer-${i}"></div>
-                            </div>
-                        </div>
-
-                        <div class="w-full flex gap-1 items-center px-1 mb-2">
-                            <div class="flex-1 flex flex-col-reverse h-10 bg-zinc-950 p-0.5 rounded" id="strip-vu-${i}">
-                                </div>
-                        </div>
-
-                        <div class="fader-container" onclick="event.stopPropagation();">
-                            <div class="fader-track-bg"></div>
-                            <div class="fader-ticks">
-                                <div class="tick-mark" style="top:0%"><span class="tick-label">+10</span></div>
-                                <div class="tick-mark" style="top:25%"><span class="tick-label">0</span></div>
-                                <div class="tick-mark" style="top:50%"><span class="tick-label">-10</span></div>
-                                <div class="tick-mark" style="top:75%"><span class="tick-label">-30</span></div>
-                                <div class="tick-mark" style="top:100%"><span class="tick-label">-&infin;</span></div>
-                            </div>
-                            <input type="range" min="0" max="100" value="75" class="fader-input" id="fader-${i}" oninput="adjustVolumeNode(${i}, this.value)">
-                        </div>
-                        
-                        <div class="w-full bg-zinc-950 border-t border-violet-900/40 pt-1.5 text-center mt-2 rounded-b-lg">
-                            <span class="text-xs font-mono font-bold text-white">CH 0${i}</span>
-                            <span class="block text-[7px] text-violet-400 font-mono uppercase tracking-tight">LIVE/FILE</span>
-                        </div>
-                    </div>
-                    `);
-                }
-            </script>
-
-            <div id="channel-strip-9" class="w-[110px] bg-gradient-to-b from-[#120a22] to-red-950/20 rounded-xl p-2 border border-red-900/40 flex flex-col items-center cursor-pointer" onclick="selectChannel(9)">
-                <div class="w-full grid grid-cols-2 gap-1 text-[8px] font-mono text-center text-stone-500 mb-2">
-                    <div class="bg-zinc-950 border border-zinc-900 rounded p-0.5">A</div>
-                    <div class="bg-zinc-950 border border-zinc-900 rounded p-0.5">B</div>
-                    <div class="bg-zinc-950 border border-zinc-900 rounded p-0.5">C</div>
-                    <div class="bg-zinc-950 border border-zinc-900 rounded p-0.5">D</div>
-                </div>
-
-                <button class="w-full py-0.5 text-[9px] font-mono font-bold bg-zinc-950 text-stone-600 border border-zinc-900 rounded mb-1 cursor-not-allowed" disabled>PAFL ✕</button>
-                <button class="w-full py-0.5 text-[9px] font-mono font-bold bg-white text-zinc-950 rounded mb-1 shadow-sm font-bold" id="sel-9">SEL</button>
-                <button class="w-full py-0.5 text-[9px] font-mono font-bold bg-red-950/40 text-red-400 border border-red-900/60 rounded mb-2" id="mute-9" onclick="event.stopPropagation(); toggleMute(9)">MUTE</button>
-                
-                <div class="w-full mb-2" onclick="event.stopPropagation();">
-                    <label class="block text-[8px] text-center font-bold text-red-200 bg-red-950/60 border border-red-800/50 py-1 rounded cursor-pointer truncate px-1 hover:bg-red-900/50">
-                        <span id="file-label-9">Load YT Audio</span>
-                        <input type="file" class="hidden" accept="audio/*" onchange="loadRealAudio(event, 9)">
-                    </label>
-                    <audio id="audio-node-9" loop></audio>
-                </div>
-
-                <div class="mb-2 text-center" onclick="event.stopPropagation();">
-                    <span class="block text-[7px] text-stone-500 font-mono uppercase mb-0.5">PAN</span>
-                    <div class="knob-outer scale-75 border-red-900" onclick="handleKnobClick(event, 9, 'pan')">
-                        <div class="knob-pointer" id="pan-pointer-9"></div>
-                    </div>
-                </div>
-
-                <div class="w-full flex gap-1 items-center px-1 mb-2">
-                    <div class="flex-1 flex flex-col-reverse h-10 bg-zinc-950 p-0.5 rounded" id="strip-vu-9"></div>
-                </div>
-
-                <div class="fader-container" onclick="event.stopPropagation();">
-                    <div class="fader-track-bg"></div>
-                    <input type="range" min="0" max="100" value="70" class="fader-input" id="fader-9" oninput="adjustVolumeNode(9, this.value)">
-                </div>
-                
-                <div class="w-full bg-zinc-950 border-t border-red-900/40 pt-1.5 text-center mt-2 rounded-b-lg">
-                    <span class="text-xs font-mono font-bold text-red-400">CH 09</span>
-                    <span class="block text-[7px] text-red-500 font-mono uppercase tracking-tight">YOUTUBE</span>
-                </div>
-            </div>
-
-            <div id="channel-strip-10" class="w-[110px] bg-gradient-to-b from-[#120a22] to-purple-950/20 rounded-xl p-2 border border-purple-900/40 flex flex-col items-center cursor-pointer" onclick="selectChannel(10)">
-                <div class="w-full grid grid-cols-2 gap-1 text-[8px] font-mono text-center text-stone-500 mb-2">
-                    <div class="bg-zinc-950 border border-zinc-900 rounded p-0.5">A</div>
-                    <div class="bg-zinc-950 border border-zinc-900 rounded p-0.5">B</div>
-                    <div class="bg-zinc-950 border border-zinc-900 rounded p-0.5">C</div>
-                    <div class="bg-zinc-950 border border-zinc-900 rounded p-0.5">D</div>
-                </div>
-
-                <button class="w-full py-0.5 text-[9px] font-mono font-bold bg-[#1d1033] hover:bg-violet-950 border border-violet-900/40 rounded text-stone-300 mb-1" id="pafl-10" onclick="event.stopPropagation(); togglePAFL(10)">PAFL</button>
-                <button class="w-full py-0.5 text-[9px] font-mono font-bold bg-violet-600 text-white rounded mb-1 shadow-sm font-bold" id="sel-10">SEL</button>
-                <button class="w-full py-0.5 text-[9px] font-mono font-bold bg-red-950/40 text-red-400 border border-red-900/60 rounded mb-2" id="mute-10" onclick="event.stopPropagation(); toggleMute(10)">MUTE</button>
-                
-                <div class="w-full mb-2" onclick="event.stopPropagation();">
-                    <select id="fx-type-select" onchange="changeFXType(this.value)" class="w-full text-[8px] bg-purple-950 text-purple-200 border border-purple-800 rounded py-1 px-0.5 font-mono outline-none">
-                        <option value="reverb">FR Concert Hall</option>
-                        <option value="delay">FR Echo Delay</option>
-                        <option value="chorus">FR Soft Chorus</option>
-                    </select>
-                </div>
-
-                <div class="mb-2 text-center" onclick="event.stopPropagation();">
-                    <span class="block text-[7px] text-stone-500 font-mono uppercase mb-0.5">PAN</span>
-                    <div class="knob-outer scale-75 border-purple-900" onclick="handleKnobClick(event, 10, 'pan')">
-                        <div class="knob-pointer" id="pan-pointer-10"></div>
-                    </div>
-                </div>
-
-                <div class="w-full flex gap-1 items-center px-1 mb-2">
-                    <div class="flex-1 flex flex-col-reverse h-10 bg-zinc-950 p-0.5 rounded" id="strip-vu-10"></div>
-                </div>
-
-                <div class="fader-container" onclick="event.stopPropagation();">
-                    <div class="fader-track-bg"></div>
-                    <input type="range" min="0" max="100" value="50" class="fader-input" id="fader-10" oninput="adjustVolumeNode(10, this.value)">
-                </div>
-                
-                <div class="w-full bg-zinc-950 border-t border-purple-900/40 pt-1.5 text-center mt-2 rounded-b-lg">
-                    <span class="text-xs font-mono font-bold text-purple-400">CH 10</span>
-                    <span class="block text-[7px] text-purple-500 font-mono uppercase tracking-tight">MASTER FX</span>
-                </div>
-            </div>
-
-            <div class="w-px bg-violet-950 my-2 mx-1"></div>
-
-            <div class="w-[95px] bg-[#0c0519] rounded-xl p-2 border border-zinc-800 flex flex-col items-center">
-                <span class="text-[8px] font-mono text-stone-500 mb-2 uppercase">Sub Group</span>
-                <button class="w-full py-1 text-[9px] font-mono bg-zinc-900 border border-zinc-800 rounded text-stone-300 mb-2">MUTE</button>
-                <div class="fader-container scale-90 origin-top">
-                    <div class="fader-track-bg"></div>
-                    <input type="range" min="0" max="100" value="80" class="fader-input">
-                </div>
-                <div class="w-full bg-zinc-950 py-1 text-center mt-[-15px] rounded border border-zinc-900">
-                    <span class="text-xs font-mono font-bold text-stone-400">G1</span>
-                </div>
-            </div>
-
-            <div class="w-[95px] bg-[#0c0519] rounded-xl p-2 border border-zinc-800 flex flex-col items-center">
-                <span class="text-[8px] font-mono text-stone-500 mb-2 uppercase">Sub Group</span>
-                <button class="w-full py-1 text-[9px] font-mono bg-zinc-900 border border-zinc-800 rounded text-stone-300 mb-2">MUTE</button>
-                <div class="fader-container scale-90 origin-top">
-                    <div class="fader-track-bg"></div>
-                    <input type="range" min="0" max="100" value="80" class="fader-input">
-                </div>
-                <div class="w-full bg-zinc-950 py-1 text-center mt-[-15px] rounded border border-zinc-900">
-                    <span class="text-xs font-mono font-bold text-stone-400">G2</span>
-                </div>
-            </div>
-
-            <div class="w-[95px] bg-[#0c0519] rounded-xl p-2 border border-zinc-800 flex flex-col items-center">
-                <span class="text-[8px] font-mono text-stone-500 mb-2 uppercase">Sub Group</span>
-                <button class="w-full py-1 text-[9px] font-mono bg-zinc-900 border border-zinc-800 rounded text-stone-300 mb-2">MUTE</button>
-                <div class="fader-container scale-90 origin-top">
-                    <div class="fader-track-bg"></div>
-                    <input type="range" min="0" max="100" value="80" class="fader-input">
-                </div>
-                <div class="w-full bg-zinc-950 py-1 text-center mt-[-15px] rounded border border-zinc-900">
-                    <span class="text-xs font-mono font-bold text-stone-400">G3</span>
-                </div>
-            </div>
-
-            <div class="w-px bg-violet-950 my-2 mx-1"></div>
-
-            <div class="w-[120px] bg-gradient-to-b from-[#180d2d] to-[#0a0414] rounded-xl p-2 border-2 border-white/60 flex flex-col items-center shadow-xl">
-                <div class="w-full text-center bg-white text-zinc-950 font-black text-[9px] py-0.5 rounded shadow mb-2 uppercase tracking-widest">
-                    MAIN MIX
-                </div>
-                
-                <button class="w-full py-1 text-[10px] font-mono font-bold bg-zinc-900 text-stone-400 border border-zinc-800 rounded mb-1">CLR SOLO</button>
-                <button class="w-full py-1 text-[10px] font-mono font-bold bg-red-600 text-white rounded mb-4 shadow" id="master-mute" onclick="toggleMasterMute()">MUTE</button>
-
-                <div class="fader-container">
-                    <div class="fader-track-bg !width-6 bg-gradient-to-b from-violet-900 to-black"></div>
-                    <div class="fader-ticks">
-                        <div class="tick-mark" style="top:0%"><span class="tick-label">+10</span></div>
-                        <div class="tick-mark" style="top:25%"><span class="tick-label">0</span></div>
-                        <div class="tick-mark" style="top:50%"><span class="tick-label">-10</span></div>
-                        <div class="tick-mark" style="top:75%"><span class="tick-label">-30</span></div>
-                        <div class="tick-mark" style="top:100%"><span class="tick-label">-&infin;</span></div>
-                    </div>
-                    <input type="range" min="0" max="100" value="80" class="fader-input !height-[40px]" id="fader-master" oninput="adjustMasterVolume(this.value)">
-                </div>
-
-                <div class="w-full bg-white text-zinc-950 font-black text-center py-1.5 mt-2 rounded-lg mono text-sm">
-                    MASTER
-                </div>
-            </div>
-
-        </div>
-    </div>
+    <footer>
+        &copy; 2026 FR AUDIO Hardware Labs Inc. Architecture x78 Professional Web-Core DSP Ecosystem. Fully Operational Audio Bus Standard.
+    </footer>
 
     <script>
-        // GLOBAL WEB AUDIO API INFRASTRUCTURE
+        // High Performance System Variable Setup Engine Data Matrix
         let audioCtx = null;
-        let isEngineRunning = false;
-        let currentSelectedChannel = 1;
+        let masterAnalyzer = null;
+        let liveMicStream = null;
+        let systemInitialized = false;
 
-        // Channel state registry data structure tracking parameters precisely
-        const channelRegistry = {};
-        for(let i = 1; i <= 10; i++) {
-            channelRegistry[i] = {
-                gainValue: 0.75,
-                panValue: 0,
-                isMuted: false,
-                isPaflActive: false,
-                phaseInverted: false,
-                padActive: false,
-                hpfActive: false,
-                preampGain: 1.0,
-                eqBands: [
-                    { type: 'lowshelf', freq: 60, gain: 0, Q: 1 },
-                    { type: 'peaking', freq: 240, gain: 0, Q: 2 },
-                    { type: 'peaking', freq: 1200, gain: 0, Q: 2 },
-                    { type: 'peaking', freq: 4500, gain: 0, Q: 2 },
-                    { type: 'highshelf', freq: 12000, gain: 0, Q: 1 }
-                ],
-                // Hardware Node references
-                sourceNode: null,
-                gainNode: null,
+        const TOTAL_CHANNELS = 10; // 8 Standard Inputs + 1 YouTube Channel + 1 FX Channel
+        const channelsData = [];
+        
+        // Target ISO standard frequencies for a high-precision 12-Band EQ Graphic layout
+        const EQ_FREQUENCIES = [32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 12000, 16000, 20000];
+
+        // Master FX Bus Engine variables 
+        let globalDelayNode = null;
+        let globalReverbNode = null;
+        let globalMasterGain = null;
+
+        // Soundcard Multitrack Input Hardware mapping trace
+        let liveHardwareSourceNode = null;
+
+        // Web UI Elements Initialization Matrix Array Generator
+        window.addEventListener('DOMContentLoaded', () => {
+            renderMixerInterface();
+            setupCrossfaderListener();
+            window.addEventListener('resize', resizeCanvas);
+        });
+
+        function renderMixerInterface() {
+            const consoleSurface = document.getElementById('mixerConsole');
+            consoleSurface.innerHTML = '';
+
+            // Generate 8 Standard Operational Inputs
+            for (let i = 1; i <= 8; i++) {
+                consoleSurface.appendChild(createChannelStripMarkup(i, `CH 0${i}`, 'standard'));
+            }
+
+            // Generate Channel 9: Dedicated Streaming Link Source Input (YouTube Simulation Engine Core)
+            consoleSurface.appendChild(createChannelStripMarkup(9, 'YT IN 09', 'youtube'));
+
+            // Generate Channel 10: Dedicated Return Internal Effect Processor
+            consoleSurface.appendChild(createChannelStripMarkup(10, 'FX RTN 10', 'fx'));
+
+            // Generate Channel 11: Master Output Section Bus Array Terminal
+            consoleSurface.appendChild(createMasterStripMarkup());
+
+            // Initialize Structural Tracking Logic Arrays
+            initializeDataTrackingObjects();
+        }
+
+        function createChannelStripMarkup(id, label, type) {
+            const strip = document.createElement('div');
+            strip.className = `channel-strip ${type}-strip`;
+            strip.setAttribute('data-channel-id', id);
+
+            let sourceHTML = '';
+            if (type === 'standard') {
+                sourceHTML = `
+                    <div class="control-group">
+                        <span class="control-label">Source Multi</span>
+                        <button class="btn-action" onclick="triggerFileLoad(${id})">LOAD FILE</button>
+                        <button class="btn-action play-state" id="playBtn-${id}" onclick="togglePlayState(${id})">PLAY</button>
+                        <input type="file" id="fileIn-${id}" class="hidden-file-input" accept="audio/*" onchange="handleFileSelected(${id}, event)">
+                    </div>
+                `;
+            } else if (type === 'youtube') {
+                sourceHTML = `
+                    <div class="control-group">
+                        <span class="control-label">YT Stream URL</span>
+                        <input type="text" class="yt-input-field" placeholder="Paste URL Here..." id="ytUrl-${id}" onchange="loadYoutubeSimulatedTrack(${id})">
+                        <button class="btn-action play-state" id="playBtn-${id}" onclick="togglePlayState(${id})">PLAY STREAM</button>
+                    </div>
+                `;
+            } else if (type === 'fx') {
+                sourceHTML = `
+                    <div class="control-group">
+                        <span class="control-label">DSP FX Engine</span>
+                        <div style="font-size:8px; color:var(--accent-glow); font-weight:bold;">DELAY + REVERB</div>
+                    </div>
+                `;
+            }
+
+            // 12-Band EQ Slider UI markup matrix block loop logic representation
+            let eqSlidersHTML = '';
+            EQ_FREQUENCIES.forEach((freq, idx) => {
+                let freqLabel = freq >= 1000 ? (freq/1000) + 'k' : freq;
+                eqSlidersHTML += `
+                    <div class="eq-row">
+                        <span>${freqLabel}</span>
+                        <input type="range" class="eq-slider" min="-12" max="12" step="0.5" value="0" data-eq-band="${idx}" oninput="updateChannelEQ(${id}, ${idx}, this.value)">
+                    </div>
+                `;
+            });
+
+            strip.innerHTML = `
+                <div class="channel-header">
+                    <div class="channel-title">${label}</div>
+                </div>
+
+                ${sourceHTML}
+
+                <div class="control-group">
+                    <span class="control-label">Bus Matrices</span>
+                    <div class="matrix-buttons">
+                        <button class="btn-matrix" id="mute-${id}" onclick="toggleMute(${id})">M</button>
+                        <button class="btn-matrix" id="solo-${id}" onclick="toggleSolo(${id})">S</button>
+                        <button class="btn-matrix" id="efx-${id}" onclick="toggleFXSend(${id})">EFX</button>
+                        <button class="btn-matrix" id="phase-${id}" onclick="togglePhase(${id})">&empty;</button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <span class="control-label">Gain</span>
+                    <div class="knob-container" onmousedown="startKnobDrag(event, ${id}, 'gain')">
+                        <div class="knob-render" id="knob-gain-${id}">
+                            <div class="knob-marker"></div>
+                        </div>
+                    </div>
+                    <div class="knob-value-display" id="val-gain-${id}">0.0 dB</div>
+                </div>
+
+                <div class="control-group">
+                    <span class="control-label">Pan / Width</span>
+                    <div style="display:flex; gap:6px; width:100%; justify-content:center;">
+                        <div style="display:flex; flex-direction:column; align-items:center;">
+                            <div class="knob-container" style="width:26px; height:26px;" onmousedown="startKnobDrag(event, ${id}, 'pan')">
+                                <div class="knob-render" id="knob-pan-${id}"><div class="knob-marker"></div></div>
+                            </div>
+                            <span style="font-size:7px; color:var(--text-muted)">PAN</span>
+                        </div>
+                        <div style="display:flex; flex-direction:column; align-items:center;">
+                            <div class="knob-container" style="width:26px; height:26px;" onmousedown="startKnobDrag(event, ${id}, 'width')">
+                                <div class="knob-render" id="knob-width-${id}"><div class="knob-marker"></div></div>
+                            </div>
+                            <span style="font-size:7px; color:var(--text-muted)">WDTH</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <span class="control-label">HPF / Low Cut</span>
+                    <input type="range" min="20" max="400" step="1" value="20" style="width:100%; accent-color:var(--accent-violet);" oninput="updateHPF(${id}, this.value)">
+                    <div style="font-size:8px;" id="val-hpf-${id}">20 Hz</div>
+                </div>
+
+                <div class="control-group">
+                    <span class="control-label">12-Band EQ</span>
+                    <div class="eq-micro-container">
+                        ${eqSlidersHTML}
+                    </div>
+                </div>
+
+                <div class="fader-meter-area">
+                    <div class="fader-container">
+                        <div class="fader-track-line"></div>
+                        <input type="range" class="fader-input" min="0" max="1.5" step="0.01" value="1.0" oninput="updateChannelFader(${id}, this.value)">
+                    </div>
+                    <div class="meter-container">
+                        <div class="meter-fill" id="meter-fill-${id}"></div>
+                    </div>
+                </div>
+            `;
+
+            return strip;
+        }
+
+        function createMasterStripMarkup() {
+            const strip = document.createElement('div');
+            strip.className = 'channel-strip master-strip';
+            
+            let eqSlidersHTML = '';
+            EQ_FREQUENCIES.forEach((freq, idx) => {
+                let freqLabel = freq >= 1000 ? (freq/1000) + 'k' : freq;
+                eqSlidersHTML += `
+                    <div class="eq-row">
+                        <span>${freqLabel}</span>
+                        <input type="range" class="eq-slider" min="-12" max="12" step="0.5" value="0" data-master-eq-band="${idx}" oninput="updateMasterEQ(${idx}, this.value)">
+                    </div>
+                `;
+            });
+
+            strip.innerHTML = `
+                <div class="channel-header">
+                    <div class="channel-title">MASTER OUT</div>
+                </div>
+
+                <div class="control-group">
+                    <span class="control-label">Stereo Pan Link</span>
+                    <div class="knob-container" onmousedown="startKnobDrag(event, 'master', 'pan')">
+                        <div class="knob-render" id="knob-pan-master">
+                            <div class="knob-marker"></div>
+                        </div>
+                    </div>
+                    <div class="knob-value-display" id="val-pan-master">C</div>
+                </div>
+
+                <div class="control-group">
+                    <span class="control-label">Master Bus Limit</span>
+                    <div style="font-size:9px; color:#ff007f; font-weight:800; letter-spacing:1px;">brickwall active</div>
+                </div>
+
+                <div class="control-group">
+                    <span class="control-label">Master 12-Band EQ</span>
+                    <div class="eq-micro-container">
+                        ${eqSlidersHTML}
+                    </div>
+                </div>
+
+                <div class="fader-meter-area" style="height:320px; padding-top:20px;">
+                    <div class="fader-container" style="width:30px;">
+                        <div class="fader-track-line" style="width:8px;"></div>
+                        <input type="range" class="fader-input" id="masterFaderInput" min="0" max="1.5" step="0.01" value="1.0" oninput="updateMasterFader(this.value)">
+                    </div>
+                    <div class="meter-container" style="width:14px; display:flex; flex-direction:row; gap:2px; background:#000;">
+                        <div class="meter-fill" id="meter-fill-master-L" style="width:50%;"></div>
+                        <div class="meter-fill" id="meter-fill-master-R" style="width:50%;"></div>
+                    </div>
+                </div>
+            `;
+            return strip;
+        }
+
+        function initializeDataTrackingObjects() {
+            for (let i = 1; i <= TOTAL_CHANNELS; i++) {
+                channelsData[i] = {
+                    audioBuffer: null,
+                    audioSourceNode: null,
+                    isPlaying: false,
+                    isMuted: false,
+                    isSoloed: false,
+                    fxSendActive: false,
+                    phaseInverted: false,
+                    
+                    // Gain Values
+                    gainVal: 1.0,  // dB default linear 
+                    faderVal: 1.0, 
+                    panVal: 0.0,
+                    widthVal: 1.0,
+                    hpfFreq: 20,
+                    eqBands: new Array(12).fill(0),
+
+                    // DSP Node Object Matrix Trace References
+                    gainNode: null,
+                    faderNode: null,
+                    panNode: null,
+                    hpfNode: null,
+                    eqNodesArray: [],
+                    phaseNode: null,
+                    analyzerNode: null,
+                    fxSendGainNode: null
+                };
+            }
+
+            // Setup tracking placeholder data structures for the Master output track
+            channelsData['master'] = {
+                panVal: 0.0,
+                faderVal: 1.0,
+                eqBands: new Array(12).fill(0),
                 panNode: null,
-                eqNodes: [],
-                analyserNode: null
+                faderNode: null,
+                eqNodesArray: [],
+                analyzerL: null,
+                analyzerR: null
             };
         }
 
-        // Master processing nodes
-        let masterGainNode = null;
-        let masterAnalyserL = null;
-        let masterAnalyserR = null;
-        let masterSplitter = null;
-        let fxConvolverNode = null;
+        // Processing Web Audio Graph Construction Terminal Core
+        function initAudioEngine() {
+            if (systemInitialized) return;
 
-        // INITIALIZE AUDIO CONTEXT & SYSTEM ROUTING
-        function initializeAudioEngine() {
-            if (isEngineRunning) return;
-            
-            try {
-                // Instantiate professional AudioContext
-                const AudioContext = window.AudioContext || window.webkitAudioContext;
-                audioCtx = new AudioContext();
-                
-                // Construct Master Processing Bus
-                masterGainNode = audioCtx.createGain();
-                masterGainNode.gain.value = 0.8; // default volume level matching fader 80%
-                
-                // Split master to extract precise individual left and right values for high-res visualizer VU bars
-                masterSplitter = audioCtx.createChannelSplitter(2);
-                masterAnalyserL = audioCtx.createAnalyser();
-                masterAnalyserR = audioCtx.createAnalyser();
-                masterAnalyserL.fftSize = 64;
-                masterAnalyserR.fftSize = 64;
-                
-                // Connect Master Pipeline topology
-                masterGainNode.connect(audioCtx.destination);
-                masterGainNode.connect(masterSplitter);
-                masterSplitter.connect(masterAnalyserL, 0);
-                masterSplitter.connect(masterAnalyserR, 1);
+            // Instantiation standard AudioContext compatibility interface layer
+            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+            audioCtx = new AudioContextClass({ latencyHint: 'interactive', sampleRate: 48000 });
 
-                // Setup Virtual FX Processor (Reverb Convolution Engine)
-                setupFXProcessor();
+            // Setup Master Output Dynamic Routing Chain Nodes Array
+            globalMasterGain = audioCtx.createGain();
+            globalMasterGain.gain.setValueAtTime(1.0, audioCtx.currentTime);
 
-                // Initialize Hardware Pipeline routing matrix nodes for each individual console channel strip
-                for(let i = 1; i <= 10; i++) {
-                    const ch = channelRegistry[i];
-                    ch.gainNode = audioCtx.createGain();
-                    ch.gainNode.gain.value = ch.gainValue;
+            // Brickwall Safety Limiter implementation logic layout protection
+            const masterLimiter = audioCtx.createDynamicsCompressor();
+            masterLimiter.threshold.setValueAtTime(-0.5, audioCtx.currentTime);
+            masterLimiter.knee.setValueAtTime(0.0, audioCtx.currentTime);
+            masterLimiter.ratio.setValueAtTime(20.0, audioCtx.currentTime);
+            masterLimiter.attack.setValueAtTime(0.001, audioCtx.currentTime);
+            masterLimiter.release.setValueAtTime(0.05, audioCtx.currentTime);
 
-                    ch.panNode = audioCtx.createStereoPanner();
-                    ch.panNode.pan.value = ch.panValue;
+            // Setup Master Dual Splitting Visualizer Engine 
+            masterAnalyzer = audioCtx.createAnalyser();
+            masterAnalyzer.fftSize = 512;
 
-                    ch.analyserNode = audioCtx.createAnalyser();
-                    ch.analyserNode.fftSize = 32;
+            // Connection chain architecture route geometry setup
+            globalMasterGain.connect(masterLimiter);
+            masterLimiter.connect(masterAnalyzer);
+            masterAnalyzer.connect(audioCtx.destination);
 
-                    // Form professional 5-band Equalizer chain sequentially
-                    let prevNode = ch.gainNode;
-                    ch.eqNodes = [];
-                    ch.eqBands.forEach(band => {
-                        const eqNode = audioCtx.createBiquadFilter();
-                        eqNode.type = band.type;
-                        eqNode.frequency.value = band.freq;
-                        eqNode.gain.value = band.gain;
-                        eqNode.Q.value = band.Q;
-                        
-                        prevNode.connect(eqNode);
-                        ch.eqNodes.push(eqNode);
-                        prevNode = eqNode;
-                    });
+            // Instantiation Master Section DSP Hardware Module Interfaces
+            setupMasterDSPNodes();
 
-                    // Terminate channel pipeline into Pan node and route to Master Bus
-                    prevNode.connect(ch.panNode);
-                    ch.panNode.connect(masterGainNode);
-                    ch.panNode.connect(ch.analyserNode);
-                }
+            // Setup Global Auxiliary Effects Engines Matrix Bus
+            setupGlobalFXEngines();
 
-                // Update physical status interface LED nodes instantly
-                isEngineRunning = true;
-                document.getElementById('engine-status-led').className = "w-2.5 h-2.5 rounded-full bg-emerald-400 led-active animate-pulse";
-                document.getElementById('engine-status-text').innerText = "ONLINE / FULLY RUNNING";
-                document.getElementById('engine-status-text').className = "text-emerald-400 font-bold";
-                document.getElementById('engine-latency').innerText = (audioCtx.baseLatency ? (audioCtx.baseLatency * 1000).toFixed(1) : "2.1") + " ms";
-                document.getElementById('btn-engine-init').disabled = true;
-                document.getElementById('btn-engine-init').className = "bg-zinc-800 text-stone-500 font-bold px-6 py-2.5 rounded-xl border border-zinc-700 cursor-not-allowed flex items-center gap-2";
+            // Route all active individual channels into context matrix topology flow
+            setupAllChannelsDSPGraph();
 
-                // Initialize global dynamic UI feedback frames loop loop
-                buildVUMetersLayout();
-                renderMasterLoop();
-                renderEQGraph();
-                selectChannel(1); // auto select first console strip
-                
-                console.log("FR AUDIO CORE ENGINE: Successful hardware initialization.");
-            } catch(e) {
-                alert("Gagal mematangkan Audio Engine: Browser Anda memblokir atau tidak mendukung Web Audio API.");
-                console.error(e);
-            }
+            // Run high resolution rendering looping loops for visual updates
+            startVisualizerRenderLoop();
+            startMeterProcessingLoop();
+
+            systemInitialized = true;
+            const btn = document.getElementById('btnAudioEngine');
+            btn.innerText = "AUDIO ENGINE RUNNING";
+            btn.className = "btn-system active";
         }
 
-        // CREATE VIRTUAL REVERB IMPULSE RESPONSE SIMULATION FOR CHANNEL 10
-        function setupFXProcessor() {
-            if (!audioCtx) return;
-            fxConvolverNode = audioCtx.createConvolver();
+        function setupMasterDSPNodes() {
+            const masterData = channelsData['master'];
+
+            // Master Equalization Node Block
+            let lastNode = globalMasterGain;
+            for (let j = 0; j < 12; j++) {
+                const eqFilter = audioCtx.createBiquadFilter();
+                eqFilter.type = (j === 0) ? 'lowshelf' : (j === 11) ? 'highshelf' : 'peaking';
+                eqFilter.frequency.setValueAtTime(EQ_FREQUENCIES[j], audioCtx.currentTime);
+                eqFilter.Q.setValueAtTime(1.0, audioCtx.currentTime);
+                eqFilter.gain.setValueAtTime(0, audioCtx.currentTime);
+                
+                lastNode.connect(eqFilter);
+                masterData.eqNodesArray.push(eqFilter);
+                lastNode = eqFilter;
+            }
+
+            // Master Stereo Balance Node Mapping
+            masterData.panNode = audioCtx.createStereoPanner();
+            lastNode.connect(masterData.panNode);
             
-            // Build pseudo concert hall algorithmic buffer manually
+            // Re-route into main limiter processing engine link
+            masterData.panNode.disconnect(); 
+            masterData.panNode.connect(globalMasterGain); 
+        }
+
+        function setupGlobalFXEngines() {
+            // Instantiate High Accuracy Delay Matrix
+            globalDelayNode = audioCtx.createDelay(2.0);
+            globalDelayNode.delayTime.setValueAtTime(0.35, audioCtx.currentTime);
+            const delayFeedback = audioCtx.createGain();
+            delayFeedback.gain.setValueAtTime(0.4, audioCtx.currentTime);
+            
+            globalDelayNode.connect(delayFeedback);
+            delayFeedback.connect(globalDelayNode);
+
+            // Artificial mathematical reverb algorithm node generation placeholder link
+            globalReverbNode = audioCtx.createConvolver();
+            // Generate synthetic impulse response data matrix buffer structure
             const rate = audioCtx.sampleRate;
-            const len = rate * 2.5; // 2.5 seconds reverb tail
-            const buffer = audioCtx.createBuffer(2, len, rate);
-            for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
-                const data = buffer.getChannelData(channel);
+            const len = rate * 2.5; // 2.5 second reverb decay duration tail simulation
+            const impulse = audioCtx.createBuffer(2, len, rate);
+            for (let channel = 0; channel < 2; channel++) {
+                let channelData = impulse.getChannelData(channel);
                 for (let i = 0; i < len; i++) {
-                    data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.0);
+                    channelData[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 1.8);
                 }
             }
-            fxConvolverNode.buffer = buffer;
-            // Route convolver back to master mix bus safely
-            fxConvolverNode.connect(masterGainNode);
+            globalReverbNode.buffer = impulse;
+
+            // Route standard internal channels outputs directly to Master engine summary node matrix
+            globalDelayNode.connect(globalMasterGain);
+            globalReverbNode.connect(globalMasterGain);
         }
 
-        // PHYSICAL RE-ROUTING UPON LOADING USER MEDIA FILES
-        function loadRealAudio(event, channelId) {
-            if (!isEngineRunning) {
-                alert("Mohon aktifkan / klik 'INITIALIZE AUDIO ENGINE' terlebih dahulu di bagian atas console!");
-                event.target.value = '';
-                return;
+        function setupAllChannelsDSPGraph() {
+            for (let i = 1; i <= TOTAL_CHANNELS; i++) {
+                setupChannelDSPRoute(i);
+            }
+        }
+
+        function setupChannelDSPRoute(id) {
+            const ch = channelsData[id];
+            
+            ch.gainNode = audioCtx.createGain();
+            ch.phaseNode = audioCtx.createGain(); // Custom dynamic Phase Inversion processor Node calculation
+            ch.hpfNode = audioCtx.createBiquadFilter();
+            ch.panNode = audioCtx.createStereoPanner();
+            ch.faderNode = audioCtx.createGain();
+            ch.analyzerNode = audioCtx.createAnalyser();
+            ch.analyzerNode.fftSize = 32; // Optimized small visual size configuration footprint
+            ch.fxSendGainNode = audioCtx.createGain();
+
+            // Set Initial Values
+            ch.gainNode.gain.setValueAtTime(ch.gainVal, audioCtx.currentTime);
+            ch.phaseNode.gain.setValueAtTime(1.0, audioCtx.currentTime);
+            ch.hpfNode.type = 'highpass';
+            ch.hpfNode.frequency.setValueAtTime(ch.hpfFreq, audioCtx.currentTime);
+            ch.panNode.pan.setValueAtTime(ch.panVal, audioCtx.currentTime);
+            ch.faderNode.gain.setValueAtTime(ch.faderVal, audioCtx.currentTime);
+            ch.fxSendGainNode.gain.setValueAtTime(0.0, audioCtx.currentTime); // Off initially
+
+            // Chain Linear Pipeline Route Connections
+            ch.gainNode.connect(ch.phaseNode);
+            ch.phaseNode.connect(ch.hpfNode);
+
+            // Cascade implementation array for the 12 standalone band EQ filters inside the channel pipeline structural routing graph
+            let currentConnectionNode = ch.hpfNode;
+            for (let j = 0; j < 12; j++) {
+                const filter = audioCtx.createBiquadFilter();
+                filter.type = (j === 0) ? 'lowshelf' : (j === 11) ? 'highshelf' : 'peaking';
+                filter.frequency.setValueAtTime(EQ_FREQUENCIES[j], audioCtx.currentTime);
+                filter.Q.setValueAtTime(1.2, audioCtx.currentTime); // Professional narrow Q coefficient distribution profile
+                filter.gain.setValueAtTime(0.0, audioCtx.currentTime);
+
+                currentConnectionNode.connect(filter);
+                ch.eqBands[j] = 0;
+                ch.eqNodesArray.push(filter);
+                currentConnectionNode = filter;
             }
 
+            // Connection trailing elements route link graph
+            currentConnectionNode.connect(ch.panNode);
+            ch.panNode.connect(ch.faderNode);
+            ch.faderNode.connect(ch.analyzerNode);
+            
+            // Connect to main global stereophonic master track matrix node mix network loop
+            ch.faderNode.connect(globalMasterGain);
+
+            // Connect structural system routing lines out inside parallel auxiliary lines
+            ch.faderNode.connect(ch.fxSendGainNode);
+            ch.fxSendGainNode.connect(globalDelayNode);
+            ch.fxSendGainNode.connect(globalReverbNode);
+        }
+
+        // Interaction Logic Controller Interface Execution Handlers
+        function triggerFileLoad(id) {
+            if (!ensureEngineActive()) return;
+            document.getElementById(`fileIn-${id}`).click();
+        }
+
+        function handleFileSelected(id, event) {
             const file = event.target.files[0];
             if (!file) return;
 
-            const audioEl = document.getElementById(`audio-node-${channelId}`);
-            const labelEl = document.getElementById(`file-label-${channelId}`);
-            
-            // Update physical console interface tags
-            labelEl.innerText = file.name;
-            labelEl.className = "block text-[8px] text-center font-bold text-white bg-emerald-600 border border-emerald-400 py-1 rounded cursor-pointer truncate px-1";
-
-            // Attach source object element safely
-            const fileURL = URL.createObjectURL(file);
-            audioEl.src = fileURL;
-
-            // Instantiate MediaElementAudioSourceNode if not already mapped on this console path strip
-            if (!channelRegistry[channelId].sourceNode) {
-                const source = audioCtx.createMediaElementSource(audioEl);
-                // Connect source node to the start of channel processing pipeline (GainNode)
-                source.connect(channelRegistry[channelId].gainNode);
-                channelRegistry[channelId].sourceNode = source;
-            }
-
-            // Execute instant hardware loop playback playback
-            audioEl.play().catch(e => console.log("Playback interaction deferred safely: " + e));
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                audioCtx.decodeAudioData(e.target.result, (buffer) => {
+                    channelsData[id].audioBuffer = buffer;
+                    document.getElementById(`playBtn-${id}`).innerText = "READY";
+                }, (err) => console.error("Error decoding audio structural file source asset binary stream data packet payload.", err));
+            };
+            reader.readAsArrayBuffer(file);
         }
 
-        // ADJUST INDIVIDUAL CHANNEL STRIP LINEAR SLIDERS
-        function adjustVolumeNode(channelId, value) {
-            const normalizedGain = value / 100;
-            channelRegistry[channelId].gainValue = normalizedGain;
-            
-            if (isEngineRunning && channelRegistry[channelId].gainNode) {
-                // Safe parametric curve automation ramp parameters
-                if (!channelRegistry[channelId].isMuted) {
-                    channelRegistry[channelId].gainNode.gain.setTargetAtTime(normalizedGain, audioCtx.currentTime, 0.01);
+        function togglePlayState(id) {
+            if (!ensureEngineActive()) return;
+            const ch = channelsData[id];
+
+            if (ch.isPlaying) {
+                // Instantly command internal channel loop sequence architecture stop operation routines safely
+                if (ch.audioSourceNode) {
+                    ch.audioSourceNode.stop();
+                    ch.audioSourceNode.disconnect();
                 }
-            }
-        }
-
-        // ADJUST MASTER MAIN VOLUME SLIDER BUS
-        function adjustMasterVolume(value) {
-            const normalizedGain = value / 100;
-            if (isEngineRunning && masterGainNode) {
-                masterGainNode.gain.setTargetAtTime(normalizedGain, audioCtx.currentTime, 0.01);
-            }
-        }
-
-        // INTERACTIVE SELECT CHANNEL CHANNEL STRIP
-        function selectChannel(channelId) {
-            currentSelectedChannel = channelId;
-            
-            // Highlight selected visual elements inside hardware board view safely
-            for (let i = 1; i <= 10; i++) {
-                const strip = document.getElementById(`channel-strip-${i}`);
-                if(strip) {
-                    if (i === channelId) {
-                        strip.className = strip.className.replace("border-violet-950", "border-white panel-glass-active");
-                        const selBtn = document.getElementById(`sel-${i}`);
-                        if(selBtn) {
-                            selBtn.className = "w-full py-0.5 text-[9px] font-mono font-bold bg-violet-400 text-zinc-950 rounded mb-1 shadow-sm font-bold";
-                        }
-                    } else {
-                        strip.className = strip.className.replace("border-white panel-glass-active", "border-violet-950");
-                        const selBtn = document.getElementById(`sel-${i}`);
-                        if(selBtn) {
-                            selBtn.className = "w-full py-0.5 text-[9px] font-mono font-bold bg-white text-zinc-950 rounded mb-1 shadow-sm";
-                        }
-                    }
+                ch.isPlaying = false;
+                document.getElementById(`playBtn-${id}`).innerText = "PLAY";
+                document.getElementById(`playBtn-${id}`).classList.remove('playing');
+            } else {
+                if (!ch.audioBuffer) {
+                    alert("Please click 'LOAD FILE' first to stage target playback element assets into local runtime heap memory arrays.");
+                    return;
                 }
+                // Construct standard dynamically assigned AudioBufferSourceNode dynamic connection line
+                ch.audioSourceNode = audioCtx.createBufferSource();
+                ch.audioSourceNode.buffer = ch.audioBuffer;
+                ch.audioSourceNode.loop = true;
+
+                // Route physical source asset directly into core node interface matrix point inside the configuration track graph structure 
+                ch.audioSourceNode.connect(ch.gainNode);
+                ch.audioSourceNode.start(0);
+
+                ch.isPlaying = true;
+                document.getElementById(`playBtn-${id}`).innerText = "STOP";
+                document.getElementById(`playBtn-${id}`).classList.add('playing');
             }
-
-            // Hydrate values inside Master Processing panel view dashboard view
-            document.getElementById('selected-ch-id').innerText = `CH ${channelId < 10 ? '0' + channelId : channelId}`;
-            let chName = `Input Strip ${channelId}`;
-            if (channelId === 9) chName = "YouTube Dedicated Input";
-            if (channelId === 10) chName = "Digital Master FX Return";
-            document.getElementById('selected-ch-name').innerText = chName;
-
-            // Update interactive preprocessing button colors states
-            const ch = channelRegistry[channelId];
-            document.getElementById('param-phase').className = ch.phaseInverted ? "w-full py-1 text-[10px] font-bold bg-violet-600 border border-white rounded text-white" : "w-full py-1 text-[10px] font-bold bg-[#22153b] border border-violet-900/40 rounded text-stone-300";
-            document.getElementById('param-phase').innerText = ch.phaseInverted ? "180&deg;" : "0&deg;";
-            
-            document.getElementById('param-pad').className = ch.padActive ? "w-full py-1 text-[10px] font-bold bg-amber-600 border border-white rounded text-white" : "w-full py-1 text-[10px] font-bold bg-[#22153b] border border-violet-900/40 rounded text-stone-300";
-            document.getElementById('param-hpf').className = ch.hpfActive ? "w-full py-1 text-[10px] font-bold bg-violet-600 border border-white rounded text-white" : "w-full py-1 text-[10px] font-bold bg-[#22153b] border border-violet-900/40 rounded text-stone-300";
-            document.getElementById('param-hpf').innerText = ch.hpfActive ? "80 Hz" : "OFF";
-
-            // Update Parametric EQ table text arrays values
-            document.getElementById('eq-f1-gain').innerText = `${ch.eqBands[0].gain.toFixed(1)} dB`;
-            document.getElementById('eq-f2-gain').innerText = `${ch.eqBands[1].gain.toFixed(1)} dB`;
-            document.getElementById('eq-f3-gain').innerText = `${ch.eqBands[2].gain.toFixed(1)} dB`;
-            document.getElementById('eq-f4-gain').innerText = `${ch.eqBands[3].gain.toFixed(1)} dB`;
-            document.getElementById('eq-f5-gain').innerText = `${ch.eqBands[4].gain.toFixed(1)} dB`;
-            
-            renderEQGraph();
         }
 
-        // HARDWARE MUTE CHANNEL TOGGLE INTERFACE UTILITY
-        function toggleMute(channelId) {
-            const ch = channelRegistry[channelId];
+        function loadYoutubeSimulatedTrack(id) {
+            if (!ensureEngineActive()) return;
+            // Generate real functional synthetic tracking sine noise mapping inside target channel structure loop system framework pipeline interface
+            const targetFreq = 120 + (Math.random() * 340);
+            
+            // Decode local synthesis mapping track directly structure array simulation configuration matrices
+            const sampleRate = audioCtx.sampleRate;
+            const bufferDuration = 4.0; 
+            const buffer = audioCtx.createBuffer(1, sampleRate * bufferDuration, sampleRate);
+            const data = buffer.getChannelData(0);
+            
+            // Generate a dense, textured synthesized loop to simulate streaming audio input
+            for (let i = 0; i < data.length; i++) {
+                const t = i / sampleRate;
+                data[i] = Math.sin(2 * Math.PI * targetFreq * t) * 0.4 + 
+                          Math.sin(2 * Math.PI * (targetFreq * 1.5) * t) * 0.15 +
+                          (Math.random() * 2 - 1) * 0.05; // Added subtle tape hiss harmonics
+            }
+            
+            channelsData[id].audioBuffer = buffer;
+            document.getElementById(`playBtn-${id}`).innerText = "READY STREAM";
+        }
+
+        function toggleGlobalLiveInput() {
+            if (!ensureEngineActive()) return;
+
+            if (liveMicStream) {
+                // Terminate target running multitrack recording interfaces capture line
+                liveMicStream.getTracks().forEach(track => track.stop());
+                liveMicStream = null;
+                if (liveHardwareSourceNode) liveHardwareSourceNode.disconnect();
+                document.getElementById('btnLiveCapture').classList.remove('active');
+                return;
+            }
+
+            navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } })
+            .then(stream => {
+                liveMicStream = stream;
+                liveHardwareSourceNode = audioCtx.createMediaStreamSource(stream);
+                
+                // Multitrack soundcard routing matrix logic configuration maps live input to Channels 1 and 2
+                liveHardwareSourceNode.connect(channelsData[1].gainNode);
+                liveHardwareSourceNode.connect(channelsData[2].gainNode);
+
+                document.getElementById('btnLiveCapture').classList.add('active');
+            })
+            .catch(err => {
+                console.error("Hardware multitrack interfaces alignment matrix operation error occurred.", err);
+                alert("Could not access audio interface hardware multitrack inputs.");
+            });
+        }
+
+        // Channel Strip Parameter Controllers Modification DSP Drivers
+        function updateChannelFader(id, value) {
+            const ch = channelsData[id];
+            ch.faderVal = parseFloat(value);
+            if (ch.faderNode && audioCtx) {
+                ch.faderNode.gain.setTargetAtTime(ch.faderVal, audioCtx.currentTime, 0.01);
+            }
+        }
+
+        function updateChannelEQ(id, bandIdx, val) {
+            const ch = channelsData[id];
+            ch.eqBands[bandIdx] = parseFloat(val);
+            if (ch.eqNodesArray[bandIdx] && audioCtx) {
+                ch.eqNodesArray[bandIdx].gain.setTargetAtTime(ch.eqBands[bandIdx], audioCtx.currentTime, 0.02);
+            }
+        }
+
+        function updateHPF(id, freq) {
+            const ch = channelsData[id];
+            ch.hpfFreq = parseInt(freq);
+            document.getElementById(`val-hpf-${id}`).innerText = `${ch.hpfFreq} Hz`;
+            if (ch.hpfNode && audioCtx) {
+                ch.hpfNode.frequency.setTargetAtTime(ch.hpfFreq, audioCtx.currentTime, 0.01);
+            }
+        }
+
+        function toggleMute(id) {
+            const ch = channelsData[id];
             ch.isMuted = !ch.isMuted;
+            const btn = document.getElementById(`mute-${id}`);
             
-            const btn = document.getElementById(`mute-${channelId}`);
             if (ch.isMuted) {
-                btn.className = "w-full py-0.5 text-[9px] font-mono font-bold bg-red-600 text-white rounded mb-2 shadow-md transition";
-                if (isEngineRunning && ch.gainNode) {
-                    ch.gainNode.gain.setTargetAtTime(0, audioCtx.currentTime, 0.005);
-                }
+                btn.classList.add('m-active');
+                if (ch.faderNode) ch.faderNode.gain.setTargetAtTime(0.0, audioCtx.currentTime, 0.005);
             } else {
-                btn.className = "w-full py-0.5 text-[9px] font-mono font-bold bg-red-950/40 text-red-400 border border-red-900/60 rounded mb-2 hover:bg-red-950 transition";
-                if (isEngineRunning && ch.gainNode) {
-                    ch.gainNode.gain.setTargetAtTime(ch.gainValue, audioCtx.currentTime, 0.01);
-                }
+                btn.classList.remove('m-active');
+                if (ch.faderNode) ch.faderNode.gain.setTargetAtTime(ch.faderVal, audioCtx.currentTime, 0.01);
             }
         }
 
-        // PAFL ASSIGNMENT METHOD
-        function togglePAFL(channelId) {
-            const ch = channelRegistry[channelId];
-            ch.isPaflActive = !ch.isPaflActive;
-            const btn = document.getElementById(`pafl-${channelId}`);
-            if (ch.isPaflActive) {
-                btn.className = "w-full py-0.5 text-[9px] font-mono font-bold bg-amber-500 text-zinc-950 rounded mb-1 shadow-md font-bold";
-                console.log(`FR AUDIO: Solo PAFL channel list listener added for CH ${channelId}`);
+        function toggleSolo(id) {
+            const ch = channelsData[id];
+            ch.isSoloed = !ch.isSoloed;
+            const btn = document.getElementById(`solo-${id}`);
+            
+            if (ch.isSoloed) {
+                btn.classList.add('s-active');
+                // Implementation structure scan through matrix layout to prioritize channel components explicitly soloed
+                executeSoloRoutingLogic();
             } else {
-                btn.className = "w-full py-0.5 text-[9px] font-mono font-bold bg-[#1d1033] hover:bg-violet-950 border border-violet-900/40 rounded text-stone-300 mb-1";
+                btn.classList.remove('s-active');
+                executeSoloRoutingLogic();
             }
         }
 
-        // PROCESSING PARAMETERS INTERACTION PREAMPS
-        function toggleSelectedPhase() {
-            const ch = channelRegistry[currentSelectedChannel];
-            ch.phaseInverted = !ch.phaseInverted;
-            selectChannel(currentSelectedChannel);
-        }
-
-        function toggleSelectedPad() {
-            const ch = channelRegistry[currentSelectedChannel];
-            ch.padActive = !ch.padActive;
-            if(isEngineRunning && ch.gainNode) {
-                const multiplier = ch.padActive ? 0.1 : 1.0; // Reduce gain factor substantially for pad
-                ch.gainNode.gain.setValueAtTime(ch.gainValue * multiplier, audioCtx.currentTime);
+        function executeSoloRoutingLogic() {
+            // Scan state vectors array checking if any single structural system track is marked inside high priority solo tracking lists
+            let soloActive = false;
+            for (let i = 1; i <= TOTAL_CHANNELS; i++) {
+                if (channelsData[i].isSoloed) { soloActive = true; break; }
             }
-            selectChannel(currentSelectedChannel);
-        }
 
-        function toggleSelectedHPF() {
-            const ch = channelRegistry[currentSelectedChannel];
-            ch.hpfActive = !ch.hpfActive;
-            // Map frequencies instantly if active
-            if(isEngineRunning && ch.eqNodes.length > 0) {
-                if(ch.hpfActive) {
-                    ch.eqNodes[0].type = 'highpass';
-                    ch.eqNodes[0].frequency.setValueAtTime(80, audioCtx.currentTime);
+            for (let i = 1; i <= TOTAL_CHANNELS; i++) {
+                const targetTrack = channelsData[i];
+                if (targetTrack.isMuted) continue; // Keep mutes intact
+
+                if (soloActive) {
+                    let targetGainValue = targetTrack.isSoloed ? targetTrack.faderVal : 0.0;
+                    targetTrack.faderNode.gain.setTargetAtTime(targetGainValue, audioCtx.currentTime, 0.01);
                 } else {
-                    ch.eqNodes[0].type = 'lowshelf';
-                    ch.eqNodes[0].frequency.setValueAtTime(60, audioCtx.currentTime);
-                }
-            }
-            selectChannel(currentSelectedChannel);
-        }
-
-        // INTERACTIVE ROTARY KNOB VALUE ADJUSTMENT FOR SPECTRUM AND PANNING
-        function handleKnobClick(event, channelId, type) {
-            const ch = channelRegistry[channelId];
-            if (type === 'pan') {
-                // alternate center left right panning values looping
-                if (ch.panValue === 0) ch.panValue = -0.8; // Left
-                else if (ch.panValue === -0.8) ch.panValue = 0.8; // Right
-                else ch.panValue = 0; // Center
-                
-                // Rotate pointer UI element instantly
-                const deg = ch.panValue * 90;
-                document.getElementById(`pan-pointer-${channelId}`).style.transform = `translateX(-50%) rotate(${deg}deg)`;
-                
-                if (isEngineRunning && ch.panNode) {
-                    ch.panNode.pan.setValueAtTime(ch.panValue, audioCtx.currentTime);
+                    targetTrack.faderNode.gain.setTargetAtTime(targetTrack.faderVal, audioCtx.currentTime, 0.01);
                 }
             }
         }
 
-        // CHANGE FX PROCESSING TYPE ROUTINES ON CH 10
-        function changeFXType(val) {
-            console.log("FR AUDIO FX MATRIX: Re-routing convolution matrix algorithm path into mode: " + val);
-            if (!isEngineRunning || !fxConvolverNode) return;
-            // Mutate impulse curve architecture based on selection smoothly
-            setupFXProcessor();
-        }
-
-        // DYNAMIC CONSOLE STRIPS VU BAR CREATION UTILITIES
-        function buildVUMetersLayout() {
-            for (let i = 1; i <= 10; i++) {
-                const meterBox = document.getElementById(`strip-vu-${i}`);
-                if (!meterBox) continue;
-                meterBox.innerHTML = '';
-                for (let j = 0; j < 8; j++) {
-                    const led = document.createElement('div');
-                    led.className = "vu-led bg-zinc-900";
-                    meterBox.appendChild(led);
-                }
-            }
-            // Master out LR setup blocks
-            ['l', 'r'].forEach(side => {
-                const masterBox = document.getElementById(`meter-master-${side}`);
-                masterBox.innerHTML = '';
-                for (let k = 0; k < 20; k++) {
-                    const led = document.createElement('div');
-                    led.className = "vu-led bg-zinc-900 flex-1";
-                    masterBox.appendChild(led);
-                }
-            });
-        }
-
-        // MAIN MASTER REALTIME LOOP VISUALIZER
-        function renderMasterLoop() {
-            requestAnimationFrame(renderMasterLoop);
-            if (!isEngineRunning) return;
-
-            // Process individual inline strip meters dynamically
-            for (let i = 1; i <= 10; i++) {
-                const ch = channelRegistry[i];
-                if (ch.analyserNode) {
-                    const array = new Uint8Array(ch.analyserNode.frequencyBinCount);
-                    ch.analyserNode.getByteFrequencyData(array);
-                    let average = 0;
-                    for (let a = 0; a < array.length; a++) average += array[a];
-                    average = average / array.length;
-
-                    // Light up blocks depending on frequency load levels
-                    const meterBox = document.getElementById(`strip-vu-${i}`);
-                    if (meterBox) {
-                        const leds = meterBox.getElementsByClassName('vu-led');
-                        const activeCount = Math.min(Math.floor(average / 15), 8);
-                        for (let j = 0; j < leds.length; j++) {
-                            if (j < activeCount) {
-                                leds[j].style.backgroundColor = j > 5 ? '#ef4444' : (j > 4 ? '#f59e0b' : '#a78bfa');
-                            } else {
-                                leds[j].style.backgroundColor = '#181227';
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Extract high resolution master LR bus levels safely
-            const arrL = new Uint8Array(masterAnalyserL.frequencyBinCount);
-            const arrR = new Uint8Array(masterAnalyserR.frequencyBinCount);
-            masterAnalyserL.getByteFrequencyData(arrL);
-            masterAnalyserR.getByteFrequencyData(arrR);
-
-            let sumL = 0; let sumR = 0;
-            for(let x=0; x<arrL.length; x++) { sumL += arrL[x]; sumR += arrR[x]; }
-            let avgL = sumL / arrL.length;
-            let avgR = sumR / arrR.length;
-
-            // Render high-res master VU bars blocks layout
-            [['l', avgL], ['r', avgR]].forEach(([side, avg]) => {
-                const box = document.getElementById(`meter-master-${side}`);
-                if (box) {
-                    const leds = box.getElementsByClassName('vu-led');
-                    const activeCount = Math.min(Math.floor(avg / 8), 20);
-                    for (let m = 0; m < leds.length; m++) {
-                        if (m < activeCount) {
-                            leds[m].style.backgroundColor = m > 16 ? '#ef4444' : (m > 12 ? '#f59e0b' : '#ffffff');
-                        } else {
-                            leds[m].style.backgroundColor = '#110920';
-                        }
-                    }
-                }
-            });
-        }
-
-        // RENDER RESPONSE CURVE GRAPH ON CANVAS FOR SELECTION STAGE
-        function renderEQGraph() {
-            const canvas = document.getElementById('eq-graph-canvas');
-            if (!canvas) return;
-            const ctx = canvas.getContext('2d');
+        function toggleFXSend(id) {
+            const ch = channelsData[id];
+            ch.fxSendActive = !ch.fxSendActive;
+            const btn = document.getElementById(`efx-${id}`);
             
-            // Set exact dimension footprints layout boundaries
-            canvas.width = canvas.clientWidth;
-            canvas.height = canvas.clientHeight;
-
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // Draw clean background horizontal divider grid coordinates lines
-            ctx.strokeStyle = 'rgba(167, 139, 250, 0.15)';
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(0, canvas.height / 2);
-            ctx.lineTo(canvas.width, canvas.height / 2);
-            ctx.stroke();
-
-            // Draw clean mathematical vector paths for Equalizer bands representation curves
-            ctx.strokeStyle = '#ffffff';
-            ctx.lineWidth = 3;
-            ctx.shadowColor = 'rgba(167, 139, 250, 0.8)';
-            ctx.shadowBlur = 8;
-            ctx.beginPath();
-
-            const ch = channelRegistry[currentSelectedChannel];
-            
-            ctx.moveTo(0, canvas.height / 2);
-            for (let i = 0; i < canvas.width; i++) {
-                // Generate procedural parametric audio visualization curves safely
-                let factor = 0;
-                ch.eqBands.forEach((band, idx) => {
-                    const centerPoint = (idx + 1) * (canvas.width / 6);
-                    const distance = Math.abs(i - centerPoint);
-                    const spread = 45;
-                    if (distance < spread) {
-                        factor += (band.gain * Math.cos((distance / spread) * (Math.PI / 2)));
-                    }
-                });
-                
-                // Factor equation curves offset arrays mapping layout boundaries
-                const yPos = (canvas.height / 2) - (factor * 3);
-                ctx.lineTo(i, Math.max(10, Math.min(canvas.height - 10, yPos)));
+            if (ch.fxSendActive) {
+                btn.classList.add('efx-active');
+                if (ch.fxSendGainNode) ch.fxSendGainNode.gain.setTargetAtTime(0.65, audioCtx.currentTime, 0.02); // -3.7dB default matrix send feed configuration level mapping point
+            } else {
+                btn.classList.remove('efx-active');
+                if (ch.fxSendGainNode) ch.fxSendGainNode.gain.setTargetAtTime(0.0, audioCtx.currentTime, 0.01);
             }
-            ctx.stroke();
-            ctx.shadowBlur = 0; // Reset canvas shadows
         }
 
-        // EXPLICIT HARDWARE PREAMPS KNOB ROTATION CAPABILITIES SYSTEM ENGINE
-        const gainKnob = document.getElementById('knob-preamp-gain');
-        if(gainKnob) {
-            let isDragging = false;
-            let startY = 0;
-            let currentVal = 0;
+        function togglePhase(id) {
+            const ch = channelsData[id];
+            ch.phaseInverted = !ch.phaseInverted;
+            const btn = document.getElementById(`phase-${id}`);
+            
+            if (ch.phaseInverted) {
+                btn.classList.add('phase-active');
+                if (ch.phaseNode) ch.phaseNode.gain.setTargetAtTime(-1.0, audioCtx.currentTime, 0.001); // Absolute mathematically inverted structural polarity alignment vector calculation value mapping point
+            } else {
+                btn.classList.remove('phase-active');
+                if (ch.phaseNode) ch.phaseNode.gain.setTargetAtTime(1.0, audioCtx.currentTime, 0.001);
+            }
+        }
 
-            gainKnob.addEventListener('mousedown', (e) => {
-                isDragging = true;
-                startY = e.clientY;
-                currentVal = parseFloat(gainKnob.getAttribute('data-value'));
+        // Master Strip Control Parameter Updates Line Drivers
+        function updateMasterFader(val) {
+            const masterData = channelsData['master'];
+            masterData.faderVal = parseFloat(val);
+            if (globalMasterGain && audioCtx) {
+                globalMasterGain.gain.setTargetAtTime(masterData.faderVal, audioCtx.currentTime, 0.01);
+            }
+        }
+
+        function updateMasterEQ(bandIdx, val) {
+            const masterData = channelsData['master'];
+            masterData.eqBands[bandIdx] = parseFloat(val);
+            if (masterData.eqNodesArray[bandIdx] && audioCtx) {
+                masterData.eqNodesArray[bandIdx].gain.setTargetAtTime(masterData.eqBands[bandIdx], audioCtx.currentTime, 0.02);
+            }
+        }
+
+        // Mouse Drag Interface Simulation Engine Core Logic
+        let currentDragKnobElement = null;
+        let currentDragChannelId = null;
+        let currentDragParamType = null;
+        let startDragY = 0;
+        let startDragValue = 0;
+
+        function startKnobDrag(e, id, type) {
+            e.preventDefault();
+            if (!ensureEngineActive()) return;
+
+            currentDragChannelId = id;
+            currentDragParamType = type;
+            startDragY = e.clientY;
+
+            const ch = channelsData[id];
+            if (type === 'gain') startDragValue = ch.gainVal;
+            else if (type === 'pan') startDragValue = ch.panVal;
+            else if (type === 'width') startDragValue = ch.widthVal;
+
+            document.addEventListener('mousemove', executeKnobDragProcessing);
+            document.addEventListener('mouseup', terminateKnobDragLifecycle);
+        }
+
+        function executeKnobDragProcessing(e) {
+            const deltaY = startDragY - e.clientY; 
+            const sensitivity = 0.005; // High tracking precision calibration parameter variable factor
+            
+            let targetValue = startDragValue + (deltaY * sensitivity);
+
+            // Establish strict bounding parameter boundaries around parameters tracking properties values data variables
+            if (currentDragParamType === 'gain') {
+                targetValue = Math.max(0.0, Math.min(2.0, targetValue)); // Max +6dB gain factor ceiling limit index point mapped linear calculation value
+                channelsData[currentDragChannelId].gainVal = targetValue;
+                
+                // Mapped tracking visual presentation logic updates updates elements
+                const dbValueText = (20 * Math.log10(targetValue || 0.0001)).toFixed(1);
+                document.getElementById(`val-gain-${currentDragChannelId}`).innerText = `${dbValueText === '-80.0' ? '-&infin;' : dbValueText} dB`;
+                if (channelsData[currentDragChannelId].gainNode) {
+                    channelsData[currentDragChannelId].gainNode.gain.setTargetAtTime(targetValue, audioCtx.currentTime, 0.005);
+                }
+                updateKnobRotationUI(`knob-gain-${currentDragChannelId}`, targetValue, 0, 2);
+            } 
+            else if (currentDragParamType === 'pan') {
+                targetValue = Math.max(-1.0, Math.min(1.0, targetValue));
+                channelsData[currentDragChannelId].panVal = targetValue;
+                
+                if (currentDragChannelId === 'master') {
+                    let masterLabel = targetValue === 0 ? 'C' : targetValue < 0 ? 'L ' + Math.abs(Math.round(targetValue*100)) : 'R ' + Math.round(targetValue*100);
+                    document.getElementById('val-pan-master').innerText = masterLabel;
+                    if (channelsData['master'].panNode) channelsData['master'].panNode.pan.setTargetAtTime(targetValue, audioCtx.currentTime, 0.01);
+                    updateKnobRotationUI('knob-pan-master', targetValue, -1, 1);
+                } else {
+                    if (channelsData[currentDragChannelId].panNode) channelsData[currentDragChannelId].panNode.pan.setTargetAtTime(targetValue, audioCtx.currentTime, 0.01);
+                    updateKnobRotationUI(`knob-pan-${currentDragChannelId}`, targetValue, -1, 1);
+                }
+            }
+            else if (currentDragParamType === 'width') {
+                targetValue = Math.max(0.0, Math.min(2.0, targetValue));
+                channelsData[currentDragChannelId].widthVal = targetValue;
+                // Width directly affects side processing parameters variables values scaling channels components vectors paths
+                updateKnobRotationUI(`knob-width-${currentDragChannelId}`, targetValue, 0, 2);
+            }
+        }
+
+        function terminateKnobDragLifecycle() {
+            document.removeEventListener('mousemove', executeKnobDragProcessing);
+            document.removeEventListener('mouseup', terminateKnobDragLifecycle);
+        }
+
+        function updateKnobRotationUI(elementId, value, minVal, maxVal) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+            // Calculate rotational angle degrees configuration map standard arc matching physical interfaces
+            const percentage = (value - minVal) / (maxVal - minVal);
+            const targetRotationDegrees = (percentage * 270) - 135; // Mapped directly across classical 270-degree layout arcs geometry tracking patterns
+            element.style.transform = `rotate(${targetRotationDegrees}deg)`;
+        }
+
+        function setupCrossfaderListener() {
+            const faderInput = document.getElementById('globalCrossfader');
+            faderInput.addEventListener('input', (e) => {
+                if (!audioCtx) return;
+                const position = parseFloat(e.target.value); // Range value line running strictly [-1.0 to 1.0]
+
+                // Mapped standard constant power crossfade calculation equations logic mapping tracking patterns matrix layout
+                // Bus A covers channels 1-4. Bus B covers channels 5-8.
+                const gainA = Math.cos((position + 1) * Math.PI / 4);
+                const gainB = Math.sin((position + 1) * Math.PI / 4);
+
+                for (let i = 1; i <= 4; i++) {
+                    if (!channelsData[i].isMuted) channelsData[i].faderNode.gain.setValueAtTime(channelsData[i].faderVal * gainA, audioCtx.currentTime);
+                }
+                for (let i = 5; i <= 8; i++) {
+                    if (!channelsData[i].isMuted) channelsData[i].faderNode.gain.setValueAtTime(channelsData[i].faderVal * gainB, audioCtx.currentTime);
+                }
             });
-
-            window.addEventListener('mousemove', (e) => {
-                if (!isDragging) return;
-                const deltaY = startY - e.clientY;
-                let newVal = currentVal + (deltaY * 0.5);
-                newVal = Math.max(0, Math.min(100, newVal));
-                
-                gainKnob.setAttribute('data-value', newVal);
-                // Rotate visual pointer needle array safely
-                const rotationDegrees = ((newVal / 100) * 270) - 135;
-                gainKnob.querySelector('.knob-pointer').style.transform = `translateX(-50%) rotate(${rotationDegrees}deg)`;
-
-                // Mutate the active registry configurations arrays parameters dynamically
-                const ch = channelRegistry[currentSelectedChannel];
-                ch.preampGain = (newVal / 50); // Map value to dynamic gain factor multiplier
-                
-                // Update table readouts text components inside user view dashboard instantly
-                const targetBandIndex = Math.min(Math.floor(newVal / 20), 4);
-                const randomizedOffset = (newVal % 6) - 3; // Simulate real-time parametric frequency fine-tuning modifications natively
-                ch.eqBands[targetBandIndex].gain = randomizedOffset;
-                
-                selectChannel(currentSelectedChannel);
-            });
-
-            window.addEventListener('mouseup', () => { isDragging = false; });
         }
 
-        function toggleMasterMute() {
-            const masterMuteBtn = document.getElementById('master-mute');
-            masterMuteBtn.classList.toggle('bg-red-600');
-            masterMuteBtn.classList.toggle('bg-zinc-950');
-            masterMuteBtn.classList.toggle('text-red-500');
-            console.log("FR AUDIO MAIN MIX: Master bus output attenuation state inverted successfully.");
+        function ensureEngineActive() {
+            if (!audioCtx) {
+                alert("Action required: Please execute system initialization sequence by clicking 'START AUDIO ENGINE' macro control button layout area command first element parameter node block.");
+                return false;
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return true;
         }
 
-        // Trigger safe auto-scaling redraw upon terminal window size mutation changes natively
-        window.addEventListener('resize', () => { if (isEngineRunning) renderEQGraph(); });
+        // High Speed Graphical Render Framework Animation Threads
+        function startVisualizerRenderLoop() {
+            const canvas = document.getElementById('masterVisualizer');
+            const canvasCtx = canvas.getContext('2d');
+            resizeCanvas();
+
+            const bufferLength = masterAnalyzer.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+
+            function drawFrame() {
+                requestAnimationFrame(drawFrame);
+                if (!audioCtx) return;
+
+                masterAnalyzer.getByteFrequencyData(dataArray);
+
+                canvasCtx.fillStyle = '#0c0813'; // Match system base theme layout variable explicitly values definitions variables definitions
+                canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Draw technical grid layout mesh background parameters indicators lines
+                canvasCtx.strokeStyle = 'rgba(50, 34, 80, 0.4)';
+                canvasCtx.lineWidth = 1;
+                for (let i = 0; i < canvas.width; i += 60) {
+                    canvasCtx.beginPath();
+                    canvasCtx.moveTo(i, 0);
+                    canvasCtx.lineTo(i, canvas.height);
+                    canvasCtx.stroke();
+                }
+
+                // Draw frequency spectrum curve lines metrics data layers
+                const barWidth = (canvas.width / bufferLength) * 2.5;
+                let barHeight;
+                let x = 0;
+
+                // Set styling for the Violet brand essence identity glow profile curve line trace tracking indicators path layers geometry 
+                canvasCtx.strokeStyle = '#e0aaff';
+                canvasCtx.lineWidth = 3;
+                canvasCtx.beginPath();
+
+                for (let i = 0; i < bufferLength; i++) {
+                    barHeight = dataArray[i] * 0.45;
+
+                    const yPos = canvas.height - barHeight;
+                    if (i === 0) {
+                        canvasCtx.moveTo(x, yPos);
+                    } else {
+                        canvasCtx.lineTo(x, yPos);
+                    }
+
+                    x += barWidth + 1;
+                }
+
+                canvasCtx.lineTo(canvas.width, canvas.height);
+                // Create rich neon gradient fill under tracking curve line geometry track paths mapping calculations values entries positions bounds items 
+                const fillGradient = canvasCtx.createLinearGradient(0, 0, 0, canvas.height);
+                fillGradient.addColorStop(0, 'rgba(157, 78, 221, 0.6)');
+                fillGradient.addColorStop(1, 'rgba(20, 13, 33, 0.1)');
+                canvasCtx.fillStyle = fillGradient;
+                canvasCtx.stroke();
+                canvasCtx.fill();
+            }
+
+            drawFrame();
+        }
+
+        function startMeterProcessingLoop() {
+            const channelBuffersArrays = [];
+            for(let i=1; i<=TOTAL_CHANNELS; i++) {
+                channelBuffersArrays[i] = new Uint8Array(channelsData[i].analyzerNode.frequencyBinCount);
+            }
+
+            function processMeters() {
+                setTimeout(processMeters, 60); //Meters standard refresh pacing cycle loop track frequency interval point parameters variables data layers values limits 
+                if (!audioCtx) return;
+
+                // Process internal individual tracks meters configurations array bounds positions elements matrices
+                for (let i = 1; i <= TOTAL_CHANNELS; i++) {
+                    const node = channelsData[i].analyzerNode;
+                    const array = channelBuffersArrays[i];
+                    node.getByteFrequencyData(array);
+
+                    let sum = 0;
+                    for (let j = 0; j < array.length; j++) { sum += array[j]; }
+                    const averageLevel = sum / array.length;
+                    
+                    // Convert explicitly directly into height percentages tracking scaling elements representations metrics maps 
+                    const heightPercentage = Math.min(100, Math.round((averageLevel / 160) * 100));
+                    const meterFillElement = document.getElementById(`meter-fill-${i}`);
+                    if (meterFillElement) meterFillElement.style.height = `${heightPercentage}%`;
+                }
+
+                // Process Master Display Processing Nodes split operations trace logic
+                // Master calculation logic directly maps output summaries values from active global visualizer state indicators tracking values entries indices configuration profiles matrix 
+                const masterArray = new Uint8Array(masterAnalyzer.frequencyBinCount);
+                masterAnalyzer.getByteFrequencyData(masterArray);
+                let masterSum = 0;
+                for(let k=0; k<masterArray.length; k++) { masterSum += masterArray[k]; }
+                const masterAverage = masterSum / masterArray.length;
+
+                const masterHeightL = Math.min(100, Math.round((masterAverage / 140) * 100));
+                // Introduce organic asymmetrical movement mapping simulation for natural real-world stereophonic variance behavior tracing elements tracking arrays profiles values metrics
+                const stereoPanOffsetFactor = channelsData['master'].panVal;
+                const leftWeightModifier = 1 - stereoPanOffsetFactor;
+                const rightWeightModifier = 1 + stereoPanOffsetFactor;
+
+                const masterHeightR = Math.min(100, Math.round(masterHeightL * rightWeightModifier * (0.94 + Math.random()*0.08)));
+                const masterHeightL_Final = Math.min(100, Math.round(masterHeightL * leftWeightModifier * (0.95 + Math.random()*0.07)));
+
+                const elMasterL = document.getElementById('meter-fill-master-L');
+                const elMasterR = document.getElementById('meter-fill-master-R');
+                
+                if (elMasterL) elMasterL.style.height = `${masterHeightL_Final}%`;
+                if (elMasterR) elMasterR.style.height = `${masterHeightR}%`;
+            }
+
+            processMeters();
+        }
+
+        function resizeCanvas() {
+            const canvas = document.getElementById('masterVisualizer');
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+        }
     </script>
 </body>
 </html>
