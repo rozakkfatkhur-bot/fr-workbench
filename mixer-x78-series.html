@@ -1,301 +1,600 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FR AUDIO X78 Series - Digital Performance Mixer</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;400;600&display=swap');
-        
+        :root {
+            --bg-dark: #121214;
+            --panel-gray: #1a1a1e;
+            --brand-violet: #7B2CBF;
+            --brand-violet-glow: #9D4EDD;
+            --brand-violet-dark: #3C096C;
+            --brand-white: #F8F9FA;
+            --text-muted: #8E9AAF;
+            --fader-track: #0a0a0c;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            user-select: none;
+        }
+
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #0f0c1b;
+            background-color: var(--bg-dark);
+            color: var(--brand-white);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
         }
-        .font-digital {
-            font-family: 'Orbitron', sans-serif;
+
+        /* Outer Chassis Mixer */
+        .mixer-chassis {
+            background: linear-gradient(145deg, #222, #111);
+            border: 4px solid #333;
+            border-radius: 12px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.8);
+            width: 1000px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
-        /* Custom Scrollbar for Mixer tracks if screen is small */
-        .mixer-container::-webkit-scrollbar {
-            height: 8px;
+
+        /* Header Mixer */
+        .mixer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--panel-gray);
+            padding: 10px 20px;
+            border-radius: 6px;
+            border-bottom: 2px solid var(--brand-violet);
         }
-        .mixer-container::-webkit-scrollbar-thumb {
-            background: #7c3aed;
+
+        .brand-title {
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            color: var(--brand-white);
+        }
+        .brand-title span {
+            color: var(--brand-violet-glow);
+        }
+
+        .model-series {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        /* SECTION 1: Fat Channel & FX Screen (Bagian Atas) */
+        .top-control-section {
+            display: grid;
+            grid-template-columns: 72% 27%;
+            gap: 1%;
+        }
+
+        /* Fat Channel (Sama seperti PreSonus tapi Violet) */
+        .fat-channel {
+            background: linear-gradient(to bottom, #1e1e24, #151518);
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 10px;
+        }
+
+        .fat-channel-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: var(--brand-violet-glow);
+            margin-bottom: 8px;
+            font-weight: bold;
+            border-bottom: 1px solid #2a2a30;
+            padding-bottom: 3px;
+        }
+
+        .fat-grid {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 5px;
+            text-align: center;
+        }
+
+        .fat-col {
+            background: rgba(0,0,0,0.2);
+            padding: 5px;
             border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
         }
-        /* Vertical Range Slider Styling (Faders) */
-        .fader-wrapper {
-            height: 280px;
+
+        .fat-col h4 {
+            font-size: 10px;
+            color: var(--brand-white);
+        }
+
+        /* LED Meter Visualizer (Ungu/Violet gradasi ke Putih) */
+        .led-meter {
+            width: 12px;
+            height: 90px;
+            background: #050505;
+            border-radius: 2px;
+            display: flex;
+            flex-direction: column-reverse;
+            padding: 2px;
+            gap: 1px;
+        }
+
+        .led-segment {
+            width: 100%;
+            height: 6px;
+            background: #222;
+        }
+
+        .led-segment.active-low { background: var(--brand-violet-dark); }
+        .led-segment.active-mid { background: var(--brand-violet); }
+        .led-segment.active-high { background: var(--brand-white); box-shadow: 0 0 4px #fff; }
+
+        /* Potensio / Knob */
+        .knob-container {
             position: relative;
+            width: 35px;
+            height: 35px;
         }
+
+        .knob {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: radial-gradient(circle, #444 30%, #222 70%);
+            border: 2px solid var(--brand-white);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            cursor: pointer;
+            transform: rotate(0deg);
+            transition: transform 0.1s linear;
+        }
+
+        .knob::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 50%;
+            width: 3px;
+            height: 10px;
+            background-color: var(--brand-violet-glow);
+            transform: translateX(-50%);
+            border-radius: 2px;
+        }
+
+        /* Digital FX Screen */
+        .fx-system-section {
+            background: #1a1a1e;
+            border-radius: 6px;
+            border: 1px solid #333;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .digital-display {
+            background: #0d001a;
+            border: 2px solid var(--brand-violet);
+            box-shadow: 0 0 10px rgba(123, 44, 191, 0.4);
+            height: 85px;
+            border-radius: 4px;
+            padding: 8px;
+            font-family: monospace;
+            color: var(--brand-white);
+            font-size: 11px;
+        }
+
+        .display-header {
+            border-bottom: 1px solid var(--brand-violet-dark);
+            padding-bottom: 3px;
+            margin-bottom: 5px;
+            color: var(--brand-violet-glow);
+            font-weight: bold;
+        }
+
+        .fx-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 4px;
+        }
+
+        /* Square Buttons */
+        .btn-sq {
+            background: linear-gradient(to bottom, #333, #222);
+            border: 1px solid #444;
+            color: #ccc;
+            font-size: 9px;
+            padding: 6px 2px;
+            border-radius: 3px;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .btn-sq.active {
+            background: var(--brand-violet);
+            color: #fff;
+            border-color: var(--brand-white);
+            box-shadow: 0 0 6px var(--brand-violet-glow);
+        }
+
+        /* SECTION 2: Fader & Channel Strip (Bagian Bawah) */
+        .fader-section {
+            background: #e5e5e5; /* Silver/White base essence dari foto asli */
+            border-radius: 6px;
+            padding: 15px 10px;
+            display: grid;
+            grid-template-columns: repeat(10, 1fr); /* 8 Ch + 1 YT Ch + 1 FX Ch */
+            gap: 8px;
+            border: 2px solid #ccc;
+        }
+
+        .channel-strip {
+            background: #f0f0f2;
+            border: 1px solid #d1d1d6;
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px 2px;
+            color: #222;
+        }
+
+        .channel-strip.special-ch {
+            background: #e2daf0; /* Sentuhan violet tipis untuk channel khusus */
+            border: 1px solid var(--brand-violet);
+        }
+
+        .ch-number {
+            font-weight: 800;
+            font-size: 13px;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .btn-select {
+            width: 85%;
+            padding: 4px 0;
+            background: #fff;
+            border: 1px solid #999;
+            font-size: 10px;
+            font-weight: bold;
+            border-radius: 3px;
+            cursor: pointer;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .btn-select.selected {
+            background: var(--brand-violet);
+            color: white;
+            border-color: var(--brand-violet-dark);
+        }
+
+        .btn-mute {
+            width: 60%;
+            padding: 3px 0;
+            background: #d9534f;
+            color: white;
+            border: none;
+            font-size: 9px;
+            font-weight: bold;
+            border-radius: 2px;
+            cursor: pointer;
+            margin-bottom: 12px;
+        }
+
+        .btn-mute.muted {
+            background: #222;
+            color: #555;
+        }
+
+        /* Fader Track & Handle */
+        .fader-track-container {
+            height: 180px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            margin-bottom: 8px;
+        }
+
+        .fader-scale {
+            position: absolute;
+            left: 2px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            font-size: 8px;
+            color: #666;
+            font-family: monospace;
+        }
+
         .fader-input {
             -webkit-appearance: none;
             appearance: none;
-            width: 8px;
+            width: 6px;
             height: 100%;
-            background: #e2e8f0;
-            border-radius: 4px;
+            background: var(--fader-track);
+            border-radius: 3px;
             outline: none;
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
+            transform: rotate(0deg); /* Tetap vertikal dengan penulisan input vertical */
+            writing-mode: bt-lr; /* Support vertical slider */
+            -webkit-appearance: slider-vertical;
         }
-        .fader-input::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 32px;
-            height: 48px;
-            background: #ffffff;
-            border: 2px solid #7c3aed;
-            border-radius: 4px;
+
+        /* Media Source Loader Area */
+        .source-loader {
+            width: 90%;
+            font-size: 8px;
+            margin-top: 5px;
+            text-align: center;
+        }
+
+        .source-loader input[type="file"] {
+            display: none;
+        }
+
+        .source-loader label {
+            display: block;
+            background: #333;
+            color: #fff;
+            padding: 2px 4px;
+            border-radius: 2px;
             cursor: pointer;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3);
-            transition: background 0.1s;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
-        .fader-input::-webkit-slider-thumb:hover {
-            background: #f5f3ff;
-        }
-        /* Violet Faders for YT & FX */
-        .fader-violet::-webkit-slider-thumb {
-            background: #7c3aed !important;
-            border: 2px solid #ffffff !important;
-        }
-        .fader-violet::-webkit-slider-thumb:hover {
-            background: #6d28d9 !important;
+
+        .yt-indicator {
+            font-size: 9px;
+            color: #cc0000;
+            font-weight: bold;
+            margin-top: 4px;
         }
     </style>
 </head>
-<body class="p-6 flex justify-center items-center min-h-screen text-slate-200">
+<body>
 
-    <div class="w-full max-w-7xl bg-slate-900 border-4 border-purple-900 rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+<div class="mixer-chassis">
+    
+    <div class="mixer-header">
+        <div class="brand-title">FR AUDIO <span>X78 SERIES</span></div>
+        <div class="model-series">Digital Performance & Web Streaming Mixer</div>
+    </div>
+
+    <div class="top-control-section">
         
-        <div class="p-4 bg-gradient-to-r from-slate-900 via-purple-950 to-slate-900 border-b-2 border-purple-800 grid grid-cols-12 gap-4 items-center">
-            <div class="col-span-3">
-                <h1 class="text-2xl font-black tracking-wider text-white flex items-center gap-2">
-                    <span class="bg-purple-600 text-white px-2 py-0.5 rounded text-sm">FR</span> AUDIO
-                </h1>
-                <p class="text-xs text-purple-300 font-semibold uppercase tracking-widest mt-0.5">X78 SERIES</p>
-                <span class="text-[10px] text-slate-400 block italic mt-1">The Violet and White Essence of Sound</span>
-            </div>
-
-            <div class="col-span-6 flex justify-around bg-slate-950/60 p-2 rounded-xl border border-purple-900/50">
-                <div class="text-center">
-                    <span class="text-[10px] text-slate-400 block uppercase font-bold mb-1">Gain</span>
-                    <div class="w-8 h-8 rounded-full border-2 border-purple-500 bg-slate-800 mx-auto flex items-center justify-center cursor-pointer hover:border-white transition">
-                        <div class="w-1 h-3 bg-white -mt-3 rounded-full transform rotate-45"></div>
+        <div class="fat-channel">
+            <div class="fat-channel-title">Selected Channel Gate / Comp / EQ Processing</div>
+            <div class="fat-grid">
+                <div class="fat-col">
+                    <h4>HPF</h4>
+                    <div class="knob-container"><div class="knob" data-param="hpf"></div></div>
+                    <button class="btn-sq">On</button>
+                </div>
+                <div class="fat-col">
+                    <h4>GATE THR</h4>
+                    <div class="knob-container"><div class="knob" data-param="gate"></div></div>
+                    <button class="btn-sq">On</button>
+                </div>
+                <div class="fat-col">
+                    <h4>COMP THR</h4>
+                    <div class="knob-container"><div class="knob" data-param="comp-thr"></div></div>
+                    <button class="btn-sq">On</button>
+                </div>
+                <div class="fat-col">
+                    <h4>RATIO</h4>
+                    <div class="knob-container"><div class="knob" data-param="ratio"></div></div>
+                    <button class="btn-sq">Auto</button>
+                </div>
+                <div class="fat-col">
+                    <h4>LOW EQ</h4>
+                    <div class="knob-container"><div class="knob" data-param="low-eq"></div></div>
+                    <button class="btn-sq">Shelf</button>
+                </div>
+                <div class="fat-col">
+                    <h4>MID Freq</h4>
+                    <div class="knob-container"><div class="knob" data-param="mid-f"></div></div>
+                    <button class="btn-sq">On</button>
+                </div>
+                <div class="fat-col">
+                    <h4>MID Gain</h4>
+                    <div class="knob-container"><div class="knob" data-param="mid-g"></div></div>
+                    <button class="btn-sq">Hi-Q</button>
+                </div>
+                <div class="fat-col">
+                    <h4>HIGH EQ</h4>
+                    <div class="knob-container"><div class="knob" data-param="high-eq"></div></div>
+                    <button class="btn-sq">Shelf</button>
+                </div>
+                <div class="fat-col">
+                    <h4>METERS L</h4>
+                    <div class="led-meter" id="meter-master-l">
+                        <div class="led-segment active-high"></div>
+                        <div class="led-segment active-mid"></div>
+                        <div class="led-segment active-mid"></div>
+                        <div class="led-segment active-low"></div>
+                        <div class="led-segment active-low"></div>
+                        <div class="led-segment active-low"></div>
                     </div>
                 </div>
-                <div class="text-center">
-                    <span class="text-[10px] text-slate-400 block uppercase font-bold mb-1">Gate</span>
-                    <div class="w-8 h-8 rounded-full border-2 border-purple-500 bg-slate-800 mx-auto flex items-center justify-center cursor-pointer hover:border-white transition">
-                        <div class="w-1 h-3 bg-purple-400 -mt-3 rounded-full transform -rotate-12"></div>
-                    </div>
-                </div>
-                <div class="text-center">
-                    <span class="text-[10px] text-slate-400 block uppercase font-bold mb-1">Comp</span>
-                    <div class="w-8 h-8 rounded-full border-2 border-purple-500 bg-slate-800 mx-auto flex items-center justify-center cursor-pointer hover:border-white transition">
-                        <div class="w-1 h-3 bg-white -mt-3 rounded-full transform rotate-90"></div>
-                    </div>
-                </div>
-                <div class="text-center">
-                    <span class="text-[10px] text-slate-400 block uppercase font-bold mb-1">EQ Low</span>
-                    <div class="w-8 h-8 rounded-full border-2 border-purple-500 bg-slate-800 mx-auto flex items-center justify-center cursor-pointer hover:border-white transition">
-                        <div class="w-1 h-3 bg-white -mt-3 rounded-full transform rotate-0"></div>
-                    </div>
-                </div>
-                <div class="text-center">
-                    <span class="text-[10px] text-slate-400 block uppercase font-bold mb-1">EQ Mid</span>
-                    <div class="w-8 h-8 rounded-full border-2 border-purple-500 bg-slate-800 mx-auto flex items-center justify-center cursor-pointer hover:border-white transition">
-                        <div class="w-1 h-3 bg-white -mt-3 rounded-full transform rotate-45"></div>
-                    </div>
-                </div>
-                <div class="text-center">
-                    <span class="text-[10px] text-slate-400 block uppercase font-bold mb-1">EQ High</span>
-                    <div class="w-8 h-8 rounded-full border-2 border-purple-500 bg-slate-800 mx-auto flex items-center justify-center cursor-pointer hover:border-white transition">
-                        <div class="w-1 h-3 bg-white -mt-3 rounded-full transform -rotate-45"></div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-span-3 bg-purple-950 border border-purple-500/40 p-2 rounded-lg font-digital shadow-inner">
-                <div class="flex justify-between text-[11px] text-purple-300 border-b border-purple-800 pb-1 mb-1">
-                    <span>DIGITAL EFFECTS</span>
-                    <span class="text-white">Page 1: FX View</span>
-                </div>
-                <div class="text-xs text-purple-200">
-                    <div class="flex justify-between py-0.5">
-                        <span>F1: Natural - AMBIENCE</span>
-                    </div>
-                    <div class="flex justify-between text-[11px] text-white bg-purple-900/60 px-1 rounded">
-                        <span>Decay (s)</span>
-                        <span class="text-green-400">0.29</span>
+                <div class="fat-col">
+                    <h4>METERS R</h4>
+                    <div class="led-meter" id="meter-master-r">
+                        <div class="led-segment active-high"></div>
+                        <div class="led-segment active-mid"></div>
+                        <div class="led-segment active-mid"></div>
+                        <div class="led-segment active-low"></div>
+                        <div class="led-segment active-low"></div>
+                        <div class="led-segment active-low"></div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="grid grid-cols-11 bg-slate-950 p-2 gap-1 border-b border-slate-800 text-center text-[10px] font-bold tracking-wider uppercase text-slate-400">
-            <div class="border-r border-slate-800/40">Ch 1 <span class="block text-[8px] text-purple-400">Live/File</span></div>
-            <div class="border-r border-slate-800/40">Ch 2 <span class="block text-[8px] text-purple-400">Live/File</span></div>
-            <div class="border-r border-slate-800/40">Ch 3 <span class="block text-[8px] text-purple-400">Live/File</span></div>
-            <div class="border-r border-slate-800/40">Ch 4 <span class="block text-[8px] text-purple-400">Live/File</span></div>
-            <div class="border-r border-slate-800/40">Ch 5 <span class="block text-[8px] text-purple-400">Live/File</span></div>
-            <div class="border-r border-slate-800/40">Ch 6 <span class="block text-[8px] text-purple-400">Live/File</span></div>
-            <div class="border-r border-slate-800/40">Ch 7 <span class="block text-[8px] text-purple-400">Live/File</span></div>
-            <div class="border-r border-slate-800/40">Ch 8 <span class="block text-[8px] text-purple-400">Live/File</span></div>
-            <div class="bg-purple-900/20 text-purple-300 border-x border-purple-700/40">Ch 9 <span class="block text-[8px] text-red-400"><i class="fab fa-youtube"></i> YouTube</span></div>
-            <div class="bg-purple-950 text-purple-300 border-r border-purple-700/40">Ch 10 <span class="block text-[8px] text-violet-400">FX Master</span></div>
-            <div class="text-white bg-slate-900">Main <span class="block text-[8px] text-amber-400">Master LR</span></div>
+        <div class="fx-system-section">
+            <div class="digital-display">
+                <div class="display-header">FX Processor - Page 1</div>
+                <div id="fx-name">F1 Violet Ambience</div>
+                <div id="fx-param">Decay: 2.4s / Mix: 45%</div>
+            </div>
+            <div class="fx-buttons">
+                <button class="btn-sq active">FX A</button>
+                <button class="btn-sq">FX B</button>
+                <button class="btn-sq">Tap</button>
+                <button class="btn-sq">Store</button>
+                <button class="btn-sq">Recall</button>
+                <button class="btn-sq">System</button>
+            </div>
         </div>
 
-        <div class="grid grid-cols-11 bg-slate-950 px-2 py-3 gap-1 border-b-2 border-slate-800 h-24">
-            <script>
-                for (let i = 1; i <= 11; i++) {
-                    let isSpecial = i === 9 ? 'bg-purple-950/50' : (i === 10 ? 'bg-purple-900/40' : (i === 11 ? 'bg-slate-900' : ''));
-                    document.write(`
-                        <div class="flex flex-col justify-end gap-0.5 h-full px-2 ${isSpecial} rounded-sm">
-                            <div class="h-1 bg-red-500 w-full rounded-sm opacity-30 animate-pulse"></div>
-                            <div class="h-2 bg-amber-500 w-full rounded-sm opacity-40"></div>
-                            <div class="h-3 bg-green-500 w-full rounded-sm"></div>
-                            <div class="h-4 bg-green-500 w-full rounded-sm"></div>
-                            <div class="h-4 bg-green-500 w-full rounded-sm opacity-80"></div>
-                        </div>
-                    `);
-                }
-            </script>
-        </div>
-
-        <div class="grid grid-cols-11 bg-gradient-to-b from-white via-slate-100 to-slate-200 text-slate-800 p-2 gap-1 items-stretch rounded-b-xl mixer-container overflow-x-auto">
-            
-            <script>
-                for (let ch = 1; ch <= 8; ch++) {
-                    document.write(`
-                        <div class="flex flex-col items-center bg-white/80 border border-slate-300 rounded-lg p-2 shadow-sm text-center">
-                            <div class="w-full flex flex-col gap-1 mb-3">
-                                <button onclick="triggerAction('Ch ${ch}', 'Mute')" class="bg-slate-200 hover:bg-red-500 hover:text-white transition rounded text-[10px] py-1 font-bold shadow-sm uppercase">Mute</button>
-                                <button onclick="triggerAction('Ch ${ch}', 'Select')" class="bg-purple-100 border border-purple-300 text-purple-700 hover:bg-purple-600 hover:text-white transition rounded text-[10px] py-1 font-bold shadow-sm uppercase">Select</button>
-                            </div>
-                            
-                            <div class="w-full flex flex-col gap-1 mb-4">
-                                <label class="bg-slate-800 text-white rounded text-[9px] py-0.5 px-1 font-semibold flex items-center justify-center gap-1 cursor-pointer hover:bg-slate-700">
-                                    <i class="fa-solid fa-upload text-[8px]"></i> Load
-                                    <input type="file" class="hidden" onchange="alert('File loaded to Channel ${ch}')">
-                                </label>
-                                <button onclick="triggerAction('Ch ${ch}', 'Live Toggle')" class="bg-emerald-600 text-white rounded text-[9px] py-0.5 px-1 font-semibold hover:bg-emerald-700"><i class="fa-solid fa-microphone"></i> Live</button>
-                            </div>
-
-                            <div class="fader-wrapper w-full flex justify-center my-2">
-                                <span class="absolute left-2 text-[9px] text-slate-400 font-bold flex flex-col justify-between h-full py-1">
-                                    <span>+10</span><span>0</span><span>-10</span><span>-30</span><span>-∞</span>
-                                </span>
-                                <input type="range" min="0" max="100" value="70" class="fader-input" orient="vertical" oninput="updateVolume('Ch ${ch}', this.value)">
-                            </div>
-
-                            <div class="mt-2 bg-slate-900 text-white font-bold text-xs px-3 py-1 rounded-md shadow-inner w-full font-digital">
-                                CH 0${ch}
-                            </div>
-                        </div>
-                    `);
-                }
-            </script>
-
-            <div class="flex flex-col items-center bg-purple-50 border-2 border-purple-400 rounded-lg p-2 shadow-md text-center">
-                <div class="w-full flex flex-col gap-1 mb-3">
-                    <button onclick="triggerAction('YouTube', 'Mute')" class="bg-purple-200 hover:bg-red-500 hover:text-white transition rounded text-[10px] py-1 font-bold shadow-sm uppercase">Mute</button>
-                    <button onclick="triggerAction('YouTube', 'Select')" class="bg-purple-600 text-white hover:bg-purple-700 transition rounded text-[10px] py-1 font-bold shadow-sm uppercase">Select</button>
-                </div>
-
-                <div class="w-full flex flex-col gap-1 mb-4">
-                    <button onclick="prompt('Enter YouTube URL:', 'https://youtube.com/...')" class="bg-red-600 text-white rounded text-[9px] py-1 px-1 font-semibold hover:bg-red-700 flex items-center justify-center gap-1">
-                        <i class="fab fa-youtube"></i> Load YT
-                    </button>
-                    <div class="bg-slate-300 text-slate-500 rounded text-[9px] py-0.5 px-1 font-bold select-none cursor-not-allowed uppercase" title="Live streaming disabled for YouTube channel">
-                        <i class="fa-solid fa-ban"></i> No Live
-                    </div>
-                </div>
-
-                <div class="fader-wrapper w-full flex justify-center my-2">
-                    <span class="absolute left-2 text-[9px] text-purple-400 font-bold flex flex-col justify-between h-full py-1">
-                        <span>+10</span><span>0</span><span>-10</span><span>-30</span><span>-∞</span>
-                    </span>
-                    <input type="range" min="0" max="100" value="80" class="fader-input fader-violet" orient="vertical" oninput="updateVolume('YouTube', this.value)">
-                </div>
-
-                <div class="mt-2 bg-purple-700 text-white font-bold text-xs px-2 py-1 rounded-md shadow-inner w-full font-digital">
-                    CH 09
-                </div>
-            </div>
-
-            <div class="flex flex-col items-center bg-purple-100 border-2 border-purple-300 rounded-lg p-2 shadow-md text-center">
-                <div class="w-full flex flex-col gap-1 mb-3">
-                    <button onclick="triggerAction('FX Master', 'Mute')" class="bg-purple-200 hover:bg-red-500 hover:text-white transition rounded text-[10px] py-1 font-bold shadow-sm uppercase">Mute</button>
-                    <button onclick="triggerAction('FX Master', 'Select')" class="bg-purple-700 text-white hover:bg-purple-800 transition rounded text-[10px] py-1 font-bold shadow-sm uppercase">Select</button>
-                </div>
-
-                <div class="w-full flex flex-col gap-1 mb-4 text-[9px] font-bold text-purple-800">
-                    <span class="block bg-white border border-purple-300 rounded py-0.5">FX AMT: 64%</span>
-                    <span class="block bg-white border border-purple-300 rounded py-0.5">REV-TIME</span>
-                </div>
-
-                <div class="fader-wrapper w-full flex justify-center my-2">
-                    <span class="absolute left-2 text-[9px] text-purple-400 font-bold flex flex-col justify-between h-full py-1">
-                        <span>+10</span><span>0</span><span>-10</span><span>-30</span><span>-∞</span>
-                    </span>
-                    <input type="range" min="0" max="100" value="50" class="fader-input fader-violet" orient="vertical" oninput="updateVolume('FX Master', this.value)">
-                </div>
-
-                <div class="mt-2 bg-purple-900 text-white font-bold text-xs px-2 py-1 rounded-md shadow-inner w-full font-digital">
-                    FX MAIN
-                </div>
-            </div>
-
-            <div class="flex flex-col items-center bg-slate-800 border-2 border-slate-900 rounded-lg p-2 shadow-lg text-center text-white">
-                <div class="w-full flex flex-col gap-1 mb-3">
-                    <button onclick="triggerAction('Main Master', 'Clear Solo')" class="bg-amber-600 hover:bg-amber-700 transition text-white rounded text-[9px] py-1 font-bold uppercase">CLR Solo</button>
-                    <button onclick="triggerAction('Main Master', 'Main Select')" class="bg-slate-700 text-white border border-slate-600 rounded text-[10px] py-1 font-bold uppercase">Select</button>
-                </div>
-
-                <div class="w-full flex flex-col gap-1 mb-4 text-[9px] font-bold text-center">
-                    <div class="bg-slate-950 text-red-500 rounded py-0.5 border border-red-900 animate-pulse">L - MAIN - R</div>
-                </div>
-
-                <div class="fader-wrapper w-full flex justify-center my-2">
-                    <span class="absolute left-2 text-[9px] text-slate-400 font-bold flex flex-col justify-between h-full py-1">
-                        <span>+10</span><span>0</span><span>-10</span><span>-30</span><span>-∞</span>
-                    </span>
-                    <input type="range" min="0" max="100" value="75" class="fader-input" orient="vertical" oninput="updateVolume('Main Master', this.value)">
-                </div>
-
-                <div class="mt-2 bg-amber-500 text-slate-950 font-black text-xs px-2 py-1 rounded-md w-full font-digital shadow-md">
-                    MAIN
-                </div>
-            </div>
-
-        </div>
     </div>
 
-    <div id="toast" class="fixed bottom-4 right-4 bg-purple-900 text-white text-xs px-4 py-2 rounded-lg shadow-lg opacity-0 transition-opacity duration-300 pointer-events-none">
-        Console Ready.
-    </div>
+    <div class="fader-section" id="mixer-strips">
+        </div>
 
-    <script>
-        function updateVolume(channel, value) {
-            console.log(`${channel} Volume set to: ${value}%`);
-            // Here you can tie Web Audio API GainNode values later.
-        }
+</div>
 
-        function triggerAction(channel, action) {
-            const toast = document.getElementById('toast');
-            toast.innerText = `${channel}: Action [${action}] Triggered`;
-            toast.classList.remove('opacity-0');
-            toast.classList.add('opacity-100');
+<script>
+    // Inisialisasi Kerangka Struktur Channel Strip
+    const mixerStripsContainer = document.getElementById('mixer-strips');
+    
+    // Spesifikasi Channel: 1-8 (Input), 9 (YT), 10 (FX)
+    const channelsConfig = [];
+    for(let i=1; i<=8; i++) channelsConfig.push({ id: i, type: 'input', name: `CH ${i}` });
+    channelsConfig.push({ id: 9, type: 'youtube', name: 'YT AUDIO' });
+    channelsConfig.push({ id: 10, type: 'fx', name: 'FX RTN' });
+
+    // Render HTML Channel Strip secara dinamis agar presisi sama tiap channelnya
+    channelsConfig.forEach(ch => {
+        const strip = document.createElement('div');
+        strip.className = `channel-strip ${ch.type !== 'input' ? 'special-ch' : ''}`;
+        
+        strip.innerHTML = `
+            <div class="ch-number">${ch.name}</div>
+            <button class="btn-select ${ch.id === 1 ? 'selected' : ''}" onclick="selectChannel(${ch.id})">Select</button>
+            <button class="btn-mute" onclick="toggleMute(this)">MUTE</button>
             
-            setTimeout(() => {
-                toast.classList.remove('opacity-100');
-                toast.classList.add('opacity-0');
-            }, 2000);
+            <div class="fader-track-container">
+                <div class="fader-scale">
+                    <span>+10</span><span>0</span><span>-10</span><span>-30</span><span>-∞</span>
+                </div>
+                <input type="range" class="fader-input" min="0" max="100" value="70" oninput="updateVolume(${ch.id}, this.value)">
+            </div>
+
+            <div class="led-meter" id="meter-ch-${ch.id}">
+                <div class="led-segment"></div><div class="led-segment"></div>
+                <div class="led-segment"></div><div class="led-segment"></div>
+                <div class="led-segment"></div><div class="led-segment"></div>
+            </div>
+
+            <div class="source-loader">
+                ${ch.type === 'input' ? `
+                    <label for="file-${ch.id}">Load Audio</label>
+                    <input type="file" id="file-${ch.id}" accept="audio/*" onchange="loadAudioTrack(${ch.id}, event)">
+                ` : ch.type === 'youtube' ? `
+                    <span class="yt-indicator">VOD/YT In</span>
+                ` : `
+                    <span style="font-size:8px; font-weight:bold; color:var(--brand-violet)">MASTER</span>
+                `}
+            </div>
+        `;
+        mixerStripsContainer.appendChild(strip);
+    });
+
+    // INTERAKTIFITAS & AUDIO ENGINE SIMULATOR
+    let selectedChannel = 1;
+
+    function selectChannel(chId) {
+        document.querySelectorAll('.btn-select').forEach(btn => btn.classList.remove('selected'));
+        event.target.classList.add('selected');
+        selectedChannel = chId;
+        console.log(`Channel ${chId} terpilih untuk Fat Channel processing.`);
+    }
+
+    function toggleMute(btn) {
+        btn.classList.toggle('muted');
+        if(btn.classList.contains('muted')) {
+            btn.innerText = "MUTED";
+        } else {
+            btn.innerText = "MUTE";
         }
-    </script>
+    }
+
+    function updateVolume(chId, value) {
+        // Logika kontrol fader volume terhubung ke sistem audio masa depan Anda
+        console.log(`Channel ${chId} volume diubah ke: ${value}%`);
+        simulateLedActivity(chId, value);
+    }
+
+    // Simulasi Gerakan LED VU Meter saat Fader digeser
+    function simulateLedActivity(chId, value) {
+        const meter = document.getElementById(`meter-ch-${chId}`);
+        const segments = meter.querySelectorAll('.led-segment');
+        const activeCount = Math.floor(value / 16);
+        
+        segments.forEach((seg, index) => {
+            seg.className = 'led-segment'; // Reset
+            if (index < activeCount) {
+                if(index < 3) seg.classList.add('active-low');
+                else if(index < 5) seg.classList.add('active-mid');
+                else seg.classList.add('active-high');
+            }
+        });
+    }
+
+    // Simulasi Memutar Knob Potensio Fat Channel dengan Drag mouse
+    document.querySelectorAll('.knob').forEach(knob => {
+        let isDragging = false;
+        let startY = 0;
+        let currentRotation = 0;
+
+        knob.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            startY = e.clientY;
+            document.body.style.cursor = 'ns-resize';
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            const deltaY = startY - e.clientY;
+            currentRotation = Math.min(Math.max(currentRotation + deltaY * 2, -150), 150);
+            knob.style.transform = `rotate(${currentRotation}deg)`;
+            startY = e.clientY;
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+            document.body.style.cursor = 'default';
+        });
+    });
+
+    function loadAudioTrack(chId, event) {
+        const file = event.target.files[0];
+        if (file) {
+            console.log(`File "${file.name}" berhasil di-load pada Input Channel ${chId}`);
+            // Di sini Anda bisa mengintegrasikannya dengan Web Audio API `createMediaElementSource`
+        }
+    }
+</script>
+
 </body>
 </html>
