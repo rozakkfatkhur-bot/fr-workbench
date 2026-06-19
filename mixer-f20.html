@@ -3,563 +3,604 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FR AUDIO F20F20 - 3D Digital Mixer & Video Processor</title>
+    <title>FR AUDIO F20 - 3D Digital Mixing Console</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { background-color: #0b0d11; color: #e2e8f0; font-family: system-ui, -apple-system, sans-serif; user-select: none; }
-        .fader-groove { background: linear-gradient(to right, #151f32, #020617, #151f32); box-shadow: inset 1px 1px 3px rgba(0,0,0,0.8); }
-        .fader-handle { cursor: grab; box-shadow: 0 4px 6px rgba(0,0,0,0.6), inset 0 1px 1px rgba(255,255,255,0.2); }
-        .fader-handle:active { cursor: grabbing; background-color: #cbd5e1; }
-        .led-meter-bg { background-color: #020617; box-shadow: inset 0 1px 3px rgba(0,0,0,0.9); }
-        .led-segment { width: 100%; height: 3px; margin-bottom: 1px; background-color: #1e293b; transition: background-color 0.05s ease; }
-        .led-green.active { background-color: #22c55e; box-shadow: 0 0 4px #22c55e; }
-        .led-yellow.active { background-color: #eab308; box-shadow: 0 0 4px #eab308; }
-        .led-red.active { background-color: #ef4444; box-shadow: 0 0 6px #ef4444; }
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+        body {
+            background-color: #0d0f12;
+            color: #e2e8f0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden;
+        }
+        /* 3D Console Perspective effect */
+        .console-perspective {
+            perspective: 1500px;
+            padding: 20px;
+        }
+        .console-chassis {
+            transform: rotateX(12deg);
+            transform-style: preserve-3d;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.8), inset 0 2px 5px rgba(255,255,255,0.1);
+            background: linear-gradient(180deg, #1e222b 0%, #11141a 100%);
+        }
+        /* Custom Scrollbar for Fader Sections */
+        .custom-scroll::-webkit-scrollbar {
+            height: 6px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 3px;
+        }
+        /* Fader Styling */
+        .fader-track {
+            background: linear-gradient(90deg, #000 0%, #222 50%, #000 100%);
+            width: 6px;
+            box-shadow: inset 0 0 4px #000;
+        }
+        .fader-knob {
+            background: linear-gradient(180deg, #e2e8f0 0%, #94a3b8 50%, #475569 51%, #cbd5e1 100%);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.6), inset 0 1px 1px #fff;
+            cursor: pointer;
+            transition: transform 0.05s linear;
+        }
+        .fader-knob::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: #ff0000;
+            transform: translateY(-50%);
+        }
+        /* LED Meter Glow */
+        .led-glow {
+            box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
+        }
     </style>
 </head>
-<body class="h-screen w-screen overflow-hidden flex flex-col justify-between p-2 select-none">
+<body>
 
-    <header class="bg-slate-950/90 border border-slate-800 p-3 rounded-t-xl flex justify-between items-center shadow-2xl">
-        <div class="flex items-center space-x-4">
-            <h1 class="text-2xl font-black tracking-widest text-slate-100 italic">FR AUDIO <span class="text-cyan-500 font-normal">F20F20</span></h1>
-            <span class="bg-slate-900 border border-slate-700 text-[10px] px-2 py-0.5 rounded text-cyan-400 font-mono tracking-wider animate-pulse">DSP ENGINE ONLINE</span>
-        </div>
-        <div class="flex items-center space-x-6 text-xs font-mono">
-            <div class="text-slate-400">SR: <span class="text-slate-200">48.0 kHz</span></div>
-            <div class="text-slate-400">STATUS: <span id="master-status" class="text-emerald-400 font-bold">ENGINE READY</span></div>
-        </div>
-    </header>
-
-    <main class="flex-1 grid grid-cols-12 gap-2 my-2 overflow-hidden h-[48vh]">
+<div class="w-full min-h-screen flex flex-col justify-between console-perspective">
+    
+    <div id="mixer-console" class="console-chassis w-full max-w-[1600px] mx-auto rounded-3xl border-2 border-[#2a2f3a] p-6 flex flex-col gap-6 relative">
         
-        <section class="col-span-8 bg-slate-950 border border-slate-800 rounded-xl p-3 flex flex-col justify-between relative shadow-2xl">
-            <div class="flex space-x-1 border-b border-slate-800 pb-2 text-xs font-mono font-bold">
-                <button onclick="switchTab('overview')" id="btn-overview" class="tab-btn px-4 py-2 rounded bg-cyan-600 text-white shadow">OVERVIEW</button>
-                <button onclick="switchTab('fx-rack')" id="btn-fx-rack" class="tab-btn px-4 py-2 rounded bg-slate-900 text-slate-400 hover:bg-slate-800">VOCAL FX RACK (30)</button>
-                <button onclick="switchTab('video-layer')" id="btn-video-layer" class="tab-btn px-4 py-2 rounded bg-slate-900 text-slate-400 hover:bg-slate-800">VIDEO DISPLAY (CH 21)</button>
+        <div class="grid grid-cols-12 gap-4">
+            
+            <div class="col-span-2 bg-[#161920] rounded-xl p-4 border border-[#232934] flex flex-col justify-between">
+                <div>
+                    <h1 class="text-3xl font-black tracking-widest text-slate-400">FR AUDIO</h1>
+                    <p class="text-xs font-bold text-cyan-400 tracking-widest">F20 DIGITAL SYSTEM</p>
+                </div>
+                <div class="bg-[#0f1116] p-3 rounded-lg border border-[#1e232d]">
+                    <span class="text-[10px] uppercase text-slate-500 block mb-1">Monitoring / Talkback</span>
+                    <div class="flex gap-2">
+                        <button onclick="initAudioContext()" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-xs font-bold rounded shadow-lg transition-all text-white w-full"><i class="fas fa-power-off mr-1"></i> ENGINE ACTIVE</button>
+                    </div>
+                </div>
             </div>
 
-            <div class="flex-1 mt-2 relative overflow-hidden bg-black/40 rounded-lg p-2 border border-slate-900">
-                
-                <div id="tab-overview" class="tab-content h-full grid grid-cols-12 gap-2">
-                    <div class="col-span-5 bg-slate-900/40 p-3 rounded-lg border border-slate-800 flex flex-col justify-between">
-                        <h3 class="text-cyan-400 text-xs font-mono mb-1 flex justify-between">
-                            <span>EQ GRAPHIC ANALYZER</span>
-                            <span class="text-[10px] text-slate-500">REALTIME</span>
+            <div class="col-span-5 bg-[#0a0c10] rounded-xl border-4 border-[#2c323f] p-4 flex flex-col relative overflow-hidden h-[300px]">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-2 mb-2 text-xs text-slate-400">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 height-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span id="current-channel-view">CH 01 - DEFAULT</span>
+                    </div>
+                    <div class="flex gap-4 font-mono">
+                        <span>FX RACK: ACTIVE</span>
+                        <span id="clock-display">12:00:00</span>
+                    </div>
+                </div>
+
+                <div class="flex-1 overflow-y-auto text-xs" id="display-content">
+                    <div id="view-home" class="grid grid-cols-3 gap-2 h-full">
+                        <div class="bg-[#12161f] p-2 rounded border border-slate-800">
+                            <span class="text-cyan-400 block font-bold mb-1">EQUALIZER</span>
+                            <div class="h-24 bg-[#090b10] rounded relative flex items-end justify-between p-1">
+                                <div class="w-2 bg-cyan-500 rounded-t" style="height: 60%"></div>
+                                <div class="w-2 bg-cyan-500 rounded-t" style="height: 40%"></div>
+                                <div class="w-2 bg-cyan-500 rounded-t" style="height: 75%"></div>
+                                <div class="w-2 bg-cyan-500 rounded-t" style="height: 30%"></div>
+                            </div>
+                        </div>
+                        <div class="bg-[#12161f] p-2 rounded border border-slate-800 flex flex-col justify-between">
+                            <div>
+                                <span class="text-amber-400 block font-bold mb-1">DYNAMICS</span>
+                                <p class="text-[10px] text-slate-400">Comp: Threshold -20dB</p>
+                                <p class="text-[10px] text-slate-400">Gate: Closed</p>
+                            </div>
+                            <button onclick="switchDisplayPage('fx')" class="w-full py-1 bg-slate-800 hover:bg-slate-700 rounded text-[10px] font-bold">OPEN FX CONFIG</button>
+                        </div>
+                        <div class="bg-[#12161f] p-2 rounded border border-slate-800 flex flex-col justify-between">
+                            <div>
+                                <span class="text-purple-400 block font-bold mb-1">INPUT ROUTING</span>
+                                <p class="text-[10px] text-slate-300">Source: File/Analog</p>
+                            </div>
+                            <button onclick="switchDisplayPage('video')" class="w-full py-1 bg-red-950 text-red-400 hover:bg-red-900 border border-red-800 rounded text-[10px] font-bold">VIEW VIDEO SCREEN</button>
+                        </div>
+                    </div>
+
+                    <div id="view-fx" class="hidden">
+                        <h3 class="text-amber-400 font-bold mb-2 flex justify-between items-center">
+                            <span><i class="fas fa-wave-square mr-1"></i> VOCAL EFFECTS RACK (30 PRESETS)</span>
+                            <span class="text-[10px] text-slate-400">Motorized Automation Engine</span>
                         </h3>
-                        <canvas id="eq-canvas" class="w-full flex-1 bg-slate-950 rounded border border-slate-900"></canvas>
-                    </div>
-                    <div class="col-span-4 bg-slate-900/40 p-3 rounded-lg border border-slate-800 flex flex-col justify-between">
-                        <h3 class="text-purple-400 text-xs font-mono mb-1">EFFECTS PARAMETERS (CH 22)</h3>
-                        <div class="flex-1 bg-slate-950 p-2 rounded text-xs font-mono space-y-2 border border-slate-900">
-                            <div><span class="text-slate-500">FX Type:</span> <span id="fx-display-name" class="text-purple-300">Default Reverb</span></div>
-                            <div>
-                                <label class="text-[10px] text-slate-400 block mb-1">REVERB TIME / DELAY TIME</label>
-                                <input type="range" min="0" max="1" step="0.01" value="0.5" id="fx-param-time" oninput="updateFxParams()" class="w-full accent-purple-500 bg-slate-800 rounded">
+                        <div class="grid grid-cols-3 gap-2 max-h-[220px] overflow-y-auto pr-1" id="fx-presets-container">
                             </div>
-                            <div>
-                                <label class="text-[10px] text-slate-400 block mb-1">FX MIX (WET/DRY)</label>
-                                <input type="range" min="0" max="1" step="0.01" value="0.7" id="fx-param-mix" oninput="updateFxParams()" class="w-full accent-purple-500 bg-slate-800 rounded">
-                            </div>
-                        </div>
                     </div>
-                    <div class="col-span-3 bg-slate-900/40 p-3 rounded-lg border border-slate-800 flex flex-col justify-between">
-                        <h3 class="text-amber-500 text-xs font-mono mb-1">ROUTING MATRIX</h3>
-                        <div class="flex-1 bg-slate-950 p-2 rounded text-[10px] font-mono text-slate-400 space-y-1 overflow-y-auto border border-slate-900">
-                            <p class="text-cyan-400 font-bold">IN 1-20: <span class="text-slate-300">Live Audio Input</span></p>
-                            <p class="text-amber-400 font-bold">IN 21: <span class="text-slate-300">YouTube / Vid Source</span></p>
-                            <p class="text-purple-400 font-bold">IN 22: <span class="text-slate-300">Active FX Return</span></p>
-                            <p class="text-emerald-400 font-bold">OUT 23-24: <span class="text-slate-300">Master Out L/R</span></p>
+
+                    <div id="view-video" class="hidden h-full flex flex-col justify-between">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-red-500 font-bold"><i class="fab fa-youtube mr-1"></i> CH 21 SCREEN CINEMATIC</span>
+                            <button onclick="switchDisplayPage('home')" class="text-[10px] bg-slate-800 px-2 py-0.5 rounded">Kembali</button>
+                        </div>
+                        <div class="flex-1 bg-black rounded border border-slate-800 flex items-center justify-center relative overflow-hidden" id="video-render-zone">
+                            <p class="text-slate-500 text-center text-[11px]">Belum ada video atau link YouTube dimuat.<br>Masukkan data dari Channel Strip 21.</p>
                         </div>
                     </div>
                 </div>
 
-                <div id="tab-fx-rack" class="tab-content hidden h-full flex flex-col">
-                    <div class="text-xs font-mono text-purple-400 mb-2 font-bold flex justify-between items-center">
-                        <span>30 STUDIO VOCAL PRESETS (MOTORIZED FADER AUTOMATION LINKED)</span>
-                        <span class="text-[10px] text-slate-500">Click to Trigger Auto-Fader</span>
-                    </div>
-                    <div class="flex-1 grid grid-cols-5 gap-1.5 overflow-y-auto pr-1" id="fx-grid">
-                        </div>
+                <div class="flex gap-1 mt-2 border-t border-slate-800 pt-2">
+                    <button onclick="switchDisplayPage('home')" class="flex-1 py-1 bg-[#1c212c] hover:bg-[#282f3f] rounded font-bold text-[11px] text-slate-300 transition-colors">HOME</button>
+                    <button onclick="switchDisplayPage('fx')" class="flex-1 py-1 bg-[#1c212c] hover:bg-[#282f3f] rounded font-bold text-[11px] text-slate-300 transition-colors">VOCAL FX</button>
+                    <button onclick="switchDisplayPage('video')" class="flex-1 py-1 bg-[#1c212c] hover:bg-[#282f3f] rounded font-bold text-[11px] text-slate-300 transition-colors">VIDEO DISPLAY</button>
                 </div>
+            </div>
 
-                <div id="tab-video-layer" class="tab-content hidden w-full h-full bg-slate-950 rounded-lg flex flex-col justify-center items-center relative overflow-hidden border border-slate-800">
-                    <div id="video-wrapper" class="w-full h-full flex justify-center items-center text-xs font-mono text-slate-500">
-                        <p class="animate-pulse">Belum ada media video yang di-load pada Channel 21</p>
+            <div class="col-span-3 bg-[#161920] rounded-xl p-4 border border-[#232934] grid grid-cols-4 gap-2">
+                <div class="text-center">
+                    <span class="text-[9px] uppercase tracking-wider text-slate-400 block mb-1">Gain</span>
+                    <input type="range" class="accent-cyan-500 w-full h-1 bg-slate-900 rounded" min="0" max="2" step="0.1" value="1">
+                    <span class="text-[10px] font-mono block mt-1 text-slate-400">0.0dB</span>
+                </div>
+                <div class="text-center">
+                    <span class="text-[9px] uppercase tracking-wider text-slate-400 block mb-1">Gate Thresh</span>
+                    <input type="range" class="accent-orange-500 w-full h-1 bg-slate-900 rounded" min="-60" max="0" value="-45">
+                    <span class="text-[10px] font-mono block mt-1 text-slate-400">-45dB</span>
+                </div>
+                <div class="text-center">
+                    <span class="text-[9px] uppercase tracking-wider text-slate-400 block mb-1">Comp Rat</span>
+                    <input type="range" class="accent-purple-500 w-full h-1 bg-slate-900 rounded" min="1" max="10" value="3">
+                    <span class="text-[10px] font-mono block mt-1 text-slate-400">3.0:1</span>
+                </div>
+                <div class="text-center">
+                    <span class="text-[9px] uppercase tracking-wider text-slate-400 block mb-1">Pan</span>
+                    <input type="range" class="accent-emerald-500 w-full h-1 bg-slate-900 rounded" min="-1" max="1" step="0.1" value="0">
+                    <span class="text-[10px] font-mono block mt-1 text-slate-400">C</span>
+                </div>
+            </div>
+
+            <div class="col-span-2 bg-[#161920] rounded-xl p-3 border border-[#232934] flex flex-col justify-between">
+                <div class="grid grid-cols-4 gap-1">
+                    <button class="bg-amber-600 w-full h-6 rounded text-[9px] font-bold shadow border border-amber-500 text-black">MUTE ALL</button>
+                    <button class="bg-slate-800 w-full h-6 rounded text-[9px] font-bold border border-slate-700">SOLO CLR</button>
+                    <button class="bg-slate-800 w-full h-6 rounded text-[9px] font-bold border border-slate-700">TALK</button>
+                    <button class="bg-red-600 w-full h-6 rounded text-[9px] font-bold border border-red-500 text-white animate-pulse">REC</button>
+                </div>
+                <div class="bg-[#0f1116] p-2 rounded border border-slate-800 mt-2">
+                    <span class="text-[9px] block text-slate-400 font-bold mb-1"><i class="fas fa-layer-group mr-1"></i>BANK SELECT</span>
+                    <div class="grid grid-cols-2 gap-1 text-[10px]">
+                        <button onclick="switchBank(0)" id="btn-bank-0" class="py-1 bg-cyan-600 text-white font-bold rounded">CH 1 - 8</button>
+                        <button onclick="switchBank(8)" id="btn-bank-1" class="py-1 bg-slate-800 text-slate-400 font-bold rounded">CH 9 - 16</button>
+                        <button onclick="switchBank(16)" id="btn-bank-2" class="py-1 bg-slate-800 text-slate-400 font-bold rounded">CH 17 - 22</button>
+                        <button class="py-1 bg-purple-950 text-purple-400 font-bold rounded border border-purple-800">MAIN LR</button>
                     </div>
                 </div>
             </div>
-        </section>
+        </div>
 
-        <section class="col-span-4 bg-slate-900 border border-slate-800 rounded-xl p-3 flex flex-col justify-between shadow-2xl">
-            <div class="text-xs font-mono text-slate-400 border-b border-slate-800 pb-2 flex justify-between">
-                <span>CHANNEL STRIP PARAMETERS</span>
-                <span id="selected-ch-title" class="text-cyan-400 font-bold">CH 1 SELECTED</span>
-            </div>
+        <div class="grid grid-cols-10 gap-3 bg-[#13161d] p-4 rounded-2xl border border-[#202633] shadow-inner">
             
-            <div class="grid grid-cols-3 gap-2 my-auto py-4">
-                <div class="text-center">
-                    <label class="text-[10px] text-slate-500 font-mono block mb-1">GAIN</label>
-                    <div class="w-14 h-14 bg-slate-950 rounded-full mx-auto border-2 border-slate-700 flex items-center justify-center text-xs font-mono font-bold text-cyan-400 shadow-inner cursor-pointer hover:border-cyan-500 transition-all">0dB</div>
+            <div id="channel-strips-container" class="col-span-8 grid grid-cols-8 gap-2 transition-all">
                 </div>
-                <div class="text-center">
-                    <label class="text-[10px] text-slate-500 font-mono block mb-1">PAN</label>
-                    <div class="w-14 h-14 bg-slate-950 rounded-full mx-auto border-2 border-slate-700 flex items-center justify-center text-xs font-mono font-bold text-slate-300 shadow-inner cursor-pointer hover:border-slate-500 transition-all">CENTER</div>
+
+            <div class="col-span-2 grid grid-cols-2 gap-2 border-l-2 border-slate-800 pl-3">
+                <div class="bg-[#171a22] rounded-xl p-2 flex flex-col justify-between border border-[#2a303d] relative">
+                    <div class="text-center border-b border-slate-800 pb-1">
+                        <div class="w-full h-1.5 rounded-full bg-cyan-500 mb-1"></div>
+                        <span class="text-[11px] font-black text-cyan-400 block">MAIN L</span>
+                        <span class="text-[8px] text-slate-500 block">CH 23</span>
+                    </div>
+                    <div class="w-full h-16 bg-black rounded flex gap-0.5 p-0.5 items-end overflow-hidden">
+                        <div id="meter-ch23-1" class="w-full h-0 bg-emerald-500 transition-all duration-75"></div>
+                        <div id="meter-ch23-2" class="w-full h-0 bg-emerald-500 transition-all duration-75"></div>
+                    </div>
+                    <div class="flex-1 flex flex-col items-center justify-center my-4 relative h-[220px]">
+                        <div class="fader-track h-full rounded relative">
+                            <div id="fader-knob-22" class="fader-knob absolute left-1/2 -translate-x-1/2 w-8 h-10 rounded border border-slate-400" style="bottom: 70%;"></div>
+                        </div>
+                    </div>
+                    <div class="text-center font-mono text-[10px] text-cyan-400 font-bold">0.0 dB</div>
                 </div>
-                <div class="text-center">
-                    <label class="text-[10px] text-slate-500 font-mono block mb-1">FX SEND</label>
-                    <div class="w-14 h-14 bg-slate-950 rounded-full mx-auto border-2 border-slate-700 flex items-center justify-center text-xs font-mono font-bold text-purple-400 shadow-inner cursor-pointer hover:border-purple-500 transition-all">-12dB</div>
+
+                <div class="bg-[#171a22] rounded-xl p-2 flex flex-col justify-between border border-[#2a303d] relative">
+                    <div class="text-center border-b border-slate-800 pb-1">
+                        <div class="w-full h-1.5 rounded-full bg-cyan-500 mb-1"></div>
+                        <span class="text-[11px] font-black text-cyan-400 block">MAIN R</span>
+                        <span class="text-[8px] text-slate-500 block">CH 24</span>
+                    </div>
+                    <div class="w-full h-16 bg-black rounded flex gap-0.5 p-0.5 items-end overflow-hidden">
+                        <div id="meter-ch24-1" class="w-full h-0 bg-emerald-500 transition-all duration-75"></div>
+                        <div id="meter-ch24-2" class="w-full h-0 bg-emerald-500 transition-all duration-75"></div>
+                    </div>
+                    <div class="flex-1 flex flex-col items-center justify-center my-4 relative h-[220px]">
+                        <div class="fader-track h-full rounded relative">
+                            <div id="fader-knob-23" class="fader-knob absolute left-1/2 -translate-x-1/2 w-8 h-10 rounded border border-slate-400" style="bottom: 70%;"></div>
+                        </div>
+                    </div>
+                    <div class="text-center font-mono text-[10px] text-cyan-400 font-bold">0.0 dB</div>
                 </div>
             </div>
 
-            <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800 text-[11px] font-mono leading-relaxed text-slate-400">
-                <p><span class="text-amber-500 font-bold">INFO OPERASIONAL:</span> Sistem memproses data audio biner asli via <span class="text-slate-200">Web Audio API Pipeline</span>. Ketika memuat file audio, aliran data masuk ke simpul DSP internal.</p>
-            </div>
-        </section>
-    </main>
+        </div>
 
-    <footer class="bg-slate-950 border border-slate-800 rounded-b-xl p-2 overflow-x-auto flex space-x-1.5 h-[44vh] max-w-full shadow-2xl">
-        <div id="mixer-strips-container" class="flex space-x-1.5 h-full"></div>
-    </footer>
+        <div class="w-full h-5 rounded-b-xl" style="background: linear-gradient(to bottom, #8B4513, #5C2E0B); box-shadow: 0 4px 10px rgba(0,0,0,0.9);"></div>
+    </div>
+</div>
 
-    <div class="h-4 w-full bg-amber-950 rounded-b-xl" style="background: linear-gradient(to bottom, #78350f, #451a03); box-shadow: inset 0 2px 4px rgba(0,0,0,0.8), 0 4px 10px rgba(0,0,0,0.5);"></div>
+<script>
+    // Audio Context & Routing Elements
+    let audioCtx = null;
+    let currentBankOffset = 0;
+    
+    // Array Data Storage for 24 channels
+    const totalChannels = 24;
+    const channelsData = [];
 
-    <script>
-        // 1. SETUP GLOBAL AUDIO CONTEXT & DSP NODES
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        let audioCtx;
-        let analyserNode;
-        const channels = {};
-        const totalChannels = 24;
-        let selectedChannel = 1;
+    // Vocal Effect Engine Presets Architecture (30 Custom Vocal Effects Map)
+    const vocalPresets = Array.from({ length: 30 }, (_, i) => ({
+        id: i + 1,
+        name: [
+            "Studio Clean Lead", "Warm Vintage Tube", "Plate Reverb Deep", "Hall Arena Live", "Chamber Orchestra",
+            "Crisp Pop Radio", "Slapback Delay 60s", "Stereo Widener Ultra", "Heavy Compressor Vox", "De-Esser Smooth",
+            "Sub-Harmonic Pitch", "Robot Vocoder Mod", "Telephone Lo-Fi Vox", "Tunnel Resonance", "Double Tracking FX",
+            "Gospel Chorus Wide", "Intense Distortion Vocal", "Ethereal Ambient Space", "Bright Acoustic Venue", "Heavy Gate Rap Vox",
+            "Whisper Enhancer", "Mega Megaphone", "Exciter Air Highs", "Radio Broadcast Master", "Dynamic Ducking Delay",
+            "Cybernetic Phase", "Detuned Chorus Harmonics", "Saturated Analog Warmth", "Dry Pro Session Mixer", "Ultimate Stadium Echo"
+        ][i] || `Vocal Preset Custom ${i+1}`,
+        faderSettings: Array.from({ length: 24 }, () => Math.floor(Math.random() * 60) + 20) // Simulated physical automation response
+    }));
 
-        // 30 High-End Vocal Effects Mockup Data with Automation Mapping
-        const fxPresets = [
-            { id: 1, name: "Studio Plate Reverb", type: "reverb", time: 0.7, mix: 0.5 },
-            { id: 2, name: "Warm Concert Hall", type: "reverb", time: 0.85, mix: 0.6 },
-            { id: 3, name: "Vocal Slapback Delay", type: "delay", time: 0.15, mix: 0.4 },
-            { id: 4, name: "Stereo Echo Room", type: "delay", time: 0.45, mix: 0.5 },
-            { id: 5, name: "Crisp Chorus Vocal", type: "chorus", time: 0.3, mix: 0.45 },
-            { id: 6, name: "Cathedral Deep Space", type: "reverb", time: 0.95, mix: 0.75 },
-            { id: 7, name: "Vintage Tape Delay", type: "delay", time: 0.35, mix: 0.4 },
-            { id: 8, name: "Intimate Stage Room", type: "reverb", time: 0.4, mix: 0.35 },
-            { id: 9, name: "Bright Vocal Doubler", type: "chorus", time: 0.2, mix: 0.6 },
-            { id: 10, name: "Ping-Pong Stereo Delay", type: "delay", time: 0.6, mix: 0.5 },
-            { id: 11, name: "Gated Reverb Snare Style", type: "reverb", time: 0.25, mix: 0.7 },
-            { id: 12, name: "Analog Long Delay Line", type: "delay", time: 0.8, mix: 0.45 },
-            { id: 13, name: "Subtle Room Ambiance", type: "reverb", time: 0.2, mix: 0.2 },
-            { id: 14, name: "Lush Pitch Detune Shift", type: "chorus", time: 0.5, mix: 0.5 },
-            { id: 15, name: "Quarter Note Sync Echo", type: "delay", time: 0.5, mix: 0.65 },
-            { id: 16, name: "Arena Stadium Echo", type: "reverb", time: 0.9, mix: 0.55 },
-            { id: 17, name: "Dense Chamber Echo", type: "reverb", time: 0.65, mix: 0.5 },
-            { id: 18, name: "Fast Slap Delay FX", type: "delay", time: 0.08, mix: 0.5 },
-            { id: 19, name: "Thick Vocal Harmonizer", type: "chorus", time: 0.4, mix: 0.7 },
-            { id: 20, name: "Dark Room Simulation", type: "reverb", time: 0.55, mix: 0.3 },
-            { id: 21, name: "Modulated Sweeping Echo", type: "delay", time: 0.5, mix: 0.5 },
-            { id: 22, name: "Shimmering High Reverb", type: "reverb", time: 0.8, mix: 0.6 },
-            { id: 23, name: "Robotic Metallic FX", type: "chorus", time: 0.1, mix: 0.8 },
-            { id: 24, name: "Infinite Space Feedback", type: "delay", time: 0.95, mix: 0.7 },
-            { id: 25, name: "Broadcast Vocal Compressor", type: "reverb", time: 0.3, mix: 0.25 },
-            { id: 26, name: "Garage Grunge Delay", type: "delay", time: 0.4, mix: 0.6 },
-            { id: 27, name: "Whistling Multi-Tap Echo", type: "delay", time: 0.7, mix: 0.5 },
-            { id: 28, name: "Symphonic Ensemble Depth", type: "chorus", time: 0.6, mix: 0.6 },
-            { id: 29, name: "Haas Effect Delay Widener", type: "delay", time: 0.03, mix: 0.8 },
-            { id: 30, name: "Ultimate Vocal Main Final", type: "reverb", time: 0.6, mix: 0.45 }
-        ];
+    // Initialize Channels Memory Models
+    for (let i = 0; i < totalChannels; i++) {
+        let chName = `CH ${String(i + 1).padStart(2, '0')}`;
+        if (i === 20) chName = "CH 21 - VIDEO/YT";
+        if (i === 21) chName = "CH 22 - FX RACK";
+        if (i === 22) chName = "MAIN OUT L";
+        if (i === 23) chName = "MAIN OUT R";
 
-        // Mempersiapkan titik otomatisasi fader acak per-preset efek
-        fxPresets.forEach(preset => {
-            preset.faderAutomations = {};
-            for(let c = 1; c <= totalChannels; c++) {
-                preset.faderAutomations[c] = Math.floor(Math.random() * 75) + 15; // Target Posisi Fader 15% - 90%
-            }
+        channelsData.push({
+            id: i,
+            name: chName,
+            volume: i >= 22 ? 70 : 50, // default volume position level
+            muted: false,
+            solo: false,
+            selected: i === 0,
+            hasFile: false,
+            audioNode: null,
+            gainNode: null
         });
+    }
 
-        // Inisialisasi Audio Engine atas interaksi pertama user
-        function initAudioEngine() {
-            if (!audioCtx) {
-                audioCtx = new AudioContext();
-                analyserNode = audioCtx.createAnalyser();
-                analyserNode.fftSize = 64;
-                analyserNode.connect(audioCtx.destination);
-                
-                setupHardwareRoutingTable();
-                drawEQCurve();
-            }
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
-        }
-
-        function setupHardwareRoutingTable() {
-            // Setup CH 23 & 24 (MASTER OUT L / R)
-            channels[23] = { gainNode: audioCtx.createGain() };
-            channels[24] = { gainNode: audioCtx.createGain() };
-            channels[23].gainNode.connect(analyserNode);
-            channels[24].gainNode.connect(analyserNode);
-
-            // Setup CH 22 (GLOBAL RACK EFFECT DSP RETURN)
-            const reverbNode = audioCtx.createBiquadFilter();
-            reverbNode.type = "peaking";
-            reverbNode.frequency.setValueAtTime(1000, audioCtx.currentTime);
-            reverbNode.Q.setValueAtTime(1.0, audioCtx.currentTime);
-            reverbNode.gain.setValueAtTime(6, audioCtx.currentTime);
+    // Initialize Web Audio Engine Context
+    function initAudioContext() {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            console.log("Web Audio Core Processor Engine Initialized for FR AUDIO F20 Console Grid.");
             
-            const fxGain = audioCtx.createGain();
-            reverbNode.connect(fxGain);
-            fxGain.connect(channels[23].gainNode);
-            fxGain.connect(channels[24].gainNode);
-
-            channels[22] = { gainNode: fxGain, dspEffectNode: reverbNode };
-        }
-
-        // 2. GENERATE STRIPS HARDWARE PER CHANNEL (1 SAMPAI 24)
-        const stripsContainer = document.getElementById('mixer-strips-container');
-        
-        for (let ch = 1; ch <= totalChannels; ch++) {
-            let stripBorder = "border-slate-800";
-            let channelLabel = `CH ${ch}`;
-            let bgBadge = "bg-black/60 text-slate-400";
-
-            if (ch === 21) { channelLabel = "CH 21 (VID)"; stripBorder = "border-amber-600/60"; bgBadge = "bg-amber-950 text-amber-400 font-bold"; }
-            if (ch === 22) { channelLabel = "CH 22 (FX)"; stripBorder = "border-purple-600/60"; bgBadge = "bg-purple-950 text-purple-400 font-bold"; }
-            if (ch === 23) { channelLabel = "MAIN L"; stripBorder = "border-cyan-600/60"; bgBadge = "bg-cyan-950 text-cyan-400 font-bold"; }
-            if (ch === 24) { channelLabel = "MAIN R"; stripBorder = "border-cyan-600/60"; bgBadge = "bg-cyan-950 text-cyan-400 font-bold"; }
-
-            const stripElement = document.createElement('div');
-            stripElement.id = `strip-${ch}`;
-            stripElement.className = `w-[76px] bg-slate-900 border-2 ${stripBorder} rounded-lg flex flex-col justify-between p-1 text-center shrink-0 shadow-lg`;
-            stripElement.onclick = () => selectChannelStrip(ch);
-
-            stripElement.innerHTML = `
-                <div class="text-[9px] font-mono py-0.5 rounded truncate ${bgBadge}">${channelLabel}</div>
-                
-                <div class="my-1">
-                    ${ch <= 20 ? `
-                        <label class="text-[9px] bg-slate-950 hover:bg-slate-800 text-cyan-400 font-mono font-bold block p-1 rounded border border-slate-800 cursor-pointer transition-colors truncate">
-                            LOAD AUDIO
-                            <input type="file" accept="audio/*" class="hidden" onchange="processLocalAudioNode(event, ${ch})">
-                        </label>
-                    ` : ch === 21 ? `
-                        <button onclick="triggerVideoPrompt()" class="text-[9px] bg-amber-900/40 hover:bg-amber-900/80 text-amber-300 font-mono font-bold block w-full p-1 rounded border border-amber-800 transition-all">LOAD VID</button>
-                    ` : `<div class="h-[21px]"></div>`}
-                </div>
-
-                <div id="vu-meter-${ch}" class="w-2.5 h-16 mx-auto rounded flex flex-col justify-between p-0.5 led-meter-bg">
-                    ${Array.from({length: 12}, (_, i) => {
-                        let colorClass = "led-green";
-                        if(i < 3) colorClass = "led-red";
-                        else if(i < 5) colorClass = "led-yellow";
-                        return `<div class="led-segment ${colorClass} id="led-${ch}-${i}"></div>`;
-                    }).join('')}
-                </div>
-
-                <div class="flex-1 relative my-3 flex justify-center h-28">
-                    <div class="w-2 h-full fader-groove rounded-full relative">
-                        <div id="fader-cap-${ch}" 
-                             class="fader-handle absolute left-1/2 -translate-x-1/2 w-7 h-5 bg-slate-400 rounded border border-slate-950 flex flex-col justify-center items-center"
-                             style="bottom: 60%;"
-                             onmousedown="initiateFaderDrag(event, ${ch})">
-                            <div class="w-full h-[2px] bg-red-600"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-1 text-[9px] font-mono font-bold">
-                    <button id="btn-solo-${ch}" onclick="toggleHardwareSolo(event, ${ch})" class="bg-slate-950 border border-slate-800 py-0.5 rounded text-slate-500 hover:text-amber-500 transition-colors">S</button>
-                    <button id="btn-mute-${ch}" onclick="toggleHardwareMute(event, ${ch})" class="bg-slate-950 border border-slate-800 py-0.5 rounded text-slate-500 hover:text-rose-500 transition-colors">M</button>
-                </div>
-            `;
-            stripsContainer.appendChild(stripElement);
-        }
-
-        // 3. LOGIKA PEMROSESAN AUDIO ASLI (CORE DSP WEB AUDIO)
-        function processLocalAudioNode(event, chNum) {
-            initAudioEngine();
-            const selectedFile = event.target.files[0];
-            if (!selectedFile) return;
-
-            const fileReader = new FileReader();
-            fileReader.onload = function(e) {
-                audioCtx.decodeAudioData(e.target.result, function(decodedBuffer) {
-                    // Putus jalur koneksi node jika channel sudah memiliki stream sebelumnya
-                    if (channels[chNum] && channels[chNum].sourceNode) {
-                        try { channels[chNum].sourceNode.stop(); } catch(err){}
-                    }
-
-                    const srcNode = audioCtx.createBufferSource();
-                    srcNode.buffer = decodedBuffer;
-                    srcNode.loop = true;
-
-                    const chGainNode = audioCtx.createGain();
-                    
-                    // Routing Jalur Audio: Source -> Gain Node -> Master Bus Out L/R
-                    srcNode.connect(chGainNode);
-                    if(channels[23]) chGainNode.connect(channels[23].gainNode);
-                    if(channels[24]) chGainNode.connect(channels[24].gainNode);
-
-                    // Hubungkan juga ke modul efek global jika aktif
-                    if(channels[22]) chGainNode.connect(channels[22].dspEffectNode);
-
-                    channels[chNum] = { sourceNode: srcNode, gainNode: chGainNode, isPlaying: true };
-                    
-                    // Set level gain awal berdasarkan posisi fader cap saat ini
-                    const currentCapPos = parseFloat(document.getElementById(`fader-cap-${chNum}`).style.bottom);
-                    chGainNode.gain.setValueAtTime(currentCapPos / 100, audioCtx.currentTime);
-
-                    srcNode.start(0);
-                    activateLevelMeterAnalyser(chNum);
-                });
-            };
-            fileReader.readAsArrayBuffer(selectedFile);
-        }
-
-        // 4. PEMROSESAN LAYER VIDEO & YOUTUBE (CH 21)
-        function triggerVideoPrompt() {
-            initAudioEngine();
-            switchTab('video-layer');
-            const targetContainer = document.getElementById('video-wrapper');
-            const userInput = prompt("Masukkan Link Embed YouTube atau URL File Video Langsung (MP4/WebM):\nContoh: https://www.w3schools.com/html/mov_bbb.mp4");
-
-            if(userInput) {
-                if(userInput.includes("youtube.com") || userInput.includes("youtu.be")) {
-                    let finalEmbedUrl = userInput;
-                    if(userInput.includes("watch?v=")) {
-                        finalEmbedUrl = userInput.replace("watch?v=", "embed/");
-                    }
-                    targetContainer.innerHTML = `<iframe class="w-full h-full rounded-lg" src="${finalEmbedUrl}?autoplay=1&mute=1" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
-                } else {
-                    targetContainer.innerHTML = `<video id="ch21-video-core" class="w-full h-full object-contain bg-black rounded-lg" src="${userInput}" controls autoplay loop></video>`;
-                    
-                    // Hubungkan audio video ke Web Audio API routing jika sesama asal domain (CORS aman)
-                    setTimeout(() => {
-                        try {
-                            const videoEl = document.getElementById('ch21-video-core');
-                            const videoSrcNode = audioCtx.createMediaElementSource(videoEl);
-                            const vidGain = audioCtx.createGain();
-                            videoSrcNode.connect(vidGain);
-                            vidGain.connect(channels[23].gainNode);
-                            vidGain.connect(channels[24].gainNode);
-                            channels[21] = { gainNode: vidGain, sourceNode: videoSrcNode };
-                            activateLevelMeterAnalyser(21);
-                        } catch(e) {
-                            console.log("Video dialirkan di luar sandbox Web Audio Context (CORS policy). Audio langsung diputar via browser native.");
-                            activateLevelMeterAnalyser(21); // Tetap aktifkan mock analyzer visual
-                        }
-                    }, 1000);
-                }
-            }
-        }
-
-        // 5. INTERAKSI FADER MOTORIK & RETRIEVE POSISI DRAGGING
-        let activeDragCh = null;
-        let activeDragState = false;
-
-        function initiateFaderDrag(e, chNum) {
-            initAudioEngine();
-            activeDragState = true;
-            activeDragCh = chNum;
-            window.addEventListener('mousemove', processFaderMovement);
-            window.addEventListener('mouseup', terminateFaderDrag);
-        }
-
-        function processFaderMovement(e) {
-            if (!activeDragState || activeDragCh === null) return;
-            
-            const targetCap = document.getElementById(`fader-cap-${activeDragCh}`);
-            const trackGroove = targetCap.parentElement;
-            const boundaries = trackGroove.getBoundingClientRect();
-            
-            let calculatedPercent = ((boundaries.bottom - e.clientY) / boundaries.height) * 100;
-            calculatedPercent = Math.max(0, Math.min(100, calculatedPercent)); // Mengunci batas bawah 0% dan atas 100%
-
-            targetCap.style.bottom = `${calculatedPercent}%`;
-
-            // Konversi nilai fader persen langsung ke parameter Gain Audio asli
-            if (channels[activeDragCh] && channels[activeDragCh].gainNode) {
-                const calculatedGain = calculatedPercent / 100;
-                channels[activeDragCh].gainNode.gain.setValueAtTime(calculatedGain, audioCtx.currentTime);
-            }
-        }
-
-        function terminateFaderDrag() {
-            activeDragState = false;
-            activeDragCh = null;
-            window.removeEventListener('mousemove', processFaderMovement);
-            window.removeEventListener('mouseup', terminateFaderDrag);
-        }
-
-        // 6. MOTORIZED FX AUTOMATION (30 VOCAL RACK SELECTION)
-        const fxGridWrapper = document.getElementById('fx-grid');
-        fxPresets.forEach(preset => {
-            const itemBox = document.createElement('button');
-            itemBox.className = "bg-slate-950 border border-slate-800 p-2 rounded-lg text-left text-[11px] font-mono hover:bg-purple-950/40 hover:border-purple-600/60 transition-all group cursor-pointer";
-            itemBox.innerHTML = `
-                <div class="text-[9px] text-slate-500 group-hover:text-purple-400 transition-colors">STUDIO RACK P.${preset.id.toString().padStart(2,'0')}</div>
-                <div class="text-slate-200 font-bold truncate">${preset.name}</div>
-            `;
-            itemBox.onclick = () => applyVocalRackAutomation(preset);
-            fxGridWrapper.appendChild(itemBox);
-        });
-
-        function applyVocalRackAutomation(selectedPreset) {
-            document.getElementById('fx-display-name').innerText = selectedPreset.name;
-            document.getElementById('fx-param-time').value = selectedPreset.time;
-            document.getElementById('fx-param-mix').value = selectedPreset.mix;
-
-            // Trigger Efek DSP Filter Perubahan Frekuensi Aktual
-            if(channels[22] && channels[22].dspEffectNode) {
-                const targetFreq = 200 + (selectedPreset.time * 4000); // Variasi Frekuensi filter 200Hz - 4200Hz
-                channels[22].dspEffectNode.frequency.setValueAtTime(targetFreq, audioCtx.currentTime);
-            }
-
-            // AKSI OTOMATISASI FADER BERGERAK SENDIRI (MOTORIZED FADER MOVEMENT)
-            for (let ch = 1; ch <= totalChannels; ch++) {
-                const targetPos = selectedPreset.faderAutomations[ch];
-                const faderCap = document.getElementById(`fader-cap-${ch}`);
-                
-                if (faderCap) {
-                    // Transisi CSS Halus Mensimulasikan Motor Mixer Fisik yang Bergeser Sendiri
-                    faderCap.style.transition = "bottom 0.4s cubic-bezier(0.25, 1, 0.5, 1)";
-                    faderCap.style.bottom = `${targetPos}%`;
-                    
-                    // Hilangkan class transisi setelah animasi selesai agar tidak mengganggu kontrol drag manual
-                    setTimeout(() => { faderCap.style.transition = "none"; }, 450);
-
-                    // Ubah level gain audio asli secara linear
-                    if (channels[ch] && channels[ch].gainNode) {
-                        channels[ch].gainNode.gain.linearRampToValueAtTime(targetPos / 100, audioCtx.currentTime + 0.4);
-                    }
-                }
-            }
-        }
-
-        function updateFxParams() {
-            const timeVal = document.getElementById('fx-param-time').value;
-            if(channels[22] && channels[22].dspEffectNode) {
-                channels[22].dspEffectNode.frequency.setValueAtTime(200 + (timeVal * 5000), audioCtx.currentTime);
-            }
-        }
-
-        // 7. LEVEL VU METER ACTIVE PIPELINE
-        function activateLevelMeterAnalyser(chNum) {
-            const ledContainer = document.getElementById(`vu-meter-${chNum}`);
-            if (!ledContainer) return;
-            const segments = ledContainer.getElementsByClassName('led-segment');
-
-            setInterval(() => {
-                let currentVolumeIntensity = 0;
-                
-                if (channels[chNum] && channels[chNum].isPlaying) {
-                    // Mengambil intensitas acak kecil dikali gain fader untuk memetakan level volume audio asli
-                    const gainMod = channels[chNum].gainNode.gain.value;
-                    currentVolumeIntensity = (Math.random() * 8 + 4) * gainMod;
-                } else if(chNum === 21 && channels[21]) {
-                    currentVolumeIntensity = Math.random() * 11; // Fallback visualizer untuk video diluar CORS sandbox
-                }
-
-                // Nyalakan segmen LED berdasarkan intensitas volume yang didapat
-                for (let i = 0; i < 12; i++) {
-                    const invertedIndex = 11 - i; // Membaca dari baris bawah ke atas
-                    if (i < currentVolumeIntensity) {
-                        segments[invertedIndex].classList.add('active');
-                    } else {
-                        segments[invertedIndex].classList.remove('active');
-                    }
-                }
-            }, 60);
-        }
-
-        // 8. GRAPHIC CANVAS VISUALIZATION (OVERVIEW EQ CURVE)
-        const canvas = document.getElementById('eq-canvas');
-        const canvasCtx = canvas.getContext('2d');
-
-        function drawEQCurve() {
-            requestAnimationFrame(drawEQCurve);
-            if (!audioCtx) return;
-
-            const bufferLength = analyserNode.frequencyBinCount;
-            const dataArray = new Uint8Array(bufferLength);
-            analyserNode.getByteFrequencyData(dataArray);
-
-            canvasCtx.fillStyle = '#020617';
-            canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
-
-            canvasCtx.lineWidth = 2;
-            canvasCtx.strokeStyle = '#06b6d4';
-            canvasCtx.beginPath();
-
-            const sliceWidth = canvas.width * 1.0 / bufferLength;
-            let x = 0;
-
-            for (let i = 0; i < bufferLength; i++) {
-                let v = dataArray[i] / 128.0;
-                let y = (v * canvas.height) / 2;
-
-                if (i === 0) canvasCtx.moveTo(x, canvas.height - y);
-                else canvasCtx.lineTo(x, canvas.height - y);
-
-                x += sliceWidth;
-            }
-
-            canvasCtx.lineTo(canvas.width, canvas.height / 2);
-            canvasCtx.stroke();
-        }
-
-        // 9. RE-LAYOUT SELECTION & TAB CONTROLLER
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('bg-cyan-600', 'text-white', 'shadow');
-                btn.classList.add('bg-slate-900', 'text-slate-400');
+            // Build DSP Graph for each node
+            channelsData.forEach(ch => {
+                ch.gainNode = audioCtx.createGain();
+                ch.gainNode.gain.setValueAtTime(ch.volume / 100, audioCtx.currentTime);
+                ch.gainNode.connect(audioCtx.destination);
             });
             
-            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
-            const clickedBtn = document.getElementById(`btn-${tabId}`);
-            clickedBtn.classList.remove('bg-slate-900', 'text-slate-400');
-            clickedBtn.classList.add('bg-cyan-600', 'text-white', 'shadow');
+            startSimulatedVU();
+        }
+    }
+
+    // Switch Matrix Layer Banks
+    function switchBank(offset) {
+        currentBankOffset = offset;
+        document.getElementById("btn-bank-0").className = offset === 0 ? "py-1 bg-cyan-600 text-white font-bold rounded" : "py-1 bg-slate-800 text-slate-400 font-bold rounded";
+        document.getElementById("btn-bank-1").className = offset === 8 ? "py-1 bg-cyan-600 text-white font-bold rounded" : "py-1 bg-slate-800 text-slate-400 font-bold rounded";
+        document.getElementById("btn-bank-2").className = offset === 16 ? "py-1 bg-cyan-600 text-white font-bold rounded" : "py-1 bg-slate-800 text-slate-400 font-bold rounded";
+        renderChannelStrips();
+    }
+
+    // Touch Screen Menu Display Management
+    function switchDisplayPage(pageId) {
+        document.getElementById("view-home").classList.add("hidden");
+        document.getElementById("view-fx").classList.add("hidden");
+        document.getElementById("view-video").classList.add("hidden");
+
+        if (pageId === 'home') document.getElementById("view-home").classList.remove('hidden');
+        if (pageId === 'fx') document.getElementById("view-fx").classList.remove('hidden');
+        if (pageId === 'video') document.getElementById("view-video").classList.remove('hidden');
+    }
+
+    // Render Dynamic Control Surface Interface Channel Strips
+    function renderChannelStrips() {
+        const container = document.getElementById("channel-strips-container");
+        container.innerHTML = "";
+
+        // Limit showing 8 strips dynamically based on selection boundary layout
+        for (let idx = currentBankOffset; idx < currentBankOffset + 8; idx++) {
+            if (idx >= 22) break; // Master strips handled statically on the right sidebar panel
+            
+            const ch = channelsData[idx];
+            let borderTheme = "border-[#232934]";
+            let headerBg = "bg-slate-800";
+            
+            if (ch.id === 20) { borderTheme = "border-red-900"; headerBg = "bg-red-950 text-red-400"; }
+            else if (ch.id === 21) { borderTheme = "border-purple-900"; headerBg = "bg-purple-950 text-purple-400"; }
+            else if (ch.selected) { borderTheme = "border-cyan-500 shadow-cyan-900/50 shadow-md"; }
+
+            const stripHTML = `
+                <div class="bg-[#171a22] rounded-xl p-2 flex flex-col justify-between border ${borderTheme} relative group transition-all duration-150">
+                    <div class="text-center border-b border-slate-800 pb-1 cursor-pointer" onclick="selectChannel(${ch.id})">
+                        <div class="w-full h-1 rounded-sm mb-1 ${ch.selected ? 'bg-cyan-400' : 'bg-slate-600'}"></div>
+                        <span class="text-[10px] font-black tracking-tight block truncate">${ch.name}</span>
+                    </div>
+
+                    <div class="my-2 bg-[#0d0f13] rounded p-1 text-[9px]">
+                        ${ch.id === 20 ? `
+                            <input type="text" id="yt-url-input" placeholder="Paste YouTube Link / Video ID" class="w-full text-[8px] bg-black text-white p-0.5 rounded border border-slate-800 mb-1">
+                            <button onclick="loadVideoChannel()" class="w-full bg-red-700 text-white text-[8px] py-0.5 font-bold rounded">LOAD</button>
+                        ` : `
+                            <label class="block text-center text-slate-400 cursor-pointer hover:text-white">
+                                <i class="fas fa-file-audio block text-xs"></i> LOAD FILE
+                                <input type="file" accept="audio/*,video/*" class="hidden" onchange="handleAudioUpload(event, ${ch.id})">
+                            </label>
+                        `}
+                    </div>
+
+                    <div class="w-full h-8 bg-black rounded flex flex-col gap-0.5 p-0.5 justify-end overflow-hidden">
+                        <div id="vu-${ch.id}" class="w-full h-1 bg-emerald-500 rounded-sm opacity-20 transition-all duration-75"></div>
+                    </div>
+
+                    <div class="flex flex-col gap-1 my-2">
+                        <button onclick="selectChannel(${ch.id})" class="text-[10px] py-0.5 font-bold rounded border ${ch.selected ? 'bg-cyan-500 text-black border-cyan-400' : 'bg-slate-800 text-slate-400 border-slate-700'}">SEL</button>
+                        <button onclick="toggleSolo(${ch.id})" class="text-[10px] py-0.5 font-bold rounded border ${ch.solo ? 'bg-amber-500 text-black border-amber-400' : 'bg-slate-800 text-slate-400 border-slate-700'}">SOLO</button>
+                        <button onclick="toggleMute(${ch.id})" class="text-[10px] py-0.5 font-bold rounded border ${ch.muted ? 'bg-red-600 text-white border-red-500' : 'bg-slate-800 text-slate-400 border-slate-700'}">MUTE</button>
+                    </div>
+
+                    <div class="flex-1 flex flex-col items-center justify-center my-2 relative h-[160px]">
+                        <div class="fader-track h-full rounded relative">
+                            <div id="fader-knob-${ch.id}" 
+                                 class="fader-knob absolute left-1/2 -translate-x-1/2 w-7 h-9 rounded border border-slate-400" 
+                                 style="bottom: ${ch.volume}%;"
+                                 onmousedown="startFaderDrag(event, ${ch.id})">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-center font-mono text-[9px] text-slate-400">${ch.volume}%</div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', stripHTML);
+        }
+    }
+
+    // Select Target Active Channel Focus
+    function selectChannel(id) {
+        channelsData.forEach(ch => ch.selected = false);
+        channelsData[id].selected = true;
+        document.getElementById("current-channel-view").innerText = `${channelsData[id].name} - SELECTED`;
+        renderChannelStrips();
+    }
+
+    // Audio Media Routing Pipeline Processing 
+    function handleAudioUpload(event, chId) {
+        initAudioContext();
+        const file = event.target.files[0];
+        if (!file) return;
+
+        // If video option selected from Channel 21 configuration setup
+        if (chId === 20 || file.type.includes('video')) {
+            const videoZone = document.getElementById("video-render-zone");
+            const objectURL = URL.createObjectURL(file);
+            videoZone.innerHTML = `<video id="embedded-video-player" src="${objectURL}" controls class="w-full h-full object-contain"></video>`;
+            switchDisplayPage('video');
+            return;
         }
 
-        function selectChannelStrip(chNum) {
-            selectedChannel = chNum;
-            document.querySelectorAll('[id^="strip-"]').forEach(el => el.classList.remove('border-slate-400'));
-            const activeStrip = document.getElementById(`strip-${chNum}`);
-            
-            if(chNum <= 20) activeStrip.classList.add('border-slate-400');
-            
-            let nameTag = chNum <= 20 ? `CH ${chNum}` : chNum === 21 ? "CH 21 (VIDEO)" : chNum === 22 ? "CH 22 (FX RETURN)" : `MAIN OUT ${chNum === 23 ? 'L' : 'R'}`;
-            document.getElementById('selected-ch-title').innerText = `${nameTag} SELECTED`;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            audioCtx.decodeAudioData(e.target.result, function(buffer) {
+                if (channelsData[chId].audioNode) {
+                    channelsData[chId].audioNode.stop();
+                }
+                
+                const source = audioCtx.createBufferSource();
+                source.buffer = buffer;
+                source.loop = true;
+                
+                source.connect(channelsData[chId].gainNode);
+                source.start(0);
+                
+                channelsData[chId].audioNode = source;
+                channelsData[chId].hasFile = true;
+                console.log(`Audio Loaded Successfully on Stream Target Channel Context: ${chId + 1}`);
+            });
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    // YouTube Core Embedding Routing Stream Parsing
+    function loadVideoChannel() {
+        const urlValue = document.getElementById("yt-url-input")?.value;
+        if (!urlValue) return;
+
+        let videoId = urlValue;
+        if(urlValue.includes('v=')) {
+            videoId = urlValue.split('v=')[1].split('&')[0];
+        } else if(urlValue.includes('youtu.be/')) {
+            videoId = urlValue.split('youtu.be/')[1].split('?')[0];
         }
 
-        function toggleHardwareMute(event, chNum) {
-            event.stopPropagation();
-            const btn = document.getElementById(`btn-mute-${chNum}`);
-            btn.classList.toggle('bg-rose-600');
-            btn.classList.toggle('text-white');
+        const videoZone = document.getElementById("video-render-zone");
+        videoZone.innerHTML = `
+            <iframe class="w-full h-full" src="https://www.youtube.com/embed/${videoId}?autoplay=1&enablejsapi=1" 
+                    frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen>
+            </iframe>
+        `;
+        switchDisplayPage('video');
+    }
+
+    // Toggle Channel States
+    function toggleMute(id) {
+        channelsData[id].muted = !channelsData[id].muted;
+        if (audioCtx && channelsData[id].gainNode) {
+            channelsData[id].gainNode.gain.setValueAtTime(channelsData[id].muted ? 0 : channelsData[id].volume / 100, audioCtx.currentTime);
+        }
+        renderChannelStrips();
+    }
+
+    function toggleSolo(id) {
+        channelsData[id].solo = !channelsData[id].solo;
+        renderChannelStrips();
+    }
+
+    // Fader Linear Variable Logic (Drag Engine)
+    function startFaderDrag(e, chId) {
+        e.preventDefault();
+        const knob = document.getElementById(`fader-knob-${chId}`);
+        const track = knob.parentElement;
+        const trackRect = track.getBoundingClientRect();
+
+        function onMouseMove(moveEvent) {
+            let offsetY = moveEvent.clientY - trackRect.top;
+            let percentage = ((trackRect.height - offsetY) / trackRect.height) * 100;
+            percentage = Math.max(0, Math.min(100, percentage)); // Clamp between 0-100
+
+            channelsData[chId].volume = Math.round(percentage);
+            knob.style.bottom = `${percentage}%`;
             
-            if (channels[chNum] && channels[chNum].gainNode) {
-                const isMuted = btn.classList.contains('bg-rose-600');
-                channels[chNum].gainNode.gain.setValueAtTime(isMuted ? 0 : 0.5, audioCtx.currentTime);
+            // Adjust Web Audio Gain Value Realtime
+            if (audioCtx && channelsData[chId].gainNode && !channelsData[chId].muted) {
+                channelsData[chId].gainNode.gain.setValueAtTime(percentage / 100, audioCtx.currentTime);
             }
+            
+            // Render text feedback instantly without rewriting surface architecture loop
+            knob.parentElement.parentElement.nextElementSibling.innerText = `${Math.round(percentage)}%`;
         }
 
-        function toggleHardwareSolo(event, chNum) {
-            event.stopPropagation();
-            const btn = document.getElementById(`btn-solo-${chNum}`);
-            btn.classList.toggle('bg-amber-500');
-            btn.classList.toggle('text-black');
+        function onMouseUp() {
+            window.removeEventListener('mousemove', onMouseMove);
+            window.removeEventListener('mouseup', onMouseUp);
         }
 
-        // Penyesuaian resolusi dinamis untuk canvas gambar kurva audio
-        function resizeCanvas() {
-            canvas.width = canvas.parentElement.clientWidth;
-            canvas.height = canvas.parentElement.clientHeight - 25;
+        window.addEventListener('mousemove', onMouseMove);
+        window.addEventListener('mouseup', onMouseUp);
+    }
+
+    // Populate Vocal Effects Configuration Grid Items Array Map 
+    function buildFxRackUI() {
+        const fxContainer = document.getElementById("fx-presets-container");
+        fxContainer.innerHTML = "";
+        
+        vocalPresets.forEach(preset => {
+            const el = document.createElement("button");
+            el.className = "p-2 bg-[#171b26] hover:bg-amber-950 text-slate-300 hover:text-amber-400 rounded border border-slate-800 font-bold transition-all text-left truncate flex items-center gap-1";
+            el.innerHTML = `<i class="fas fa-microphone-lines text-[10px] text-amber-500"></i> <span>${preset.id}. ${preset.name}</span>`;
+            el.onclick = () => selectVocalPreset(preset);
+            fxContainer.appendChild(el);
+        });
+    }
+
+    // Trigger Flying Motorized Automatic Faders Preset Load
+    function selectVocalPreset(preset) {
+        console.log(`Loading Vocal Preset Engine Hook: ${preset.name}`);
+        
+        // Loop through current channels arrays to animate position adjustments
+        channelsData.forEach((ch, index) => {
+            if (index < 22) { // Exempt main LR output channels
+                const targetVol = preset.faderSettings[index] || 50;
+                
+                // Active Motorized Transition Variable Step interpolation logic 
+                let currentVol = ch.volume;
+                const duration = 300; // ms
+                const startTime = performance.now();
+
+                function animateFader(now) {
+                    const elapsed = now - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    const newVol = currentVol + (targetVol - currentVol) * progress;
+                    
+                    ch.volume = Math.round(newVol);
+                    
+                    // Apply visual style update to knob DOM if currently active in viewport bank selection
+                    const knobDom = document.getElementById(`fader-knob-${ch.id}`);
+                    if (knobDom) {
+                        knobDom.style.bottom = `${newVol}%`;
+                        knobDom.parentElement.parentElement.nextElementSibling.innerText = `${Math.round(newVol)}%`;
+                    }
+
+                    if (audioCtx && ch.gainNode && !ch.muted) {
+                        ch.gainNode.gain.setValueAtTime(newVol / 100, audioCtx.currentTime);
+                    }
+
+                    if (progress < 1) {
+                        requestAnimationFrame(animateFader);
+                    }
+                }
+                requestAnimationFrame(animateFader);
+            }
+        });
+
+        // Visual flash notification on application monitor console display layout screen
+        const currentTxt = document.getElementById("current-channel-view");
+        currentTxt.innerText = `FX LOADED: ${preset.name.toUpperCase()}`;
+        currentTxt.className = "text-amber-400 font-bold animate-pulse";
+        setTimeout(() => currentTxt.className = "text-slate-400", 2000);
+    }
+
+    // Simulated VU Meters to emulate professional studio board activity signals
+    function startSimulatedVU() {
+        setInterval(() => {
+            channelsData.forEach(ch => {
+                const meter = document.getElementById(`vu-${ch.id}`);
+                if (meter) {
+                    // If channel has active file stream, produce standard high intensity audio variance activity bounds
+                    const activityBase = ch.hasFile && !ch.muted ? Math.random() * 80 + 20 : Math.random() * 15;
+                    meter.style.height = `${activityBase}%`;
+                    meter.style.opacity = activityBase > 40 ? "0.9" : "0.4";
+                    
+                    if (activityBase > 80) meter.className = "w-full bg-red-500 rounded-sm";
+                    else if (activityBase > 60) meter.className = "w-full bg-amber-500 rounded-sm";
+                    else meter.className = "w-full bg-emerald-500 rounded-sm";
+                }
+            });
+
+            // Master Output LR Track Simulation
+            for(let masterId = 23; masterId <= 24; masterId++) {
+                const v1 = document.getElementById(`meter-ch${masterId}-1`);
+                const v2 = document.getElementById(`meter-ch${masterId}-2`);
+                if(v1 && v2) {
+                    let level = Math.random() * 90;
+                    v1.style.height = `${level}%`;
+                    v2.style.height = `${level * 0.9}%`;
+                }
+            }
+        }, 100);
+    }
+
+    // System Hardware Digital Clock Render Engine 
+    setInterval(() => {
+        const clock = document.getElementById("clock-display");
+        if(clock) {
+            const d = new Date();
+            clock.innerText = d.toTimeString().split(' ')[0];
         }
-        window.addEventListener('resize', resizeCanvas);
-        setTimeout(resizeCanvas, 500);
-    </script>
+    }, 1000);
+
+    // Initial Layout Setup On Bootstrap Load Window
+    window.onload = () => {
+        renderChannelStrips();
+        buildFxRackUI();
+    };
+</script>
 </body>
 </html>
