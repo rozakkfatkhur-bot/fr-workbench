@@ -187,7 +187,7 @@
     .knob{
       width:25px;height:25px;border-radius:50%;margin:0 auto;position:relative;
       background:radial-gradient(circle at 34% 28%,#59636e 0 10%,#303840 26%,#171d22 63%,#0f1317 100%);
-      border:1px solid #59636e;box-shadow:inset 0 1px 2px rgba(255,255,255,.18), inset 0 -2px 4px rgba(0,0,0,.75),0 1px 2px rgba(0,0,0,.7);cursor:ns-resize;
+      border:1px solid #59636e;box-shadow:inset 0 1px 2px rgba(255,255,255,.18), inset 0 -2px 4px rgba(0,0,0,.75),0 1px 2px rgba(0,0,0,.45);cursor:ns-resize;
     }
     .knob::after{content:"";position:absolute;left:50%;top:4px;width:2px;height:8px;border-radius:2px;background:#87cfff;transform:translateX(-50%);box-shadow:0 0 3px rgba(86,180,255,.7)}
     .fx-send-btn{
@@ -385,6 +385,15 @@
           <div><div class="screen-kicker">USB Live Soundcard Controller</div><div class="screen-channel">MULTITRACK ROUTING PATCH</div></div>
           <div class="screen-kicker" style="color:var(--amber)" id="hardwareDetectStatus">DETECTING HARDWARE...</div>
          </div>
+         
+         <!-- DEVICE SELECTION DROPDOWN ADDED HERE -->
+         <div class="mb-3 bg-black/40 border border-slate-700 p-2 rounded flex flex-col gap-1.5">
+           <label for="hardwareDeviceSelect" class="text-[9px] font-mono uppercase text-cyan-400 tracking-wider">Active Audio Input Hardware:</label>
+           <select id="hardwareDeviceSelect" class="bg-slate-900 border border-slate-600 rounded text-xs font-mono text-white p-1 focus:border-blue-400 outline-none cursor-pointer">
+             <option value="default">Default System Audio (Mic Internal)</option>
+           </select>
+         </div>
+
          <p style="font-size:9px;color:#89939f;margin-bottom:8px;">Pilih channel input (CH 01 - CH 08) di bawah untuk dikirim secara independen ke Live Soundcard Multitrack Bus Anda:</p>
          <div class="sc-grid" id="soundcardGrid"></div>
         </div>
@@ -685,6 +694,7 @@
     let hardwareSourceNode = null;
     let channelSplitterNode = null;
     let micMuted = false; 
+    let selectedHardwareDeviceId = 'default'; // Tracker device ID aktif
     
     let masterLeftGain = null;
     let masterRightGain = null;
@@ -731,12 +741,9 @@
 
        if (event.data === YT.PlayerState.PLAYING) {
           updateDeckVisuals(8, 'play');
-          // Karena YouTube Iframe tidak mengizinkan direct capture Web Audio cross-origin, 
-          // kita menjembatani level volume amplifikasi via generator data real-time analyzer!
           if(ytSimulationInterval) clearInterval(ytSimulationInterval);
           ytSimulationInterval = setInterval(() => {
              if(audioCtx && audioCtx.state === 'running' && !ch9Node.isMuted) {
-                // Beri asupan energi gelombang vokal dinamis acak ke analyzer CH 9 saat memutar YT video asli
                 ch9Node.syntheticOscGain.gain.setTargetAtTime(0.12 + Math.random() * 0.08, audioCtx.currentTime, 0.02);
              }
           }, 120);
@@ -845,15 +852,58 @@
 
       globalFeedbackNode.connect(channelNodes[9].input);
       await startHardwareMicStream();
+      await enumerateAudioDevices(); // Ambil list microphone/soundcard setelah ijin mic terbuka
+    }
+
+    // FUNGSI UTAMA UNTUK DETEKSI OTOMATIS DAFTAR SOUNDCARD YANG TERSAMBUNG
+    async function enumerateAudioDevices() {
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const selectEl = document.getElementById('hardwareDeviceSelect');
+        if (!selectEl) return;
+        
+        // Bersihkan data lama
+        selectEl.innerHTML = '';
+        
+        const audioInputs = devices.filter(device => device.kind === 'audioinput');
+        
+        audioInputs.forEach(device => {
+          const option = document.createElement('option');
+          option.value = device.deviceId;
+          // Ganti label kosong jika browser menyembunyikannya sebelum interaksi user
+          option.textContent = device.label || `Audio Interface (ID: ${device.deviceId.substring(0,5)}...)`;
+          if(device.deviceId === selectedHardwareDeviceId) option.selected = true;
+          selectEl.appendChild(option);
+        });
+      } catch (err) {
+        console.warn("Gagal membaca list perangkat audio eksternal:", err);
+      }
     }
 
     async function startHardwareMicStream() {
       try {
         if (!audioCtx) return;
-        hardwareStream = await navigator.mediaDevices.getUserMedia({
-          audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 2 }
-        });
         
+        // Tutup koneksi stream lama jika ada pergantian perangkat interface
+        if (hardwareStream) {
+          hardwareStream.getTracks().forEach(track => track.stop());
+        }
+
+        // Tentukan constraints sesuai ID hardware yang dipilih di dropdown
+        const constraints = {
+          audio: { 
+            echoCancellation: false, 
+            noiseSuppression: false, 
+            autoGainControl: false, 
+            channelCount: 2
+          }
+        };
+        
+        if (selectedHardwareDeviceId && selectedHardwareDeviceId !== 'default') {
+          constraints.audio.deviceId = { exact: selectedHardwareDeviceId };
+        }
+        
+        hardwareStream = await navigator.mediaDevices.getUserMedia(constraints);
         hardwareSourceNode = audioCtx.createMediaStreamSource(hardwareStream);
         const actualChannels = hardwareSourceNode.channelCount;
         
@@ -880,8 +930,17 @@
       } catch (err) {
         document.getElementById('hardwareDetectStatus').textContent = "OSC AUDIO DRIVER BUILT-IN ACTIVE";
         document.getElementById('clockSourceDisplay').textContent = "INT";
+        console.error("Hardware stream load failed:", err);
       }
     }
+
+    // Event Listener untuk Dropdown Pemilihan Soundcard Eksternal
+    document.getElementById('hardwareDeviceSelect').addEventListener('change', (e) => {
+       selectedHardwareDeviceId = e.target.value;
+       if (audioCtx && audioCtx.state === 'running') {
+          startHardwareMicStream(); // Jalankan ulang stream menggunakan device terpilih
+       }
+    });
 
     function applyMicMuteTrackState(shouldMute) {
       if (hardwareStream) {
@@ -933,7 +992,6 @@
       isGlobalPlaying = true;
       channelNodes.forEach((node, idx) => {
         if (idx === 8) {
-           // Jalankan youtube player jika channel 9 dipicu
            if (ytPlayerElement && typeof ytPlayerElement.playVideo === 'function') {
               ytPlayerElement.playVideo();
            }
@@ -1016,7 +1074,6 @@
       }
     }
 
-    // Build RTA Elements Array
     const rtaContainer = document.getElementById('displayRtaBars');
     for(let i=0; i<32; i++){
       const barEl = document.createElement('div');
@@ -1395,6 +1452,10 @@
       document.getElementById('screenFxSend').textContent=fxAssigned.has(selectedIndex)?'-12 dB':'OFF';
     }
 
+    function updateHardwareDeviceList() {
+       if (audioCtx) enumerateAudioDevices();
+    }
+
     function redrawEqDisplay() {
       if (!audioCtx || !channelNodes[selectedIndex] || !document.getElementById('eqNodeLow')) return;
       const node = channelNodes[selectedIndex];
@@ -1422,7 +1483,6 @@
         document.querySelectorAll('.screen-mode').forEach(m=>m.classList.remove('active'));
         document.getElementById(tab.dataset.mode).classList.add('active');
         
-        // Aturan visibilitas pemutar video YouTube di layar
         const ytBox = document.getElementById('ytPlayerContainer');
         if(tab.dataset.mode === 'overviewMode' || tab.dataset.mode === 'setupMode') {
            ytBox.classList.remove('hidden');
@@ -1430,11 +1490,14 @@
            ytBox.classList.add('hidden');
         }
 
+        if (tab.dataset.mode === 'multitrackMode') {
+           updateHardwareDeviceList(); // Auto-refresh scan saat tab Multitrack dibuka
+        }
+
         if (tab.dataset.mode === 'eqMode') redrawEqDisplay();
       });
     });
 
-    // Audio Generator Operations Setup
     document.getElementById('btnToneSine').addEventListener('click', () => {
        if(!audioCtx) togglePowerEngine(true);
        killSignalGenerator();
@@ -1452,7 +1515,6 @@
        if(!audioCtx) togglePowerEngine(true);
        killSignalGenerator();
        
-       // Pembuatan algoritma Pink/White noise kalibrasi instan
        const bufferSize = 2 * audioCtx.sampleRate;
        const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
        const output = noiseBuffer.getChannelData(0);
@@ -1649,18 +1711,21 @@
     document.getElementById('playBtn').addEventListener('click', () => triggerGlobalPlay());
     document.getElementById('stopBtn').addEventListener('click',()=> triggerGlobalStop());
 
+    // Otomatis update nama interface jika dicolok/dicabut di tengah jalan
+    if(navigator.mediaDevices && navigator.mediaDevices.addEventListener) {
+       navigator.mediaDevices.addEventListener('devicechange', updateHardwareDeviceList);
+    }
+
     const uintBuffer = new Uint8Array(16);
     function animateMeters(){
       if (audioCtx && audioCtx.state === 'running') {
         
-        // Simulasikan pergerakan dinamis goniometer pembacaan fase
         const corrBar = document.getElementById('correlationBar');
         if(corrBar) {
           const drift = 74 + Math.sin(Date.now() / 150) * 4;
           corrBar.style.left = `${drift}%`;
         }
 
-        // Variasi beban komputasi telemetri riil
         const cpuTxt = document.getElementById('telemetryCpuLoad');
         if(cpuTxt && Math.random() > 0.85) {
            cpuTxt.textContent = (12.4 + Math.random() * 5).toFixed(1) + "%";
@@ -1695,7 +1760,6 @@
               b.style.height = Math.max(10, hVal) + '%';
             });
 
-            // Suntik data spectrum riil ke tab RTA 32-band
             const rtaBars = [...document.getElementById('displayRtaBars').children];
             if(rtaBars.length > 0) {
               rtaBars.forEach((bar, bidx) => {
