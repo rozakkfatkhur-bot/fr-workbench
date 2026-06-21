@@ -90,17 +90,35 @@
     }
     .display-title{font-family:'Space Mono',monospace;font-size:11px;color:#dcecff;letter-spacing:.08em}
     .display-meta{display:flex;align-items:center;gap:14px;font-size:9px;text-transform:uppercase;color:#8ea1b2;letter-spacing:.09em}
-    .display-body{display:grid;grid-template-columns:1fr 255px;min-height:235px}
+    .display-body{display:grid;grid-template-columns:1fr 255px;height:340px}
+    
+    /* MODIFIKASI UKURAN RAK DISPLAY & SCROLLING */
     .screen-area{
-      position:relative;min-height:235px;padding:12px;
+      position:relative;
+      height:340px;
+      overflow-y:auto;
+      scroll-behavior: smooth;
+      padding:14px;
       background:
         linear-gradient(rgba(64,118,153,.11) 1px,transparent 1px) 0 0/100% 20px,
         linear-gradient(90deg,rgba(64,118,153,.11) 1px,transparent 1px) 0 0/28px 100%,
         radial-gradient(circle at top left,rgba(35,128,188,.12),transparent 40%),
         #111a21;
     }
-    .screen-mode{display:none;height:100%}
-    .screen-mode.active{display:block}
+    
+    /* SETTING SEMUA MODUL AGAR MENJADI RAK VERTIKAL */
+    .screen-mode{
+      display:block !important;
+      border-bottom: 2px dashed #2a353f;
+      padding-bottom: 20px;
+      margin-bottom: 20px;
+    }
+    .screen-mode:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+    
     .screen-header{
       display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;position:relative;z-index:20;
     }
@@ -304,13 +322,13 @@
        </div>
       </div>
       <div class="display-body">
-       <div class="screen-area">
+       <div class="screen-area" id="rackContainer">
         
         <div id="ytPlayerContainer" class="yt-iframe-layer hidden">
            <div id="ytTrueEngine"></div>
         </div>
 
-        <div id="overviewMode" class="screen-mode active">
+        <div id="overviewMode" class="screen-mode">
          <div class="screen-header">
           <div><div class="screen-kicker">Channel Overview</div><div id="overviewChannelName" class="screen-channel">CH 01 · KICK</div></div>
           <div class="screen-kicker">INPUT / MONO</div>
@@ -1470,7 +1488,6 @@
 
     function updateYoutubeDisplayLayer(activeMode) {
        const ytBox = document.getElementById('ytPlayerContainer');
-       // Tampilkan layar YouTube full-screen jika berada di Overview, Setup, atau mode bawaan YouTube
        if(activeMode === 'overviewMode' || activeMode === 'setupMode') {
           ytBox.classList.remove('hidden');
        } else {
@@ -1498,12 +1515,23 @@
       document.getElementById('eqFillPath').setAttribute('d', pathStr + ' L800,160 L0,160 Z');
     }
 
+    // MODIFIKASI NAVIGASI TAB: SMOOTH SCROLL KE RAK PILIHAN
     document.querySelectorAll('.display-tab').forEach(tab=>{
       tab.addEventListener('click',()=>{
         document.querySelectorAll('.display-tab').forEach(t=>t.classList.remove('active'));
         tab.classList.add('active');
-        document.querySelectorAll('.screen-mode').forEach(m=>m.classList.remove('active'));
-        document.getElementById(tab.dataset.mode).classList.add('active');
+        
+        const targetRack = document.getElementById(tab.dataset.mode);
+        const container = document.getElementById('rackContainer');
+        
+        if (targetRack && container) {
+          // Menghitung offset relatif rak di dalam container display
+          const topPos = targetRack.offsetTop - container.offsetTop;
+          container.scrollTo({
+            top: topPos,
+            behavior: 'smooth'
+          });
+        }
         
         updateYoutubeDisplayLayer(tab.dataset.mode);
 
