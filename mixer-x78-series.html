@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en">
- <head>
+ <head><script src="/_sdk/telemetry_sdk.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FR Audio X78 Series - Pro DSP Engine</title>
@@ -31,7 +31,7 @@
     button{font-family:inherit}
     .app-shell{
       width:100%;
-      min-height:100vh;
+      min-height:calc(100 * min(var(--vh, 1vh), 1vh));
       background:
         radial-gradient(circle at top left, rgba(80,102,126,.16), transparent 25%),
         linear-gradient(180deg,#20252b 0%,#171b20 100%);
@@ -78,7 +78,7 @@
     .icon-btn.mic-mute-btn{border-color:#7a3c43;color:#ff8d97;}
     .icon-btn.mic-mute-btn.muted-active{background:linear-gradient(180deg,#882e38,#571c23);border-color:#ff5f6d;color:#fff;}
     .icon-btn svg{width:14px;height:14px}
-    .main-display-wrap { padding:10px; border-bottom:1px solid #313941; background:#1d2228; position: relative; }
+    .main-display-wrap { padding:10px; border-bottom:1px solid #313941; background:#1d2228 }
     .display-frame{
       border:1px solid #3c4650;background:linear-gradient(180deg,#222930,#171d23);
       border-radius:4px;box-shadow:inset 0 1px 0 rgba(255,255,255,.04), inset 0 -1px 0 rgba(0,0,0,.7);
@@ -113,10 +113,10 @@
     .large-meter{height:98px;display:flex;align-items:flex-end;gap:4px}
     .bar{flex:1;background:linear-gradient(180deg,#5ed98a,#2f9d62);box-shadow:0 0 8px rgba(89,222,137,.25);min-height:8px}
     .routing-mini{display:grid;grid-template-columns:repeat(2,1fr);gap:5px}
-    .route-chip{border:1px solid #31414d;background:#17222a;padding:6px}
-    .route-chip span{display:block}
-    .route-chip .a{font-size:7px;color:#788d9e;text-transform:uppercase;letter-spacing:.1em}
-    .route-chip .b{font-family:'Space Mono',monospace;font-size:10px;color:#d7e7f5;margin-top:3px}
+    .route-chip"><span class="a">Preamp</span><span id="screenPreampVal" class="b">+14 dB</span></div>
+    .route-chip"><span class="a">Gate</span><span class="b">ON</span></div>
+    .route-chip"><span class="a">Comp</span><span class="b">3.2:1</span></div>
+    .route-chip"><span class="a">Bus</span><span class="b">L/R</span></div>
     .eq-svg{width:100%;height:145px}
     .dyn-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
     .dyn-module{border:1px solid #31414d;background:#152029;padding:9px;height:135px}
@@ -204,6 +204,9 @@
     .deck-controls{
       display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin-top:3px;
     }
+    .deck-controls-yt{
+      display:grid;grid-template-columns:repeat(4,1fr);gap:2px;margin-top:3px;
+    }
     .deck-btn{
       height:17px;border:1px solid #36424d;background:#1c232a;color:#a0b0be;font-size:7px;display:flex;align-items:center;justify-content:center;border-radius:2px;
     }
@@ -267,10 +270,13 @@
     .action-btn{height:30px;border-radius:3px;border:1px solid #49606f;background:linear-gradient(180deg,#324250,#1e2a33);color:#d7e9f6;font-size:10px;font-weight:700;padding:0 11px}
     .action-btn.primary{background:linear-gradient(180deg,#2c78ad,#1c527c);border-color:#4f98c8}
     
-    .yt-iframe-layer { position: absolute; top: 40px; right: 12px; width: 140px; height: 85px; border: 1px solid #2d3b45; background: #000; border-radius: 3px; overflow: hidden; z-index: 10; }
+    /* MODIFIKASI: Iframe YouTube menjadi Full Screen menutupi area display screen */
+    .yt-iframe-layer { position: absolute; inset: 0; width: 100%; height: 100%; background: #000; z-index: 40; }
   </style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <script src="/_sdk/resizing_sdk.js" type="text/javascript"></script>
  </head>
- <body>
+ <body data-template-id="__page-root">
   <div class="app-shell">
    <main class="console">
     <header class="topbar">
@@ -279,28 +285,27 @@
        <i data-lucide="audio-lines"></i>
       </div>
       <div>
-       <h1 class="brand-title">FR AUDIO X78 SERIES</h1>
-       <p class="brand-sub">10-Channel Digital DSP Mixing Engine</p>
+       <h1 data-template-id="header-title" class="canva-text brand-title">FR AUDIO X78 SERIES</h1>
+       <p data-template-id="header-subtitle" class="canva-text brand-sub">10-Channel Digital DSP Mixing Engine</p>
       </div>
      </div>
      <div class="top-actions">
       <button id="micMuteBtn" class="icon-btn mic-mute-btn" title="Mute/Unmute Hardware OTG Stream & Mic">
         <i data-lucide="mic"></i>
       </button>
-      <div class="session-badge">
+      <div data-template-id="session-badge" class="canva-tag session-badge">
        <span id="topLed" class="tiny-led"></span><span id="topStatusText">ENGINE STANDBY</span>
-      </div>
-      <button id="powerBtn" class="icon-btn" aria-label="Power mixer"><i data-lucide="power"></i></button> 
-      <button id="playBtn" class="icon-btn" aria-label="Start playback"><i data-lucide="play"></i></button> 
-      <button id="stopBtn" class="icon-btn" aria-label="Stop playback"><i data-lucide="square"></i></button> 
-      <button id="settingsBtn" class="icon-btn" aria-label="Open FX preset settings"><i data-lucide="sliders-horizontal"></i></button>
+      </div><button id="powerBtn" class="icon-btn" aria-label="Power mixer"><i data-lucide="power"></i></button> <button id="playBtn" class="icon-btn" aria-label="Start playback"><i data-lucide="play"></i></button> <button id="stopBtn" class="icon-btn" aria-label="Stop playback"><i data-lucide="square"></i></button> <button id="settingsBtn" class="icon-btn" aria-label="Open FX preset settings"><i data-lucide="sliders-horizontal"></i></button>
      </div>
     </header>
     <section class="main-display-wrap">
      <div class="display-frame">
       <div class="display-top">
-       <div class="display-title">X78 DIGITAL CONTROL SURFACE</div>
-       <div class="display-meta"><span>SCENE 004</span> <span>48 kHz</span> <span>LAT 1.3 ms</span></div>
+       <div class="display-title">
+        X78 DIGITAL CONTROL SURFACE
+       </div>
+       <div class="display-meta"><span>SCENE 004</span> <span>48 kHz</span> <span>LAT 1.3 ms</span>
+       </div>
       </div>
       <div class="display-body">
        <div class="screen-area">
@@ -410,7 +415,8 @@
             <div><div class="screen-kicker">DSP Utilities</div><div class="screen-channel">Real-Time RTA Spectral Analyzer</div></div>
             <div class="screen-kicker">31-BAND / BAR ACCURACY</div>
           </div>
-          <div class="grid-expanded-4x2 grid grid-cols-8 h-[120px] items-end gap-1 px-4 bg-black/40 border border-[#2e3740] rounded pt-4" id="displayRtaBars"></div>
+          <div class="grid-expanded-4x2 grid grid-cols-8 h-[120px] items-end gap-1 px-4 bg-black/40 border border-[#2e3740] rounded pt-4" id="displayRtaBars">
+            </div>
         </div>
 
         <div id="limiterMode" class="screen-mode">
@@ -639,7 +645,7 @@
       <div class="footer-pill"><span>TRUE STEREO BUS</span></div>
       <div class="footer-pill"><span>FX ENGINE REAL-DSP</span></div>
      </div>
-     <p class="footer-note">Global controls integrated. Load tracks on any device natively.</p>
+     <p data-template-id="footer-note" class="canva-text">Global controls integrated. Load tracks on any device natively.</p>
     </footer>
    </main>
   </div>
@@ -654,7 +660,7 @@
     <div class="modal-actions"><button id="clearAssignments" class="action-btn">Clear Assign</button> <button id="applyFx" class="action-btn primary">Apply FX Setup</button></div>
    </div>
   </div>
-
+  <script src="/_sdk/editing_sdk.js"></script>
   <script>
     const channelDefs = [
       {num:'01',name:'KICK',src:'CH 1 OSC',type:'live'},
@@ -675,6 +681,10 @@
       ['Arena Vocal','HALL',0.38,3.5],['Silky Tail','REVERB',0.22,2.8],['Analog Echo','ECHO',0.28,0.4],['Pop Plate','PLATE',0.04,1.6],['Vox Space','SPACE',0.15,2.2],
       ['Warm Chamber','ROOM',0.05,1.4],['Big Chorus','CHORUS',0.06,0.6],['Lead Shine','PLATE',0.03,1.4],['Air Delay','DELAY',0.45,0.4],['Live Stage','HALL',0.14,2.2]
     ];
+
+    // MODIFIKASI: Daftar video playlist untuk fungsi tombol Next Video
+    const ytPlaylist = ['5qap5aO4i9A', 'kJQP7kiw5Fk', '9bZkp7q19f0', '2Vv-BfVoq4g'];
+    let currentPlaylistIndex = 0;
 
     const mixer = document.getElementById('mixer');
     let selectedIndex = 0;
@@ -711,7 +721,7 @@
        ytPlayerElement = new YT.Player('ytTrueEngine', {
           height: '100%',
           width: '100%',
-          videoId: '5qap5aO4i9A', 
+          videoId: ytPlaylist[currentPlaylistIndex], 
           playerVars: { 'autoplay': 0, 'controls': 1, 'rel': 0, 'showinfo': 0, 'mute': 0 },
           events: {
              'onReady': onPlayerReady,
@@ -724,6 +734,7 @@
        console.log("X78 Engine Framework: YouTube Iframe Hub Loaded Safely.");
     }
 
+    // MODIFIKASI: Menghubungkan Engine Simulasi Audio Real-Time saat YouTube di play
     function onPlayerStateChange(event) {
        if (!audioCtx) togglePowerEngine(true);
        const ch9Node = channelNodes[8];
@@ -731,12 +742,21 @@
 
        if (event.data === YT.PlayerState.PLAYING) {
           updateDeckVisuals(8, 'play');
+          
+          // Tampilkan Full Screen Iframe saat dimainkan jika di tab Overview
+          const activeTab = document.querySelector('.display-tab.active');
+          if(activeTab && (activeTab.dataset.mode === 'overviewMode' || activeTab.dataset.mode === 'setupMode')) {
+              document.getElementById('ytPlayerContainer').classList.remove('hidden');
+          }
+
           if(ytSimulationInterval) clearInterval(ytSimulationInterval);
+          // Simulasi impuls data audio masuk ke Channel Gain 9 (DSP Volume Node)
           ytSimulationInterval = setInterval(() => {
              if(audioCtx && audioCtx.state === 'running' && !ch9Node.isMuted) {
-                ch9Node.syntheticOscGain.gain.setTargetAtTime(0.12 + Math.random() * 0.08, audioCtx.currentTime, 0.02);
+                // Memberikan sinyal acak agar lampu LED Equalizer & Volume di CH 9 bergerak sinkron dengan ketukan lagu
+                ch9Node.syntheticOscGain.gain.setTargetAtTime(0.35 + Math.random() * 0.25, audioCtx.currentTime, 0.02);
              }
-          }, 120);
+          }, 80);
        } else {
           if(event.data === YT.PlayerState.PAUSED) updateDeckVisuals(8, 'pause');
           else updateDeckVisuals(8, 'stop');
@@ -807,7 +827,7 @@
         midEq.type = 'peaking'; midEq.Q.setValueAtTime(1.0, audioCtx.currentTime); midEq.frequency.setValueAtTime(2500, audioCtx.currentTime);
         highEq.type = 'highshelf'; highEq.frequency.setValueAtTime(8000, audioCtx.currentTime);
 
-        chGain.gain.setValueAtTime(idx === 9 ? 0.4 : 0.5, audioCtx.currentTime);
+        chGain.gain.setValueAtTime(idx === 8 ? 0.6 : 0.5, audioCtx.currentTime); // Optimasi Gain Output Youtube
         
         let initialFxLevel = fxAssigned.has(idx) ? 0.45 : 0.0;
         fxSendGain.gain.setValueAtTime(initialFxLevel, audioCtx.currentTime);
@@ -830,7 +850,7 @@
           input: inputGain, low: lowEq, mid: midEq, high: highEq,
           pan: panner, gain: chGain, fxSend: fxSendGain, analyser: analyser,
           sourceNode: null, fileSource: null, isMuted: false, isSoloed: false, phaseInverted: false,
-          gainValue: 0.5, panValue: 0.0, lowVal: 0, midVal: 0, highVal: 0, audioBuffer: null, syntheticOsc: null,
+          gainValue: idx === 8 ? 0.6 : 0.5, panValue: 0.0, lowVal: 0, midVal: 0, highVal: 0, audioBuffer: null, syntheticOsc: null,
           syntheticOscGain: null
         };
 
@@ -1142,6 +1162,7 @@
        return (match && match[2].length === 11) ? match[2] : null;
     }
 
+    // MODIFIKASI: Menambahkan interface input & tombol NEXT video di strip channel YT LINK
     function createYoutubeChannel(ch, index){
       const el=document.createElement('article');
       el.className='channel fx-channel';
@@ -1156,10 +1177,11 @@
         </div>
         <div class="media-deck">
           <input type="text" class="yt-input-box" id="ytUrlField" placeholder="Paste Link YouTube...">
-          <div class="deck-controls">
-            <button class="deck-btn text-[7px]" id="btnYtLoad" data-action="load">LOAD</button>
+          <div class="deck-controls-yt">
+            <button class="deck-btn text-[6px] font-bold" id="btnYtLoad" data-action="load">LOAD</button>
             <button class="deck-btn" data-action="play"><i data-lucide="play" style="width:10px;"></i></button>
             <button class="deck-btn" data-action="stop"><i data-lucide="square" style="width:10px;"></i></button>
+            <button class="deck-btn text-[6px] font-bold bg-slate-800 text-cyan-400 border border-cyan-900" id="btnYtNext" title="Next Video Playlist">NEXT</button>
           </div>
         </div>
         <button class="fx-send-btn ${fxAssigned.has(index)?'active':''}" type="button">FX SEND</button>
@@ -1181,17 +1203,29 @@
 
       const linkInput = el.querySelector('#ytUrlField');
       
+      // Mengaktifkan Tombol LOAD untuk memuat video kustom user
       el.querySelector('#btnYtLoad').addEventListener('click', () => {
          const val = linkInput.value;
          if(val) {
             const id = extractYoutubeId(val);
             if(id && ytPlayerElement && typeof ytPlayerElement.loadVideoById === 'function') {
+               togglePowerEngine(true);
                ytPlayerElement.loadVideoById(id);
                ytHasUserUrl = true;
                document.querySelectorAll('.ch-source')[index].textContent = "YT: " + id.substring(0,6);
             } else {
                alert("ID Video tidak valid. Pastikan link YouTube benar.");
             }
+         }
+      });
+
+      // MODIFIKASI: Event listener untuk tombol Next Video
+      el.querySelector('#btnYtNext').addEventListener('click', () => {
+         togglePowerEngine(true);
+         currentPlaylistIndex = (currentPlaylistIndex + 1) % ytPlaylist.length;
+         if(ytPlayerElement && typeof ytPlayerElement.loadVideoById === 'function') {
+             ytPlayerElement.loadVideoById(ytPlaylist[currentPlaylistIndex]);
+             document.querySelectorAll('.ch-source')[index].textContent = "PLAYLIST " + (currentPlaylistIndex + 1);
          }
       });
 
@@ -1367,6 +1401,15 @@
               if (index === selectedIndex) redrawEqDisplay();
             } else if (role === 'high') {
               node.high.gain.setValueAtTime(value * 15, audioCtx.currentTime);
+              if (index === selectedIndex) document.getElementById('sidePan').textContent = value === 0 ? 'C' : value > 0 ? 'R ' + Math.round(value*10) : 'L ' + Math.round(Math.abs(value)*10);
+            } else if (role === 'low') {
+              node.low.gain.setValueAtTime(value * 15, audioCtx.currentTime);
+              if (index === selectedIndex) redrawEqDisplay();
+            } else if (role === 'mid') {
+              node.mid.gain.setValueAtTime(value * 15, audioCtx.currentTime);
+              if (index === selectedIndex) redrawEqDisplay();
+            } else if (role === 'high') {
+              node.high.gain.setValueAtTime(value * 15, audioCtx.currentTime);
               if (index === selectedIndex) redrawEqDisplay();
             } else if (role === 'aux') {
               let targetAuxVol = fxAssigned.has(index) ? (value + 1) * 0.45 : 0.0;
@@ -1465,6 +1508,7 @@
       document.getElementById('eqFillPath').setAttribute('d', pathStr + ' L800,160 L0,160 Z');
     }
 
+    // MODIFIKASI: Mengatur visibilitas full screen player YouTube berdasarkan tab aktif
     document.querySelectorAll('.display-tab').forEach(tab=>{
       tab.addEventListener('click',()=>{
         document.querySelectorAll('.display-tab').forEach(t=>t.classList.remove('active'));
@@ -1473,6 +1517,7 @@
         document.getElementById(tab.dataset.mode).classList.add('active');
         
         const ytBox = document.getElementById('ytPlayerContainer');
+        // YouTube ditampilkan full di tab Overview & Setup
         if(tab.dataset.mode === 'overviewMode' || tab.dataset.mode === 'setupMode') {
            ytBox.classList.remove('hidden');
         } else {
@@ -1682,7 +1727,11 @@
           topLed.classList.add('active');
           txt.textContent = 'DSP ACTIVE';
           topTxt.textContent = 'LIVE ENGINE';
-          document.getElementById('ytPlayerContainer').classList.remove('hidden');
+          
+          const currentMode = document.querySelector('.display-tab.active').dataset.mode;
+          if(currentMode === 'overviewMode' || currentMode === 'setupMode') {
+              document.getElementById('ytPlayerContainer').classList.remove('hidden');
+          }
         });
       } else {
         triggerGlobalStop();
@@ -1693,6 +1742,7 @@
         txt.textContent = 'DSP INACTIVE';
         topTxt.textContent = 'ENGINE STANDBY';
         btn.classList.remove('active');
+        document.getElementById('ytPlayerContainer').classList.add('hidden');
       }
     }
 
@@ -1752,7 +1802,7 @@
             if(rtaBars.length > 0) {
               rtaBars.forEach((bar, bidx) => {
                 let jitter = (uintBuffer[bidx % 16] / 255) * 95;
-                if(!isGlobalPlaying && !ytHasUserUrl) jitter = 5 + Math.random() * 8;
+                if(!isGlobalPlaying && !ytHasUserUrl && idx !== 8) jitter = 5 + Math.random() * 8;
                 bar.style.height = Math.max(8, jitter) + '%';
               });
             }
