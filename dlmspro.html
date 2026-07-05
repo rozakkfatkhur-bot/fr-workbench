@@ -1,384 +1,1120 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web DLMS - Mastering Chain Interface</title>
+    <title>Abbey Road TG Mastering Chain - Ultra Realistic Web Interface</title>
     <style>
+        /* ==========================================================================
+           1. RESET & VARIABLE UTAMA PANEL ANALOG
+           ========================================================================== */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
         :root {
-            --bg-panel: #4a6375;
-            --bg-dark: #2c3e4b;
-            --text-light: #e0f2fe;
-            --text-blue: #38bdf8;
-            --led-on: #34d399;
-            --led-off: #064e3b;
+            --panel-blue: #445c70;
+            --panel-border: #1e2b35;
+            --panel-highlight: rgba(255, 255, 255, 0.15);
+            --panel-shadow: rgba(0, 0, 0, 0.4);
+            --knob-black: #1a1a1a;
+            --knob-grey: #a0aab5;
+            --knob-red: #b8261e;
+            --knob-blue: #22517a;
+            --pointer-orange: #ff4a03;
+            --text-gold: #d4af37;
+            --text-white: #e5edf5;
+            --text-dark: #111a22;
+            --led-green-on: #00ff66;
+            --led-green-off: #00441b;
         }
 
         body {
-            background-color: #111;
-            color: var(--text-light);
-            font-family: 'Courier New', Courier, monospace;
+            background: radial-gradient(circle, #252525 0%, #0a0a0a 100%);
+            color: var(--text-white);
+            font-family: "Arial", "Helvetica Neue", sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            margin: 0;
-            user-select: none;
+            padding: 40px 10px;
+            overflow-x: auto;
         }
 
-        /* Container Utama sesuai susunan gambar 1000746493.jpg */
-        .mastering-chain {
+        /* ==========================================================================
+           2. RANGKA UTAMA CHASSIS (SKEUOMORPHIC STYLING)
+           ========================================================================== */
+        .chassis-outer {
+            padding: 8px;
+            background: linear-gradient(135deg, #2d2d2d 0%, #121212 100%);
+            border-radius: 6px;
+            box-shadow: 0 30px 70px rgba(0,0,0,0.9), inset 0 2px 3px rgba(255,255,255,0.2);
+        }
+
+        .chassis-inner {
             display: flex;
-            background-color: var(--bg-panel);
-            border: 4px solid #222;
+            background-color: var(--panel-blue);
+            background-image: 
+                radial-gradient(rgba(255,255,255,0.05) 1px, transparent 0),
+                linear-gradient(to bottom, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0.25) 100%);
+            background-size: 4px 4px, 100% 100%;
+            border: 4px solid #111;
             border-radius: 4px;
-            padding: 10px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.8);
-            gap: 2px;
+            position: relative;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.4);
+            overflow: hidden;
         }
 
-        /* Modul/Kolom Vertikal */
-        .module {
-            background-color: var(--bg-panel);
-            border-right: 2px solid rgba(0,0,0,0.3);
-            border-left: 1px solid rgba(255,255,255,0.1);
-            padding: 15px 10px;
+        /* ==========================================================================
+           3. DETAIL ORNAMEN (SEKRUP, GARIS PEMBATAS, LABELS)
+           ========================================================================== */
+        .screw {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: radial-gradient(circle, #777 0%, #333 100%);
+            border-radius: 50%;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.6), inset 0 1px 1px rgba(255,255,255,0.3);
+        }
+        .screw::before {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 1px;
+            width: 6px;
+            height: 1.5px;
+            background: #111;
+            transform: rotate(35deg);
+        }
+        .sc-tl { top: 6px; left: 6px; }
+        .sc-tr { top: 6px; right: 6px; }
+        .sc-bl { bottom: 6px; left: 6px; }
+        .sc-br { bottom: 6px; right: 6px; }
+
+        /* Struktur Kolom Modul Sesuai Gambar */
+        .tg-module {
+            border-right: 2px solid #223240;
+            border-left: 1px solid rgba(255,255,255,0.12);
+            padding: 25px 12px 15px 12px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            width: 140px;
-            min-height: 550px;
-            box-sizing: border-box;
             position: relative;
+            box-shadow: inset -1px 0 0 rgba(0,0,0,0.2);
         }
 
-        .module:last-child {
-            border-right: none;
-            width: 180px;
+        .tg-module::after {
+            content: '';
+            position: absolute;
+            top: 0; bottom: 0; right: 0;
+            width: 1px;
+            background: linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,0.4), rgba(0,0,0,0));
         }
 
-        .module-title {
+        /* Lebar spesifik tiap modul agar proporsional */
+        .mod-input    { width: 185px; }
+        .mod-filter   { width: 145px; }
+        .mod-limiter  { width: 195px; }
+        .mod-tone     { width: 310px; }
+        .mod-master   { width: 230px; border-right: none; }
+
+        /* Penanda Tipe Modul Klasik di Bagian Bawah */
+        .module-footer-tag {
+            position: absolute;
+            bottom: 6px;
             font-size: 10px;
             font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 20px;
-            color: #1e293b;
-            border-bottom: 1px solid rgba(0,0,0,0.2);
+            letter-spacing: 1.5px;
+            color: rgba(0, 0, 0, 0.6);
             width: 100%;
-            text-align: center;
-            padding-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 10px;
         }
 
-        /* Komponen Knop / Potensio */
-        .knob-container {
-            margin: 15px 0;
-            text-align: center;
-            position: relative;
+        .module-footer-tag .serial {
+            font-family: serif;
+            font-style: italic;
         }
 
-        .knob-label {
+        /* ==========================================================================
+           4. SISTEM SUB-PANEL ATAS (ST / DUO / MS)
+           ========================================================================== */
+        .sub-matrix-top {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            background: rgba(0,0,0,0.15);
+            padding: 6px 10px;
+            border-radius: 3px;
+            border: 1px solid rgba(0,0,0,0.2);
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.3);
+        }
+
+        .mini-toggle-group {
+            display: flex;
+            gap: 4px;
+        }
+
+        .mini-btn {
+            width: 14px;
+            height: 14px;
+            background: linear-gradient(to bottom, #efefef, #bcbcbc);
+            border: 1px solid #666;
+            border-radius: 2px;
+            cursor: pointer;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.4);
+        }
+        .mini-btn.active {
+            background: linear-gradient(to bottom, #38bdf8, #0284c7);
+            border-color: #0369a1;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.6), 0 0 4px rgba(56,189,248,0.6);
+        }
+
+        .matrix-label {
             font-size: 9px;
-            text-transform: uppercase;
-            margin-top: 4px;
-            display: block;
-            font-weight: bold;
+            font-weight: 900;
+            color: #0e1e2d;
+            letter-spacing: 0.5px;
         }
 
-        .knob {
-            width: 45px;
-            height: 45px;
-            background: #222;
+        /* ==========================================================================
+           5. SPESIFIKASI KNOP PUTAR (CHICKEN HEAD & FLUTED MECHANICAL STYLING)
+           ========================================================================== */
+        .control-node {
+            position: relative;
+            margin-bottom: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .ticks-svg {
+            position: absolute;
+            top: -12px;
+            left: -12px;
+            width: 84px;
+            height: 84px;
+            pointer-events: none;
+        }
+
+        .ticks-svg text {
+            font-size: 7.5px;
+            fill: #111a22;
+            font-weight: bold;
+            font-family: sans-serif;
+            text-anchor: middle;
+            dominant-baseline: central;
+        }
+
+        .ticks-svg line {
+            stroke: rgba(0, 0, 0, 0.45);
+            stroke-width: 1.2px;
+        }
+
+        .knob-wrapper {
+            position: relative;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Model 1: Chicken Head Red */
+        .chickenhead-red {
+            width: 50px;
+            height: 50px;
+            background: radial-gradient(circle, #e6392e 0%, #991b14 100%);
             border-radius: 50%;
             position: relative;
             cursor: grab;
-            box-shadow: inset 0 2px 5px rgba(255,255,255,0.2), 0 4px 6px rgba(0,0,0,0.4);
-            transform: rotate(0deg);
-            transition: transform 0.05s linear;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.5), inset 0 2px 3px rgba(255,255,255,0.4);
         }
-
-        /* Pointer berbentuk kepala ayam / garis indikator */
-        .knob::after {
+        .chickenhead-red::before {
             content: '';
             position: absolute;
-            top: 5px;
+            top: -12px;
+            left: 19px;
+            width: 12px;
+            height: 35px;
+            background: linear-gradient(to right, #991b14, #e6392e 50%, #7f120d);
+            border-radius: 6px 6px 2px 2px;
+            clip-path: polygon(50% 0%, 100% 70%, 100% 100%, 0 100%, 0 70%);
+        }
+        .chickenhead-red::after {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: 23px;
+            width: 4px;
+            height: 14px;
+            background: #fff;
+            border-radius: 1px;
+        }
+
+        /* Model 2: Chicken Head Grey */
+        .chickenhead-grey {
+            width: 50px;
+            height: 50px;
+            background: radial-gradient(circle, #cbd5e1 0%, #64748b 100%);
+            border-radius: 50%;
+            position: relative;
+            cursor: grab;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.5), inset 0 2px 3px rgba(255,255,255,0.5);
+        }
+        .chickenhead-grey::before {
+            content: '';
+            position: absolute;
+            top: -12px;
+            left: 19px;
+            width: 12px;
+            height: 35px;
+            background: linear-gradient(to right, #475569, #cbd5e1 50%, #334155);
+            border-radius: 6px 6px 2px 2px;
+            clip-path: polygon(50% 0%, 100% 70%, 100% 100%, 0 100%, 0 70%);
+        }
+        .chickenhead-grey::after {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: 23px;
+            width: 4px;
+            height: 14px;
+            background: #ff3c00;
+        }
+
+        /* Model 3: Chicken Head Black */
+        .chickenhead-black {
+            width: 50px;
+            height: 50px;
+            background: radial-gradient(circle, #333 0%, #111 100%);
+            border-radius: 50%;
+            position: relative;
+            cursor: grab;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.5), inset 0 2px 3px rgba(255,255,255,0.2);
+        }
+        .chickenhead-black::before {
+            content: '';
+            position: absolute;
+            top: -12px;
+            left: 19px;
+            width: 12px;
+            height: 35px;
+            background: linear-gradient(to right, #111, #444 50%, #000);
+            border-radius: 6px 6px 2px 2px;
+            clip-path: polygon(50% 0%, 100% 70%, 100% 100%, 0 100%, 0 70%);
+        }
+        .chickenhead-black::after {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: 23px;
+            width: 4px;
+            height: 14px;
+            background: #fff;
+        }
+
+        /* Model 4: Fluted Black Knob (Knop Klasik Bergaris Samping) */
+        .fluted-black {
+            width: 46px;
+            height: 46px;
+            background: conic-gradient(
+                #222 0deg, #111 20deg, #333 40deg, #111 60deg, #333 80deg, #111 100deg,
+                #333 120deg, #111 140deg, #333 160deg, #111 180deg, #333 20deg, #111 220deg,
+                #333 240deg, #111 260deg, #333 280deg, #111 300deg, #333 320deg, #111 340deg, #222 360deg
+            );
+            border-radius: 50%;
+            position: relative;
+            cursor: grab;
+            border: 3px solid #151515;
+            box-shadow: 0 6px 10px rgba(0,0,0,0.6), inset 0 1px 2px rgba(255,255,255,0.3);
+        }
+        .fluted-black .cap {
+            position: absolute;
+            top: 5px; left: 5px; right: 5px; bottom: 5px;
+            background: radial-gradient(circle, #3a3a3a 0%, #1a1a1a 100%);
+            border-radius: 50%;
+            border: 1px solid #111;
+        }
+        .fluted-black .pointer-line {
+            position: absolute;
+            top: 2px;
             left: 50%;
             transform: translateX(-50%);
-            width: 4px;
-            height: 18px;
-            background: #ff4500; /* Warna merah pointer seperti di gambar */
-            border-radius: 2px;
+            width: 3px;
+            height: 14px;
+            background-color: #fff;
+            border-radius: 1px;
         }
 
-        .knob.gray::after {
-            background: #ddd;
+        .node-label {
+            font-size: 9px;
+            font-weight: 800;
+            color: #0f1c26;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 6px;
+            text-shadow: 0 1px 0 rgba(255,255,255,0.1);
         }
 
-        /* Komponen Tombol Kotak Backlit */
-        .btn-square {
-            width: 24px;
-            height: 24px;
-            background-color: #ddd;
-            border: 2px solid #999;
-            box-shadow: inset 0 2px 2px rgba(255,255,255,0.6), 0 2px 4px rgba(0,0,0,0.4);
-            cursor: pointer;
-            margin: 5px;
-            transition: all 0.1s;
+        /* ==========================================================================
+           6. TOMBOL SAKLAR / SWITCHES (RETRO INDUSTRIAL)
+           ========================================================================== */
+        .retro-switch-container {
+            display: flex;
+            gap: 12px;
+            margin: 12px 0;
         }
 
-        .btn-square.active {
-            background-color: var(--text-blue);
-            border-color: #0284c7;
-            box-shadow: 0 0 10px var(--text-blue);
-        }
-
-        /* Komponen Fader */
-        .fader-container {
+        .switch-block {
             display: flex;
             flex-direction: column;
             align-items: center;
-            height: 180px;
-            margin: 20px 0;
         }
 
-        .fader-track {
-            width: 8px;
-            height: 140px;
-            background: #1e293b;
+        .btn-industrial {
+            width: 26px;
+            height: 26px;
+            background: linear-gradient(to bottom, #444, #222);
+            border: 2px solid #111;
             border-radius: 4px;
             position: relative;
-            border-left: 1px solid rgba(255,255,255,0.1);
+            cursor: pointer;
+            box-shadow: 0 3px 5px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.2);
+        }
+        .btn-industrial::before {
+            content: '';
+            position: absolute;
+            top: 3px; left: 3px; right: 3px; bottom: 3px;
+            background: #b5221a; /* Indikator merah kotak tengah */
+            border-radius: 1px;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.6);
+            transition: all 0.1s;
+        }
+        .btn-industrial.active::before {
+            background: #ff3c2e;
+            box-shadow: 0 0 12px #ff3c2e, inset 0 1px 0 rgba(255,255,255,0.4);
         }
 
-        .fader-thumb {
-            width: 24px;
-            height: 14px;
-            background: #fff;
-            border: 1px solid #999;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.6);
+        .switch-label {
+            font-size: 8.5px;
+            font-weight: bold;
+            color: #111a22;
+            margin-top: 4px;
+        }
+
+        /* ==========================================================================
+           7. INDIKATOR GAIN REDUCTION (JARUM FISIK MEKANIK)
+           ========================================================================== */
+        .gr-meter-box {
+            width: 52px;
+            height: 135px;
+            background: linear-gradient(to bottom, #ded4ba 0%, #c5b99b 100%);
+            border: 3px solid #222;
+            border-radius: 2px;
+            position: relative;
+            box-shadow: inset 0 5px 15px rgba(0,0,0,0.4), 0 4px 6px rgba(0,0,0,0.3);
+            margin: 15px 0;
+            overflow: hidden;
+        }
+        /* Kaca refleksi meter */
+        .gr-meter-box::after {
+            content: '';
             position: absolute;
-            left: -8px;
-            top: 60px; /* Posisi awal default tengah */
-            cursor: ns-resize;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0) 60%);
+            pointer-events: none;
+        }
+        .gr-scale {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0; left: 0;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='50' height='130'><text x='25' y='15' font-size='8' font-weight='bold' text-anchor='middle'>GR</text><line x1='10' y1='30' x2='22' y2='30' stroke='black' stroke-width='1'/><text x='32' y='32' font-size='7'>0</text><line x1='10' y1='50' x2='18' y2='50' stroke='black' stroke-width='1'/><text x='28' y='52' font-size='7'>3</text><line x1='10' y1='70' x2='18' y2='70' stroke='black' stroke-width='1'/><text x='28' y='72' font-size='7'>6</text><line x1='10' y1='90' x2='18' y2='90' stroke='black' stroke-width='1'/><text x='28' y='92' font-size='7'>10</text><line x1='10' y1='110' x2='22' y2='110' stroke='black' stroke-width='1'/><text x='32' y='112' font-size='7'>20</text></svg>");
+            background-size: 100% 100%;
+        }
+        .gr-needle {
+            position: absolute;
+            top: 0;
+            left: 14px;
+            width: 2px;
+            height: 115px;
+            background: #cc1111;
+            transform-origin: top center;
+            transform: rotate(4deg);
+            transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+            box-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        /* Row Layout untuk Susunan TONE Modul Bertingkat */
+        .tone-band-row {
+            display: flex;
+            width: 100%;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px dashed rgba(0,0,0,0.15);
+            padding: 8px 0;
+        }
+        .tone-band-row:last-child { border-bottom: none; }
+        .band-badge {
+            position: absolute;
+            left: 2px;
+            font-size: 11px;
+            font-weight: 900;
+            background: rgba(0,0,0,0.2);
+            padding: 2px 4px;
+            border-radius: 2px;
+            color: #0e1e2d;
+        }
+
+        /* ==========================================================================
+           8. MODUL MASTER & DUAL FADER MEKANIK + LED METER
+           ========================================================================== */
+        .abbey-logo-area {
+            text-align: center;
+            margin-bottom: 15px;
+            border: 1px dashed rgba(0,0,0,0.2);
+            padding: 4px;
+            background: rgba(255,255,255,0.05);
+        }
+        .abbey-logo-area h1 { font-size: 11px; letter-spacing: 0.5px; color: #111; font-weight: 900; }
+        .abbey-logo-area p { font-size: 8px; color: #b5221a; font-weight: bold; }
+
+        .matrix-buttons-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 4px;
+            width: 100%;
+            padding: 0 10px;
+            margin-bottom: 15px;
+        }
+        .matrix-btn {
+            background: linear-gradient(to bottom, #ffffff 0%, #e2e8f0 100%);
+            border: 1px solid #94a3b8;
+            color: #334155;
+            font-size: 9px;
+            font-weight: 900;
+            padding: 4px 0;
+            text-align: center;
+            border-radius: 2px;
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        .matrix-btn.active {
+            background: #ffeb3b;
+            color: #000;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.4), 0 0 6px #ffeb3b;
+            border-color: #f59e0b;
+        }
+
+        .master-io-deck {
+            display: flex;
+            width: 100%;
+            justify-content: space-around;
+            background: rgba(0,0,0,0.1);
+            padding: 10px 4px;
+            border-radius: 4px;
+            border: 1px solid rgba(0,0,0,0.15);
+        }
+
+        /* Desain Slot Jalur Fader Fisik */
+        .fader-rack-vertical {
+            display: flex;
+            gap: 12px;
+            background: #18222a;
+            padding: 6px 8px;
+            border-radius: 4px;
+            border: 2px solid #0f161c;
+            box-shadow: inset 0 4px 10px rgba(0,0,0,0.8);
+            position: relative;
+        }
+        .fader-track-slot {
+            width: 4px;
+            height: 150px;
+            background: #000;
+            position: relative;
             border-radius: 2px;
         }
-
-        /* VU Meter / LED Level Meter */
-        .vu-meter-container {
-            display: flex;
-            gap: 10px;
-            height: 140px;
-            background: #111;
-            padding: 10px 5px;
-            border-radius: 4px;
-            border: 2px solid #333;
+        .fader-handle-block {
+            width: 18px;
+            height: 26px;
+            background: linear-gradient(to right, #ccc 0%, #fff 30%, #fff 70%, #999 100%);
+            border: 1px solid #222;
+            position: absolute;
+            left: -7px;
+            top: 60px;
+            cursor: ns-resize;
+            border-radius: 2px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.6);
+        }
+        /* Garis tengah fader cap */
+        .fader-handle-block::after {
+            content: '';
+            position: absolute;
+            top: 12px; left: 0; right: 0;
+            height: 2px;
+            background: #ff2a00;
         }
 
-        .vu-channel {
+        /* Presisi LED VU Meter */
+        .led-vu-column-pair {
+            display: flex;
+            gap: 6px;
+            background: #0b1116;
+            padding: 6px;
+            border-radius: 3px;
+            border: 2px solid #1a2630;
+        }
+        .led-strip {
             display: flex;
             flex-direction: column-reverse;
             gap: 2px;
             width: 8px;
-            height: 100%;
+            height: 150px;
         }
-
-        .led {
+        .led-element {
             width: 100%;
-            height: 5px;
-            background-color: #222;
+            height: 4px;
+            background: #1e293b;
+            transition: background 0.05s;
         }
+        .led-element.g-on { background: #00ff66; box-shadow: 0 0 4px #00ff66; }
+        .led-element.y-on { background: #ffcc00; box-shadow: 0 0 4px #ffcc00; }
+        .led-element.r-on { background: #ff3333; box-shadow: 0 0 4px #ff3333; }
 
-        .led.green.active { background-color: #10b981; box-shadow: 0 0 4px #10b981; }
-        .led.yellow.active { background-color: #f59e0b; box-shadow: 0 0 4px #f59e0b; }
-        .led.red.active { background-color: #ef4444; box-shadow: 0 0 4px #ef4444; }
-
+        /* Tracker Info Footer */
+        .bottom-infobar {
+            background: #1c262f;
+            border-top: 3px solid #111;
+            padding: 6px 15px;
+            font-size: 11px;
+            font-family: monospace;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            color: #94a3b8;
+        }
+        .bottom-infobar span strong { color: #fff; }
     </style>
 </head>
 <body>
 
-    <div class="mastering-chain">
-        
-        <!-- MODUL 1: INPUT -->
-        <div class="module">
-            <div class="module-title">Input</div>
-            <div class="knob-container">
-                <div class="knob gray" data-min="-24" data-max="24" data-value="0"></div>
-                <span class="knob-label">Input</span>
-            </div>
-            <button class="btn-square"></button>
-            <div class="knob-container">
-                <div class="knob" data-min="0" data-max="10" data-value="5"></div>
-                <span class="knob-label">Phase</span>
-            </div>
-        </div>
+<div class="chassis-outer">
+    <div class="chassis-inner">
+        <!-- Sekrup Panel Pojok -->
+        <div class="screw sc-tl"></div>
+        <div class="screw sc-tr"></div>
+        <div class="screw sc-bl"></div>
+        <div class="screw sc-br"></div>
 
-        <!-- MODUL 2: FILTER -->
-        <div class="module">
-            <div class="module-title">Filter</div>
-            <div class="knob-container">
-                <div class="knob gray" data-min="0" data-max="10" data-value="2"></div>
-                <span class="knob-label">Low Pass</span>
+        <!-- ==========================================
+             MODUL 1: TG12411 INPUT SECTION
+             ========================================== -->
+        <div class="tg-module mod-input">
+            <div class="sub-matrix-top">
+                <div class="mini-toggle-group">
+                    <div class="mini-btn active"></div>
+                    <div class="mini-btn"></div>
+                    <div class="mini-btn"></div>
+                </div>
+                <div class="matrix-label">ST DUO MS</div>
             </div>
-            <div class="knob-container">
-                <div class="knob gray" data-min="0" data-max="10" data-value="7"></div>
-                <span class="knob-label">High Pass</span>
-            </div>
-        </div>
 
-        <!-- MODUL 3: LIMITER -->
-        <div class="module">
-            <div class="module-title">Limiter</div>
-            <div class="knob-container">
-                <div class="knob" data-min="0" data-max="100" data-value="50"></div>
-                <span class="knob-label">Makeup</span>
+            <!-- Input Knob -->
+            <div class="control-node">
+                <div class="knob-wrapper">
+                    <!-- Generator Ticks Kompleks SVG -->
+                    <svg class="ticks-svg" viewBox="0 0 100 100">
+                        <line x1="50" y1="10" x2="50" y2="18" transform="rotate(-120 50 50)"/>
+                        <line x1="50" y1="10" x2="50" y2="18" transform="rotate(-60 50 50)"/>
+                        <line x1="50" y1="10" x2="50" y2="18" transform="rotate(0 50 50)"/>
+                        <line x1="50" y1="10" x2="50" y2="18" transform="rotate(60 50 50)"/>
+                        <line x1="50" y1="10" x2="50" y2="18" transform="rotate(120 50 50)"/>
+                        <text x="18" y="76">-24</text>
+                        <text x="50" y="5">0</text>
+                        <text x="82" y="76">+24</text>
+                    </svg>
+                    <div class="chickenhead-grey" data-type="rotary" data-val="0"></div>
+                </div>
+                <div class="node-label">Input</div>
             </div>
-            <button class="btn-square"></button>
-            <div class="knob-container">
-                <div class="knob gray" data-min="0" data-max="10" data-value="3"></div>
-                <span class="knob-label">Mix</span>
-            </div>
-        </div>
 
-        <!-- MODUL 4: TONE -->
-        <div class="module">
-            <div class="module-title">Tone</div>
-            <div class="knob-container">
-                <div class="knob gray" data-min="0" data-max="10" data-value="4"></div>
-                <span class="knob-label">Freq</span>
+            <!-- Tape Equalizer Knob -->
+            <div class="control-node">
+                <div class="knob-wrapper">
+                    <svg class="ticks-svg" viewBox="0 0 100 100">
+                        <text x="15" y="40">NAB</text>
+                        <text x="50" y="8">FLAT</text>
+                        <text x="82" y="40">IEC</text>
+                    </svg>
+                    <div class="chickenhead-red" data-type="rotary" data-val="20"></div>
+                </div>
+                <div class="node-label">Tape Equalizer</div>
             </div>
-            <div class="knob-container">
-                <div class="knob gray" data-min="0" data-max="10" data-value="5"></div>
-                <span class="knob-label">Gain</span>
-            </div>
-        </div>
 
-        <!-- MODUL 5: OUTPUT & MASTER -->
-        <div class="module">
-            <div class="module-title">Output</div>
-            
-            <div style="display: flex; gap: 20px; align-items: center;">
-                <!-- Fader Kontrol -->
-                <div class="fader-container">
-                    <div class="fader-track">
-                        <div class="fader-thumb" id="output-fader"></div>
+            <!-- Row Saklar Kotak -->
+            <div class="retro-switch-container">
+                <div class="switch-block">
+                    <div class="btn-industrial"></div>
+                    <div class="switch-label">POLE L</div>
+                </div>
+                <div class="switch-block">
+                    <div class="btn-industrial active"></div>
+                    <div class="switch-label">TRANSPOSE</div>
+                </div>
+            </div>
+
+            <!-- Balance Fluted Knob -->
+            <div class="control-node" style="margin-top:10px;">
+                <div class="knob-wrapper">
+                    <div class="fluted-black" data-type="rotary" data-val="-10">
+                        <div class="cap"><div class="pointer-line"></div></div>
                     </div>
-                    <span class="knob-label" style="margin-top:10px;">Fader</span>
+                </div>
+                <div class="node-label">Bal</div>
+            </div>
+
+            <!-- Phase Knob -->
+            <div class="control-node">
+                <div class="knob-wrapper">
+                    <div class="chickenhead-red" data-type="rotary" data-val="45"></div>
+                </div>
+                <div class="node-label">Phase</div>
+            </div>
+
+            <div class="module-footer-tag">
+                <span class="serial">TG12411</span>
+                <span>INPUT</span>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             MODUL 2: TG12414 FILTER SECTION
+             ========================================== -->
+        <div class="tg-module mod-filter">
+            <div class="sub-matrix-top">
+                <div class="mini-toggle-group"><div class="mini-btn"></div><div class="mini-btn active"></div><div class="mini-btn"></div></div>
+                <div class="matrix-label">ST DUO MS</div>
+            </div>
+
+            <div class="control-node">
+                <div class="knob-wrapper">
+                    <div class="fluted-black" data-type="rotary" data-val="30">
+                        <div class="cap"><div class="pointer-line"></div></div>
+                    </div>
+                </div>
+                <div class="node-label">KHz Low Pass</div>
+            </div>
+
+            <div class="control-node">
+                <div class="knob-wrapper">
+                    <div class="chickenhead-grey" data-type="rotary" data-val="-60"></div>
+                </div>
+                <div class="node-label">KHz Presence</div>
+            </div>
+
+            <div class="control-node">
+                <div class="knob-wrapper">
+                    <div class="fluted-black" data-type="rotary" data-val="0">
+                        <div class="cap"><div class="pointer-line"></div></div>
+                    </div>
+                </div>
+                <div class="node-label">dB Presence</div>
+            </div>
+
+            <div class="control-node">
+                <div class="knob-wrapper">
+                    <div class="fluted-black" data-type="rotary" data-val="80">
+                        <div class="cap"><div class="pointer-line"></div></div>
+                    </div>
+                </div>
+                <div class="node-label">Hz High Pass</div>
+            </div>
+
+            <div class="module-footer-tag">
+                <span class="serial">TG12414</span>
+                <span>FILTER</span>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             MODUL 3: TG12413 LIMITER SECTION
+             ========================================== -->
+        <div class="tg-module mod-limiter">
+            <div class="sub-matrix-top">
+                <div class="mini-toggle-group"><div class="mini-btn"></div><div class="mini-btn"></div><div class="mini-btn active"></div></div>
+                <div class="matrix-label">ST DUO MS</div>
+            </div>
+
+            <div style="display:flex; width:100%; justify-content: space-around; align-items: flex-start; gap:8px;">
+                <div>
+                    <div class="control-node">
+                        <div class="knob-wrapper">
+                            <div class="chickenhead-red" data-type="rotary" data-val="-15"></div>
+                        </div>
+                        <div class="node-label">Recovery</div>
+                    </div>
+
+                    <div class="control-node">
+                        <div class="knob-wrapper">
+                            <div class="fluted-black" data-type="rotary" data-val="10">
+                                <div class="cap"><div class="pointer-line"></div></div>
+                            </div>
+                        </div>
+                        <div class="node-label">Make Up</div>
+                    </div>
                 </div>
 
-                <!-- VU Meter Tingkat Volume -->
-                <div class="vu-meter-container">
-                    <div class="vu-channel" id="vu-left"></div>
-                    <div class="vu-channel" id="vu-right"></div>
+                <!-- Indikator Kompresi Jarum GR -->
+                <div class="gr-meter-box">
+                    <div class="gr-scale"></div>
+                    <div class="gr-needle" id="hardware-needle"></div>
                 </div>
+            </div>
+
+            <div class="switch-block" style="margin-bottom: 10px;">
+                <div class="btn-industrial"></div>
+                <div class="switch-label">SC FILTERS</div>
+            </div>
+
+            <div style="display:flex; gap:14px; width:100%; justify-content:center;">
+                <div class="control-node">
+                    <div class="knob-wrapper">
+                        <div class="chickenhead-blue" style="width:46px; height:46px; background:radial-gradient(circle, var(--knob-blue) 0%, #0d2336 100%); border-radius:50%; position:relative; cursor:grab; box-shadow:0 4px 8px rgba(0,0,0,0.5);" data-type="rotary" data-val="90"></div>
+                    </div>
+                    <div class="node-label">Mix</div>
+                </div>
+                <div class="control-node">
+                    <div class="knob-wrapper">
+                        <div class="fluted-black" data-type="rotary" data-val="0"><div class="cap"><div class="pointer-line"></div></div></div>
+                    </div>
+                    <div class="node-label">Ratio</div>
+                </div>
+            </div>
+
+            <div class="module-footer-tag">
+                <span class="serial">TG12413</span>
+                <span>LIMITER</span>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             MODUL 4: TG12412 TONE (4 BAND COMPACT PARAMETRIC)
+             ========================================== -->
+        <div class="tg-module mod-tone">
+            <div class="sub-matrix-top" style="width: 90px;">
+                <div class="matrix-label" style="text-align:center; width:100%;">TG12412 TONE</div>
+            </div>
+
+            <!-- Band 4 -->
+            <div class="tone-band-row">
+                <div class="band-badge">4</div>
+                <div class="control-node" style="margin-left:30px; margin-bottom:0;">
+                    <div class="knob-wrapper" style="width:40px; height:40px;"><div class="chickenhead-grey" style="width:36px; height:36px;" data-type="rotary" data-val="-30"></div></div>
+                    <div class="node-label" style="font-size:7.5px;">Freq</div>
+                </div>
+                <div class="control-node" style="margin-bottom:0;">
+                    <div class="knob-wrapper" style="width:40px; height:40px;"><div class="fluted-black" style="width:34px; height:34px;" data-type="rotary" data-val="20"><div class="cap"></div></div></div>
+                    <div class="node-label" style="font-size:7.5px;">Gain</div>
+                </div>
+                <div class="control-node" style="margin-bottom:0;">
+                    <div class="knob-wrapper" style="width:40px; height:40px;"><div class="chickenhead-grey" style="width:36px; height:36px;" data-type="rotary" data-val="45"></div></div>
+                    <div class="node-label" style="font-size:7.5px;">Shape</div>
+                </div>
+            </div>
+
+            <!-- Band 3 -->
+            <div class="tone-band-row">
+                <div class="band-badge">3</div>
+                <div class="control-node" style="margin-left:30px; margin-bottom:0;">
+                    <div class="knob-wrapper" style="width:40px; height:40px;"><div class="chickenhead-grey" style="width:36px; height:36px;" data-type="rotary" data-val="10"></div></div>
+                    <div class="node-label" style="font-size:7.5px;">Freq</div>
+                </div>
+                <div class="control-node" style="margin-bottom:0;">
+                    <div class="knob-wrapper" style="width:40px; height:40px;"><div class="fluted-black" style="width:34px; height:34px;" data-type="rotary" data-val="-40"><div class="cap"></div></div></div>
+                    <div class="node-label" style="font-size:7.5px;">Gain</div>
+                </div>
+                <div class="control-node" style="margin-bottom:0;">
+                    <div class="knob-wrapper" style="width:40px; height:40px;"><div class="chickenhead-grey" style="width:36px; height:36px;" data-type="rotary" data-val="0"></div></div>
+                    <div class="node-label" style="font-size:7.5px;">Shape</div>
+                </div>
+            </div>
+
+            <!-- Band 2 -->
+            <div class="tone-band-row">
+                <div class="band-badge">2</div>
+                <div class="control-node" style="margin-left:30px; margin-bottom:0;">
+                    <div class="knob-wrapper" style="width:40px; height:40px;"><div class="chickenhead-grey" style="width:36px; height:36px;" data-type="rotary" data-val="60"></div></div>
+                    <div class="node-label" style="font-size:7.5px;">Freq</div>
+                </div>
+                <div class="control-node" style="margin-bottom:0;">
+                    <div class="knob-wrapper" style="width:40px; height:40px;"><div class="fluted-black" style="width:34px; height:34px;" data-type="rotary" data-val="0"><div class="cap"></div></div></div>
+                    <div class="node-label" style="font-size:7.5px;">Gain</div>
+                </div>
+                <div class="control-node" style="margin-bottom:0;">
+                    <div class="knob-wrapper" style="width:40px; height:40px;"><div class="chickenhead-grey" style="width:36px; height:36px;" data-type="rotary" data-val="-20"></div></div>
+                    <div class="node-label" style="font-size:7.5px;">Shape</div>
+                </div>
+            </div>
+
+            <!-- Band 1 -->
+            <div class="tone-band-row">
+                <div class="band-badge">1</div>
+                <div class="control-node" style="margin-left:30px; margin-bottom:0;">
+                    <div class="knob-wrapper" style="width:40px; height:40px;"><div class="chickenhead-grey" style="width:36px; height:36px;" data-type="rotary" data-val="-80"></div></div>
+                    <div class="node-label" style="font-size:7.5px;">Freq</div>
+                </div>
+                <div class="control-node" style="margin-bottom:0;">
+                    <div class="knob-wrapper" style="width:40px; height:40px;"><div class="fluted-black" style="width:34px; height:34px;" data-type="rotary" data-val="50"><div class="cap"></div></div></div>
+                    <div class="node-label" style="font-size:7.5px;">Gain</div>
+                </div>
+                <div class="control-node" style="margin-bottom:0;">
+                    <div class="knob-wrapper" style="width:40px; height:40px;"><div class="chickenhead-grey" style="width:36px; height:36px;" data-type="rotary" data-val="15"></div></div>
+                    <div class="node-label" style="font-size:7.5px;">Shape</div>
+                </div>
+            </div>
+
+            <div class="module-footer-tag">
+                <span class="serial">TG12412</span>
+                <span>TONE CONSOLE</span>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             MODUL 5: MASTER OUTPUT & DUAL RACK FADER
+             ========================================== -->
+        <div class="tg-module mod-master">
+            <div class="abbey-logo-area">
+                <h1>ABBEY ROAD</h1>
+                <p>TG Mastering Chain</p>
+            </div>
+
+            <!-- Spreader Center Knob -->
+            <div class="control-node" style="margin-bottom:15px;">
+                <div class="knob-wrapper">
+                    <div class="chickenhead-red" data-type="rotary" data-val="0"></div>
+                </div>
+                <div class="node-label">Spreader</div>
+            </div>
+
+            <!-- Matriks Routing Grid Rangkaian -->
+            <div class="matrix-buttons-grid">
+                <div class="matrix-btn">L</div>
+                <div class="matrix-btn active">STEREO</div>
+                <div class="matrix-btn">R</div>
+                <div class="matrix-btn">M</div>
+                <div class="matrix-btn">MONO</div>
+                <div class="matrix-btn">S</div>
+            </div>
+
+            <!-- Bagian Utama Kontrol Fader & VU Output Berpasangan -->
+            <div class="master-io-deck">
+                <!-- Dual Physical Fader -->
+                <div class="fader-rack-vertical">
+                    <div class="fader-track-slot">
+                        <div class="fader-handle-block" data-type="linear" style="top: 40px;"></div>
+                    </div>
+                    <div class="fader-track-slot">
+                        <div class="fader-handle-block" data-type="linear" style="top: 45px;"></div>
+                    </div>
+                </div>
+
+                <!-- Pasangan LED Level Strip -->
+                <div class="led-vu-column-pair">
+                    <div class="led-strip" id="vustrip-l"></div>
+                    <div class="led-strip" id="vustrip-r"></div>
+                </div>
+            </div>
+
+            <div class="module-footer-tag" style="justify-content: center;">
+                <span>OUTPUT MONITOR</span>
             </div>
         </div>
 
     </div>
+</div>
 
-    <script>
-        // --- LOGIKA INTERAKTIF KNOB (POTENSIO) ---
-        document.querySelectorAll('.knob').forEach(knob => {
-            let isDragging = false;
-            let startY = 0;
-            let currentRotation = 0;
+<!-- Footer Info Jalur Track -->
+<div style="width: 100%; max-width: 1090px; margin-top: 10px;">
+    <div class="bottom-infobar">
+        <span>TRACK NAME: <strong>TRACK 1 MASTER AUDIO</strong></span>
+        <span>ENGINE: <strong>DSP COMPLIANT WAVES CORE</strong></span>
+        <span>MODE: <strong>ANALOG REPLICA OVERLAY</strong></span>
+    </div>
+</div>
 
-            // Set posisi awal acak/berdasarkan data-value bawaan
-            const startVal = parseFloat(knob.getAttribute('data-value')) || 0;
-            currentRotation = (startVal * 2.5) - 125; 
+<!-- ==========================================================================
+   9. JAVASCRIPT ENGINE (HIGH FIDELITY ROTARY & LINEAR LOGIC)
+   ========================================================================== -->
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        setupRotaryKnobs();
+        setupLinearFaders();
+        setupInteractiveButtons();
+        generateLEDStrips();
+        startSimulationEngine();
+    });
+
+    // --- LOGIKA EMULASI ROTASI POTENSIO (360 DEGREES BOUNDS) ---
+    function setupRotaryKnobs() {
+        const knobs = document.querySelectorAll('[data-type="rotary"]');
+        
+        knobs.forEach(knob => {
+            let baseVal = parseFloat(knob.getAttribute('data-val')) || 0;
+            // Konversi nilai mentah awal menjadi rotasi derajat fisik analog (-135 s/d 135)
+            let currentRotation = baseVal;
             knob.style.transform = `rotate(${currentRotation}deg)`;
 
+            let isInteracting = false;
+            let startY = 0;
+
             knob.addEventListener('mousedown', (e) => {
-                isDragging = true;
+                isInteracting = true;
                 startY = e.clientY;
                 document.body.style.cursor = 'grabbing';
+                e.preventDefault();
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (!isInteracting) return;
+                let deltaY = startY - e.clientY; 
+                startY = e.clientY;
+
+                currentRotation += deltaY * 2.2; // Sensitivitas respons putaran fisik
+                if (currentRotation < -140) currentRotation = -140;
+                if (currentRotation > 140) currentRotation = 140;
+
+                knob.style.transform = `rotate(${currentRotation}deg)`;
+                knob.setAttribute('data-val', currentRotation);
+            });
+
+            document.addEventListener('mouseup', () => {
+                if(isInteracting) {
+                    isInteracting = false;
+                    document.body.style.cursor = 'default';
+                }
+            });
+        });
+    }
+
+    // --- LOGIKA GERAKAN VERTIKAL LINIER DUAL FADER ---
+    function setupLinearFaders() {
+        const faders = document.querySelectorAll('[data-type="linear"]');
+        
+        faders.forEach(fader => {
+            let isDragging = false;
+            let startY = 0;
+
+            fader.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                startY = e.clientY;
+                e.preventDefault();
             });
 
             document.addEventListener('mousemove', (e) => {
                 if (!isDragging) return;
-                let deltaY = startY - e.clientY; // Geser ke atas = menaikkan nilai
-                startY = e.clientY;
+                const track = fader.parentElement;
+                const trackRect = track.getBoundingClientRect();
+                
+                let currentTop = e.clientY - trackRect.top - 13; // Set koordinat relatif terhadap slot fader
+                
+                // Batasi pergeseran agar tidak keluar dari slot rel fisik fader
+                if (currentTop < 0) currentTop = 0;
+                if (currentTop > 124) currentTop = 124; 
 
-                currentRotation += deltaY * 1.5; // Tingkat sensitivitas putaran
-                // Batasi putaran knop analog standard (sekitar -135 sampai 135 derajat)
-                if (currentRotation < -135) currentRotation = -135;
-                if (currentRotation > 135) currentRotation = 135;
-
-                knob.style.transform = `rotate(${currentRotation}deg)`;
+                fader.style.top = `${currentTop}px`;
             });
 
             document.addEventListener('mouseup', () => {
                 isDragging = false;
-                document.body.style.cursor = 'default';
+            });
+        });
+    }
+
+    // --- INTERAKSI MATRIX SWITCHES ---
+    function setupInteractiveButtons() {
+        // Saklar Kotak Merah
+        document.querySelectorAll('.btn-industrial').forEach(btn => {
+            btn.addEventListener('click', () => btn.classList.toggle('active'));
+        });
+
+        // Saklar Matriks Output Kuning
+        document.querySelectorAll('.matrix-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                this.parentElement.querySelectorAll('.matrix-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
             });
         });
 
-        // --- LOGIKA INTERAKTIF TOMBOL KOTAK ---
-        document.querySelectorAll('.btn-square').forEach(btn => {
-            btn.addEventListener('click', () => {
-                btn.classList.toggle('active');
+        // Mini Matrix atas (ST DUO MS)
+        document.querySelectorAll('.mini-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                this.parentElement.querySelectorAll('.mini-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
             });
         });
+    }
 
-        // --- LOGIKA INTERAKTIF FADER ---
-        const faderThumb = document.getElementById('output-fader');
-        const faderTrack = faderThumb.parentElement;
-        let faderDragging = false;
-
-        faderThumb.addEventListener('mousedown', (e) => {
-            faderDragging = true;
-            document.body.style.cursor = 'ns-resize';
-        });
-
-        document.addEventListener('mousemove', (e) => {
-            if (!faderDragging) return;
-            let rect = faderTrack.getBoundingClientRect();
-            let y = e.clientY - rect.top; // Dapatkan posisi mouse relatif terhadap track
-
-            // Batasi gerak thumb di dalam track
-            if (y < 0) y = 0;
-            if (y > rect.height - 14) y = rect.height - 14;
-
-            faderThumb.style.top = `${y}px`;
-        });
-
-        document.addEventListener('mouseup', () => {
-            faderDragging = false;
-            document.body.style.cursor = 'default';
-        });
-
-        // --- LOGIKA SIMULASI VU METER BERKEDIP ---
-        function createVuLeds(containerId) {
-            const container = document.getElementById(containerId);
-            for (let i = 0; i < 15; i++) {
+    // --- GENERATOR STRIP LED SECARA PROGRAMATIK ---
+    function generateLEDStrips() {
+        const createLeds = (targetId) => {
+            const container = document.getElementById(targetId);
+            const totalLeds = 24; // Resolusi tinggi bar graph
+            for (let i = 0; i < totalLeds; i++) {
                 const led = document.createElement('div');
-                led.classList.add('led');
-                if (i < 9) led.classList.add('green');
-                else if (i < 13) led.classList.add('yellow');
-                else led.classList.add('red');
+                led.classList.add('led-element');
                 container.appendChild(led);
             }
-        }
-        createVuLeds('vu-left');
-        createVuLeds('vu-right');
+        };
+        createLeds('vustrip-l');
+        createLeds('vustrip-r');
+    }
 
-        // Simulasi lampu VU bergerak dinamis seolah-olah ada audio aktif
+    // --- SIMULASI DINAMIS ENGINES (METERAN JALAN UTK MENGECEK VISUAL) ---
+    function startSimulationEngine() {
+        const needle = document.getElementById('hardware-needle');
+        const ledsL = document.querySelectorAll('#vustrip-l .led-element');
+        const ledsR = document.querySelectorAll('#vustrip-r .led-element');
+
         setInterval(() => {
-            const leftLeds = document.querySelectorAll('#vu-left .led');
-            const rightLeds = document.querySelectorAll('#vu-right .led');
-            
-            let targetLeft = Math.floor(Math.random() * 14);
-            let targetRight = Math.floor(Math.random() * 14);
+            // 1. Simulasi Jarum Analog Gain Reduction (Mengikuti Getaran Audio Kompresor)
+            let randomGrTarget = 2 + Math.sin(Date.now() / 200) * 8 + Math.random() * 3;
+            if(randomGrTarget < 0) randomGrTarget = 0;
+            needle.style.transform = `rotate(${randomGrTarget}deg)`;
 
-            leftLeds.forEach((led, idx) => {
-                if(idx <= targetLeft) led.classList.add('active');
-                else led.classList.remove('active');
-            });
+            // 2. Simulasi Rambatan Frekuensi LED Bar Meter Output (Stereo Independent)
+            let levelL = Math.floor(10 + Math.sin(Date.now() / 150) * 8 + Math.random() * 6);
+            let levelR = Math.floor(12 + Math.cos(Date.now() / 130) * 7 + Math.random() * 5);
 
-            rightLeds.forEach((led, idx) => {
-                if(idx <= targetRight) led.classList.add('active');
-                else led.classList.remove('active');
-            });
-        }, 100);
-    </script>
+            updateSingleLedStrip(ledsL, levelL);
+            updateSingleLedStrip(ledsR, levelR);
+
+        }, 70);
+    }
+
+    function updateSingleLedStrip(ledElements, targetLevel) {
+        ledElements.forEach((led, idx) => {
+            // Bersihkan status on sebelum mengupdate tingkatan level baru
+            led.className = 'led-element';
+
+            if (idx <= targetLevel) {
+                if (idx < 15) {
+                    led.classList.add('g-on'); // Hijau (Normal Safe)
+                } else if (idx < 21) {
+                    led.classList.add('y-on'); // Kuning (Warm Saturate)
+                } else {
+                    led.classList.add('r-on'); // Merah (Peak Clip)
+                }
+            }
+        });
+    }
+</script>
+
 </body>
 </html>
