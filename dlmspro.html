@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web DLMS - Mastering Chain Interface</title>
+    <style>
+        :root {
+            --bg-panel: #4a6375;
+            --bg-dark: #2c3e4b;
+            --text-light: #e0f2fe;
+            --text-blue: #38bdf8;
+            --led-on: #34d399;
+            --led-off: #064e3b;
+        }
+
+        body {
+            background-color: #111;
+            color: var(--text-light);
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            user-select: none;
+        }
+
+        /* Container Utama sesuai susunan gambar 1000746493.jpg */
+        .mastering-chain {
+            display: flex;
+            background-color: var(--bg-panel);
+            border: 4px solid #222;
+            border-radius: 4px;
+            padding: 10px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.8);
+            gap: 2px;
+        }
+
+        /* Modul/Kolom Vertikal */
+        .module {
+            background-color: var(--bg-panel);
+            border-right: 2px solid rgba(0,0,0,0.3);
+            border-left: 1px solid rgba(255,255,255,0.1);
+            padding: 15px 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 140px;
+            min-height: 550px;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        .module:last-child {
+            border-right: none;
+            width: 180px;
+        }
+
+        .module-title {
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+            color: #1e293b;
+            border-bottom: 1px solid rgba(0,0,0,0.2);
+            width: 100%;
+            text-align: center;
+            padding-bottom: 5px;
+        }
+
+        /* Komponen Knop / Potensio */
+        .knob-container {
+            margin: 15px 0;
+            text-align: center;
+            position: relative;
+        }
+
+        .knob-label {
+            font-size: 9px;
+            text-transform: uppercase;
+            margin-top: 4px;
+            display: block;
+            font-weight: bold;
+        }
+
+        .knob {
+            width: 45px;
+            height: 45px;
+            background: #222;
+            border-radius: 50%;
+            position: relative;
+            cursor: grab;
+            box-shadow: inset 0 2px 5px rgba(255,255,255,0.2), 0 4px 6px rgba(0,0,0,0.4);
+            transform: rotate(0deg);
+            transition: transform 0.05s linear;
+        }
+
+        /* Pointer berbentuk kepala ayam / garis indikator */
+        .knob::after {
+            content: '';
+            position: absolute;
+            top: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 18px;
+            background: #ff4500; /* Warna merah pointer seperti di gambar */
+            border-radius: 2px;
+        }
+
+        .knob.gray::after {
+            background: #ddd;
+        }
+
+        /* Komponen Tombol Kotak Backlit */
+        .btn-square {
+            width: 24px;
+            height: 24px;
+            background-color: #ddd;
+            border: 2px solid #999;
+            box-shadow: inset 0 2px 2px rgba(255,255,255,0.6), 0 2px 4px rgba(0,0,0,0.4);
+            cursor: pointer;
+            margin: 5px;
+            transition: all 0.1s;
+        }
+
+        .btn-square.active {
+            background-color: var(--text-blue);
+            border-color: #0284c7;
+            box-shadow: 0 0 10px var(--text-blue);
+        }
+
+        /* Komponen Fader */
+        .fader-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 180px;
+            margin: 20px 0;
+        }
+
+        .fader-track {
+            width: 8px;
+            height: 140px;
+            background: #1e293b;
+            border-radius: 4px;
+            position: relative;
+            border-left: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .fader-thumb {
+            width: 24px;
+            height: 14px;
+            background: #fff;
+            border: 1px solid #999;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.6);
+            position: absolute;
+            left: -8px;
+            top: 60px; /* Posisi awal default tengah */
+            cursor: ns-resize;
+            border-radius: 2px;
+        }
+
+        /* VU Meter / LED Level Meter */
+        .vu-meter-container {
+            display: flex;
+            gap: 10px;
+            height: 140px;
+            background: #111;
+            padding: 10px 5px;
+            border-radius: 4px;
+            border: 2px solid #333;
+        }
+
+        .vu-channel {
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 2px;
+            width: 8px;
+            height: 100%;
+        }
+
+        .led {
+            width: 100%;
+            height: 5px;
+            background-color: #222;
+        }
+
+        .led.green.active { background-color: #10b981; box-shadow: 0 0 4px #10b981; }
+        .led.yellow.active { background-color: #f59e0b; box-shadow: 0 0 4px #f59e0b; }
+        .led.red.active { background-color: #ef4444; box-shadow: 0 0 4px #ef4444; }
+
+    </style>
+</head>
+<body>
+
+    <div class="mastering-chain">
+        
+        <!-- MODUL 1: INPUT -->
+        <div class="module">
+            <div class="module-title">Input</div>
+            <div class="knob-container">
+                <div class="knob gray" data-min="-24" data-max="24" data-value="0"></div>
+                <span class="knob-label">Input</span>
+            </div>
+            <button class="btn-square"></button>
+            <div class="knob-container">
+                <div class="knob" data-min="0" data-max="10" data-value="5"></div>
+                <span class="knob-label">Phase</span>
+            </div>
+        </div>
+
+        <!-- MODUL 2: FILTER -->
+        <div class="module">
+            <div class="module-title">Filter</div>
+            <div class="knob-container">
+                <div class="knob gray" data-min="0" data-max="10" data-value="2"></div>
+                <span class="knob-label">Low Pass</span>
+            </div>
+            <div class="knob-container">
+                <div class="knob gray" data-min="0" data-max="10" data-value="7"></div>
+                <span class="knob-label">High Pass</span>
+            </div>
+        </div>
+
+        <!-- MODUL 3: LIMITER -->
+        <div class="module">
+            <div class="module-title">Limiter</div>
+            <div class="knob-container">
+                <div class="knob" data-min="0" data-max="100" data-value="50"></div>
+                <span class="knob-label">Makeup</span>
+            </div>
+            <button class="btn-square"></button>
+            <div class="knob-container">
+                <div class="knob gray" data-min="0" data-max="10" data-value="3"></div>
+                <span class="knob-label">Mix</span>
+            </div>
+        </div>
+
+        <!-- MODUL 4: TONE -->
+        <div class="module">
+            <div class="module-title">Tone</div>
+            <div class="knob-container">
+                <div class="knob gray" data-min="0" data-max="10" data-value="4"></div>
+                <span class="knob-label">Freq</span>
+            </div>
+            <div class="knob-container">
+                <div class="knob gray" data-min="0" data-max="10" data-value="5"></div>
+                <span class="knob-label">Gain</span>
+            </div>
+        </div>
+
+        <!-- MODUL 5: OUTPUT & MASTER -->
+        <div class="module">
+            <div class="module-title">Output</div>
+            
+            <div style="display: flex; gap: 20px; align-items: center;">
+                <!-- Fader Kontrol -->
+                <div class="fader-container">
+                    <div class="fader-track">
+                        <div class="fader-thumb" id="output-fader"></div>
+                    </div>
+                    <span class="knob-label" style="margin-top:10px;">Fader</span>
+                </div>
+
+                <!-- VU Meter Tingkat Volume -->
+                <div class="vu-meter-container">
+                    <div class="vu-channel" id="vu-left"></div>
+                    <div class="vu-channel" id="vu-right"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- LOGIKA INTERAKTIF KNOB (POTENSIO) ---
+        document.querySelectorAll('.knob').forEach(knob => {
+            let isDragging = false;
+            let startY = 0;
+            let currentRotation = 0;
+
+            // Set posisi awal acak/berdasarkan data-value bawaan
+            const startVal = parseFloat(knob.getAttribute('data-value')) || 0;
+            currentRotation = (startVal * 2.5) - 125; 
+            knob.style.transform = `rotate(${currentRotation}deg)`;
+
+            knob.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                startY = e.clientY;
+                document.body.style.cursor = 'grabbing';
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                let deltaY = startY - e.clientY; // Geser ke atas = menaikkan nilai
+                startY = e.clientY;
+
+                currentRotation += deltaY * 1.5; // Tingkat sensitivitas putaran
+                // Batasi putaran knop analog standard (sekitar -135 sampai 135 derajat)
+                if (currentRotation < -135) currentRotation = -135;
+                if (currentRotation > 135) currentRotation = 135;
+
+                knob.style.transform = `rotate(${currentRotation}deg)`;
+            });
+
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
+                document.body.style.cursor = 'default';
+            });
+        });
+
+        // --- LOGIKA INTERAKTIF TOMBOL KOTAK ---
+        document.querySelectorAll('.btn-square').forEach(btn => {
+            btn.addEventListener('click', () => {
+                btn.classList.toggle('active');
+            });
+        });
+
+        // --- LOGIKA INTERAKTIF FADER ---
+        const faderThumb = document.getElementById('output-fader');
+        const faderTrack = faderThumb.parentElement;
+        let faderDragging = false;
+
+        faderThumb.addEventListener('mousedown', (e) => {
+            faderDragging = true;
+            document.body.style.cursor = 'ns-resize';
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!faderDragging) return;
+            let rect = faderTrack.getBoundingClientRect();
+            let y = e.clientY - rect.top; // Dapatkan posisi mouse relatif terhadap track
+
+            // Batasi gerak thumb di dalam track
+            if (y < 0) y = 0;
+            if (y > rect.height - 14) y = rect.height - 14;
+
+            faderThumb.style.top = `${y}px`;
+        });
+
+        document.addEventListener('mouseup', () => {
+            faderDragging = false;
+            document.body.style.cursor = 'default';
+        });
+
+        // --- LOGIKA SIMULASI VU METER BERKEDIP ---
+        function createVuLeds(containerId) {
+            const container = document.getElementById(containerId);
+            for (let i = 0; i < 15; i++) {
+                const led = document.createElement('div');
+                led.classList.add('led');
+                if (i < 9) led.classList.add('green');
+                else if (i < 13) led.classList.add('yellow');
+                else led.classList.add('red');
+                container.appendChild(led);
+            }
+        }
+        createVuLeds('vu-left');
+        createVuLeds('vu-right');
+
+        // Simulasi lampu VU bergerak dinamis seolah-olah ada audio aktif
+        setInterval(() => {
+            const leftLeds = document.querySelectorAll('#vu-left .led');
+            const rightLeds = document.querySelectorAll('#vu-right .led');
+            
+            let targetLeft = Math.floor(Math.random() * 14);
+            let targetRight = Math.floor(Math.random() * 14);
+
+            leftLeds.forEach((led, idx) => {
+                if(idx <= targetLeft) led.classList.add('active');
+                else led.classList.remove('active');
+            });
+
+            rightLeds.forEach((led, idx) => {
+                if(idx <= targetRight) led.classList.add('active');
+                else led.classList.remove('active');
+            });
+        }, 100);
+    </script>
+</body>
+</html>
