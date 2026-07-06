@@ -1,1210 +1,370 @@
 <!DOCTYPE html>
-<html lang="id" data-theme="light">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enterprise Admin Dashboard Pro v1.0</title>
-    <!-- Font Awesome untuk Icon -->
+    <title>MistNime - Platform Nonton Anime, Donghua & Live Action</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- FontAwesome untuk Icon -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Chart.js untuk Grafik -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
     <style>
-        /* ==========================================================================
-           1. VARIABEL CSS & CONFIGURATION (Baris 1-150)
-           ========================================================================== */
-        :root {
-            --primary-color: #4f46e5;
-            --primary-hover: #4338ca;
-            --primary-light: #e0e7ff;
-            --secondary-color: #06b6d4;
-            --success-color: #10b981;
-            --warning-color: #f59e0b;
-            --danger-color: #ef4444;
-            --info-color: #3b82f6;
-            
-            /* Light Theme Tokens */
-            --bg-main: #f8fafc;
-            --bg-card: #ffffff;
-            --bg-sidebar: #0f172a;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-            --text-on-sidebar: #94a3b8;
-            --text-on-sidebar-active: #ffffff;
-            --border-color: #e2e8f0;
-            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            
-            --transition-speed: 0.3s;
-            --sidebar-width: 260px;
-            --sidebar-collapsed-width: 70px;
-        }
-
-        [data-theme="dark"] {
-            /* Dark Theme Tokens */
-            --bg-main: #0f172a;
-            --bg-card: #1e293b;
-            --bg-sidebar: #020617;
-            --text-main: #f1f5f9;
-            --text-muted: #94a3b8;
-            --text-on-sidebar: #64748b;
-            --text-on-sidebar-active: #38bdf8;
-            --border-color: #334155;
-            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
-            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
-        }
-
-        /* ==========================================================================
-           2. RESET & BASE STYLES (Baris 151-300)
-           ========================================================================== */
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-        }
-
-        body {
-            background-color: var(--bg-main);
-            color: var(--text-main);
-            overflow-x: hidden;
-            transition: background-color var(--transition-speed), color var(--transition-speed);
-        }
-
-        a {
-            text-decoration: none;
-            color: inherit;
-        }
-
-        li {
-            list-style: none;
-        }
-
-        button, input, select, textarea {
-            font-family: inherit;
-            font-size: inherit;
-            outline: none;
-        }
-
-        /* Scrollbar styling */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: var(--bg-main);
-        }
-        ::-webkit-scrollbar-thumb {
-            background: var(--border-color);
-            border-radius: 3px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--text-muted);
-        }
-
-        /* ==========================================================================
-           3. LAYOUT STRUCTURE (Baris 301-450)
-           ========================================================================== */
-        .app-container {
-            display: flex;
-            min-height: 100vh;
-            position: relative;
-        }
-
-        /* Sidebar */
-        .sidebar {
-            width: var(--sidebar-width);
-            background-color: var(--bg-sidebar);
-            color: var(--text-on-sidebar);
-            display: flex;
-            flex-direction: column;
-            position: fixed;
-            top: 0;
-            bottom: 0;
-            left: 0;
-            z-index: 100;
-            transition: width var(--transition-speed);
-            box-shadow: var(--shadow-lg);
-        }
-
-        .sidebar.collapsed {
-            width: var(--sidebar-collapsed-width);
-        }
-
-        .sidebar-brand {
-            padding: 20px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: #ffffff;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            overflow: hidden;
-            white-space: nowrap;
-        }
-
-        .sidebar-brand i {
-            color: var(--primary-color);
-            font-size: 1.5rem;
-        }
-
-        .sidebar-menu {
-            padding: 20px 10px;
-            flex: 1;
-            overflow-y: auto;
-        }
-
-        .menu-category {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            padding: 10px 10px 5px 10px;
-            color: rgba(255, 255, 255, 0.3);
-            font-weight: 600;
-            overflow: hidden;
-            white-space: nowrap;
-        }
-
-        .sidebar.collapsed .menu-category {
-            opacity: 0;
-        }
-
-        .menu-item {
-            margin-bottom: 4px;
-        }
-
-        .menu-link {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            padding: 12px 15px;
-            border-radius: 8px;
-            color: var(--text-on-sidebar);
-            font-weight: 500;
-            transition: all var(--transition-speed);
-            white-space: nowrap;
-        }
-
-        .menu-link:hover, .menu-item.active .menu-link {
-            background-color: rgba(255, 255, 255, 0.05);
-            color: var(--text-on-sidebar-active);
-        }
-
-        .menu-item.active .menu-link i {
-            color: var(--primary-color);
-        }
-
-        .menu-link i {
-            font-size: 1.1rem;
-            width: 20px;
-            text-align: center;
-            transition: var(--transition-speed);
-        }
-
-        .menu-text {
-            transition: opacity var(--transition-speed);
-        }
-
-        .sidebar.collapsed .menu-text {
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        /* Main Content Wrapper */
-        .main-content {
-            margin-left: var(--sidebar-width);
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            min-width: 0;
-            transition: margin-left var(--transition-speed);
-        }
-
-        .sidebar.collapsed + .main-content {
-            margin-left: var(--sidebar-collapsed-width);
-        }
-
-        /* ==========================================================================
-           4. TOP NAVBAR STYLES (Baris 451-600)
-           ========================================================================== */
-        .navbar {
-            height: 70px;
-            background-color: var(--bg-card);
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 30px;
-            position: sticky;
-            top: 0;
-            z-index: 90;
-            box-shadow: var(--shadow-sm);
-            transition: background-color var(--transition-speed), border-color var(--transition-speed);
-        }
-
-        .nav-left, .nav-right {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .toggle-sidebar-btn {
-            background: none;
-            border: none;
-            color: var(--text-main);
-            cursor: pointer;
-            font-size: 1.25rem;
-            padding: 5px;
-            border-radius: 4px;
-            transition: background var(--transition-speed);
-        }
-
-        .toggle-sidebar-btn:hover {
-            background-color: var(--border-color);
-        }
-
-        .search-box {
-            position: relative;
-            max-width: 300px;
-        }
-
-        .search-box input {
-            width: 100%;
-            padding: 8px 16px 8px 36px;
-            border-radius: 20px;
-            border: 1px solid var(--border-color);
-            background-color: var(--bg-main);
-            color: var(--text-main);
-            transition: all var(--transition-speed);
-        }
-
-        .search-box input:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px var(--primary-light);
-        }
-
-        .search-box i {
-            position: absolute;
-            left: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-muted);
-        }
-
-        .nav-icon-btn {
-            background: none;
-            border: none;
-            color: var(--text-main);
-            font-size: 1.2rem;
-            cursor: pointer;
-            position: relative;
-            padding: 8px;
-            border-radius: 50%;
-            transition: background var(--transition-speed);
-        }
-
-        .nav-icon-btn:hover {
-            background-color: var(--border-color);
-        }
-
-        .nav-icon-btn .badge {
-            position: absolute;
-            top: 2px;
-            right: 2px;
-            background-color: var(--danger-color);
-            color: white;
-            font-size: 0.65rem;
-            padding: 2px 5px;
-            border-radius: 10px;
-            font-weight: 700;
-        }
-
-        .user-profile-menu {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            cursor: pointer;
-            padding: 5px 10px;
-            border-radius: 8px;
-            transition: background var(--transition-speed);
-        }
-
-        .user-profile-menu:hover {
-            background-color: var(--border-color);
-        }
-
-        .user-profile-menu img {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-
-        .user-info {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .user-name {
-            font-size: 0.875rem;
-            font-weight: 600;
-        }
-
-        .user-role {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-        }
-
-        /* ==========================================================================
-           5. DASHBOARD BODY & UTILITIES (Baris 601-850)
-           ========================================================================== */
-        .content-body {
-            padding: 30px;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 30px;
-        }
-
-        .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .page-title h1 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 5px;
-        }
-
-        .breadcrumbs {
-            display: flex;
-            gap: 5px;
-            font-size: 0.85rem;
-            color: var(--text-muted);
-        }
-
-        .breadcrumbs span.active {
-            color: var(--primary-color);
-            font-weight: 500;
-        }
-
-        .action-group {
-            display: flex;
-            gap: 10px;
-        }
-
-        /* Buttons Styling */
-        .btn {
-            padding: 10px 20px;
-            border-radius: 8px;
-            border: none;
-            font-weight: 500;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            transition: all var(--transition-speed);
-        }
-
-        .btn-primary {
-            background-color: var(--primary-color);
-            color: white;
-        }
-        .btn-primary:hover { background-color: var(--primary-hover); }
-
-        .btn-secondary {
-            background-color: var(--border-color);
-            color: var(--text-main);
-        }
-        .btn-secondary:hover { background-color: var(--text-muted); color: white;}
-
-        /* Cards Grid Layout */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 20px;
-        }
-
-        .card {
-            background-color: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 24px;
-            box-shadow: var(--shadow-sm);
-            transition: transform var(--transition-speed), box-shadow var(--transition-speed), background-color var(--transition-speed);
-        }
-
-        .card:hover {
-            transform: translateY(-4px);
-            box-shadow: var(--shadow-md);
-        }
-
-        .stats-card {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .stats-info h3 {
-            font-size: 0.875rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 10px;
-        }
-
-        .stats-info .number {
-            font-size: 1.75rem;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-
-        .stats-indicator {
-            font-size: 0.85rem;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .stats-indicator.up { color: var(--success-color); }
-        .stats-indicator.down { color: var(--danger-color); }
-
-        .stats-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-        }
-
-        .stats-icon.p-bg { background-color: rgba(79, 70, 229, 0.1); color: var(--primary-color); }
-        .stats-icon.s-bg { background-color: rgba(6, 182, 212, 0.1); color: var(--secondary-color); }
-        .stats-icon.succ-bg { background-color: rgba(16, 183, 129, 0.1); color: var(--success-color); }
-        .stats-icon.warn-bg { background-color: rgba(245, 158, 11, 0.1); color: var(--warning-color); }
-
-        /* ==========================================================================
-           6. VISUALIZATION / CHARTS SECTION (Baris 851-1100)
-           ========================================================================== */
-        .charts-grid {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 20px;
-        }
-
-        @media (max-width: 1024px) {
-            .charts-grid { grid-template-columns: 1fr; }
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 15px;
-        }
-
-        .card-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-        }
-
-        .chart-container {
-            position: relative;
-            height: 300px;
-            width: 100%;
-        }
-
-        /* ==========================================================================
-           7. DATA TABLE COMPONENTS (Baris 1101-1400)
-           ========================================================================== */
-        .table-responsive {
-            overflow-x: auto;
-            width: 100%;
-        }
-
-        .custom-table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: left;
-        }
-
-        .custom-table th {
-            background-color: var(--bg-main);
-            color: var(--text-muted);
-            padding: 14px 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .custom-table td {
-            padding: 16px 20px;
-            border-bottom: 1px solid var(--border-color);
-            font-size: 0.9rem;
-            color: var(--text-main);
-        }
-
-        .custom-table tr:hover td {
-            background-color: rgba(0, 0, 0, 0.01);
-        }
-
-        /* Badges for status */
-        .status-badge {
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            display: inline-block;
-        }
-
-        .status-badge.active { background-color: rgba(16, 183, 129, 0.1); color: var(--success-color); }
-        .status-badge.pending { background-color: rgba(245, 158, 11, 0.1); color: var(--warning-color); }
-        .status-badge.suspended { background-color: rgba(239, 68, 68, 0.1); color: var(--danger-color); }
-
-        /* Pagination Style */
-        .pagination {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 20px;
-            font-size: 0.875rem;
-            color: var(--text-muted);
-        }
-
-        .pag-buttons {
-            display: flex;
-            gap: 5px;
-        }
-
-        .pag-btn {
-            width: 36px;
-            height: 36px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            background: var(--bg-card);
-            color: var(--text-main);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all var(--transition-speed);
-        }
-
-        .pag-btn:hover, .pag-btn.active {
-            background-color: var(--primary-color);
-            color: white;
-            border-color: var(--primary-color);
-        }
-
-        /* ==========================================================================
-           8. MODAL WINDOWS & NOTIFICATIONS (Baris 1401-1600)
-           ========================================================================== */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transition: all var(--transition-speed);
-        }
-
-        .modal-overlay.open {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .modal-box {
-            background-color: var(--bg-card);
-            border-radius: 12px;
-            width: 100%;
-            max-width: 500px;
-            box-shadow: var(--shadow-lg);
-            transform: translateY(-50px);
-            transition: transform var(--transition-speed);
-            overflow: hidden;
-        }
-
-        .modal-overlay.open .modal-box {
-            transform: translateY(0);
-        }
-
-        .modal-header {
-            padding: 20px;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .modal-body {
-            padding: 20px;
-        }
-
-        .modal-footer {
-            padding: 15px 20px;
-            border-top: 1px solid var(--border-color);
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-        }
-
-        /* Toast Notification Container */
-        .toast-container {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 2000;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .toast {
-            background-color: var(--bg-card);
-            border-left: 4px solid var(--primary-color);
-            box-shadow: var(--shadow-lg);
-            padding: 15px 25px;
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            transform: translateX(120%);
-            transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            color: var(--text-main);
-        }
-
-        .toast.show { transform: translateX(0); }
-        .toast.success { border-left-color: var(--success-color); }
-        .toast.error { border-left-color: var(--danger-color); }
-
-        /* Form Controls */
-        .form-group {
-            margin-bottom: 15px;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 6px;
-            font-size: 0.875rem;
-            font-weight: 500;
-        }
-        .form-control {
-            width: 100%;
-            padding: 10px 14px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            background-color: var(--bg-main);
-            color: var(--text-main);
-        }
-        .form-control:focus {
-            border-color: var(--primary-color);
-        }
-
-        /* Footer styling */
-        .main-footer {
-            padding: 20px 30px;
-            background-color: var(--bg-card);
-            border-top: 1px solid var(--border-color);
-            text-align: center;
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            margin-top: auto;
-        }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #1f2937; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 3px; }
     </style>
 </head>
-<body>
+<body class="bg-gray-950 text-gray-100 font-sans selection:bg-blue-600 selection:text-white">
 
-    <!-- ==========================================================================
-       9. HTML LAYOUT DOM STRUCTURE (Baris 1601-1800)
-       ========================================================================== -->
-    <div class="app-container">
-        
-        <!-- Sidebar Navigation -->
-        <aside class="sidebar" id="appSidebar">
-            <div class="sidebar-brand">
-                <i class="fa-solid pipelines fa-layer-group"></i>
-                <span class="menu-text">NexusAdmin</span>
+    <!-- NAVIGATION BAR -->
+    <nav class="bg-gray-900 border-b border-gray-800 sticky top-0 z-50 px-4 py-3">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+            <!-- Logo & Brand -->
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-cloud-moon text-blue-500 text-3xl animate-pulse"></i>
+                <span class="text-2xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">MISTNIME</span>
             </div>
-            <ul class="sidebar-menu">
-                <li class="menu-category">Menu Utama</li>
-                <li class="menu-item active">
-                    <a href="#" class="menu-link">
-                        <i class="fa-solid fa-chart-pie"></i>
-                        <span class="menu-text">Dashboard</span>
-                    </a>
-                </li>
-                <li class="menu-item">
-                    <a href="#" class="menu-link">
-                        <i class="fa-solid fa-users"></i>
-                        <span class="menu-text">Manajemen User</span>
-                    </a>
-                </li>
-                <li class="menu-item">
-                    <a href="#" class="menu-link">
-                        <i class="fa-solid fa-boxes-stacked"></i>
-                        <span class="menu-text">Produk & Inventori</span>
-                    </a>
-                </li>
-                <li class="menu-item">
-                    <a href="#" class="menu-link">
-                        <i class="fa-solid fa-wallet"></i>
-                        <span class="menu-text">Transaksi</span>
-                    </a>
-                </li>
-
-                <li class="menu-category">Analitik & Laporan</li>
-                <li class="menu-item">
-                    <a href="#" class="menu-link">
-                        <i class="fa-solid fa-chart-line"></i>
-                        <span class="menu-text">Performa Penjualan</span>
-                    </a>
-                </li>
-                <li class="menu-item">
-                    <a href="#" class="menu-link">
-                        <i class="fa-solid fa-file-invoice-dollar"></i>
-                        <span class="menu-text">Laporan Keuangan</span>
-                    </a>
-                </li>
-
-                <li class="menu-category">Pengaturan Sistem</li>
-                <li class="menu-item">
-                    <a href="#" class="menu-link">
-                        <i class="fa-solid fa-gear"></i>
-                        <span class="menu-text">Konfigurasi Global</span>
-                    </a>
-                </li>
-                <li class="menu-item">
-                    <a href="#" class="menu-link">
-                        <i class="fa-solid fa-shield-halved"></i>
-                        <span class="menu-text">Keamanan & Hak Akses</span>
-                    </a>
-                </li>
-            </ul>
-        </aside>
-
-        <!-- Main Workspace -->
-        <main class="main-content">
             
-            <!-- Top Navigation Bar -->
-            <nav class="navbar">
-                <div class="nav-left">
-                    <button class="toggle-sidebar-btn" id="toggleSidebar">
-                        <i class="fa-solid fa-bars"></i>
-                    </button>
-                    <div class="search-box">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="text" placeholder="Cari data, laporan...">
-                    </div>
-                </div>
-                <div class="nav-right">
-                    <!-- Theme Toggle -->
-                    <button class="nav-icon-btn" id="themeToggle" title="Ganti Tema">
-                        <i class="fa-solid fa-moon"></i>
-                    </button>
-                    <!-- Notification Dropdown Trigger -->
-                    <button class="nav-icon-btn" id="notiBtn" title="Notifikasi">
-                        <i class="fa-solid fa-bell"></i>
-                        <span class="badge">3</span>
-                    </button>
-                    <!-- Profile Widget -->
-                    <div class="user-profile-menu">
-                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80" alt="Avatar">
-                        <div class="user-info">
-                            <span class="user-name">Sarah Connor</span>
-                            <span class="user-role">Super Administrator</span>
-                        </div>
-                    </div>
-                </div>
-            </nav>
-
-            <!-- Dashboard Content Workspace Area -->
-            <div class="content-body">
-                
-                <!-- Page Breadcrumbs & Title Head -->
-                <div class="page-header">
-                    <div class="page-title">
-                        <h1>Sistem Analitik Bisnis</h1>
-                        <div class="breadcrumbs">
-                            <span>Utama</span> / <span>Aplikasi</span> / <span class="active">Dashboard</span>
-                        </div>
-                    </div>
-                    <div class="action-group">
-                        <button class="btn btn-secondary" onclick="showToast('Memperbarui data...', 'info')">
-                            <i class="fa-solid fa-rotate"></i> Refresh Data
-                        </button>
-                        <button class="btn btn-primary" id="openModalBtn">
-                            <i class="fa-solid fa-plus"></i> Tambah Pengguna Baru
-                        </button>
-                    </div>
-                </div>
-
-                <!-- 4 Counter Metric Widget Summary Cards -->
-                <section class="stats-grid">
-                    <div class="card stats-card">
-                        <div class="stats-info">
-                            <h3>Total Pendapatan</h3>
-                            <div class="number">Rp 148.250.000</div>
-                            <div class="stats-indicator up">
-                                <i class="fa-solid fa-arrow-up"></i> 12.5% <span>vs bulan lalu</span>
-                            </div>
-                        </div>
-                        <div class="stats-icon p-bg">
-                            <i class="fa-solid fa-money-bill-wave"></i>
-                        </div>
-                    </div>
-                    <div class="card stats-card">
-                        <div class="stats-info">
-                            <h3>Pengguna Aktif</h3>
-                            <div class="number">3,842</div>
-                            <div class="stats-indicator up">
-                                <i class="fa-solid fa-arrow-up"></i> 8.2% <span>vs minggu lalu</span>
-                            </div>
-                        </div>
-                        <div class="stats-icon s-bg">
-                            <i class="fa-solid fa-users"></i>
-                        </div>
-                    </div>
-                    <div class="card stats-card">
-                        <div class="stats-info">
-                            <h3>Total Penjualan</h3>
-                            <div class="number">1,204 Transaksi</div>
-                            <div class="stats-indicator down">
-                                <i class="fa-solid fa-arrow-down"></i> 2.1% <span>vs kemarin</span>
-                            </div>
-                        </div>
-                        <div class="stats-icon succ-bg">
-                            <i class="fa-solid fa-cart-shopping"></i>
-                        </div>
-                    </div>
-                    <div class="card stats-card">
-                        <div class="stats-info">
-                            <h3>Tingkat Konversi</h3>
-                            <div class="number">4.32 %</div>
-                            <div class="stats-indicator up">
-                                <i class="fa-solid fa-arrow-up"></i> 0.7% <span>stabil</span>
-                            </div>
-                        </div>
-                        <div class="stats-icon warn-bg">
-                            <i class="fa-solid fa-chart-line"></i>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Charts Matrix Visualization Engine Area -->
-                <section class="charts-grid">
-                    <div class="card">
-                        <div class="card-header">
-                            <span class="card-title">Grafik Pertumbuhan Penjualan 2026</span>
-                            <i class="fa-solid fa-ellipsis-vertical text-muted"></i>
-                        </div>
-                        <div class="chart-container">
-                            <canvas id="lineChartMain"></canvas>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <div class="card-header">
-                            <span class="card-title">Komposisi Sumber Trafik</span>
-                            <i class="fa-solid fa-ellipsis-vertical text-muted"></i>
-                        </div>
-                        <div class="chart-container">
-                            <canvas id="doughnutChartMain"></canvas>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- User Management Complex Table Data Component -->
-                <section class="card">
-                    <div class="card-header">
-                        <span class="card-title">Daftar Pengguna Sistem Terbaru</span>
-                        <input type="text" id="tableSearchInput" class="form-control" style="max-width: 200px; padding: 6px 12px;" placeholder="Cari baris...">
-                    </div>
-                    <div class="table-responsive">
-                        <table class="custom-table" id="dataTableUser">
-                            <thead>
-                                <tr>
-                                    <th>ID Pegawai</th>
-                                    <th>Nama Pengguna</th>
-                                    <th>Departemen</th>
-                                    <th>Tanggal Masuk</th>
-                                    <th>Status Akun</th>
-                                    <th>Aksi Komando</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>#USR-0021</td>
-                                    <td><strong>Ahmad Dahlan</strong><br><small style="color:var(--text-muted)">ahmad@company.com</small></td>
-                                    <td>Core Engineering</td>
-                                    <td>12 Jan 2024</td>
-                                    <td><span class="status-badge active">Aktif</span></td>
-                                    <td>
-                                        <button class="btn btn-secondary" style="padding: 5px 10px;" onclick="showToast('Mengedit user Ahmad', 'info')"><i class="fa-solid fa-pen"></i></button>
-                                        <button class="btn btn-secondary" style="padding: 5px 10px; color: var(--danger-color);" onclick="showToast('User dihapus', 'error')"><i class="fa-solid fa-trash"></i></button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>#USR-0022</td>
-                                    <td><strong>Budi Setiadi</strong><br><small style="color:var(--text-muted)">budi@company.com</small></td>
-                                    <td>Product Designer</td>
-                                    <td>15 Feb 2024</td>
-                                    <td><span class="status-badge pending">Tertunda</span></td>
-                                    <td>
-                                        <button class="btn btn-secondary" style="padding: 5px 10px;" onclick="showToast('Mengedit user Budi', 'info')"><i class="fa-solid fa-pen"></i></button>
-                                        <button class="btn btn-secondary" style="padding: 5px 10px; color: var(--danger-color);" onclick="showToast('User dihapus', 'error')"><i class="fa-solid fa-trash"></i></button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>#USR-0023</td>
-                                    <td><strong>Chandra Kirana</strong><br><small style="color:var(--text-muted)">chandra@company.com</small></td>
-                                    <td>Marketing Specialist</td>
-                                    <td>01 Mar 2024</td>
-                                    <td><span class="status-badge active">Aktif</span></td>
-                                    <td>
-                                        <button class="btn btn-secondary" style="padding: 5px 10px;" onclick="showToast('Mengedit user Chandra', 'info')"><i class="fa-solid fa-pen"></i></button>
-                                        <button class="btn btn-secondary" style="padding: 5px 10px; color: var(--danger-color);" onclick="showToast('User dihapus', 'error')"><i class="fa-solid fa-trash"></i></button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>#USR-0024</td>
-                                    <td><strong>Diana Puspita</strong><br><small style="color:var(--text-muted)">diana@company.com</small></td>
-                                    <td>Finance Ops</td>
-                                    <td>18 Apr 2024</td>
-                                    <td><span class="status-badge suspended">Ditangguhkan</span></td>
-                                    <td>
-                                        <button class="btn btn-secondary" style="padding: 5px 10px;" onclick="showToast('Mengedit user Diana', 'info')"><i class="fa-solid fa-pen"></i></button>
-                                        <button class="btn btn-secondary" style="padding: 5px 10px; color: var(--danger-color);" onclick="showToast('User dihapus', 'error')"><i class="fa-solid fa-trash"></i></button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="pagination">
-                        <span>Menampilkan 1 sampai 4 dari 4 entri data</span>
-                        <div class="pag-buttons">
-                            <button class="pag-btn"><i class="fa-solid fa-angle-left"></i></button>
-                            <button class="pag-btn active">1</button>
-                            <button class="pag-btn">2</button>
-                            <button class="pag-btn"><i class="fa-solid fa-angle-right"></i></button>
-                        </div>
-                    </div>
-                </section>
+            <!-- Menu Utama -->
+            <div class="flex items-center gap-6 text-sm font-semibold text-gray-300">
+                <a href="#" class="hover:text-blue-400 transition-colors border-b-2 border-blue-500 pb-1">Home</a>
+                <a href="#" class="hover:text-blue-400 transition-colors">Anime</a>
+                <a href="#" class="hover:text-blue-400 transition-colors">Donghua</a>
+                <a href="#" class="hover:text-blue-400 transition-colors">Live Action</a>
+                <a href="#" class="hover:text-blue-400 transition-colors">Populer</a>
             </div>
 
-            <!-- Footer Area Component -->
-            <footer class="main-footer">
-                <p>&copy; 2026 NexusAdmin Enterprise Solution System Group. All Rights Reserved Enterprise Platform Inc.</p>
-            </footer>
-        </main>
-    </div>
-
-    <!-- Container For Toast System Popup Messages Notification -->
-    <div class="toast-container" id="toastContainer"></div>
-
-    <!-- Overlay Component Modal Form System UI Element -->
-    <div class="modal-overlay" id="userFormModal">
-        <div class="modal-box">
-            <div class="modal-header">
-                <h3>Tambah Akun Karyawan</h3>
-                <button class="nav-icon-btn" id="closeModalBtn" style="font-size: 1rem;"><i class="fa-solid fa-xmark"></i></button>
+            <!-- Search & User Actions -->
+            <div class="flex items-center gap-4 w-full md:w-auto">
+                <div class="relative w-full md:w-64">
+                    <input type="text" placeholder="Cari anime, donghua..." class="w-full bg-gray-800 text-sm text-gray-200 pl-4 pr-10 py-2 rounded-full border border-gray-700 focus:outline-none focus:border-blue-500 transition-colors">
+                    <i class="fa-solid fa-magnifying-glass absolute right-3 top-2.5 text-gray-400 text-sm"></i>
+                </div>
+                <button class="relative p-2 text-gray-300 hover:text-blue-400 bg-gray-800 rounded-full transition-colors" title="Bookmark Saya">
+                    <i class="fa-solid fa-bookmark"></i>
+                    <span id="bookmark-count" class="absolute -top-1 -right-1 bg-blue-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">2</span>
+                </button>
             </div>
-            <form id="newUserFormSystem">
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label for="formName">Nama Lengkap Karyawan</label>
-                        <input type="text" id="formName" class="form-control" placeholder="Contoh: Raymond" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="formEmail">Alamat Surel Korporat</label>
-                        <input type="email" id="formEmail" class="form-control" placeholder="nama@perusahaan.com" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="formDept">Divisi/Departemen Kerja</label>
-                        <select id="formDept" class="form-control">
-                            <option value="Engineering">Core Engineering</option>
-                            <option value="Product">Product Designer</option>
-                            <option value="Marketing">Marketing Specialist</option>
-                            <option value="Finance">Finance Ops</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" id="cancelModalBtn">Batalkan</button>
-                    <button type="submit" class="btn btn-primary">Simpan Database</button>
-                </div>
-            </form>
         </div>
-    </div>
+    </nav>
 
-    <!-- ==========================================================================
-       10. JAVASCRIPT APP LOGIC ARCHITECTURE (Baris 1801-2200)
-       ========================================================================== -->
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="max-w-7xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- KIRI & TENGAH: VIDEO PLAYER, FITUR, DAN KOMENTAR -->
+        <div class="lg:col-span-2 space-y-6">
+            
+            <!-- Video Player (Simulasi Canvas/Embed) -->
+            <div class="bg-black rounded-xl overflow-hidden aspect-video shadow-2xl border border-gray-800 relative group">
+                <div class="absolute inset-0 flex flex-col justify-between p-4 bg-gradient-to-b from-black/60 via-transparent to-black/80 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <span class="bg-blue-600 text-xs px-2 py-1 rounded font-bold uppercase w-max">Donghua - EPS 12 (END)</span>
+                    <div class="flex justify-between items-center text-sm">
+                        <span class="font-medium text-gray-200 text-base">Perfect World (Wanmei Shijie)</span>
+                        <span class="text-xs text-gray-400"><i class="fa-solid fa-eye mr-1"></i> 245.3K views</span>
+                    </div>
+                </div>
+                <!-- Mockup Video Interface -->
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <button class="w-16 h-16 bg-blue-500/90 text-white rounded-full flex items-center justify-center text-2xl hover:scale-110 transition-transform shadow-lg shadow-blue-500/30">
+                        <i class="fa-solid fa-play ml-1"></i>
+                    </button>
+                </div>
+                <img src="https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=1200&auto=format&fit=crop" class="w-full h-full object-cover opacity-60" alt="Video Player Placeholder">
+            </div>
+
+            <!-- Interaksi Judul & Tombol Aksi (Like, Bookmark, Rating) -->
+            <div class="bg-gray-900 p-5 rounded-xl border border-gray-800 space-y-4">
+                <div class="flex flex-wrap items-start justify-between gap-4">
+                    <div>
+                        <h1 class="text-2xl font-bold text-white tracking-tight">Perfect World (Wanmei Shijie)</h1>
+                        <p class="text-sm text-gray-400 mt-1">Status: <span class="text-green-400 font-semibold">Completed</span> • Season 1 • Studio: Shanghai Foch Film</p>
+                    </div>
+                    <!-- Rating Output -->
+                    <div class="flex items-center gap-1 bg-gray-800 px-3 py-1.5 rounded-lg border border-gray-700">
+                        <i class="fa-solid fa-star text-amber-400"></i>
+                        <span id="rating-value" class="font-bold text-sm">4.9</span>
+                        <span class="text-xs text-gray-400">(1,204 Suara)</span>
+                    </div>
+                </div>
+
+                <!-- Jalur Genre -->
+                <div class="flex flex-wrap gap-2">
+                    <span class="bg-gray-800 text-xs px-2.5 py-1 rounded-md text-gray-300 border border-gray-700 hover:border-blue-500 cursor-pointer transition-colors">Action</span>
+                    <span class="bg-gray-800 text-xs px-2.5 py-1 rounded-md text-gray-300 border border-gray-700 hover:border-blue-500 cursor-pointer transition-colors">Cultivation</span>
+                    <span class="bg-gray-800 text-xs px-2.5 py-1 rounded-md text-gray-300 border border-gray-700 hover:border-blue-500 cursor-pointer transition-colors">Fantasy</span>
+                    <span class="bg-gray-800 text-xs px-2.5 py-1 rounded-md text-gray-300 border border-gray-700 hover:border-blue-500 cursor-pointer transition-colors">Martial Arts</span>
+                </div>
+
+                <hr class="border-gray-800">
+
+                <!-- Tombol Interaktif -->
+                <div class="flex flex-wrap gap-3 items-center justify-between">
+                    <div class="flex gap-2">
+                        <!-- Tombol Like -->
+                        <button id="btn-like" onclick="toggleLike()" class="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-lg text-sm transition-colors border border-gray-700 group">
+                            <i class="fa-regular fa-thumbs-up group-hover:scale-110 transition-transform" id="like-icon"></i> 
+                            <span>Suka</span> (<span id="like-count">4.8K</span>)
+                        </button>
+                        <!-- Tombol Bookmark -->
+                        <button id="btn-bookmark" onclick="toggleBookmark()" class="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-lg text-sm transition-colors border border-gray-700 text-blue-400">
+                            <i class="fa-solid fa-bookmark" id="bookmark-icon"></i> 
+                            <span id="bookmark-text">Tersimpan</span>
+                        </button>
+                    </div>
+
+                    <!-- Sistem Rating Beri Bintang -->
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs text-gray-400">Beri Rating:</span>
+                        <div class="flex gap-1 text-gray-500 cursor-pointer">
+                            <i class="fa-solid fa-star hover:text-amber-400 transition-colors" onclick="rateVideo(1)"></i>
+                            <i class="fa-solid fa-star hover:text-amber-400 transition-colors" onclick="rateVideo(2)"></i>
+                            <i class="fa-solid fa-star hover:text-amber-400 transition-colors" onclick="rateVideo(3)"></i>
+                            <i class="fa-solid fa-star hover:text-amber-400 transition-colors" onclick="rateVideo(4)"></i>
+                            <i class="fa-solid fa-star text-amber-400" onclick="rateVideo(5)"></i> <!-- Default user selection -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SINOPIS -->
+            <div class="bg-gray-900 p-5 rounded-xl border border-gray-800">
+                <h3 class="text-lg font-bold text-white mb-2"><i class="fa-solid fa-circle-info text-blue-500 mr-2"></i>Sinopsis</h3>
+                <p class="text-sm text-gray-400 leading-relaxed">
+                    Dilahirkan di dunia yang unik di mana desa-desa saling memperebutkan kekuasaan dan kontrol, Shi Hao adalah seorang anak jenius yang diberkati oleh langit namun lahir dalam kondisi yang miskin dan tragis. Ikuti perjalanannya melintasi silsilah kultivasi kultus kuno untuk mencapai puncak tertinggi kedigdayaan kosmik.
+                </p>
+            </div>
+
+            <!-- SEKSI KOMENTAR -->
+            <div class="bg-gray-900 p-5 rounded-xl border border-gray-800 space-y-4">
+                <h3 class="text-lg font-bold text-white"><i class="fa-regular fa-comments text-purple-500 mr-2"></i>Diskusi (<span id="comment-total">2</span>)</h3>
+                
+                <!-- Input Komentar -->
+                <div class="flex gap-3 items-start">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-500 to-purple-600 flex items-center justify-center font-bold text-sm">U</div>
+                    <div class="flex-1 space-y-2">
+                        <textarea id="comment-input" rows="2" placeholder="Tulis opini, teori, atau diskusi kamu di sini..." class="w-full bg-gray-800 border border-gray-700 rounded-lg text-sm p-3 text-gray-200 focus:outline-none focus:border-purple-500 transition-colors resize-none"></textarea>
+                        <div class="flex justify-end">
+                            <button onclick="addComment()" class="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white text-xs px-4 py-2 rounded-lg font-semibold transition-all shadow-md">Kirim Komentar</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- List Komentar -->
+                <div class="space-y-4 pt-2" id="comments-list">
+                    <!-- Komentar 1 -->
+                    <div class="flex gap-3 text-sm p-3 bg-gray-950 rounded-lg border border-gray-800">
+                        <div class="w-9 h-9 rounded-full bg-emerald-600 flex items-center justify-center font-bold text-xs shadow-inner">OP</div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="font-semibold text-gray-200">OtakuPurba</span>
+                                <span class="text-[10px] text-gray-500">2 jam yang lalu</span>
+                            </div>
+                            <p class="text-gray-400 mt-1">Gila animasi pertarungan eps ini bener-bener level dewa! Ga sia-sia nunggu seminggu.</p>
+                        </div>
+                    </div>
+                    <!-- Komentar 2 -->
+                    <div class="flex gap-3 text-sm p-3 bg-gray-950 rounded-lg border border-gray-800">
+                        <div class="w-9 h-9 rounded-full bg-purple-600 flex items-center justify-center font-bold text-xs shadow-inner">DX</div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="font-semibold text-gray-200">Donghua_Xianxia</span>
+                                <span class="text-[10px] text-gray-500">4 jam yang lalu</span>
+                            </div>
+                            <p class="text-gray-400 mt-1">Shi hao mc paling badass season ini fiks, no debat!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- KANAN: SIDEBAR (RATING TERPOPULER, GENRE, & UPDATE TERBARU) -->
+        <div class="space-y-6">
+            
+            <!-- LIST SERIES TERPOPULER (RATING) -->
+            <div class="bg-gray-900 p-5 rounded-xl border border-gray-800 shadow-md">
+                <h3 class="text-base font-bold text-white mb-4 flex items-center justify-between">
+                    <span><i class="fa-solid fa-fire text-amber-500 mr-2"></i>Paling Populer</span>
+                    <span class="text-xs text-blue-400 cursor-pointer font-normal hover:underline">Lihat Semua</span>
+                </h3>
+                <div class="space-y-3">
+                    <!-- Item 1 -->
+                    <div class="flex items-center gap-3 p-2 hover:bg-gray-800/50 rounded-lg transition-colors border border-transparent hover:border-gray-800">
+                        <span class="text-xl font-black text-blue-500 w-6 text-center">1</span>
+                        <div class="w-12 h-16 bg-gray-800 rounded overflow-hidden flex-shrink-0">
+                            <img src="https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?q=80&w=150&auto=format&fit=crop" class="w-full h-full object-cover" alt="Anime thumbnail">
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h4 class="text-sm font-semibold text-gray-200 truncate">Solo Leveling Season 2</h4>
+                            <p class="text-xs text-gray-400 mt-0.5">Anime • 12 Episode</p>
+                            <div class="flex items-center gap-1 text-[11px] text-amber-400 font-bold mt-1">
+                                <i class="fa-solid fa-star"></i> 4.95
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Item 2 -->
+                    <div class="flex items-center gap-3 p-2 hover:bg-gray-800/50 rounded-lg transition-colors border border-transparent hover:border-gray-800">
+                        <span class="text-xl font-black text-purple-500 w-6 text-center">2</span>
+                        <div class="w-12 h-16 bg-gray-800 rounded overflow-hidden flex-shrink-0">
+                            <img src="https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=150&auto=format&fit=crop" class="w-full h-full object-cover" alt="Donghua thumbnail">
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h4 class="text-sm font-semibold text-gray-200 truncate">Soul Land 2 (Peerless Tang Sect)</h4>
+                            <p class="text-xs text-gray-400 mt-0.5">Donghua • 52 Episode</p>
+                            <div class="flex items-center gap-1 text-[11px] text-amber-400 font-bold mt-1">
+                                <i class="fa-solid fa-star"></i> 4.88
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Item 3 -->
+                    <div class="flex items-center gap-3 p-2 hover:bg-gray-800/50 rounded-lg transition-colors border border-transparent hover:border-gray-800">
+                        <span class="text-xl font-black text-rose-500 w-6 text-center">3</span>
+                        <div class="w-12 h-16 bg-gray-800 rounded overflow-hidden flex-shrink-0">
+                            <img src="https://images.unsplash.com/photo-1560169897-fc0cdbdfa4d5?q=80&w=150&auto=format&fit=crop" class="w-full h-full object-cover" alt="Live Action thumbnail">
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h4 class="text-sm font-semibold text-gray-200 truncate">One Piece Live Action S2</h4>
+                            <p class="text-xs text-gray-400 mt-0.5">Live Action • 8 Episode</p>
+                            <div class="flex items-center gap-1 text-[11px] text-amber-400 font-bold mt-1">
+                                <i class="fa-solid fa-star"></i> 4.85
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- UPDATE BARU BERKALA (DENGAN LABEL) -->
+            <div class="bg-gray-900 p-5 rounded-xl border border-gray-800">
+                <h3 class="text-base font-bold text-white mb-4"><i class="fa-solid fa-arrows-rotate text-emerald-500 mr-2 animate-spin-slow"></i>Update Terbaru Hari Ini</h3>
+                <div class="space-y-4 custom-scrollbar max-h-[350px] overflow-y-auto pr-1">
+                    <!-- Update Card 1 -->
+                    <div class="flex gap-3 items-start border-b border-gray-800 pb-3 last:border-0 last:pb-0">
+                        <div class="bg-blue-900/40 text-blue-400 text-[10px] uppercase font-black px-2 py-1 rounded border border-blue-800/50 tracking-wider">ANIME</div>
+                        <div class="flex-1 min-w-0">
+                            <a href="#" class="text-sm font-medium hover:text-blue-400 transition-colors block truncate">Demon Slayer: Infinity Castle Arc</a>
+                            <span class="text-xs text-gray-500">Baru Saja • Eps 02 (Sub Indo)</span>
+                        </div>
+                    </div>
+                    <!-- Update Card 2 -->
+                    <div class="flex gap-3 items-start border-b border-gray-800 pb-3 last:border-0 last:pb-0">
+                        <div class="bg-purple-900/40 text-purple-400 text-[10px] uppercase font-black px-2 py-1 rounded border border-purple-800/50 tracking-wider">DONGHUA</div>
+                        <div class="flex-1 min-w-0">
+                            <a href="#" class="text-sm font-medium hover:text-purple-400 transition-colors block truncate">Throne of Seal (Shen Yin Wang Zuo)</a>
+                            <span class="text-xs text-gray-500">15 Menit Lalu • Eps 114 (Sub Indo)</span>
+                        </div>
+                    </div>
+                    <!-- Update Card 3 -->
+                    <div class="flex gap-3 items-start border-b border-gray-800 pb-3 last:border-0 last:pb-0">
+                        <div class="bg-rose-900/40 text-rose-400 text-[10px] uppercase font-black px-2 py-1 rounded border border-rose-800/50 tracking-wider">LIVE ACT</div>
+                        <div class="flex-1 min-w-0">
+                            <a href="#" class="text-sm font-medium hover:text-rose-400 transition-colors block truncate">Avatar: The Last Airbender S2</a>
+                            <span class="text-xs text-gray-500">2 jam Lalu • Eps 04 (Sub Indo)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-gray-900 border-t border-gray-800 mt-12 py-6 text-center text-xs text-gray-500">
+        <p>© 2026 <span class="text-gray-400 font-bold tracking-wide">MISTNIME</span>. Dibuat dengan kecintaan tinggi terhadap konten sub-kultur Asia.</p>
+    </footer>
+
+    <!-- INTERACTIVE JAVASCRIPT LOGIC -->
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        // State management sederhana
+        let isLiked = false;
+        let isBookmarked = true; // State bawaan: tersimpan
+        let totalLikes = 4800;
+        let bookmarkCount = 2;
+
+        // Fungsi Toggle Suka/Like
+        function toggleLike() {
+            const likeIcon = document.getElementById('like-icon');
+            const likeCountEl = document.getElementById('like-count');
+            const btnLike = document.getElementById('btn-like');
             
-            // --- INisialisasi Selektor Element DOM ---
-            const sidebar = document.getElementById('appSidebar');
-            const toggleSidebar = document.getElementById('toggleSidebar');
-            const themeToggle = document.getElementById('themeToggle');
-            const openModalBtn = document.getElementById('openModalBtn');
-            const closeModalBtn = document.getElementById('closeModalBtn');
-            const cancelModalBtn = document.getElementById('cancelModalBtn');
-            const userFormModal = document.getElementById('userFormModal');
-            const newUserFormSystem = document.getElementById('newUserFormSystem');
-            const tableSearchInput = document.getElementById('tableSearchInput');
-            const dataTableUser = document.getElementById('dataTableUser');
+            isLiked = !isLiked;
+            if (isLiked) {
+                totalLikes++;
+                likeIcon.className = "fa-solid fa-thumbs-up text-blue-500";
+                btnLike.classList.add('border-blue-500/50', 'bg-blue-950/20');
+            } else {
+                totalLikes--;
+                likeIcon.className = "fa-regular fa-thumbs-up";
+                btnLike.classList.remove('border-blue-500/50', 'bg-blue-950/20');
+            }
+            likeCountEl.innerText = (totalLikes / 1000).toFixed(1) + "K";
+        }
 
-            // --- Logika Sidebar Toggle ---
-            toggleSidebar.addEventListener('click', () => {
-                sidebar.classList.toggle('collapsed');
-                showToast('Ukuran Navigasi Sidebar Berubah', 'info');
-            });
+        // Fungsi Toggle Bookmark
+        function toggleBookmark() {
+            const bookmarkIcon = document.getElementById('bookmark-icon');
+            const bookmarkText = document.getElementById('bookmark-text');
+            const bookmarkNavCount = document.getElementById('bookmark-count');
+            const btnBookmark = document.getElementById('btn-bookmark');
 
-            // --- Logika Pergantian Tema (Dark / Light Theme) ---
-            themeToggle.addEventListener('click', () => {
-                const currentTheme = document.documentElement.getAttribute('data-theme');
-                let targetTheme = 'light';
-                
-                if(currentTheme === 'light') {
-                    targetTheme = 'dark';
-                    themeToggle.innerHTML = '<i class="fa-solid fa-sun"></i>';
-                    showToast('Mode Gelap Diaktifkan', 'success');
-                } else {
-                    targetTheme = 'light';
-                    themeToggle.innerHTML = '<i class="fa-solid fa-moon"></i>';
-                    showToast('Mode Terang Diaktifkan', 'success');
-                }
-                document.documentElement.setAttribute('data-theme', targetTheme);
-            });
+            isBookmarked = !isBookmarked;
+            if (isBookmarked) {
+                bookmarkCount++;
+                bookmarkIcon.className = "fa-solid fa-bookmark";
+                bookmarkText.innerText = "Tersimpan";
+                btnBookmark.className = "flex items-center gap-2 bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-lg text-sm transition-colors border border-gray-700 text-blue-400";
+            } else {
+                bookmarkCount--;
+                bookmarkIcon.className = "fa-regular fa-bookmark";
+                bookmarkText.innerText = "Bookmark";
+                btnBookmark.className = "flex items-center gap-2 bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-lg text-sm transition-colors border border-gray-700 text-gray-400";
+            }
+            bookmarkNavCount.innerText = bookmarkCount;
+        }
 
-            // --- Logika Manajemen Jendela Dialog Modal System ---
-            const toggleModal = () => userFormModal.classList.toggle('open');
-            openModalBtn.addEventListener('click', toggleModal);
-            closeModalBtn.addEventListener('click', toggleModal);
-            cancelModalBtn.addEventListener('click', toggleModal);
+        // Fungsi Submit Komentar Dinamis
+        function addComment() {
+            const input = document.getElementById('comment-input');
+            const list = document.getElementById('comments-list');
+            const totalCount = document.getElementById('comment-total');
 
-            userFormModal.addEventListener('click', (e) => {
-                if(e.target === userFormModal) toggleModal();
-            });
+            if (input.value.trim() === "") {
+                alert("Harap tulis isi komentar terlebih dahulu.");
+                return;
+            }
 
-            // --- Form Submit Handling & Append Table Row ---
-            newUserFormSystem.addEventListener('submit', (e) => {
-                e.preventDefault();
-                
-                const name = document.getElementById('formName').value;
-                const email = document.getElementById('formEmail').value;
-                const dept = document.getElementById('formDept').value;
-                const randomId = Math.floor(1000 + Math.random() * 9000);
-
-                const tbody = dataTableUser.querySelector('tbody');
-                const newRow = document.createElement('tr');
-
-                newRow.innerHTML = `
-                    <td>#USR-${randomId}</td>
-                    <td><strong>${name}</strong><br><small style="color:var(--text-muted)">${email}</small></td>
-                    <td>${dept}</td>
-                    <td>6 Jul 2026</td>
-                    <td><span class="status-badge active">Aktif</span></td>
-                    <td>
-                        <button class="btn btn-secondary" style="padding: 5px 10px;" onclick="showToast('Mengedit user ${name}', 'info')"><i class="fa-solid fa-pen"></i></button>
-                        <button class="btn btn-secondary" style="padding: 5px 10px; color: var(--danger-color);" onclick="showToast('User dihapus', 'error')"><i class="fa-solid fa-trash"></i></button>
-                    </td>
-                `;
-
-                tbody.appendChild(newRow);
-                newUserFormSystem.reset();
-                toggleModal();
-                showToast(`Data karyawan ${name} berhasil ditambahkan!`, 'success');
-            });
-
-            // --- Logika Pencarian Dinamis pada Data Tabel Konten ---
-            tableSearchInput.addEventListener('keyup', function() {
-                const filter = this.value.toLowerCase();
-                const rows = dataTableUser.querySelectorAll('tbody tr');
-
-                rows.forEach(row => {
-                    const text = row.textContent.toLowerCase();
-                    if(text.includes(filter)) {
-                        row.style.display = '';
-                    } else {
-                        row.style.display = 'none';
-                    }
-                });
-            });
-
-            // --- Render Data Visualisasi Menggunakan ChartJS CDN Engine ---
-            const ctxLine = document.getElementById('lineChartMain').getContext('2d');
-            new Chart(ctxLine, {
-                type: 'line',
-                data: {
-                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul'],
-                    datasets: [{
-                        label: 'Pendapatan 2026 (Juta Rp)',
-                        data: [65, 78, 72, 95, 110, 130, 148],
-                        borderColor: '#4f46e5',
-                        backgroundColor: 'rgba(79, 70, 229, 0.1)',
-                        tension: 0.4,
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: { y: { grid: { color: 'rgba(0,0,0,0.05)' } }, x: { grid: { display: false } } }
-                }
-            });
-
-            const ctxDoughnut = document.getElementById('doughnutChartMain').getContext('2d');
-            new Chart(ctxDoughnut, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Direct', 'Organic SEO', 'Paid Ads', 'Referral'],
-                    datasets: [{
-                        data: [40, 30, 20, 10],
-                        backgroundColor: ['#4f46e5', '#06b6d4', '#f59e0b', '#10b981'],
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { position: 'bottom' } }
-                }
-            });
-        });
-
-        // --- Fungsi Global Toast Notification Generator ---
-        function showToast(message, type = 'success') {
-            const container = document.getElementById('toastContainer');
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
+            // Membuat element komentar baru secara real-time
+            const newComment = document.createElement('div');
+            newComment.className = "flex gap-3 text-sm p-3 bg-gray-950 rounded-lg border border-gray-800 animate-fadeIn";
+            newComment.innerHTML = `
+                <div class="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center font-bold text-xs shadow-inner">U</div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="font-semibold text-gray-200">Kamu (User)</span>
+                        <span class="text-[10px] text-gray-500">Baru saja</span>
+                    </div>
+                    <p class="text-gray-400 mt-1">${escapeHTML(input.value)}</p>
+                </div>
+            `;
             
-            let icon = '<i class="fa-solid fa-circle-check" style="color:var(--success-color)"></i>';
-            if(type === 'error') icon = '<i class="fa-solid fa-circle-exclamation" style="color:var(--danger-color)"></i>';
-            if(type === 'info') icon = '<i class="fa-solid fa-circle-info" style="color:var(--info-color)"></i>';
+            list.insertBefore(newComment, list.firstChild);
+            input.value = "";
+            
+            // Perbarui jumlah total komentar
+            let currentTotal = parseInt(totalCount.innerText);
+            totalCount.innerText = currentTotal + 1;
+        }
 
-            toast.innerHTML = `${icon} <span>${message}</span>`;
-            container.appendChild(toast);
+        // Proteksi sederhana dari serangan XSS di kolom komentar
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g, 
+                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+            );
+        }
 
-            setTimeout(() => toast.classList.add('show'), 50);
-            setTimeout(() => {
-                toast.classList.remove('show');
-                setTimeout(() => toast.remove(), 300);
-            }, 3500);
+        // Simulasi fungsi Klik Rating Bintang
+        function rateVideo(starCount) {
+            alert(`Terima kasih! Kamu memberikan nilai ${starCount} bintang untuk serial ini.`);
+            document.getElementById('rating-value').innerText = ((4.9 * 1204 + starCount) / 1205).toFixed(2);
         }
     </script>
 </body>
