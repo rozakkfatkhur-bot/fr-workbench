@@ -1,410 +1,67 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web DLMS - Stereo Input/Output</title>
     <style>
         :root {
-            --bg-color: #121418;
-            --panel-color: #1a1d24;
-            --accent-color: #00a2ff;
-            --text-color: #e0e0e0;
-            --muted-text: #888;
+            --bg-dark: #121418;
+            --panel-bg: #1e2128;
+            --accent-blue: #00a8ff;
+            --text-light: #d1d1d1;
+            --fader-track: #0e0f12;
         }
 
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+        body { background: var(--bg-dark); color: var(--text-light); font-family: sans-serif; display: flex; justify-content: center; padding: 20px; }
+        
+        /* Container Utama */
+        .mixer-wrapper { background: var(--panel-bg); padding: 20px; border-radius: 10px; width: 900px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
 
-        h1 {
-            color: var(--accent-color);
-            margin-bottom: 20px;
-        }
+        /* EQ Graph (Visualisasi Grafik) */
+        .eq-graph { background: #15171d; height: 150px; border: 1px solid #333; position: relative; margin-bottom: 20px; border-radius: 4px; }
+        .eq-line { stroke: var(--accent-blue); fill: none; stroke-width: 2; }
 
-        .dlms-container {
-            background-color: var(--panel-color);
-            border-radius: 8px;
-            padding: 20px;
-            width: 90%;
-            max-width: 1000px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
+        /* Channel Strip */
+        .mixer-board { display: flex; gap: 15px; }
+        .channel { width: 100px; display: flex; flex-direction: column; align-items: center; gap: 10px; border-right: 1px solid #333; padding-right: 10px; }
 
-        /* Top Bar Controls */
-        .top-bar {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #333;
-            padding-bottom: 15px;
-        }
+        /* Fader */
+        .fader-track { height: 150px; width: 20px; background: var(--fader-track); border-radius: 10px; position: relative; }
+        .fader-thumb { width: 30px; height: 15px; background: var(--accent-blue); position: absolute; left: -5px; cursor: pointer; border-radius: 3px; }
 
-        .btn {
-            background-color: #2a2f3a;
-            color: var(--text-color);
-            border: 1px solid #444;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
+        /* Knob (Potensio) */
+        .knob { width: 35px; height: 35px; border-radius: 50%; border: 2px solid #555; display: flex; align-items: center; justify-content: center; position: relative; }
+        .knob::after { content: ''; width: 2px; height: 15px; background: var(--accent-blue); position: absolute; top: 2px; }
 
-        .btn.active {
-            background-color: var(--accent-color);
-            color: #000;
-            font-weight: bold;
-        }
-
-        /* DSP Blocks Grid */
-        .dsp-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-
-        .dsp-card {
-            background-color: #22262f;
-            border: 1px solid #333;
-            border-radius: 6px;
-            padding: 15px;
-        }
-
-        .dsp-card h3 {
-            margin-top: 0;
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--accent-color);
-            display: flex;
-            justify-content: space-between;
-        }
-
-        /* Controls styling */
-        .control-group {
-            margin-bottom: 12px;
-        }
-
-        .control-group label {
-            display: block;
-            font-size: 12px;
-            color: var(--muted-text);
-            margin-bottom: 4px;
-        }
-
-        .control-group input[type="range"] {
-            width: 100%;
-            accent-color: var(--accent-color);
-        }
-
-        .value-disp {
-            font-size: 12px;
-            float: right;
-            color: #fff;
-        }
-
-        /* Mixer Section */
-        .mixer-section {
-            border-top: 1px solid #333;
-            padding-top: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .fader-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 100px;
-        }
-
-        .fader-container input[type="range"] {
-            writing-mode: vertical-lr;
-            direction: rtl;
-            vertical-align: middle;
-            height: 150px;
-            width: 20px;
-            accent-color: var(--accent-color);
-        }
+        /* Button */
+        .btn-mute-solo { display: flex; gap: 5px; margin-top: 10px; }
+        button { background: #333; color: white; border: none; padding: 5px 10px; cursor: pointer; font-size: 10px; }
     </style>
 </head>
 <body>
 
-    <h1>WEB DLMS - STEREO PROCESSOR</h1>
-
-    <div class="dlms-container">
-        <!-- Top Toolbar -->
-        <div class="top-bar">
-            <button id="start-btn" class="btn">Mulai Audio (Input Stereo)</button>
-            <button id="bypass-btn" class="btn">Bypass Semua DSP</button>
-        </div>
-
-        <!-- DSP Rack (HPF, Comp, EQ, Limiter) -->
-        <div class="dsp-grid">
-            
-            <!-- HPF & Gate Block -->
-            <div class="dsp-card">
-                <h3>HPF & Gate</h3>
-                <div class="control-group">
-                    <label>HPF Cutoff <span id="hpf-val" class="value-disp">80 Hz</span></label>
-                    <input type="range" id="hpf-freq" min="20" max="400" value="80">
-                </div>
-                <div class="control-group">
-                    <label>Gate Threshold <span id="gate-val" class="value-disp">-60 dB</span></label>
-                    <input type="range" id="gate-thresh" min="-100" max="0" value="-60">
-                </div>
-            </div>
-
-            <!-- Compressor Block -->
-            <div class="dsp-card">
-                <h3>Compressor</h3>
-                <div class="control-group">
-                    <label>Threshold <span id="comp-thresh-val" class="value-disp">-24 dB</span></label>
-                    <input type="range" id="comp-thresh" min="-60" max="0" value="-24">
-                </div>
-                <div class="control-group">
-                    <label>Ratio <span id="comp-ratio-val" class="value-disp">4:1</span></label>
-                    <input type="range" id="comp-ratio" min="1" max="20" value="4" step="0.5">
-                </div>
-                <div class="control-group">
-                    <label>Attack <span id="comp-attack-val" class="value-disp">20 ms</span></label>
-                    <input type="range" id="comp-attack" min="1" max="100" value="20">
-                </div>
-            </div>
-
-            <!-- 3-Band EQ Block -->
-            <div class="dsp-card">
-                <h3>Parametric EQ</h3>
-                <div class="control-group">
-                    <label>Low Gain <span id="eq-low-val" class="value-disp">0 dB</span></label>
-                    <input type="range" id="eq-low" min="-12" max="12" value="0" step="0.5">
-                </div>
-                <div class="control-group">
-                    <label>Mid Gain <span id="eq-mid-val" class="value-disp">0 dB</span></label>
-                    <input type="range" id="eq-mid" min="-12" max="12" value="0" step="0.5">
-                </div>
-                <div class="control-group">
-                    <label>High Gain <span id="eq-high-val" class="value-disp">0 dB</span></label>
-                    <input type="range" id="eq-high" min="-12" max="12" value="0" step="0.5">
-                </div>
-            </div>
-
-            <!-- Limiter Block -->
-            <div class="dsp-card">
-                <h3>Limiter</h3>
-                <div class="control-group">
-                    <label>Ceiling <span id="lim-val" class="value-disp">-1.0 dB</span></label>
-                    <input type="range" id="lim-thresh" min="-10" max="0" value="-1" step="0.1">
-                </div>
-            </div>
-
-        </div>
-
-        <!-- Master Fader Section -->
-        <div class="mixer-section">
-            <div>
-                <h3>Status Sinyal</h3>
-                <p style="font-size: 13px; color: var(--muted-text);">Rute: <strong style="color: #fff;">Stereo Input &rarr; DSP Chain &rarr; Stereo Output</strong></p>
-            </div>
-            
-            <div class="fader-container">
-                <label style="font-size: 12px; margin-bottom: 8px;">MAIN FADER</label>
-                <input type="range" id="main-volume" min="0" max="1.5" value="1" step="0.01">
-                <span id="vol-val" style="font-size: 12px; margin-top: 8px;">0.0 dB</span>
-            </div>
-        </div>
+<div class="mixer-wrapper">
+    <!-- Top EQ Section (Representasi dari 1000746978_2.jpg) -->
+    <div class="eq-graph">
+        <svg width="100%" height="100%">
+            <path class="eq-line" d="M0 80 Q 200 40, 400 80 T 800 80" />
+        </svg>
     </div>
 
-    <script>
-        let audioCtx;
-        let inputStream;
-        let sourceNode;
-        
-        // DSP Nodes
-        let hpfNode, gateNode, compNode, eqLowNode, eqMidNode, eqHighNode, limiterNode, gainNode;
-        let isBypassed = false;
-        let isPlaying = false;
+    <!-- Mixer Board Section -->
+    <div class="mixer-board">
+        <!-- Contoh Channel -->
+        <div class="channel">
+            <div class="knob"></div>
+            <span>Gain</span>
+            <div class="fader-track"><div class="fader-thumb" style="top: 50px;"></div></div>
+            <div class="btn-mute-solo">
+                <button>Mute</button>
+                <button>Solo</button>
+            </div>
+            <p>Mic</p>
+        </div>
+        <!-- Tambahkan lebih banyak channel dengan struktur sama -->
+    </div>
+</div>
 
-        const startBtn = document.getElementById('start-btn');
-        const bypassBtn = document.getElementById('bypass-btn');
-
-        startBtn.addEventListener('click', async () => {
-            if (isPlaying) return;
-
-            // 1. Inisialisasi Audio Context dengan konfigurasi stereo
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            
-            try {
-                // Mengambil input mic/line-in asli user (Stereo jika hardware mendukung)
-                inputStream = await navigator.mediaDevices.getUserMedia({
-                    audio: {
-                        echoCancellation: false,
-                        noiseSuppression: false,
-                        autoGainControl: false,
-                        channelCount: 2 // Memaksa Input Stereo
-                    }
-                });
-
-                sourceNode = audioCtx.createMediaStreamSource(inputStream);
-                setupAudioGraph();
-                
-                startBtn.textContent = "Audio Aktif";
-                startBtn.classList.add('active');
-                isPlaying = true;
-            } catch (err) {
-                alert("Gagal mengakses input audio: " + err);
-            }
-        });
-
-        function setupAudioGraph() {
-            // 2. Membuat DSP Nodes
-            // HPF (High Pass Filter)
-            hpfNode = audioCtx.createBiquadFilter();
-            hpfNode.type = "highpass";
-            hpfNode.frequency.value = document.getElementById('hpf-freq').value;
-
-            // Gate (Menggunakan DynamicsCompressorNode ekstrem sebagai Noise Gate sederhana)
-            gateNode = audioCtx.createDynamicsCompressor();
-            gateNode.threshold.value = document.getElementById('gate-thresh').value;
-            gateNode.ratio.value = 20; 
-
-            // Compressor
-            compNode = audioCtx.createDynamicsCompressor();
-            compNode.threshold.value = document.getElementById('comp-thresh').value;
-            compNode.ratio.value = document.getElementById('comp-ratio').value;
-            compNode.attack.value = document.getElementById('comp-attack').value / 1000; // ms ke detik
-
-            // Parametric EQ (3-Band)
-            eqLow = audioCtx.createBiquadFilter();
-            eqLow.type = "lowshelf";
-            eqLow.frequency.value = 200; // Low band di bawah 200Hz
-            eqLow.gain.value = document.getElementById('eq-low').value;
-
-            eqMid = audioCtx.createBiquadFilter();
-            eqMid.type = "peaking";
-            eqMid.frequency.value = 1000; // Mid band di 1kHz
-            eqMid.Q.value = 1.0;
-            eqMid.gain.value = document.getElementById('eq-mid').value;
-
-            eqHigh = audioCtx.createBiquadFilter();
-            eqHigh.type = "highshelf";
-            eqHigh.frequency.value = 5000; // High band di atas 5kHz
-            eqHigh.gain.value = document.getElementById('eq-high').value;
-
-            // Limiter (Compressor dengan Ratio tak terhingga dan Fast Attack)
-            limiterNode = audioCtx.createDynamicsCompressor();
-            limiterNode.threshold.value = document.getElementById('lim-thresh').value;
-            limiterNode.ratio.value = 20;
-            limiterNode.attack.value = 0.001; // 1ms
-            limiterNode.release.value = 0.1;
-
-            // Main Volume / Fader
-            gainNode = audioCtx.createGain();
-            gainNode.gain.value = document.getElementById('main-volume').value;
-
-            // 3. Menghubungkan Rute Efek (Audio Routing Chain)
-            // Jalur: Source -> HPF -> Gate -> Comp -> EQ Low -> EQ Mid -> EQ High -> Limiter -> Master Gain -> Output (Stereo)
-            sourceNode.connect(hpfNode);
-            hpfNode.connect(gateNode);
-            gateNode.connect(compNode);
-            compNode.connect(eqLow);
-            eqLow.connect(eqMid);
-            eqMid.connect(eqHigh);
-            eqHigh.connect(limiterNode);
-            limiterNode.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-        }
-
-        // --- Event Handlers untuk Perubahan Kontrol UI Kontrol Kontrol ---
-
-        // HPF & Gate
-        document.getElementById('hpf-freq').addEventListener('input', (e) => {
-            let val = e.target.value;
-            document.getElementById('hpf-val').textContent = val + " Hz";
-            if(hpfNode) hpfNode.frequency.setValueAtTime(val, audioCtx.currentTime);
-        });
-        document.getElementById('gate-thresh').addEventListener('input', (e) => {
-            let val = e.target.value;
-            document.getElementById('gate-val').textContent = val + " dB";
-            if(gateNode) gateNode.threshold.setValueAtTime(val, audioCtx.currentTime);
-        });
-
-        // Compressor
-        document.getElementById('comp-thresh').addEventListener('input', (e) => {
-            let val = e.target.value;
-            document.getElementById('comp-thresh-val').textContent = val + " dB";
-            if(compNode) compNode.threshold.setValueAtTime(val, audioCtx.currentTime);
-        });
-        document.getElementById('comp-ratio').addEventListener('input', (e) => {
-            let val = e.target.value;
-            document.getElementById('comp-ratio-val').textContent = val + ":1";
-            if(compNode) compNode.ratio.setValueAtTime(val, audioCtx.currentTime);
-        });
-        document.getElementById('comp-attack').addEventListener('input', (e) => {
-            let val = e.target.value;
-            document.getElementById('comp-attack-val').textContent = val + " ms";
-            if(compNode) compNode.attack.setValueAtTime(val / 1000, audioCtx.currentTime);
-        });
-
-        // EQ
-        document.getElementById('eq-low').addEventListener('input', (e) => {
-            let val = e.target.value;
-            document.getElementById('eq-low-val').textContent = val + " dB";
-            if(eqLow) eqLow.gain.setValueAtTime(val, audioCtx.currentTime);
-        });
-        document.getElementById('eq-mid').addEventListener('input', (e) => {
-            let val = e.target.value;
-            document.getElementById('eq-mid-val').textContent = val + " dB";
-            if(eqMid) eqMid.gain.setValueAtTime(val, audioCtx.currentTime);
-        });
-        document.getElementById('eq-high').addEventListener('input', (e) => {
-            let val = e.target.value;
-            document.getElementById('eq-high-val').textContent = val + " dB";
-            if(eqHigh) eqHigh.gain.setValueAtTime(val, audioCtx.currentTime);
-        });
-
-        // Limiter
-        document.getElementById('lim-thresh').addEventListener('input', (e) => {
-            let val = e.target.value;
-            document.getElementById('lim-val').textContent = val + " dB";
-            if(limiterNode) limiterNode.threshold.setValueAtTime(val, audioCtx.currentTime);
-        });
-
-        // Main Fader Volume
-        document.getElementById('main-volume').addEventListener('input', (e) => {
-            let val = e.target.value;
-            // Konversi nilai fader linear ke representasi teks dB sederhana
-            let db = (20 * Math.log10(val)).toFixed(1);
-            document.getElementById('vol-val').textContent = val == 0 ? "-∞ dB" : db + " dB";
-            if(gainNode) gainNode.gain.setValueAtTime(val, audioCtx.currentTime);
-        });
-
-        // Bypass Button Logic
-        bypassBtn.addEventListener('click', () => {
-            if(!isPlaying) return;
-            isBypassed = !isBypassed;
-            
-            if(isBypassed) {
-                bypassBtn.classList.add('active');
-                // Putuskan jalur DSP, langsung colok dari Source ke Master Gain
-                sourceNode.disconnect();
-                sourceNode.connect(gainNode);
-            } else {
-                bypassBtn.classList.remove('active');
-                // Kembalikan ke susunan jalur DSP semula
-                sourceNode.disconnect();
-                sourceNode.connect(hpfNode);
-            }
-        });
-    </script>
 </body>
 </html>
