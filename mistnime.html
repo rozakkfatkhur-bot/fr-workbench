@@ -3,449 +3,784 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MistNime - Premium Anime & Donghua Streaming</title>
+    <title>MistNime - Premium Watching Hub</title>
     <!-- Tailwind CSS v4 CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <!-- FontAwesome Icons -->
+    <!-- FontAwesome Pro Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
     <style>
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #0b0f19; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #4f46e5; border-radius: 3px; }
-        .glass-card { background: rgba(17, 24, 39, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
-        .glow-effect:hover { box-shadow: 0 0 20px rgba(79, 70, 229, 0.4); }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #070a13; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #312e81; border-radius: 99px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #4f46e5; }
+        .neon-border-active { border-color: rgba(99, 102, 241, 0.8); box-shadow: 0 0 15px rgba(99, 102, 241, 0.2); }
+        .premium-glow { box-shadow: 0 0 40px rgba(79, 70, 229, 0.15); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
     </style>
 </head>
-<body class="bg-[#070a13] text-gray-100 font-sans selection:bg-indigo-600 selection:text-white custom-scrollbar">
+<body class="bg-[#05070f] text-[#e2e8f0] antialiased custom-scrollbar selection:bg-indigo-600 selection:text-white">
 
-    <!-- TOP NAVIGATION BAR -->
-    <nav class="bg-[#0b0f19]/90 border-b border-gray-800/60 sticky top-0 z-50 backdrop-blur-md px-4 py-3">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-            <!-- Logo & Brand -->
-            <div class="flex items-center gap-2 cursor-pointer" onclick="filterCategory('all')">
-                <div class="p-2 bg-gradient-to-tr from-indigo-600 to-purple-600 rounded-xl shadow-lg shadow-indigo-500/30">
-                    <i class="fa-solid fa-cloud-moon text-white text-xl"></i>
-                </div>
-                <span class="text-2xl font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-500">MISTNIME</span>
+    <!-- GLOBAL NOTIFICATION BANNER -->
+    <div id="global-toast" class="fixed bottom-6 right-6 z-[100] transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <div class="bg-gray-950/90 backdrop-blur-xl border border-indigo-500/30 px-5 py-3.5 rounded-2xl flex items-center gap-3 shadow-2xl">
+            <div id="toast-icon-bg" class="p-2 bg-indigo-500/10 text-indigo-400 rounded-xl">
+                <i id="toast-icon" class="fa-solid fa-info text-sm"></i>
             </div>
-            
-            <!-- Filter Kategori Kategori -->
-            <div class="flex items-center gap-2 text-sm font-medium text-gray-400 bg-gray-950 p-1 rounded-full border border-gray-800">
-                <button onclick="filterCategory('all')" id="nav-all" class="px-4 py-1.5 rounded-full transition-all text-white bg-indigo-600">Semua</button>
-                <button onclick="filterCategory('Anime')" id="nav-Anime" class="px-4 py-1.5 rounded-full transition-all hover:text-white">Anime</button>
-                <button onclick="filterCategory('Donghua')" id="nav-Donghua" class="px-4 py-1.5 rounded-full transition-all hover:text-white">Donghua</button>
-                <button onclick="filterCategory('Live Action')" id="nav-LiveAction" class="px-4 py-1.5 rounded-full transition-all hover:text-white">Live Action</button>
+            <div>
+                <p id="toast-message" class="text-xs font-semibold text-gray-200">Notifikasi sistem</p>
             </div>
+        </div>
+    </div>
 
-            <!-- Search & Bookmark Monitor -->
-            <div class="flex items-center gap-4 w-full md:w-auto">
-                <div class="relative w-full md:w-64">
-                    <input type="text" id="search-input" oninput="searchContent()" placeholder="Cari judul tayangan..." class="w-full bg-gray-900 text-sm text-gray-200 pl-4 pr-10 py-2 rounded-full border border-gray-800 focus:outline-none focus:border-indigo-500 transition-colors">
-                    <i class="fa-solid fa-magnifying-glass absolute right-3 top-2.5 text-gray-500 text-sm"></i>
+    <!-- AUTH MODAL (GOOGLE SIGN IN SIMULATION) -->
+    <div id="auth-modal" class="fixed inset-0 z-[99] hidden items-center justify-center p-4 bg-black/80 backdrop-blur-md transition-all">
+        <div class="bg-[#0b0f19] border border-gray-800/80 w-full max-w-md rounded-3xl p-6 shadow-2xl relative animate-fade-in">
+            <button onclick="toggleAuthModal(false)" class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors cursor-pointer">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <div class="text-center space-y-2 mb-6">
+                <div class="w-12 h-12 bg-indigo-600/10 text-indigo-400 rounded-2xl flex items-center justify-center mx-auto border border-indigo-500/20">
+                    <i class="fa-solid fa-shield-halved text-xl"></i>
                 </div>
-                <button onclick="toggleBookmarkView()" id="btn-view-bookmark" class="relative p-2.5 text-gray-400 hover:text-indigo-400 bg-gray-900 border border-gray-800 rounded-full transition-all" title="Daftar Bookmark Saya">
-                    <i class="fa-solid fa-bookmark"></i>
-                    <span id="global-bookmark-count" class="absolute -top-1 -right-1 bg-gradient-to-r from-pink-500 to-purple-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold shadow-md">0</span>
+                <h3 class="text-lg font-bold text-white">Otentikasi Diperlukan</h3>
+                <p class="text-xs text-gray-400 px-4">Kamu harus terhubung untuk berinteraksi seperti menyukai, menyimpan lapak, atau mengirim opini.</p>
+            </div>
+            <div class="space-y-3">
+                <button onclick="loginSimulation('user')" class="w-full bg-white text-gray-900 font-bold text-xs py-3.5 px-4 rounded-xl flex items-center justify-center gap-3 hover:bg-gray-100 transition-all shadow-lg cursor-pointer">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24">
+                        <path fill="#EA4335" d="M12 5.04c1.64 0 3.12.56 4.28 1.67l3.2-3.2C17.52 1.58 15 1 12 1 7.35 1 3.4 3.65 1.5 7.5l3.86 3c.9-2.7 3.4-4.46 6.64-4.46z"/>
+                        <path fill="#4285F4" d="M23.49 12.27c0-.8-.07-1.56-.2-2.27H12v4.51h6.46c-.29 1.48-1.14 2.73-2.4 3.58l3.73 2.88c2.18-2 3.7-5 3.7-8.7z"/>
+                        <path fill="#FBBC05" d="M5.36 14.5c-.24-.7-.36-1.47-.36-2.27s.12-1.57.36-2.27L1.5 7.5C.54 9.43 0 11.65 0 14s.54 4.57 1.5 6.5l3.86-3z"/>
+                        <path fill="#34A853" d="M12 23c3.24 0 5.97-1.07 7.96-2.91l-3.73-2.88c-1.1.74-2.5 1.18-4.23 1.18-3.24 0-5.74-1.76-6.64-4.46L1.5 16.93C3.4 20.35 7.35 23 12 23z"/>
+                    </svg>
+                    Masuk Lewat Google (User Biasa)
+                </button>
+                <button onclick="loginSimulation('admin')" class="w-full bg-gradient-to-r from-purple-900 to-indigo-900 border border-purple-500/40 text-purple-200 font-bold text-xs py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 hover:from-purple-800 hover:to-indigo-800 transition-all shadow-lg cursor-pointer">
+                    <i class="fa-solid fa-user-gear text-xs"></i>
+                    Masuk Sebagai Admin MistNime
                 </button>
             </div>
         </div>
-    </nav>
+    </div>
 
-    <!-- CONTENT LAYOUT CONTAINER -->
-    <main class="max-w-7xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- MAIN VIEWPORT CONTAINER -->
+    <div class="min-h-screen flex flex-col">
         
-        <!-- KOLOM UTAMA (KIRI/TENGAH): PEMUTAR VIDEO & METADATA -->
-        <div class="lg:col-span-2 space-y-6">
-            
-            <!-- Premium Video Player Container -->
-            <div class="bg-black rounded-2xl overflow-hidden aspect-video shadow-2xl border border-gray-800/80 relative group shadow-indigo-950/20">
-                <video id="main-video-player" controls preload="metadata" class="w-full h-full object-contain" poster="">
-                    <source id="video-source" src="" type="video/mp4">
-                    Browser Anda tidak mendukung pemutar video HTML5.
-                </video>
-            </div>
-
-            <!-- Detail Informasi Video, Genre, & Tombol Interaktif -->
-            <div class="glass-card p-6 rounded-2xl space-y-4 shadow-xl">
-                <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-                    <div>
-                        <div id="content-badge" class="bg-indigo-600/20 text-indigo-400 text-[11px] font-black tracking-wider px-2.5 py-1 rounded border border-indigo-500/30 w-max uppercase mb-2">Donghua</div>
-                        <h1 id="content-title" class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Memuat Judul...</h1>
-                        <p id="content-meta" class="text-xs text-gray-400 mt-1.5">Status: - • Studio: -</p>
+        <!-- TOP LUXURY HEADER -->
+        <nav class="bg-[#080c16]/80 border-b border-gray-900/60 sticky top-0 z-40 backdrop-blur-xl px-4 py-3.5 transition-all">
+            <div class="max-w-[1600px] mx-auto flex flex-col lg:flex-row items-center justify-between gap-4">
+                
+                <!-- Brand Anchor & Category Filters -->
+                <div class="flex flex-col sm:flex-row items-center gap-6 w-full lg:w-auto">
+                    <div class="flex items-center gap-2.5 cursor-pointer group" onclick="setCategoryFilter('all')">
+                        <div class="w-10 h-10 bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-500 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition-transform">
+                            <i class="fa-solid fa-cloud-moon text-white text-lg"></i>
+                        </div>
+                        <div class="leading-none">
+                            <span class="text-xl font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">MISTNIME</span>
+                            <span class="block text-[9px] uppercase tracking-widest text-gray-500 font-bold mt-0.5">Premium Hub</span>
+                        </div>
                     </div>
                     
-                    <!-- Papan Rating Aktual -->
-                    <div class="flex items-center gap-2 bg-gray-950/60 p-3 rounded-xl border border-gray-800/80 w-max self-start">
-                        <div class="bg-amber-500/10 p-2 rounded-lg text-amber-400">
-                            <i class="fa-solid fa-star text-base"></i>
+                    <div class="h-5 w-px bg-gray-800 hidden sm:block"></div>
+                    
+                    <!-- Advanced Tab Filter Selector -->
+                    <div class="flex items-center bg-gray-950 p-1 rounded-xl border border-gray-900 w-full sm:w-auto overflow-x-auto custom-scrollbar">
+                        <button onclick="setCategoryFilter('all')" id="tab-all" class="text-xs font-bold px-4 py-2 rounded-lg transition-all text-white bg-indigo-600 cursor-pointer whitespace-nowrap">Semua</button>
+                        <button onclick="setCategoryFilter('Anime')" id="tab-Anime" class="text-xs font-bold px-4 py-2 rounded-lg transition-all text-gray-400 hover:text-white cursor-pointer whitespace-nowrap">Anime</button>
+                        <button onclick="setCategoryFilter('Donghua')" id="tab-Donghua" class="text-xs font-bold px-4 py-2 rounded-lg transition-all text-gray-400 hover:text-white cursor-pointer whitespace-nowrap">Donghua</button>
+                        <button onclick="setCategoryFilter('Live Action')" id="tab-LiveAction" class="text-xs font-bold px-4 py-2 rounded-lg transition-all text-gray-400 hover:text-white cursor-pointer whitespace-nowrap">Live Action</button>
+                    </div>
+                </div>
+
+                <!-- Live Search Engine & User Profile Monitoring Bar -->
+                <div class="flex items-center gap-4 w-full lg:w-auto justify-end">
+                    <div class="relative w-full sm:w-72">
+                        <input type="text" id="live-search" oninput="executeSearch()" placeholder="Cari judul tayangan premium..." class="w-full bg-[#0b0f19] text-xs text-gray-200 pl-4 pr-10 py-3 rounded-xl border border-gray-900 focus:outline-none focus:border-indigo-600 transition-all placeholder:text-gray-600">
+                        <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-3.5 text-gray-600 text-xs"></i>
+                    </div>
+                    
+                    <button onclick="toggleBookmarkFilter()" id="navbar-bookmark-btn" class="p-3 text-gray-400 bg-[#0b0f19] hover:bg-gray-950 border border-gray-900 rounded-xl transition-all relative cursor-pointer" title="Lapak Simpanan">
+                        <i class="fa-solid fa-bookmark text-sm"></i>
+                        <span id="badge-bookmark" class="absolute -top-1.5 -right-1.5 bg-gradient-to-r from-pink-500 to-indigo-500 text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-black border border-gray-950">0</span>
+                    </button>
+
+                    <div class="h-6 w-px bg-gray-800"></div>
+
+                    <!-- Profile Engine Node -->
+                    <div id="profile-node-container">
+                        <!-- Rendered Dinamis oleh JS Engine -->
+                    </div>
+                </div>
+
+            </div>
+        </nav>
+
+        <!-- SUB-HEADER HERO CONSOLE INFO (WATCH MODE) -->
+        <div class="bg-gradient-to-b from-[#090d1a] to-[#05070f] border-b border-gray-900/40 py-6 px-4">
+            <div class="max-w-[1600px] mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div class="space-y-1.5">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span id="hero-badge" class="bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded">Donghua</span>
+                        <span id="hero-studio" class="text-xs text-gray-500 font-medium">Studio: Shanghai Foch Film</span>
+                    </div>
+                    <h2 id="hero-title" class="text-xl md:text-3xl font-black text-white tracking-tight">Memuat Judul Tayangan...</h2>
+                    <p id="hero-meta" class="text-xs text-gray-400 font-medium">Status: - • Total Rilis: -</p>
+                </div>
+                <div class="flex items-center gap-3 bg-gray-950/60 backdrop-blur-md p-3 rounded-2xl border border-gray-900">
+                    <div class="w-10 h-10 bg-amber-500/10 rounded-xl flex items-center justify-center text-amber-400">
+                        <i class="fa-solid fa-star-shooting text-base"></i>
+                    </div>
+                    <div>
+                        <div class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Rating Komunitas</div>
+                        <div class="flex items-baseline gap-1">
+                            <span id="hero-rating" class="text-lg font-black text-white">0.0</span>
+                            <span id="hero-voters" class="text-[10px] text-gray-400 font-medium">(0 Voters)</span>
                         </div>
-                        <div>
-                            <div class="text-xs text-gray-500 font-medium">Rating Komunitas</div>
-                            <div class="flex items-baseline gap-1">
-                                <span id="rating-score" class="text-lg font-black text-white">0.0</span>
-                                <span id="rating-voters" class="text-[11px] text-gray-400">(0 Suara)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN LAYOUT MATRIX CONTENT -->
+        <main class="max-w-[1600px] w-full mx-auto p-4 grid grid-cols-1 xl:grid-cols-4 gap-6 flex-1">
+            
+            <!-- LEFT MATRIX COLUMNS (CINEMATIC PLAYER + SELECTION STREAM + FEEDBACK) -->
+            <div class="xl:col-span-3 space-y-6">
+                
+                <!-- CINEMATIC VIDEO WORKSPACE WITH PREMIUM GLOW -->
+                <div class="bg-black rounded-3xl overflow-hidden aspect-video border border-gray-900 shadow-2xl relative group premium-glow">
+                    <!-- Standard HTML5 Video Player inside Custom Wrapper -->
+                    <video id="video-core-engine" controls preload="auto" class="w-full h-full object-contain" poster="">
+                        <source id="video-core-source" src="" type="video/mp4">
+                        Browser anda tidak mendukung native player platform.
+                    </video>
+                </div>
+
+                <!-- CORE ACTION STRIP INTERACTIVITY & SERVER SWITCHER -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center bg-[#0b0f19] border border-gray-900 p-4 rounded-2xl">
+                    <!-- Interaction Panel buttons -->
+                    <div class="lg:col-span-5 flex items-center gap-3">
+                        <button onclick="executeLikeToggle()" id="btn-like-action" class="flex-1 sm:flex-none flex items-center justify-center gap-2.5 bg-gray-950 hover:bg-gray-900 px-5 py-3 rounded-xl text-xs font-bold transition-all border border-gray-800 cursor-pointer group">
+                            <i id="like-icon" class="fa-regular fa-thumbs-up text-gray-400 group-hover:scale-110 transition-transform"></i>
+                            <span class="text-gray-300">Suka</span>
+                            <span id="like-counter" class="bg-gray-900 px-2 py-0.5 rounded text-[10px] text-indigo-400 ml-0.5 font-black">0</span>
+                        </button>
+                        
+                        <button onclick="executeBookmarkToggle()" id="btn-bookmark-action" class="flex-1 sm:flex-none flex items-center justify-center gap-2.5 bg-gray-950 hover:bg-gray-900 px-5 py-3 rounded-xl text-xs font-bold transition-all border border-gray-800 cursor-pointer group">
+                            <i id="bookmark-icon" class="fa-regular fa-bookmark text-gray-400"></i>
+                            <span id="bookmark-text" class="text-gray-300">Simpan Ke Lapak</span>
+                        </button>
+                    </div>
+
+                    <!-- Dynamic Star Rating Node Selector -->
+                    <div class="lg:col-span-4 flex flex-col sm:flex-row items-center gap-2.5 bg-gray-950/60 p-2.5 rounded-xl border border-gray-900 justify-center">
+                        <span class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Beri Skor:</span>
+                        <div id="star-interactive-row" class="flex gap-1.5 text-gray-700 text-sm">
+                            <!-- Populated dynamically via engine -->
+                        </div>
+                    </div>
+
+                    <!-- Server Mirror Selector Infrastructure -->
+                    <div class="lg:col-span-3 flex flex-col gap-1">
+                        <span class="text-[9px] uppercase font-black tracking-widest text-gray-500 mb-0.5 block">Pilih Server Mirror:</span>
+                        <div class="grid grid-cols-2 gap-1.5" id="server-mirror-container">
+                            <!-- POPULATED AUTOMATICALLY -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- EPISODE GRID NAVIGATOR PANEL (Simulating referal screen workflow) -->
+                <div class="bg-[#0b0f19] border border-gray-900 p-5 rounded-2xl space-y-4">
+                    <div class="flex items-center justify-between flex-wrap gap-2">
+                        <h3 class="text-xs font-black uppercase tracking-wider text-white flex items-center gap-2">
+                            <span class="w-1 h-3.5 bg-indigo-500 rounded-full"></span>Navigasi Episode Tersedia
+                        </h3>
+                        <div class="flex items-center gap-2">
+                            <button onclick="navigateEpisodeOffset(-1)" id="prev-ep-btn" class="p-2 bg-gray-950 hover:bg-gray-900 border border-gray-800 rounded-lg text-xs font-bold transition-colors text-gray-400 disabled:opacity-30 disabled:pointer-events-none cursor-pointer">
+                                <i class="fa-solid fa-chevron-left mr-1"></i> Prev
+                            </button>
+                            <button onclick="navigateEpisodeOffset(1)" id="next-ep-btn" class="p-2 bg-gray-950 hover:bg-gray-900 border border-gray-800 rounded-lg text-xs font-bold transition-colors text-gray-400 disabled:opacity-30 disabled:pointer-events-none cursor-pointer">
+                                Next <i class="fa-solid fa-chevron-right ml-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Grid System for bulk episodes layout -->
+                    <div id="episodes-navigation-grid" class="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-8 lg:grid-cols-10 gap-2 max-h-[160px] overflow-y-auto custom-scrollbar pr-1">
+                        <!-- Populated by system engine -->
+                    </div>
+                </div>
+
+                <!-- DESCRIPTION TABS NOVELTY MATRIX -->
+                <div class="bg-[#0b0f19] border border-gray-900 p-6 rounded-2xl space-y-3.5">
+                    <h3 class="text-xs font-black uppercase tracking-widest text-gray-400 flex items-center gap-2">
+                        <i class="fa-solid fa-align-left text-indigo-500"></i>Sinopsis Alur Cerita
+                    </h3>
+                    <p id="content-synopsis-node" class="text-xs md:text-sm text-gray-400 leading-relaxed font-medium">
+                        Memuat narasi synopsis...
+                    </p>
+                    <div id="genres-tag-cloud" class="flex flex-wrap gap-1.5 pt-2">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+
+                <!-- INTERACTIVE DISCUSSION HUB SYSTEM -->
+                <div class="bg-[#0b0f19] border border-gray-900 p-6 rounded-2xl space-y-5">
+                    <div class="flex items-center justify-between border-b border-gray-900 pb-4">
+                        <h3 class="text-sm font-black uppercase tracking-wider text-white flex items-center gap-2">
+                            <i class="fa-solid fa-comments text-purple-500"></i>Kolom Diskusi & Teori (<span id="comment-node-count" class="text-purple-400">0</span>)
+                        </h3>
+                        <span class="text-[10px] text-gray-500 font-medium">Kebijakan: Anti Spoiler & SARA</span>
+                    </div>
+
+                    <!-- Input Forum Node Layout Wrapper -->
+                    <div class="flex gap-4 items-start bg-gray-950/60 p-4 rounded-xl border border-gray-900">
+                        <div id="input-avatar-node" class="w-9 h-9 rounded-xl bg-gray-800 text-gray-400 flex items-center justify-center font-bold text-xs flex-shrink-0 border border-gray-700">
+                            ?
+                        </div>
+                        <div class="flex-1 space-y-3">
+                            <textarea id="forum-comment-field" rows="3" onfocus="verifyAuthenticationGuard()" placeholder="Bagikan opini premium atau teori konspirasi kamu di sini..." class="w-full bg-[#070a13] border border-gray-900 rounded-xl text-xs p-4 text-gray-200 focus:outline-none focus:border-purple-600 transition-colors resize-none placeholder:text-gray-700 font-medium leading-relaxed"></textarea>
+                            <div class="flex justify-between items-center">
+                                <span id="auth-status-reminder-text" class="text-[10px] text-gray-600 font-semibold italic">Kamu belum masuk via Google. Klik kolom teks untuk masuk.</span>
+                                <button onclick="dispatchCommentSubmission()" class="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 hover:opacity-90 text-white text-[11px] px-5 py-2.5 rounded-xl font-black tracking-wider uppercase transition-all shadow-lg shadow-indigo-600/10 cursor-pointer">Kirim Opini</button>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Jalur Kontainer Genre Dinamis -->
-                <div id="content-genres" class="flex flex-wrap gap-2 pt-1">
-                    <!-- Diisi otomatis oleh JS -->
-                </div>
-
-                <hr class="border-gray-800/60">
-
-                <!-- Fitur Aksi: Like, Bookmark, Rate -->
-                <div class="flex flex-wrap gap-4 items-center justify-between pt-1">
-                    <div class="flex items-center gap-3">
-                        <!-- Tombol Like -->
-                        <button onclick="handleLike()" id="action-like" class="flex items-center gap-2 bg-gray-900 hover:bg-gray-800 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all border border-gray-800 group cursor-pointer">
-                            <i class="fa-regular fa-thumbs-up text-gray-400 group-hover:scale-110 transition-transform" id="like-icon"></i> 
-                            <span class="text-gray-300">Suka</span> <span id="like-count" class="text-gray-500 text-xs bg-gray-950 px-2 py-0.5 rounded-md ml-1">0</span>
-                        </button>
-                        <!-- Tombol Bookmark -->
-                        <button onclick="handleBookmark()" id="action-bookmark" class="flex items-center gap-2 bg-gray-900 hover:bg-gray-800 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all border border-gray-800 cursor-pointer">
-                            <i class="fa-regular fa-bookmark text-gray-400" id="bookmark-icon"></i> 
-                            <span id="bookmark-text" class="text-gray-300">Simpan ke Lapak</span>
-                        </button>
-                    </div>
-
-                    <!-- Sistem Interaktif Beri Nilai -->
-                    <div class="flex items-center gap-3 bg-gray-950/40 px-4 py-2 rounded-xl border border-gray-800/40">
-                        <span class="text-xs font-semibold text-gray-400">Beri Nilai Anda:</span>
-                        <div class="flex gap-1 text-gray-600 text-sm" id="star-rating-container">
-                            <!-- Bintang Di-render Dinamis oleh JS agar interaktif -->
-                        </div>
+                    <!-- Stream Comments Nodes Container -->
+                    <div id="forum-comments-stream" class="space-y-3.5 pt-2">
+                        <!-- Rendered by database mapping layer -->
                     </div>
                 </div>
+
             </div>
 
-            <!-- BLOK SINOPSIS -->
-            <div class="glass-card p-6 rounded-2xl shadow-xl">
-                <h3 class="text-base font-bold text-white mb-2.5 flex items-center gap-2">
-                    <span class="w-1.5 h-4 bg-indigo-500 rounded-full"></span>Sinopsis Cerita
-                </h3>
-                <p id="content-synopsis" class="text-sm text-gray-400 leading-relaxed">Memuat sinopsis cerita...</p>
-            </div>
-
-            <!-- PANEL INTERAKTIF DISKUSI / KOMENTAR -->
-            <div class="glass-card p-6 rounded-2xl shadow-xl space-y-5">
-                <h3 class="text-base font-bold text-white flex items-center gap-2">
-                    <span class="w-1.5 h-4 bg-purple-500 rounded-full"></span>Kolom Diskusi (<span id="total-comment-node">0</span>)
-                </h3>
+            <!-- RIGHT MATRIX COLUMNS (SIDEBAR PLAYLIST / DISCOVERY MATRIX) -->
+            <div class="space-y-6">
                 
-                <!-- Formulir Input Utama -->
-                <div class="flex gap-4 items-start bg-gray-950/30 p-4 rounded-xl border border-gray-800/40">
-                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center font-bold text-white shadow-md shadow-indigo-500/10 flex-shrink-0">
-                        U
+                <!-- PLAYLIST MONITOR RADAR (MOST POPULAR CHANNELS ACCORDING TO USER TARGET) -->
+                <div class="bg-[#0b0f19] border border-gray-900 p-5 rounded-2xl space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-xs font-black uppercase tracking-wider text-white flex items-center gap-2">
+                            <i class="fa-solid fa-fire-flame-curved text-amber-500 animate-pulse"></i>Rekomendasi Terpopuler
+                        </h3>
+                        <span class="text-[9px] text-indigo-400 font-bold tracking-wider uppercase">High Tier</span>
                     </div>
-                    <div class="flex-1 space-y-3">
-                        <textarea id="comment-field" rows="2" placeholder="Bagikan opini, teori, atau diskusi kamu tanpa mengandung spoiler..." class="w-full bg-gray-900 border border-gray-800 rounded-xl text-sm p-3.5 text-gray-200 focus:outline-none focus:border-purple-500 transition-colors resize-none placeholder:text-gray-600"></textarea>
-                        <div class="flex justify-end">
-                            <button onclick="submitComment()" class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs px-5 py-2.5 rounded-xl font-bold transition-all shadow-lg shadow-indigo-600/20 cursor-pointer">Kirim Opini</button>
-                        </div>
+                    
+                    <div id="sidebar-popular-engine" class="space-y-2.5">
+                        <!-- POPULATED AUTOMATICALLY -->
                     </div>
                 </div>
 
-                <!-- Wadah List Arus Komentar -->
-                <div class="space-y-3 pt-2" id="comments-flow-container">
-                    <!-- Komentar akan diproduksi oleh JS -->
+                <!-- LAST COMPLETED CHANNELS OR STREAM RELOAD UPDATES -->
+                <div class="bg-[#0b0f19] border border-gray-900 p-5 rounded-2xl space-y-4">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-clock-rotate-left text-emerald-500"></i>
+                        <h3 class="text-xs font-black uppercase tracking-wider text-white">Update Rilis Berkala</h3>
+                    </div>
+
+                    <div id="sidebar-update-engine" class="space-y-3 max-h-[420px] overflow-y-auto custom-scrollbar pr-1">
+                        <!-- POPULATED AUTOMATICALLY -->
+                    </div>
                 </div>
+
             </div>
-        </div>
+        </main>
 
-        <!-- KOLOM SIDEBAR (KANAN): POPULER, UPDATE & PLAYLIST -->
-        <div class="space-y-6">
-            
-            <!-- SIDEBAR BAR: REKOMENDASI TERPOPULER -->
-            <div class="glass-card p-5 rounded-2xl shadow-xl">
-                <h3 class="text-base font-bold text-white mb-4 flex items-center justify-between">
-                    <span class="flex items-center gap-2"><i class="fa-solid fa-fire text-amber-500 animate-bounce"></i>Paling Populer</span>
-                    <span class="text-xs text-indigo-400 cursor-pointer hover:underline font-normal">Rating Tertinggi</span>
-                </h3>
-                <div class="space-y-2.5" id="sidebar-popular-list">
-                    <!-- Di-render otomatis oleh JS -->
-                </div>
-            </div>
+        <!-- FOOTER LUXURY TRADEMARK CONSOLE -->
+        <footer class="bg-[#05070f] border-t border-gray-900/60 mt-20 py-8 text-center space-y-2">
+            <p class="text-[11px] font-bold tracking-widest text-gray-600">
+                © 2026 <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400 font-black">MISTNIME PREMIUM HUB</span>. CODES BUILT TO MAXIMUM SPECIFICATION.
+            </p>
+            <p class="text-[9px] text-gray-700 uppercase tracking-widest font-medium">
+                Engineered with Core Reactivity Architecture • High Definition Sub-Culture Delivery Pipeline
+            </p>
+        </footer>
+    </div>
 
-            <!-- SIDEBAR BAR: UPDATE BERKALA TERBARU -->
-            <div class="glass-card p-5 rounded-2xl shadow-xl">
-                <h3 class="text-base font-bold text-white mb-4 flex items-center gap-2">
-                    <i class="fa-solid fa-rotate text-emerald-500 animate-spin"></i>Update Rilis Terbaru
-                </h3>
-                <div class="space-y-3.5 custom-scrollbar max-h-[380px] overflow-y-auto pr-1" id="sidebar-update-list">
-                    <!-- Di-render otomatis oleh JS -->
-                </div>
-            </div>
 
-        </div>
-    </main>
-
-    <!-- METADATA FOOTER -->
-    <footer class="bg-[#0b0f19] border-t border-gray-900 mt-16 py-8 text-center text-xs text-gray-500">
-        <p class="mb-1">© 2026 <span class="text-gray-400 font-extrabold tracking-widest text-indigo-400">MISTNIME Premium</span>. All Rights Reserved.</p>
-        <p>Engineered with Advanced Core Interactions for High-End Asian Sub-Culture Streams.</p>
-    </footer>
-
-    <!-- CENTRAL FRONT-END ENGINE SCRIPT -->
+    <!-- ADVANCED BACK-END REPLICATED ARCHITECTURE JAVASCRIPT ENGINE -->
     <script>
-        // 1. DATA DATABASE SIMULASI (Mewakili Semua Konten Platform)
-        const contentDatabase = [
+        // =====================================================================================
+        // 1. DATA DATABASE SOURCE LAYER (COMPREHENSIVE EXPANDED SPECIFICATION MATRIX)
+        // =====================================================================================
+        const globalContentDatabase = [
             {
-                id: "item-1",
+                id: "mist-01",
                 title: "Perfect World (Wanmei Shijie)",
                 category: "Donghua",
                 status: "Completed",
-                episodes: "130 Episode",
+                totalEpisodes: 130,
                 studio: "Shanghai Foch Film",
-                rating: 4.92,
-                voters: 1204,
-                likes: 4820,
+                rating: 4.94,
+                votersCount: 4210,
+                likesCount: 18450,
                 genres: ["Action", "Cultivation", "Fantasy", "Martial Arts"],
                 synopsis: "Dilahirkan di dunia yang unik di mana desa-desa saling memperebutkan kekuasaan, Shi Hao adalah anak jenius yang diberkati oleh langit namun dipaksa tumbuh dalam kondisi tragis. Ikuti perjalanannya melintasi silsilah kultivasi kuno untuk mencapai puncak tertinggi kedigdayaan kosmik.",
-                videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+                primaryVideoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+                mirrors: [
+                    { name: "AlphaDrive", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" },
+                    { name: "MegaMirror", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4" }
+                ],
                 isLiked: false,
                 isBookmarked: false,
                 comments: [
-                    { user: "OtakuPurba", time: "2 jam yang lalu", text: "Gila animasi pertarungan eps ini bener-bener level dewa! Ga sia-sia nunggu seminggu." },
-                    { user: "Xianxia_Lover", time: "4 jam yang lalu", text: "Shi hao MC paling dingin dan tegas musim ini, mantap!" }
+                    { user: "RajaKultivasi", isStaff: false, level: 42, time: "3 jam yang lalu", text: "Gila pertarungan di step ranah kedigdayaan ini bener-bener gokil visualnya!" },
+                    { user: "XianxiaBoy", isStaff: false, level: 12, time: "5 jam yang lalu", text: "Shi Hao ga pernah mengecewakan kalau bantai clan musuh wkwk." }
                 ]
             },
             {
-                id: "item-2",
-                title: "Solo Leveling Season 2: Arise",
+                id: "mist-02",
+                title: "Solo Leveling Season 2: Arise from Shadow",
                 category: "Anime",
                 status: "Ongoing",
-                episodes: "04/12 Episode",
+                totalEpisodes: 12,
+                currentReleasedEpisode: 4,
                 studio: "A-1 Pictures",
-                rating: 4.95,
-                voters: 3410,
-                likes: 9240,
+                rating: 4.98,
+                votersCount: 9450,
+                likesCount: 38200,
                 genres: ["Action", "Adventure", "Fantasy", "System"],
                 synopsis: "Setelah sukses mendaki takhta Hunter terkuat di dunia sebagai Shadow Monarch, Sung Jin-Woo kini harus menghadapi ancaman bayangan kosmik dari para Monarch lainnya yang berniat memusnahkan ras manusia bumi.",
-                videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+                primaryVideoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+                mirrors: [
+                    { name: "MainServer", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4" },
+                    { name: "BackupPD", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" }
+                ],
                 isLiked: false,
                 isBookmarked: false,
                 comments: [
-                    { user: "ShadowArmy", time: "10 menit yang lalu", text: "Erect... Gila merinding pas dia manggil bayangannya lagi!" }
+                    { user: "ShadowArmyCore", isStaff: false, level: 88, time: "45 menit yang lalu", text: "Mendengar kata ERECT langsung merinding satu badan cuy!" }
                 ]
             },
             {
-                id: "item-3",
-                title: "One Piece Live Action S2",
+                id: "mist-03",
+                title: "One Piece Live Action Season 2 (Alabasta Saga)",
                 category: "Live Action",
                 status: "Ongoing",
-                episodes: "02/08 Episode",
+                totalEpisodes: 8,
+                currentReleasedEpisode: 2,
                 studio: "Tomorrow Studios / Netflix",
-                rating: 4.85,
-                voters: 980,
-                likes: 3100,
+                rating: 4.88,
+                votersCount: 3100,
+                likesCount: 14200,
                 genres: ["Live Action", "Action", "Adventure", "Comedy"],
                 synopsis: "Memasuki gerbang berbahaya Grand Line, Monkey D. Luffy dan krunya berlayar menuju Alabasta untuk menyelamatkan kerajaan gurun tersebut dari konspirasi organisasi Baroque Works pimpinan Crocodile.",
-                videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+                primaryVideoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+                mirrors: [
+                    { name: "NetflixReplication", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" }
+                ],
                 isLiked: false,
                 isBookmarked: false,
                 comments: [
-                    { user: "NakamaIndo", time: "1 hari yang lalu", text: "Adaptasi live action terbaik sepanjang masa ga berubah kualitasnya di S2!" }
+                    { user: "NakamaSenior", isStaff: false, level: 99, time: "1 hari yang lalu", text: "Casting Chopper ternyata diluar dugaan rapi banget pengerjaannya!" }
                 ]
             },
             {
-                id: "item-4",
+                id: "mist-04",
                 title: "Throne of Seal (Shen Yin Wang Zuo)",
                 category: "Donghua",
                 status: "Ongoing",
-                episodes: "114 Episode",
+                totalEpisodes: 150,
+                currentReleasedEpisode: 114,
                 studio: "Sparkly Key Animation",
-                rating: 4.88,
-                voters: 840,
-                likes: 2150,
+                rating: 4.91,
+                votersCount: 2890,
+                likesCount: 9800,
                 genres: ["Action", "Magic", "Fantasy", "Romance"],
                 synopsis: "Di dunia tempat umat manusia di ambang kepunahan oleh serangan 72 Dewa Iblis, seorang anak muda bernama Long Haochen bergabung dengan Ksatria Kuil Suci untuk melindungi ibunya dan menyelamatkan peradaban manusia.",
-                videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
+                primaryVideoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
+                mirrors: [
+                    { name: "SparklyStream", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4" },
+                    { name: "CDN_Cloud", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" }
+                ],
                 isLiked: false,
                 isBookmarked: false,
                 comments: []
+            },
+            {
+                id: "mist-05",
+                title: "Demon Slayer: Kimetsu no Yaiba - Infinity Castle",
+                category: "Anime",
+                status: "Completed",
+                totalEpisodes: 3,
+                studio: "ufotable",
+                rating: 4.99,
+                votersCount: 15400,
+                likesCount: 62000,
+                genres: ["Action", "Historical", "Shounen", "Supernatural"],
+                synopsis: "Memasuki dimensi tak terbatas Infinity Castle, para Hashira tersisa bersama Tanjiro dan kawan-kawan memulai serangan bunuh diri terakhir melawan Muzan Kibutsuji beserta barisan Upper Moon terkuat.",
+                primaryVideoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+                mirrors: [
+                    { name: "UfoServer", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" }
+                ],
+                isLiked: false,
+                isBookmarked: false,
+                comments: [
+                    { user: "BreathOfVisual", isStaff: false, level: 71, time: "12 jam yang lalu", text: "ufotable flex budget lagi gila arsitektur kastilnya muter-muter 3D sempurna." }
+                ]
             }
         ];
 
-        // Global State Penunjuk Item Aktif
-        let currentActiveId = "item-1";
-        let currentCategoryFilter = "all";
-        let showBookmarksOnly = false;
+        // =====================================================================================
+        // 2. STATE MANAGER GLOBAL SYSTEMS
+        // =====================================================================================
+        let currentLoadedId = "mist-01";
+        let currentSelectedEpisodeIndex = 1;
+        let activeCategoryFilter = "all";
+        let isBookmarkViewActive = false;
+        
+        // Session user configuration authentication state
+        let currentUserSession = null; // can hold { type: 'user', username: 'RiderGamer', level: 14 } or admin types
 
-        // 2. CORE FUNCTIONS
-        window.onload = function() {
-            loadActiveContent(currentActiveId);
-            renderSidebarLists();
-            updateGlobalBookmarkBadge();
-        };
+        // =====================================================================================
+        // 3. LIFECYCLE INITIALIZER ENGINE
+        // =====================================================================================
+        window.addEventListener('DOMContentLoaded', () => {
+            initializePlatform();
+        });
 
-        // Fungsi Memuat/Mengubah Seluruh Konten Layar Utama Berdasarkan ID yang Dipilih
-        function loadActiveContent(id) {
-            currentActiveId = id;
-            const data = contentDatabase.find(item => item.id === id);
-            if (!data) return;
+        function initializePlatform() {
+            renderProfilePanelNode();
+            loadActiveWatchTarget(currentLoadedId);
+            rebuildSidebarLists();
+            syncGlobalBookmarkBadgeCount();
+        }
 
-            // Render Video Player
-            const videoPlayer = document.getElementById('main-video-player');
-            const videoSrc = document.getElementById('video-source');
-            videoSrc.src = data.videoUrl;
-            videoPlayer.load(); // Reload video stream
+        // =====================================================================================
+        // 4. RENDERING & PIPELINE LOADING ENGINES
+        // =====================================================================================
+        function loadActiveWatchTarget(id) {
+            currentLoadedId = id;
+            const content = globalContentDatabase.find(x => x.id === id);
+            if (!content) return;
 
-            // Render Teks & Info
-            document.getElementById('content-badge').innerText = data.category;
-            document.getElementById('content-title').innerText = data.title;
-            document.getElementById('content-meta').innerHTML = `Status: <span class="text-emerald-400 font-semibold">${data.status}</span> • ${data.episodes} • Studio: ${data.studio}`;
-            document.getElementById('rating-score').innerText = data.rating.toFixed(2);
-            document.getElementById('rating-voters').innerText = `(${data.voters.toLocaleString('id-ID')} Suara)`;
-            document.getElementById('content-synopsis').innerText = data.synopsis;
+            // Load Video Source Engine safely
+            const player = document.getElementById('video-core-engine');
+            const source = document.getElementById('video-core-source');
+            source.src = content.primaryVideoUrl;
+            player.load();
 
-            // Render Badges Genre
-            const genreContainer = document.getElementById('content-genres');
-            genreContainer.innerHTML = '';
-            data.genres.forEach(g => {
-                genreContainer.innerHTML += `<span class="bg-indigo-950/60 text-xs px-3 py-1 rounded-lg text-indigo-300 border border-indigo-800/40 hover:border-indigo-500 cursor-pointer transition-colors">${g}</span>`;
+            // Populate Metadata Teks Info Banner Atas
+            document.getElementById('hero-badge').innerText = content.category;
+            document.getElementById('hero-studio').innerText = `Studio: ${content.studio}`;
+            document.getElementById('hero-title').innerText = content.title;
+            
+            const countDisplay = content.status === "Ongoing" ? `${content.currentReleasedEpisode}/${content.totalEpisodes} Episode` : `${content.totalEpisodes} Episode Lengkap`;
+            document.getElementById('hero-meta').innerHTML = `Status Rilis: <span class="text-emerald-400 font-bold">${content.status}</span> • Tersedia: ${countDisplay}`;
+            document.getElementById('hero-rating').innerText = content.rating.toFixed(2);
+            document.getElementById('hero-voters').innerText = `(${content.votersCount.toLocaleString('id-ID')} Suara)`;
+
+            // Populate Synopsis & Tags
+            document.getElementById('content-synopsis-node').innerText = content.synopsis;
+            const tagCloud = document.getElementById('genres-tag-cloud');
+            tagCloud.innerHTML = '';
+            content.genres.forEach(genre => {
+                tagCloud.innerHTML += `
+                    <span class="bg-gray-950 text-gray-400 hover:text-white hover:border-indigo-500 border border-gray-900 px-3 py-1.5 rounded-xl text-[11px] font-semibold cursor-pointer transition-all">
+                        ${genre}
+                    </span>
+                `;
             });
 
-            // Sinkronisasi Kondisi Suka/Like Button
+            // Rebuild Server Mirror Buttons
+            const serverContainer = document.getElementById('server-mirror-container');
+            serverContainer.innerHTML = '';
+            content.mirrors.forEach((mirror, idx) => {
+                const activeStyle = idx === 0 ? 'bg-indigo-600/20 text-indigo-400 border-indigo-500/50' : 'bg-[#070a13] text-gray-400 border-gray-900';
+                serverContainer.innerHTML += `
+                    <button onclick="switchVideoMirrorSource('${mirror.url}', this)" class="px-2 py-1.5 border ${activeStyle} rounded-lg text-[10px] font-bold transition-all truncate cursor-pointer hover:border-indigo-500">
+                        <i class="fa-solid fa-server mr-1 text-[9px]"></i> ${mirror.name}
+                    </button>
+                `;
+            });
+
+            // Sync Interactive States Buttons (Like & Bookmark)
+            syncInteractiveActionButtons(content);
+
+            // Rebuild Dynamic Bulk Episode Navigation Grid Array
+            rebuildEpisodesGridNavigator(content);
+
+            // Render Stars Elements Widget Row
+            rebuildStarRatingWidgetRow();
+
+            // Render Forum Comments Channel Feed Stream
+            rebuildCommentsFeedStream(content);
+        }
+
+        // Action switch video source inside local server selector mirror matrix
+        function switchVideoMirrorSource(url, elementBtn) {
+            const player = document.getElementById('video-core-engine');
+            const source = document.getElementById('video-core-source');
+            source.src = url;
+            player.load();
+            player.play().catch(() => {});
+
+            // Toggle Class view active element siblings
+            const buttons = elementBtn.parentNode.children;
+            for(let btn of buttons) {
+                btn.className = "px-2 py-1.5 border bg-[#070a13] text-gray-400 border-gray-900 rounded-lg text-[10px] font-bold transition-all truncate cursor-pointer hover:border-indigo-500";
+            }
+            elementBtn.className = "px-2 py-1.5 border bg-indigo-600/20 text-indigo-400 border-indigo-500/50 rounded-lg text-[10px] font-bold transition-all truncate cursor-pointer";
+            triggerToastSystem("fa-solid fa-circle-check", "Berhasil beralih saluran cermin server premium.");
+        }
+
+        // Rebuild Bulk navigation buttons layout matrix grid
+        function rebuildEpisodesGridNavigator(content) {
+            const grid = document.getElementById('episodes-navigation-grid');
+            grid.innerHTML = '';
+            const loopMax = content.status === "Ongoing" ? content.currentReleasedEpisode : content.totalEpisodes;
+
+            for(let i = 1; i <= loopMax; i++) {
+                const isActiveEp = i === currentSelectedEpisodeIndex;
+                const stateStyle = isActiveEp 
+                    ? 'bg-gradient-to-tr from-indigo-600 to-purple-600 text-white border-transparent font-black shadow-lg shadow-indigo-500/20 scale-105' 
+                    : 'bg-gray-950 text-gray-400 border-gray-900 hover:border-gray-700 hover:text-white font-medium';
+
+                grid.innerHTML += `
+                    <button onclick="selectTargetEpisodeNode(${i})" class="aspect-square flex items-center justify-center p-2 border rounded-xl text-xs transition-all cursor-pointer ${stateStyle}">
+                        ${i < 10 ? '0' + i : i}
+                    </button>
+                `;
+            }
+
+            // Sync state standard navigation buttons footer controls inline layout
+            document.getElementById('prev-ep-btn').disabled = (currentSelectedEpisodeIndex <= 1);
+            document.getElementById('next-ep-btn').disabled = (currentSelectedEpisodeIndex >= loopMax);
+        }
+
+        function selectTargetEpisodeNode(episodeNum) {
+            currentSelectedEpisodeIndex = episodeNum;
+            const content = globalContentDatabase.find(x => x.id === currentLoadedId);
+            rebuildEpisodesGridNavigator(content);
+            triggerToastSystem("fa-solid fa-tv", `Beralih menonton Episode ${episodeNum}`);
+            
+            // Re-trigger load video asset replication
+            const player = document.getElementById('video-core-engine');
+            player.currentTime = 0;
+            player.play().catch(() => {});
+        }
+
+        function navigateEpisodeOffset(direction) {
+            const content = globalContentDatabase.find(x => x.id === currentLoadedId);
+            const max = content.status === "Ongoing" ? content.currentReleasedEpisode : content.totalEpisodes;
+            let target = currentSelectedEpisodeIndex + direction;
+            if(target >= 1 && target <= max) {
+                selectTargetEpisodeNode(target);
+            }
+        }
+
+        // Sync visual appearance items button liking & items bookmarks inside screen viewport
+        function syncInteractiveActionButtons(content) {
             const likeIcon = document.getElementById('like-icon');
-            const btnLike = document.getElementById('action-like');
-            document.getElementById('like-count').innerText = data.likes >= 1000 ? (data.likes / 1000).toFixed(1) + "K" : data.likes;
-            if (data.isLiked) {
-                likeIcon.className = "fa-solid fa-thumbs-up text-indigo-400";
-                btnLike.className = "flex items-center gap-2 bg-indigo-950/40 hover:bg-indigo-900/30 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all border border-indigo-500/50 group cursor-pointer";
+            const likeCounter = document.getElementById('like-counter');
+            const btnLike = document.getElementById('btn-like-action');
+            
+            likeCounter.innerText = content.likesCount >= 1000 ? (content.likesCount / 1000).toFixed(1) + "K" : content.likesCount;
+            
+            if(content.isLiked) {
+                likeIcon.className = "fa-solid fa-thumbs-up text-indigo-400 scale-110";
+                btnLike.className = "flex-1 sm:flex-none flex items-center justify-center gap-2.5 bg-indigo-950/40 px-5 py-3 rounded-xl text-xs font-bold transition-all border border-indigo-500/50 cursor-pointer";
             } else {
                 likeIcon.className = "fa-regular fa-thumbs-up text-gray-400";
-                btnLike.className = "flex items-center gap-2 bg-gray-900 hover:bg-gray-800 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all border border-gray-800 group cursor-pointer";
+                btnLike.className = "flex-1 sm:flex-none flex items-center justify-center gap-2.5 bg-gray-950 hover:bg-gray-900 px-5 py-3 rounded-xl text-xs font-bold transition-all border border-gray-800 cursor-pointer group";
             }
 
-            // Sinkronisasi Kondisi Bookmark Button
             const bookmarkIcon = document.getElementById('bookmark-icon');
             const bookmarkText = document.getElementById('bookmark-text');
-            if (data.isBookmarked) {
-                bookmarkIcon.className = "fa-solid fa-bookmark text-pink-500";
+            const btnBookmark = document.getElementById('btn-bookmark-action');
+
+            if(content.isBookmarked) {
+                bookmarkIcon.className = "fa-solid fa-bookmark text-pink-500 scale-110";
                 bookmarkText.innerText = "Tersimpan di Lapak";
+                btnBookmark.className = "flex-1 sm:flex-none flex items-center justify-center gap-2.5 bg-pink-950/20 px-5 py-3 rounded-xl text-xs font-bold transition-all border border-pink-500/40 cursor-pointer";
             } else {
                 bookmarkIcon.className = "fa-regular fa-bookmark text-gray-400";
-                bookmarkText.innerText = "Simpan ke Lapak";
-            }
-
-            // Render Interaktivitas Bintang Pemberian Rating
-            renderStarRatingWidgets();
-
-            // Render Arus Komentar Terkait
-            renderComments();
-        }
-
-        // Fungsi Menangani Toggle Like
-        function handleLike() {
-            const data = contentDatabase.find(item => item.id === currentActiveId);
-            if (!data) return;
-
-            data.isLiked = !data.isLiked;
-            data.likes += data.isLiked ? 1 : -1;
-            loadActiveContent(currentActiveId);
-        }
-
-        // Fungsi Menangani Toggle Bookmark
-        function handleBookmark() {
-            const data = contentDatabase.find(item => item.id === currentActiveId);
-            if (!data) return;
-
-            data.isBookmarked = !data.isBookmarked;
-            updateGlobalBookmarkBadge();
-            loadActiveContent(currentActiveId);
-            
-            if (showBookmarksOnly) {
-                renderSidebarLists();
+                bookmarkText.innerText = "Simpan Ke Lapak";
+                btnBookmark.className = "flex-1 sm:flex-none flex items-center justify-center gap-2.5 bg-gray-950 hover:bg-gray-900 px-5 py-3 rounded-xl text-xs font-bold transition-all border border-gray-800 cursor-pointer group";
             }
         }
 
-        // Fungsi Update Monitor Jumlah Bookmark Global atas Navigasi
-        function updateGlobalBookmarkBadge() {
-            const count = contentDatabase.filter(item => item.isBookmarked).length;
-            document.getElementById('global-bookmark-count').innerText = count;
-        }
-
-        // Fungsi Membuat Sistem Widget Bintang yang Bisa Di-hover dan Diklik
-        function renderStarRatingWidgets() {
-            const container = document.getElementById('star-rating-container');
+        // =====================================================================================
+        // 5. STAR RATINGS RE-CALCULATOR ENGINE IMPLEMENTATION
+        // =====================================================================================
+        function rebuildStarRatingWidgetRow() {
+            const container = document.getElementById('star-interactive-row');
             container.innerHTML = '';
             for(let i = 1; i <= 5; i++) {
                 container.innerHTML += `
-                    <i class="fa-solid fa-star cursor-pointer transition-colors hover:text-amber-400" 
-                       onmouseover="highlightStars(${i})" 
-                       onmouseout="resetStars()" 
-                       onclick="submitUserRating(${i})"></i>
+                    <i class="fa-solid fa-star cursor-pointer transition-all text-gray-800 hover:scale-125"
+                       onmouseover="glowStarWidgetRowHover(${i})"
+                       onmouseout="resetStarWidgetRowGlow()"
+                       onclick="submitUserStarRatingAction(${i})"></i>
                 `;
             }
         }
 
-        function highlightStars(index) {
-            const stars = document.getElementById('star-rating-container').children;
-            for(let i = 0; i < stars.length; i++) {
-                stars[i].classList.toggle('text-amber-400', i < index);
-                stars[i].classList.toggle('text-gray-600', i >= index);
+        function glowStarWidgetRowHover(index) {
+            const children = document.getElementById('star-interactive-row').children;
+            for(let i = 0; i < children.length; i++) {
+                if(i < index) {
+                    children[i].className = "fa-solid fa-star cursor-pointer transition-all text-amber-400 scale-110";
+                } else {
+                    children[i].className = "fa-solid fa-star cursor-pointer transition-all text-gray-800";
+                }
             }
         }
 
-        function resetStars() {
-            const stars = document.getElementById('star-rating-container').children;
-            for(let i = 0; i < stars.length; i++) {
-                stars[i].className = "fa-solid fa-star cursor-pointer transition-colors text-gray-600";
+        function resetStarWidgetRowGlow() {
+            const children = document.getElementById('star-interactive-row').children;
+            for(let i = 0; i < children.length; i++) {
+                children[i].className = "fa-solid fa-star cursor-pointer transition-all text-gray-800";
             }
         }
 
-        function submitUserRating(score) {
-            const data = contentDatabase.find(item => item.id === currentActiveId);
-            if (!data) return;
+        function submitUserStarRatingAction(starsCount) {
+            if(!verifyAuthenticationGuard()) return;
 
-            // Rumus perhitungan kalkulasi rata-rata rating baru
-            const currentTotalScore = data.rating * data.voters;
-            data.voters += 1;
-            data.rating = (currentTotalScore + (score * 2)) / data.voters; // Skor bintang dikali 2 untuk menyamakan skala maks 10
+            const content = globalContentDatabase.find(x => x.id === currentLoadedId);
+            if(!content) return;
 
-            alert(`Terima kasih! Penilaian ${score * 2} poin berhasil dikirim.`);
-            loadActiveContent(currentActiveId);
-            renderSidebarLists();
+            // Convert raw scores base multiplier 2 to map 10 base parameters scale rating
+            const totalScoreBefore = content.rating * content.votersCount;
+            content.votersCount += 1;
+            content.rating = (totalScoreBefore + (starsCount * 2)) / content.votersCount;
+
+            triggerToastSystem("fa-solid fa-star-exclamation", `Terima kasih! Kamu memberikan rating skor ${starsCount * 2}.0`);
+            loadActiveWatchTarget(currentLoadedId);
+            rebuildSidebarLists();
         }
 
-        // Fungsi Mengolah List Sidebar (Terpopuler & Update Terbaru)
-        function renderSidebarLists() {
-            const popularContainer = document.getElementById('sidebar-popular-list');
-            const updateContainer = document.getElementById('sidebar-update-list');
+        // =====================================================================================
+        // 6. INTERACTIVE DISCUSSION DISCUSSION WORKSPACE ENGINE
+        // =====================================================================================
+        function rebuildCommentsFeedStream(content) {
+            const container = document.getElementById('forum-comments-stream');
+            const totalCountNode = document.getElementById('comment-node-count');
+            
+            totalCountNode.innerText = content.comments.length;
+            container.innerHTML = '';
+
+            if(content.comments.length === 0) {
+                container.innerHTML = `
+                    <div class="py-8 text-center text-gray-600 text-xs italic font-medium">
+                        Belum ada opini teoritis tersemat. Jadilah yang pertama membuka alur diskusi!
+                    </div>
+                `;
+                return;
+            }
+
+            content.comments.forEach(comment => {
+                let badgeNodeHTML = '';
+                let borderProfileColor = 'border-gray-800';
+                let bgAvatarColor = 'bg-gray-900 text-gray-300';
+                
+                // If comment structures belong to standard user or specific system admin node parameters
+                if(comment.isStaff) {
+                    badgeNodeHTML = `
+                        <span class="bg-gradient-to-r from-red-600 via-purple-600 to-indigo-600 text-white text-[8px] font-black tracking-widest px-2 py-0.5 rounded-md uppercase ml-1 border border-red-400/30 shadow-md">
+                            ADMIN MISTNIME LV ${comment.level}
+                        </span>
+                    `;
+                    borderProfileColor = 'border-purple-500/50 bg-[#0f0e1c]';
+                    bgAvatarColor = 'bg-gradient-to-tr from-purple-600 to-indigo-600 text-white';
+                } else {
+                    badgeNodeHTML = `
+                        <span class="bg-gray-800 text-gray-400 text-[8px] font-bold px-1.5 py-0.5 rounded ml-1">
+                            LV ${comment.level}
+                        </span>
+                    `;
+                }
+
+                container.innerHTML += `
+                    <div class="flex gap-3.5 p-4 rounded-xl border ${borderProfileColor} animate-fade-in text-xs leading-relaxed">
+                        <div class="w-8 h-8 rounded-lg ${bgAvatarColor} flex items-center justify-center font-black flex-shrink-0 shadow-inner">
+                            ${comment.user.charAt(0).toUpperCase()}
+                        </div>
+                        <div class="space-y-1 w-full">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="font-bold text-gray-200">${comment.user}</span>
+                                ${badgeNodeHTML}
+                                <span class="text-[10px] text-gray-600 font-medium ml-auto">${comment.time}</span>
+                            </div>
+                            <p class="text-gray-400 font-medium text-xs pt-0.5">${sanitizeInputXSS(comment.text)}</p>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function dispatchCommentSubmission() {
+            if(!verifyAuthenticationGuard()) return;
+
+            const textField = document.getElementById('forum-comment-field');
+            const cleanText = textField.value.trim();
+            if(cleanText === "") {
+                triggerToastSystem("fa-solid fa-triangle-exclamation", "Kolom opini tidak boleh kosong!");
+                return;
+            }
+
+            const content = globalContentDatabase.find(x => x.id === currentLoadedId);
+            if(!content) return;
+
+            // Push item dynamically to first queue row index array parameters
+            content.comments.unshift({
+                user: currentUserSession.username,
+                isStaff: currentUserSession.type === 'admin',
+                level: currentUserSession.level,
+                time: "Baru saja",
+                text: cleanText
+            });
+
+            textField.value = '';
+            triggerToastSystem("fa-solid fa-badge-check", "Opini kamu berhasil diterbitkan ke publik!");
+            rebuildCommentsFeedStream(content);
+        }
+
+        // =====================================================================================
+        // 7. SIDEBAR DATABASES MATRIX PROCESSING PIPELINES
+        // =====================================================================================
+        function rebuildSidebarLists() {
+            const popularContainer = document.getElementById('sidebar-popular-engine');
+            const updateContainer = document.getElementById('sidebar-update-engine');
 
             popularContainer.innerHTML = '';
             updateContainer.innerHTML = '';
 
-            // Saring Data Berdasarkan Kategori Navigasi / Bookmark View aktif
-            let filteredData = contentDatabase;
-            if (currentCategoryFilter !== 'all') {
-                filteredData = filteredData.filter(item => item.category === currentCategoryFilter);
+            // Filtering process matrix datasets
+            let localFilteredSet = [...globalContentDatabase];
+            if(activeCategoryFilter !== 'all') {
+                localFilteredSet = localFilteredSet.filter(x => x.category === activeCategoryFilter);
             }
-            if (showBookmarksOnly) {
-                filteredData = filteredData.filter(item => item.isBookmarked);
+            if(isBookmarkViewActive) {
+                localFilteredSet = localFilteredSet.filter(x => x.isBookmarked);
             }
 
-            // A. Urutkan Berdasarkan Rating Tertinggi (Untuk List Populer)
-            const sortedByRating = [...filteredData].sort((a, b) => b.rating - a.rating);
-            
-            if (sortedByRating.length === 0) {
-                popularContainer.innerHTML = `<p class="text-xs text-gray-600 italic py-4 text-center">Tidak ada konten ditemukan</p>`;
+            // A. Compute Highest Popularity Ratings Node
+            const sortedByRating = [...localFilteredSet].sort((a,b) => b.rating - a.rating);
+            if(sortedByRating.length === 0) {
+                popularContainer.innerHTML = `<div class="text-center text-gray-600 text-[11px] py-4 italic font-medium">Data muat kosong</div>`;
             }
 
             sortedByRating.forEach((item, index) => {
-                const borderActive = item.id === currentActiveId ? 'border-indigo-500/60 bg-indigo-950/20' : 'border-transparent hover:border-gray-800/80';
-                const rankColor = index === 0 ? 'text-amber-500' : index === 1 ? 'text-purple-400' : 'text-indigo-400';
-                
+                const isSelected = item.id === currentLoadedId;
+                const borderHighlight = isSelected ? 'neon-border-active bg-indigo-950/20' : 'border-transparent bg-gray-950/40 hover:border-gray-900';
+                const medalColor = index === 0 ? 'text-amber-400' : index === 1 ? 'text-purple-400' : 'text-indigo-400';
+
                 popularContainer.innerHTML += `
-                    <div onclick="loadActiveContent('${item.id}')" class="flex items-center gap-3 p-2 bg-gray-900/30 rounded-xl cursor-pointer transition-all border ${borderActive}">
-                        <span class="text-lg font-black ${rankColor} w-6 text-center">${index + 1}</span>
+                    <div onclick="switchMainContentTarget('${item.id}')" class="flex items-center gap-3 p-2.5 border rounded-xl cursor-pointer transition-all ${borderHighlight}">
+                        <span class="text-base font-black ${medalColor} w-6 text-center">${index + 1}</span>
                         <div class="flex-1 min-w-0">
-                            <h4 class="text-xs font-bold text-gray-200 truncate group-hover:text-indigo-400">${item.title}</h4>
-                            <p class="text-[10px] text-gray-500 mt-0.5">${item.category} • ${item.episodes}</p>
-                            <div class="flex items-center gap-1 text-[10px] text-amber-400 font-bold mt-0.5">
+                            <h4 class="text-xs font-bold text-gray-200 truncate hover:text-indigo-400 transition-colors">${item.title}</h4>
+                            <p class="text-[10px] text-gray-500 font-semibold mt-0.5">${item.category} • ${item.totalEpisodes} Ep</p>
+                            <div class="flex items-center gap-1 text-[10px] text-amber-500 font-bold mt-0.5">
                                 <i class="fa-solid fa-star text-[9px]"></i> ${item.rating.toFixed(2)}
                             </div>
                         </div>
@@ -453,149 +788,265 @@
                 `;
             });
 
-            // B. List Update Terbaru
-            if (filteredData.length === 0) {
-                updateContainer.innerHTML = `<p class="text-xs text-gray-600 italic py-4 text-center">Tidak ada konten ditemukan</p>`;
+            // B. Compute Release Update Modules Stream Line
+            if(localFilteredSet.length === 0) {
+                updateContainer.innerHTML = `<div class="text-center text-gray-600 text-[11px] py-4 italic font-medium">Data muat kosong</div>`;
             }
 
-            filteredData.forEach(item => {
-                const badgeColor = item.category === 'Anime' ? 'bg-blue-950/50 text-blue-400 border-blue-800/40' : item.category === 'Donghua' ? 'bg-purple-950/50 text-purple-400 border-purple-800/40' : 'bg-pink-950/50 text-pink-400 border-pink-800/40';
+            localFilteredSet.forEach(item => {
+                let badgeCategoryColor = 'bg-blue-950/60 text-blue-400 border-blue-900/60';
+                if(item.category === 'Donghua') badgeCategoryColor = 'bg-purple-950/60 text-purple-400 border-purple-900/60';
+                if(item.category === 'Live Action') badgeCategoryColor = 'bg-pink-950/60 text-pink-400 border-pink-900/60';
+
+                const epDisplay = item.status === "Ongoing" ? `Episode ${item.currentReleasedEpisode}` : 'Completed Batch';
+
                 updateContainer.innerHTML += `
-                    <div onclick="loadActiveContent('${item.id}')" class="flex gap-3 items-center border-b border-gray-900/80 pb-2.5 last:border-0 last:pb-0 cursor-pointer group">
-                        <div class="${badgeColor} text-[9px] uppercase font-black px-2 py-0.5 rounded border tracking-wider flex-shrink-0 w-18 text-center">${item.category}</div>
+                    <div onclick="switchMainContentTarget('${item.id}')" class="flex gap-3 items-center border-b border-gray-900/40 pb-2.5 last:border-0 last:pb-0 cursor-pointer group">
+                        <div class="border ${badgeCategoryColor} text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded w-20 text-center flex-shrink-0">
+                            ${item.category}
+                        </div>
                         <div class="flex-1 min-w-0">
-                            <span class="text-xs font-semibold text-gray-300 group-hover:text-indigo-400 transition-colors block truncate">${item.title}</span>
-                            <span class="text-[10px] text-gray-500 block mt-0.5">Baru Saja Di-update • ${item.episodes}</span>
+                            <span class="text-xs font-bold text-gray-300 group-hover:text-indigo-400 transition-colors block truncate">${item.title}</span>
+                            <span class="text-[10px] text-gray-500 font-medium block mt-0.5">Rilis Teranyar • <span class="text-gray-400 font-semibold">${epDisplay}</span></span>
                         </div>
                     </div>
                 `;
             });
         }
 
-        // Fungsi Memproses Kiriman Komentar Baru
-        function submitComment() {
-            const inputField = document.getElementById('comment-field');
-            const data = contentDatabase.find(item => item.id === currentActiveId);
-            
-            if (!data || inputField.value.trim() === "") {
-                alert("Kotak komentar masih kosong!");
-                return;
-            }
-
-            // Menyisipkan data komentar baru di baris teratas
-            data.comments.unshift({
-                user: "Kamu (User)",
-                time: "Baru saja",
-                text: inputField.value.trim()
-            });
-
-            inputField.value = "";
-            renderComments();
+        function switchMainContentTarget(id) {
+            currentSelectedEpisodeIndex = 1; // Reset parameters index safely
+            loadActiveWatchTarget(id);
+            rebuildSidebarLists();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // Fungsi Merender Daftar Komentar yang Sesuai dengan Konten Aktif
-        function renderComments() {
-            const data = contentDatabase.find(item => item.id === currentActiveId);
-            const container = document.getElementById('comments-flow-container');
-            const totalNode = document.getElementById('total-comment-node');
+        // =====================================================================================
+        // 8. FILTERS MANAGEMENT & INTERACTIVE SEARCH ACTIONS
+        // =====================================================================================
+        function setCategoryFilter(category) {
+            isBookmarkViewActive = false;
+            activeCategoryFilter = category;
 
-            if (!data) return;
-            totalNode.innerText = data.comments.length;
-            container.innerHTML = '';
-
-            if (data.comments.length === 0) {
-                container.innerHTML = `<p class="text-xs text-gray-600 italic py-6 text-center">Belum ada diskusi, jadilah yang pertama berkomentar!</p>`;
-                return;
-            }
-
-            data.comments.forEach(c => {
-                const isUser = c.user === "Kamu (User)" ? "bg-indigo-600" : "bg-gray-800";
-                container.innerHTML += `
-                    <div class="flex gap-3 text-xs p-3.5 bg-gray-950/40 rounded-xl border border-gray-900/60 animate-fade-in">
-                        <div class="w-8 h-8 rounded-lg ${isUser} flex items-center justify-center font-bold text-white shadow-inner flex-shrink-0">
-                            ${c.user.charAt(0).toUpperCase()}
-                        </div>
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <span class="font-bold text-gray-200">${c.user}</span>
-                                <span class="text-[10px] text-gray-600">${c.time}</span>
-                            </div>
-                            <p class="text-gray-400 mt-1 leading-relaxed">${escapeHTML(c.text)}</p>
-                        </div>
-                    </div>
-                `;
-            });
-        }
-
-        // Filter Berdasarkan Kategori Atas
-        function filterCategory(category) {
-            showBookmarksOnly = false;
-            currentCategoryFilter = category;
-            
-            // Atur Visual Style Tombol Aktif
-            const buttons = ['all', 'Anime', 'Donghua', 'Live Action'];
-            buttons.forEach(b => {
-                const id = b === 'Live Action' ? 'LiveAction' : b;
-                const el = document.getElementById(`nav-${id}`);
-                if (b === category) {
-                    el.className = "px-4 py-1.5 rounded-full transition-all text-white bg-indigo-600";
+            // Reset design structural view navigation active indicators
+            const categories = ['all', 'Anime', 'Donghua', 'LiveAction'];
+            categories.forEach(cat => {
+                const idString = cat === 'Live Action' ? 'LiveAction' : cat;
+                const node = document.getElementById(`tab-${idString}`);
+                if(cat === category) {
+                    node.className = "text-xs font-bold px-4 py-2 rounded-lg transition-all text-white bg-indigo-600 cursor-pointer whitespace-nowrap";
                 } else {
-                    el.className = "px-4 py-1.5 rounded-full transition-all hover:text-white";
+                    node.className = "text-xs font-bold px-4 py-2 rounded-lg transition-all text-gray-400 hover:text-white cursor-pointer whitespace-nowrap";
                 }
             });
-            document.getElementById('btn-view-bookmark').classList.remove('text-pink-500', 'border-pink-500/50');
 
-            renderSidebarLists();
+            document.getElementById('navbar-bookmark-btn').classList.remove('text-pink-500', 'border-pink-500/50', 'bg-pink-950/10');
+            rebuildSidebarLists();
         }
 
-        // Toggle Melihat Daftar Konten yang Dibookmark Saja
-        function toggleBookmarkView() {
-            showBookmarksOnly = !showBookmarksOnly;
-            const btn = document.getElementById('btn-view-bookmark');
-            
-            if (showBookmarksOnly) {
-                btn.classList.add('text-pink-500', 'border-pink-500/50');
-                // Nonaktifkan semua button nav
-                ['all', 'Anime', 'Donghua', 'LiveAction'].forEach(id => {
-                    document.getElementById(`nav-${id}`).className = "px-4 py-1.5 rounded-full transition-all hover:text-white";
+        function toggleBookmarkFilter() {
+            isBookmarkViewActive = !isBookmarkViewActive;
+            const btn = document.getElementById('navbar-bookmark-btn');
+
+            if(isBookmarkViewActive) {
+                btn.classList.add('text-pink-500', 'border-pink-500/50', 'bg-pink-950/10');
+                // Remove highlight classes inside tab controls
+                ['all', 'Anime', 'Donghua', 'LiveAction'].forEach(x => {
+                    document.getElementById(`tab-${x}`).className = "text-xs font-bold px-4 py-2 rounded-lg transition-all text-gray-400 hover:text-white cursor-pointer whitespace-nowrap";
                 });
             } else {
-                filterCategory('all');
+                setCategoryFilter('all');
             }
-            renderSidebarLists();
+            rebuildSidebarLists();
         }
 
-        // Live Real-Time Search Function
-        function searchContent() {
-            const query = document.getElementById('search-input').value.toLowerCase();
-            const filtered = contentDatabase.filter(item => item.title.toLowerCase().includes(query));
+        function executeSearch() {
+            const inputVal = document.getElementById('live-search').value.toLowerCase();
+            const filtered = globalContentDatabase.filter(x => x.title.toLowerCase().includes(inputVal));
             
-            // Memaksa sidebar memuat hasil pencarian secara dinamis
-            const popularContainer = document.getElementById('sidebar-popular-list');
+            const popularContainer = document.getElementById('sidebar-popular-engine');
             popularContainer.innerHTML = '';
-            
+
             if(filtered.length === 0) {
-                popularContainer.innerHTML = `<p class="text-xs text-gray-600 italic py-4 text-center">Judul tidak ditemukan</p>`;
+                popularContainer.innerHTML = `<div class="text-center text-gray-600 text-[11px] py-6 italic font-medium">Judul premium tidak ditemukan</div>`;
                 return;
             }
 
-            filtered.forEach((item, index) => {
-                const borderActive = item.id === currentActiveId ? 'border-indigo-500/60 bg-indigo-950/20' : 'border-transparent hover:border-gray-800/80';
+            filtered.forEach(item => {
+                const isSelected = item.id === currentLoadedId;
+                const borderHighlight = isSelected ? 'neon-border-active bg-indigo-950/20' : 'border-transparent bg-gray-950/40 hover:border-gray-900';
+
                 popularContainer.innerHTML += `
-                    <div onclick="loadActiveContent('${item.id}')" class="flex items-center gap-3 p-2 bg-gray-900/30 rounded-xl cursor-pointer transition-all border ${borderActive}">
-                        <span class="text-sm font-black text-indigo-400 w-6 text-center"><i class="fa-solid fa-magnifying-glass text-xs"></i></span>
+                    <div onclick="switchMainContentTarget('${item.id}')" class="flex items-center gap-3 p-2.5 border rounded-xl cursor-pointer transition-all ${borderHighlight}">
+                        <div class="w-6 h-6 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-[10px]">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </div>
                         <div class="flex-1 min-w-0">
                             <h4 class="text-xs font-bold text-gray-200 truncate">${item.title}</h4>
-                            <p class="text-[10px] text-gray-500 mt-0.5">${item.category} • ${item.episodes}</p>
+                            <p class="text-[10px] text-gray-500 font-semibold mt-0.5">${item.category} • ${item.totalEpisodes} Ep</p>
                         </div>
                     </div>
                 `;
             });
         }
 
-        // Pengaman input dari injeksi skrip berbahaya (Anti-XSS)
-        function escapeHTML(str) {
-            return str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
+        // =====================================================================================
+        // 9. SECURITY AUTHENTICATION SIMULATOR & INTERACTION HANDLING CONSOLE
+        // =====================================================================================
+        function renderProfilePanelNode() {
+            const container = document.getElementById('profile-node-container');
+            const avatarInput = document.getElementById('input-avatar-node');
+            const reminderText = document.getElementById('auth-status-reminder-text');
+
+            if(!currentUserSession) {
+                container.innerHTML = `
+                    <button onclick="toggleAuthModal(true)" class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition-all shadow-lg shadow-indigo-600/10 hover:opacity-90 cursor-pointer whitespace-nowrap">
+                        <i class="fa-solid fa-right-to-bracket mr-1.5"></i> Google Login
+                    </button>
+                `;
+                avatarInput.innerText = "?";
+                avatarInput.className = "w-9 h-9 rounded-xl bg-gray-800 text-gray-400 flex items-center justify-center font-bold text-xs flex-shrink-0 border border-gray-700";
+                reminderText.innerText = "Kamu belum masuk via Google. Klik kolom teks untuk masuk.";
+                reminderText.className = "text-[10px] text-gray-600 font-semibold italic";
+            } else {
+                const isAdm = currentUserSession.type === 'admin';
+                const badgeColor = isAdm ? 'from-purple-600 to-pink-500 border-purple-400/40' : 'from-gray-800 to-gray-700 border-gray-600';
+                
+                container.innerHTML = `
+                    <div class="flex items-center gap-2.5 bg-gray-950 p-1.5 pr-3.5 rounded-xl border border-gray-900">
+                        <div class="w-8 h-8 rounded-lg bg-gradient-to-tr ${badgeColor} text-white flex items-center justify-center font-black text-xs shadow-md border">
+                            ${currentUserSession.username.charAt(0).toUpperCase()}
+                        </div>
+                        <div class="leading-none">
+                            <span class="text-xs font-black block text-gray-200">${currentUserSession.username}</span>
+                            <span class="text-[9px] text-indigo-400 font-bold block mt-0.5 uppercase tracking-wider">LV ${currentUserSession.level}</span>
+                        </div>
+                        <button onclick="logoutSessionAction()" class="ml-2 text-gray-600 hover:text-red-400 transition-colors cursor-pointer text-xs" title="Keluar Akun">
+                            <i class="fa-solid fa-power-off"></i>
+                        </button>
+                    </div>
+                `;
+
+                avatarInput.innerText = currentUserSession.username.charAt(0).toUpperCase();
+                avatarInput.className = `w-9 h-9 rounded-xl bg-gradient-to-tr ${badgeColor} text-white flex items-center justify-center font-black text-xs flex-shrink-0 border`;
+                
+                if(isAdm) {
+                    reminderText.innerText = `Mode Admin Aktif: Bertindak sebagai ${currentUserSession.username}`;
+                    reminderText.className = "text-[10px] text-purple-400 font-black uppercase tracking-wider animate-pulse";
+                } else {
+                    reminderText.innerText = `Terhubung sebagai ${currentUserSession.username}. Sesi aman.`;
+                    reminderText.className = "text-[10px] text-emerald-400 font-semibold";
+                }
+            }
+        }
+
+        function toggleAuthModal(show) {
+            const modal = document.getElementById('auth-modal');
+            if(show) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            } else {
+                modal.classList.remove('flex');
+                modal.classList.add('hidden');
+            }
+        }
+
+        function loginSimulation(type) {
+            if(type === 'admin') {
+                currentUserSession = {
+                    type: 'admin',
+                    username: 'admin mistnime',
+                    level: 9999999999
+                };
+                triggerToastSystem("fa-solid fa-user-crown", "Berhasil masuk sebagai Administrator Berwenang Luhur!");
+            } else {
+                currentUserSession = {
+                    type: 'user',
+                    username: 'OtakuPremium_42',
+                    level: 14
+                };
+                triggerToastSystem("fa-solid fa-shield-check", "Berhasil terhubung secara aman via Google Account.");
+            }
+            toggleAuthModal(false);
+            renderProfilePanelNode();
+            
+            // Reload context indicators inside active items elements
+            const content = globalContentDatabase.find(x => x.id === currentLoadedId);
+            rebuildCommentsFeedStream(content);
+        }
+
+        function logoutSessionAction() {
+            currentUserSession = null;
+            triggerToastSystem("fa-solid fa-power-off", "Sesi otentikasi akun telah dibersihkan.");
+            renderProfilePanelNode();
+            
+            const content = globalContentDatabase.find(x => x.id === currentLoadedId);
+            rebuildCommentsFeedStream(content);
+        }
+
+        function verifyAuthenticationGuard() {
+            if(!currentUserSession) {
+                toggleAuthModal(true);
+                return false;
+            }
+            return true;
+        }
+
+        function executeLikeToggle() {
+            if(!verifyAuthenticationGuard()) return;
+
+            const content = globalContentDatabase.find(x => x.id === currentLoadedId);
+            if(!content) return;
+
+            content.isLiked = !content.isLiked;
+            content.likesCount += content.isLiked ? 1 : -1;
+            
+            triggerToastSystem(content.isLiked ? "fa-solid fa-heart" : "fa-regular fa-heart", content.isLiked ? "Menyukai tayangan ini." : "Batal menyukai tayangan.");
+            syncInteractiveActionButtons(content);
+            rebuildSidebarLists();
+        }
+
+        function executeBookmarkToggle() {
+            if(!verifyAuthenticationGuard()) return;
+
+            const content = globalContentDatabase.find(x => x.id === currentLoadedId);
+            if(!content) return;
+
+            content.isBookmarked = !content.isBookmarked;
+            
+            triggerToastSystem("fa-solid fa-bookmark", content.isBookmarked ? "Berhasil menyimpan judul ke lapak pribadi." : "Judul dikeluarkan dari lapak.");
+            syncGlobalBookmarkBadgeCount();
+            syncInteractiveActionButtons(content);
+            rebuildSidebarLists();
+        }
+
+        function syncGlobalBookmarkBadgeCount() {
+            const total = globalContentDatabase.filter(x => x.isBookmarked).length;
+            document.getElementById('badge-bookmark').innerText = total;
+        }
+
+        // =====================================================================================
+        // 10. SYSTEM NOTIFICATION PLUGINS & SECURITY XSS CLEANERS
+        // =====================================================================================
+        function triggerToastSystem(iconClass, message) {
+            const toast = document.getElementById('global-toast');
+            document.getElementById('toast-icon').className = iconClass + " text-sm";
+            document.getElementById('toast-message').innerText = message;
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3500);
+        }
+
+        function sanitizeInputXSS(rawStr) {
+            return rawStr.replace(/[&<>'"]/g, match => {
+                const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' };
+                return map[match] || match;
+            });
         }
     </script>
 </body>
