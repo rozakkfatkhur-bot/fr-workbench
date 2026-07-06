@@ -3,368 +3,599 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MistNime - Platform Nonton Anime, Donghua & Live Action</title>
-    <!-- Tailwind CSS CDN -->
+    <title>MistNime - Premium Anime & Donghua Streaming</title>
+    <!-- Tailwind CSS v4 CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <!-- FontAwesome untuk Icon -->
+    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #1f2937; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #0b0f19; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #4f46e5; border-radius: 3px; }
+        .glass-card { background: rgba(17, 24, 39, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .glow-effect:hover { box-shadow: 0 0 20px rgba(79, 70, 229, 0.4); }
     </style>
 </head>
-<body class="bg-gray-950 text-gray-100 font-sans selection:bg-blue-600 selection:text-white">
+<body class="bg-[#070a13] text-gray-100 font-sans selection:bg-indigo-600 selection:text-white custom-scrollbar">
 
-    <!-- NAVIGATION BAR -->
-    <nav class="bg-gray-900 border-b border-gray-800 sticky top-0 z-50 px-4 py-3">
+    <!-- TOP NAVIGATION BAR -->
+    <nav class="bg-[#0b0f19]/90 border-b border-gray-800/60 sticky top-0 z-50 backdrop-blur-md px-4 py-3">
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
             <!-- Logo & Brand -->
-            <div class="flex items-center gap-2">
-                <i class="fa-solid fa-cloud-moon text-blue-500 text-3xl animate-pulse"></i>
-                <span class="text-2xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">MISTNIME</span>
+            <div class="flex items-center gap-2 cursor-pointer" onclick="filterCategory('all')">
+                <div class="p-2 bg-gradient-to-tr from-indigo-600 to-purple-600 rounded-xl shadow-lg shadow-indigo-500/30">
+                    <i class="fa-solid fa-cloud-moon text-white text-xl"></i>
+                </div>
+                <span class="text-2xl font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-500">MISTNIME</span>
             </div>
             
-            <!-- Menu Utama -->
-            <div class="flex items-center gap-6 text-sm font-semibold text-gray-300">
-                <a href="#" class="hover:text-blue-400 transition-colors border-b-2 border-blue-500 pb-1">Home</a>
-                <a href="#" class="hover:text-blue-400 transition-colors">Anime</a>
-                <a href="#" class="hover:text-blue-400 transition-colors">Donghua</a>
-                <a href="#" class="hover:text-blue-400 transition-colors">Live Action</a>
-                <a href="#" class="hover:text-blue-400 transition-colors">Populer</a>
+            <!-- Filter Kategori Kategori -->
+            <div class="flex items-center gap-2 text-sm font-medium text-gray-400 bg-gray-950 p-1 rounded-full border border-gray-800">
+                <button onclick="filterCategory('all')" id="nav-all" class="px-4 py-1.5 rounded-full transition-all text-white bg-indigo-600">Semua</button>
+                <button onclick="filterCategory('Anime')" id="nav-Anime" class="px-4 py-1.5 rounded-full transition-all hover:text-white">Anime</button>
+                <button onclick="filterCategory('Donghua')" id="nav-Donghua" class="px-4 py-1.5 rounded-full transition-all hover:text-white">Donghua</button>
+                <button onclick="filterCategory('Live Action')" id="nav-LiveAction" class="px-4 py-1.5 rounded-full transition-all hover:text-white">Live Action</button>
             </div>
 
-            <!-- Search & User Actions -->
+            <!-- Search & Bookmark Monitor -->
             <div class="flex items-center gap-4 w-full md:w-auto">
                 <div class="relative w-full md:w-64">
-                    <input type="text" placeholder="Cari anime, donghua..." class="w-full bg-gray-800 text-sm text-gray-200 pl-4 pr-10 py-2 rounded-full border border-gray-700 focus:outline-none focus:border-blue-500 transition-colors">
-                    <i class="fa-solid fa-magnifying-glass absolute right-3 top-2.5 text-gray-400 text-sm"></i>
+                    <input type="text" id="search-input" oninput="searchContent()" placeholder="Cari judul tayangan..." class="w-full bg-gray-900 text-sm text-gray-200 pl-4 pr-10 py-2 rounded-full border border-gray-800 focus:outline-none focus:border-indigo-500 transition-colors">
+                    <i class="fa-solid fa-magnifying-glass absolute right-3 top-2.5 text-gray-500 text-sm"></i>
                 </div>
-                <button class="relative p-2 text-gray-300 hover:text-blue-400 bg-gray-800 rounded-full transition-colors" title="Bookmark Saya">
+                <button onclick="toggleBookmarkView()" id="btn-view-bookmark" class="relative p-2.5 text-gray-400 hover:text-indigo-400 bg-gray-900 border border-gray-800 rounded-full transition-all" title="Daftar Bookmark Saya">
                     <i class="fa-solid fa-bookmark"></i>
-                    <span id="bookmark-count" class="absolute -top-1 -right-1 bg-blue-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">2</span>
+                    <span id="global-bookmark-count" class="absolute -top-1 -right-1 bg-gradient-to-r from-pink-500 to-purple-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold shadow-md">0</span>
                 </button>
             </div>
         </div>
     </nav>
 
-    <!-- MAIN CONTENT CONTAINER -->
+    <!-- CONTENT LAYOUT CONTAINER -->
     <main class="max-w-7xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        <!-- KIRI & TENGAH: VIDEO PLAYER, FITUR, DAN KOMENTAR -->
+        <!-- KOLOM UTAMA (KIRI/TENGAH): PEMUTAR VIDEO & METADATA -->
         <div class="lg:col-span-2 space-y-6">
             
-            <!-- Video Player (Simulasi Canvas/Embed) -->
-            <div class="bg-black rounded-xl overflow-hidden aspect-video shadow-2xl border border-gray-800 relative group">
-                <div class="absolute inset-0 flex flex-col justify-between p-4 bg-gradient-to-b from-black/60 via-transparent to-black/80 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <span class="bg-blue-600 text-xs px-2 py-1 rounded font-bold uppercase w-max">Donghua - EPS 12 (END)</span>
-                    <div class="flex justify-between items-center text-sm">
-                        <span class="font-medium text-gray-200 text-base">Perfect World (Wanmei Shijie)</span>
-                        <span class="text-xs text-gray-400"><i class="fa-solid fa-eye mr-1"></i> 245.3K views</span>
-                    </div>
-                </div>
-                <!-- Mockup Video Interface -->
-                <div class="absolute inset-0 flex items-center justify-center">
-                    <button class="w-16 h-16 bg-blue-500/90 text-white rounded-full flex items-center justify-center text-2xl hover:scale-110 transition-transform shadow-lg shadow-blue-500/30">
-                        <i class="fa-solid fa-play ml-1"></i>
-                    </button>
-                </div>
-                <img src="https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=1200&auto=format&fit=crop" class="w-full h-full object-cover opacity-60" alt="Video Player Placeholder">
+            <!-- Premium Video Player Container -->
+            <div class="bg-black rounded-2xl overflow-hidden aspect-video shadow-2xl border border-gray-800/80 relative group shadow-indigo-950/20">
+                <video id="main-video-player" controls preload="metadata" class="w-full h-full object-contain" poster="">
+                    <source id="video-source" src="" type="video/mp4">
+                    Browser Anda tidak mendukung pemutar video HTML5.
+                </video>
             </div>
 
-            <!-- Interaksi Judul & Tombol Aksi (Like, Bookmark, Rating) -->
-            <div class="bg-gray-900 p-5 rounded-xl border border-gray-800 space-y-4">
-                <div class="flex flex-wrap items-start justify-between gap-4">
+            <!-- Detail Informasi Video, Genre, & Tombol Interaktif -->
+            <div class="glass-card p-6 rounded-2xl space-y-4 shadow-xl">
+                <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                     <div>
-                        <h1 class="text-2xl font-bold text-white tracking-tight">Perfect World (Wanmei Shijie)</h1>
-                        <p class="text-sm text-gray-400 mt-1">Status: <span class="text-green-400 font-semibold">Completed</span> • Season 1 • Studio: Shanghai Foch Film</p>
+                        <div id="content-badge" class="bg-indigo-600/20 text-indigo-400 text-[11px] font-black tracking-wider px-2.5 py-1 rounded border border-indigo-500/30 w-max uppercase mb-2">Donghua</div>
+                        <h1 id="content-title" class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Memuat Judul...</h1>
+                        <p id="content-meta" class="text-xs text-gray-400 mt-1.5">Status: - • Studio: -</p>
                     </div>
-                    <!-- Rating Output -->
-                    <div class="flex items-center gap-1 bg-gray-800 px-3 py-1.5 rounded-lg border border-gray-700">
-                        <i class="fa-solid fa-star text-amber-400"></i>
-                        <span id="rating-value" class="font-bold text-sm">4.9</span>
-                        <span class="text-xs text-gray-400">(1,204 Suara)</span>
+                    
+                    <!-- Papan Rating Aktual -->
+                    <div class="flex items-center gap-2 bg-gray-950/60 p-3 rounded-xl border border-gray-800/80 w-max self-start">
+                        <div class="bg-amber-500/10 p-2 rounded-lg text-amber-400">
+                            <i class="fa-solid fa-star text-base"></i>
+                        </div>
+                        <div>
+                            <div class="text-xs text-gray-500 font-medium">Rating Komunitas</div>
+                            <div class="flex items-baseline gap-1">
+                                <span id="rating-score" class="text-lg font-black text-white">0.0</span>
+                                <span id="rating-voters" class="text-[11px] text-gray-400">(0 Suara)</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Jalur Genre -->
-                <div class="flex flex-wrap gap-2">
-                    <span class="bg-gray-800 text-xs px-2.5 py-1 rounded-md text-gray-300 border border-gray-700 hover:border-blue-500 cursor-pointer transition-colors">Action</span>
-                    <span class="bg-gray-800 text-xs px-2.5 py-1 rounded-md text-gray-300 border border-gray-700 hover:border-blue-500 cursor-pointer transition-colors">Cultivation</span>
-                    <span class="bg-gray-800 text-xs px-2.5 py-1 rounded-md text-gray-300 border border-gray-700 hover:border-blue-500 cursor-pointer transition-colors">Fantasy</span>
-                    <span class="bg-gray-800 text-xs px-2.5 py-1 rounded-md text-gray-300 border border-gray-700 hover:border-blue-500 cursor-pointer transition-colors">Martial Arts</span>
+                <!-- Jalur Kontainer Genre Dinamis -->
+                <div id="content-genres" class="flex flex-wrap gap-2 pt-1">
+                    <!-- Diisi otomatis oleh JS -->
                 </div>
 
-                <hr class="border-gray-800">
+                <hr class="border-gray-800/60">
 
-                <!-- Tombol Interaktif -->
-                <div class="flex flex-wrap gap-3 items-center justify-between">
-                    <div class="flex gap-2">
+                <!-- Fitur Aksi: Like, Bookmark, Rate -->
+                <div class="flex flex-wrap gap-4 items-center justify-between pt-1">
+                    <div class="flex items-center gap-3">
                         <!-- Tombol Like -->
-                        <button id="btn-like" onclick="toggleLike()" class="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-lg text-sm transition-colors border border-gray-700 group">
-                            <i class="fa-regular fa-thumbs-up group-hover:scale-110 transition-transform" id="like-icon"></i> 
-                            <span>Suka</span> (<span id="like-count">4.8K</span>)
+                        <button onclick="handleLike()" id="action-like" class="flex items-center gap-2 bg-gray-900 hover:bg-gray-800 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all border border-gray-800 group cursor-pointer">
+                            <i class="fa-regular fa-thumbs-up text-gray-400 group-hover:scale-110 transition-transform" id="like-icon"></i> 
+                            <span class="text-gray-300">Suka</span> <span id="like-count" class="text-gray-500 text-xs bg-gray-950 px-2 py-0.5 rounded-md ml-1">0</span>
                         </button>
                         <!-- Tombol Bookmark -->
-                        <button id="btn-bookmark" onclick="toggleBookmark()" class="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-lg text-sm transition-colors border border-gray-700 text-blue-400">
-                            <i class="fa-solid fa-bookmark" id="bookmark-icon"></i> 
-                            <span id="bookmark-text">Tersimpan</span>
+                        <button onclick="handleBookmark()" id="action-bookmark" class="flex items-center gap-2 bg-gray-900 hover:bg-gray-800 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all border border-gray-800 cursor-pointer">
+                            <i class="fa-regular fa-bookmark text-gray-400" id="bookmark-icon"></i> 
+                            <span id="bookmark-text" class="text-gray-300">Simpan ke Lapak</span>
                         </button>
                     </div>
 
-                    <!-- Sistem Rating Beri Bintang -->
-                    <div class="flex items-center gap-2">
-                        <span class="text-xs text-gray-400">Beri Rating:</span>
-                        <div class="flex gap-1 text-gray-500 cursor-pointer">
-                            <i class="fa-solid fa-star hover:text-amber-400 transition-colors" onclick="rateVideo(1)"></i>
-                            <i class="fa-solid fa-star hover:text-amber-400 transition-colors" onclick="rateVideo(2)"></i>
-                            <i class="fa-solid fa-star hover:text-amber-400 transition-colors" onclick="rateVideo(3)"></i>
-                            <i class="fa-solid fa-star hover:text-amber-400 transition-colors" onclick="rateVideo(4)"></i>
-                            <i class="fa-solid fa-star text-amber-400" onclick="rateVideo(5)"></i> <!-- Default user selection -->
+                    <!-- Sistem Interaktif Beri Nilai -->
+                    <div class="flex items-center gap-3 bg-gray-950/40 px-4 py-2 rounded-xl border border-gray-800/40">
+                        <span class="text-xs font-semibold text-gray-400">Beri Nilai Anda:</span>
+                        <div class="flex gap-1 text-gray-600 text-sm" id="star-rating-container">
+                            <!-- Bintang Di-render Dinamis oleh JS agar interaktif -->
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- SINOPIS -->
-            <div class="bg-gray-900 p-5 rounded-xl border border-gray-800">
-                <h3 class="text-lg font-bold text-white mb-2"><i class="fa-solid fa-circle-info text-blue-500 mr-2"></i>Sinopsis</h3>
-                <p class="text-sm text-gray-400 leading-relaxed">
-                    Dilahirkan di dunia yang unik di mana desa-desa saling memperebutkan kekuasaan dan kontrol, Shi Hao adalah seorang anak jenius yang diberkati oleh langit namun lahir dalam kondisi yang miskin dan tragis. Ikuti perjalanannya melintasi silsilah kultivasi kultus kuno untuk mencapai puncak tertinggi kedigdayaan kosmik.
-                </p>
+            <!-- BLOK SINOPSIS -->
+            <div class="glass-card p-6 rounded-2xl shadow-xl">
+                <h3 class="text-base font-bold text-white mb-2.5 flex items-center gap-2">
+                    <span class="w-1.5 h-4 bg-indigo-500 rounded-full"></span>Sinopsis Cerita
+                </h3>
+                <p id="content-synopsis" class="text-sm text-gray-400 leading-relaxed">Memuat sinopsis cerita...</p>
             </div>
 
-            <!-- SEKSI KOMENTAR -->
-            <div class="bg-gray-900 p-5 rounded-xl border border-gray-800 space-y-4">
-                <h3 class="text-lg font-bold text-white"><i class="fa-regular fa-comments text-purple-500 mr-2"></i>Diskusi (<span id="comment-total">2</span>)</h3>
+            <!-- PANEL INTERAKTIF DISKUSI / KOMENTAR -->
+            <div class="glass-card p-6 rounded-2xl shadow-xl space-y-5">
+                <h3 class="text-base font-bold text-white flex items-center gap-2">
+                    <span class="w-1.5 h-4 bg-purple-500 rounded-full"></span>Kolom Diskusi (<span id="total-comment-node">0</span>)
+                </h3>
                 
-                <!-- Input Komentar -->
-                <div class="flex gap-3 items-start">
-                    <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-500 to-purple-600 flex items-center justify-center font-bold text-sm">U</div>
-                    <div class="flex-1 space-y-2">
-                        <textarea id="comment-input" rows="2" placeholder="Tulis opini, teori, atau diskusi kamu di sini..." class="w-full bg-gray-800 border border-gray-700 rounded-lg text-sm p-3 text-gray-200 focus:outline-none focus:border-purple-500 transition-colors resize-none"></textarea>
+                <!-- Formulir Input Utama -->
+                <div class="flex gap-4 items-start bg-gray-950/30 p-4 rounded-xl border border-gray-800/40">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center font-bold text-white shadow-md shadow-indigo-500/10 flex-shrink-0">
+                        U
+                    </div>
+                    <div class="flex-1 space-y-3">
+                        <textarea id="comment-field" rows="2" placeholder="Bagikan opini, teori, atau diskusi kamu tanpa mengandung spoiler..." class="w-full bg-gray-900 border border-gray-800 rounded-xl text-sm p-3.5 text-gray-200 focus:outline-none focus:border-purple-500 transition-colors resize-none placeholder:text-gray-600"></textarea>
                         <div class="flex justify-end">
-                            <button onclick="addComment()" class="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white text-xs px-4 py-2 rounded-lg font-semibold transition-all shadow-md">Kirim Komentar</button>
+                            <button onclick="submitComment()" class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs px-5 py-2.5 rounded-xl font-bold transition-all shadow-lg shadow-indigo-600/20 cursor-pointer">Kirim Opini</button>
                         </div>
                     </div>
                 </div>
 
-                <!-- List Komentar -->
-                <div class="space-y-4 pt-2" id="comments-list">
-                    <!-- Komentar 1 -->
-                    <div class="flex gap-3 text-sm p-3 bg-gray-950 rounded-lg border border-gray-800">
-                        <div class="w-9 h-9 rounded-full bg-emerald-600 flex items-center justify-center font-bold text-xs shadow-inner">OP</div>
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <span class="font-semibold text-gray-200">OtakuPurba</span>
-                                <span class="text-[10px] text-gray-500">2 jam yang lalu</span>
-                            </div>
-                            <p class="text-gray-400 mt-1">Gila animasi pertarungan eps ini bener-bener level dewa! Ga sia-sia nunggu seminggu.</p>
-                        </div>
-                    </div>
-                    <!-- Komentar 2 -->
-                    <div class="flex gap-3 text-sm p-3 bg-gray-950 rounded-lg border border-gray-800">
-                        <div class="w-9 h-9 rounded-full bg-purple-600 flex items-center justify-center font-bold text-xs shadow-inner">DX</div>
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <span class="font-semibold text-gray-200">Donghua_Xianxia</span>
-                                <span class="text-[10px] text-gray-500">4 jam yang lalu</span>
-                            </div>
-                            <p class="text-gray-400 mt-1">Shi hao mc paling badass season ini fiks, no debat!</p>
-                        </div>
-                    </div>
+                <!-- Wadah List Arus Komentar -->
+                <div class="space-y-3 pt-2" id="comments-flow-container">
+                    <!-- Komentar akan diproduksi oleh JS -->
                 </div>
             </div>
-
         </div>
 
-        <!-- KANAN: SIDEBAR (RATING TERPOPULER, GENRE, & UPDATE TERBARU) -->
+        <!-- KOLOM SIDEBAR (KANAN): POPULER, UPDATE & PLAYLIST -->
         <div class="space-y-6">
             
-            <!-- LIST SERIES TERPOPULER (RATING) -->
-            <div class="bg-gray-900 p-5 rounded-xl border border-gray-800 shadow-md">
+            <!-- SIDEBAR BAR: REKOMENDASI TERPOPULER -->
+            <div class="glass-card p-5 rounded-2xl shadow-xl">
                 <h3 class="text-base font-bold text-white mb-4 flex items-center justify-between">
-                    <span><i class="fa-solid fa-fire text-amber-500 mr-2"></i>Paling Populer</span>
-                    <span class="text-xs text-blue-400 cursor-pointer font-normal hover:underline">Lihat Semua</span>
+                    <span class="flex items-center gap-2"><i class="fa-solid fa-fire text-amber-500 animate-bounce"></i>Paling Populer</span>
+                    <span class="text-xs text-indigo-400 cursor-pointer hover:underline font-normal">Rating Tertinggi</span>
                 </h3>
-                <div class="space-y-3">
-                    <!-- Item 1 -->
-                    <div class="flex items-center gap-3 p-2 hover:bg-gray-800/50 rounded-lg transition-colors border border-transparent hover:border-gray-800">
-                        <span class="text-xl font-black text-blue-500 w-6 text-center">1</span>
-                        <div class="w-12 h-16 bg-gray-800 rounded overflow-hidden flex-shrink-0">
-                            <img src="https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?q=80&w=150&auto=format&fit=crop" class="w-full h-full object-cover" alt="Anime thumbnail">
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <h4 class="text-sm font-semibold text-gray-200 truncate">Solo Leveling Season 2</h4>
-                            <p class="text-xs text-gray-400 mt-0.5">Anime • 12 Episode</p>
-                            <div class="flex items-center gap-1 text-[11px] text-amber-400 font-bold mt-1">
-                                <i class="fa-solid fa-star"></i> 4.95
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Item 2 -->
-                    <div class="flex items-center gap-3 p-2 hover:bg-gray-800/50 rounded-lg transition-colors border border-transparent hover:border-gray-800">
-                        <span class="text-xl font-black text-purple-500 w-6 text-center">2</span>
-                        <div class="w-12 h-16 bg-gray-800 rounded overflow-hidden flex-shrink-0">
-                            <img src="https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=150&auto=format&fit=crop" class="w-full h-full object-cover" alt="Donghua thumbnail">
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <h4 class="text-sm font-semibold text-gray-200 truncate">Soul Land 2 (Peerless Tang Sect)</h4>
-                            <p class="text-xs text-gray-400 mt-0.5">Donghua • 52 Episode</p>
-                            <div class="flex items-center gap-1 text-[11px] text-amber-400 font-bold mt-1">
-                                <i class="fa-solid fa-star"></i> 4.88
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Item 3 -->
-                    <div class="flex items-center gap-3 p-2 hover:bg-gray-800/50 rounded-lg transition-colors border border-transparent hover:border-gray-800">
-                        <span class="text-xl font-black text-rose-500 w-6 text-center">3</span>
-                        <div class="w-12 h-16 bg-gray-800 rounded overflow-hidden flex-shrink-0">
-                            <img src="https://images.unsplash.com/photo-1560169897-fc0cdbdfa4d5?q=80&w=150&auto=format&fit=crop" class="w-full h-full object-cover" alt="Live Action thumbnail">
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <h4 class="text-sm font-semibold text-gray-200 truncate">One Piece Live Action S2</h4>
-                            <p class="text-xs text-gray-400 mt-0.5">Live Action • 8 Episode</p>
-                            <div class="flex items-center gap-1 text-[11px] text-amber-400 font-bold mt-1">
-                                <i class="fa-solid fa-star"></i> 4.85
-                            </div>
-                        </div>
-                    </div>
+                <div class="space-y-2.5" id="sidebar-popular-list">
+                    <!-- Di-render otomatis oleh JS -->
                 </div>
             </div>
 
-            <!-- UPDATE BARU BERKALA (DENGAN LABEL) -->
-            <div class="bg-gray-900 p-5 rounded-xl border border-gray-800">
-                <h3 class="text-base font-bold text-white mb-4"><i class="fa-solid fa-arrows-rotate text-emerald-500 mr-2 animate-spin-slow"></i>Update Terbaru Hari Ini</h3>
-                <div class="space-y-4 custom-scrollbar max-h-[350px] overflow-y-auto pr-1">
-                    <!-- Update Card 1 -->
-                    <div class="flex gap-3 items-start border-b border-gray-800 pb-3 last:border-0 last:pb-0">
-                        <div class="bg-blue-900/40 text-blue-400 text-[10px] uppercase font-black px-2 py-1 rounded border border-blue-800/50 tracking-wider">ANIME</div>
-                        <div class="flex-1 min-w-0">
-                            <a href="#" class="text-sm font-medium hover:text-blue-400 transition-colors block truncate">Demon Slayer: Infinity Castle Arc</a>
-                            <span class="text-xs text-gray-500">Baru Saja • Eps 02 (Sub Indo)</span>
-                        </div>
-                    </div>
-                    <!-- Update Card 2 -->
-                    <div class="flex gap-3 items-start border-b border-gray-800 pb-3 last:border-0 last:pb-0">
-                        <div class="bg-purple-900/40 text-purple-400 text-[10px] uppercase font-black px-2 py-1 rounded border border-purple-800/50 tracking-wider">DONGHUA</div>
-                        <div class="flex-1 min-w-0">
-                            <a href="#" class="text-sm font-medium hover:text-purple-400 transition-colors block truncate">Throne of Seal (Shen Yin Wang Zuo)</a>
-                            <span class="text-xs text-gray-500">15 Menit Lalu • Eps 114 (Sub Indo)</span>
-                        </div>
-                    </div>
-                    <!-- Update Card 3 -->
-                    <div class="flex gap-3 items-start border-b border-gray-800 pb-3 last:border-0 last:pb-0">
-                        <div class="bg-rose-900/40 text-rose-400 text-[10px] uppercase font-black px-2 py-1 rounded border border-rose-800/50 tracking-wider">LIVE ACT</div>
-                        <div class="flex-1 min-w-0">
-                            <a href="#" class="text-sm font-medium hover:text-rose-400 transition-colors block truncate">Avatar: The Last Airbender S2</a>
-                            <span class="text-xs text-gray-500">2 jam Lalu • Eps 04 (Sub Indo)</span>
-                        </div>
-                    </div>
+            <!-- SIDEBAR BAR: UPDATE BERKALA TERBARU -->
+            <div class="glass-card p-5 rounded-2xl shadow-xl">
+                <h3 class="text-base font-bold text-white mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-rotate text-emerald-500 animate-spin"></i>Update Rilis Terbaru
+                </h3>
+                <div class="space-y-3.5 custom-scrollbar max-h-[380px] overflow-y-auto pr-1" id="sidebar-update-list">
+                    <!-- Di-render otomatis oleh JS -->
                 </div>
             </div>
 
         </div>
     </main>
 
-    <!-- FOOTER -->
-    <footer class="bg-gray-900 border-t border-gray-800 mt-12 py-6 text-center text-xs text-gray-500">
-        <p>© 2026 <span class="text-gray-400 font-bold tracking-wide">MISTNIME</span>. Dibuat dengan kecintaan tinggi terhadap konten sub-kultur Asia.</p>
+    <!-- METADATA FOOTER -->
+    <footer class="bg-[#0b0f19] border-t border-gray-900 mt-16 py-8 text-center text-xs text-gray-500">
+        <p class="mb-1">© 2026 <span class="text-gray-400 font-extrabold tracking-widest text-indigo-400">MISTNIME Premium</span>. All Rights Reserved.</p>
+        <p>Engineered with Advanced Core Interactions for High-End Asian Sub-Culture Streams.</p>
     </footer>
 
-    <!-- INTERACTIVE JAVASCRIPT LOGIC -->
+    <!-- CENTRAL FRONT-END ENGINE SCRIPT -->
     <script>
-        // State management sederhana
-        let isLiked = false;
-        let isBookmarked = true; // State bawaan: tersimpan
-        let totalLikes = 4800;
-        let bookmarkCount = 2;
-
-        // Fungsi Toggle Suka/Like
-        function toggleLike() {
-            const likeIcon = document.getElementById('like-icon');
-            const likeCountEl = document.getElementById('like-count');
-            const btnLike = document.getElementById('btn-like');
-            
-            isLiked = !isLiked;
-            if (isLiked) {
-                totalLikes++;
-                likeIcon.className = "fa-solid fa-thumbs-up text-blue-500";
-                btnLike.classList.add('border-blue-500/50', 'bg-blue-950/20');
-            } else {
-                totalLikes--;
-                likeIcon.className = "fa-regular fa-thumbs-up";
-                btnLike.classList.remove('border-blue-500/50', 'bg-blue-950/20');
+        // 1. DATA DATABASE SIMULASI (Mewakili Semua Konten Platform)
+        const contentDatabase = [
+            {
+                id: "item-1",
+                title: "Perfect World (Wanmei Shijie)",
+                category: "Donghua",
+                status: "Completed",
+                episodes: "130 Episode",
+                studio: "Shanghai Foch Film",
+                rating: 4.92,
+                voters: 1204,
+                likes: 4820,
+                genres: ["Action", "Cultivation", "Fantasy", "Martial Arts"],
+                synopsis: "Dilahirkan di dunia yang unik di mana desa-desa saling memperebutkan kekuasaan, Shi Hao adalah anak jenius yang diberkati oleh langit namun dipaksa tumbuh dalam kondisi tragis. Ikuti perjalanannya melintasi silsilah kultivasi kuno untuk mencapai puncak tertinggi kedigdayaan kosmik.",
+                videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+                isLiked: false,
+                isBookmarked: false,
+                comments: [
+                    { user: "OtakuPurba", time: "2 jam yang lalu", text: "Gila animasi pertarungan eps ini bener-bener level dewa! Ga sia-sia nunggu seminggu." },
+                    { user: "Xianxia_Lover", time: "4 jam yang lalu", text: "Shi hao MC paling dingin dan tegas musim ini, mantap!" }
+                ]
+            },
+            {
+                id: "item-2",
+                title: "Solo Leveling Season 2: Arise",
+                category: "Anime",
+                status: "Ongoing",
+                episodes: "04/12 Episode",
+                studio: "A-1 Pictures",
+                rating: 4.95,
+                voters: 3410,
+                likes: 9240,
+                genres: ["Action", "Adventure", "Fantasy", "System"],
+                synopsis: "Setelah sukses mendaki takhta Hunter terkuat di dunia sebagai Shadow Monarch, Sung Jin-Woo kini harus menghadapi ancaman bayangan kosmik dari para Monarch lainnya yang berniat memusnahkan ras manusia bumi.",
+                videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+                isLiked: false,
+                isBookmarked: false,
+                comments: [
+                    { user: "ShadowArmy", time: "10 menit yang lalu", text: "Erect... Gila merinding pas dia manggil bayangannya lagi!" }
+                ]
+            },
+            {
+                id: "item-3",
+                title: "One Piece Live Action S2",
+                category: "Live Action",
+                status: "Ongoing",
+                episodes: "02/08 Episode",
+                studio: "Tomorrow Studios / Netflix",
+                rating: 4.85,
+                voters: 980,
+                likes: 3100,
+                genres: ["Live Action", "Action", "Adventure", "Comedy"],
+                synopsis: "Memasuki gerbang berbahaya Grand Line, Monkey D. Luffy dan krunya berlayar menuju Alabasta untuk menyelamatkan kerajaan gurun tersebut dari konspirasi organisasi Baroque Works pimpinan Crocodile.",
+                videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+                isLiked: false,
+                isBookmarked: false,
+                comments: [
+                    { user: "NakamaIndo", time: "1 hari yang lalu", text: "Adaptasi live action terbaik sepanjang masa ga berubah kualitasnya di S2!" }
+                ]
+            },
+            {
+                id: "item-4",
+                title: "Throne of Seal (Shen Yin Wang Zuo)",
+                category: "Donghua",
+                status: "Ongoing",
+                episodes: "114 Episode",
+                studio: "Sparkly Key Animation",
+                rating: 4.88,
+                voters: 840,
+                likes: 2150,
+                genres: ["Action", "Magic", "Fantasy", "Romance"],
+                synopsis: "Di dunia tempat umat manusia di ambang kepunahan oleh serangan 72 Dewa Iblis, seorang anak muda bernama Long Haochen bergabung dengan Ksatria Kuil Suci untuk melindungi ibunya dan menyelamatkan peradaban manusia.",
+                videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
+                isLiked: false,
+                isBookmarked: false,
+                comments: []
             }
-            likeCountEl.innerText = (totalLikes / 1000).toFixed(1) + "K";
-        }
+        ];
 
-        // Fungsi Toggle Bookmark
-        function toggleBookmark() {
+        // Global State Penunjuk Item Aktif
+        let currentActiveId = "item-1";
+        let currentCategoryFilter = "all";
+        let showBookmarksOnly = false;
+
+        // 2. CORE FUNCTIONS
+        window.onload = function() {
+            loadActiveContent(currentActiveId);
+            renderSidebarLists();
+            updateGlobalBookmarkBadge();
+        };
+
+        // Fungsi Memuat/Mengubah Seluruh Konten Layar Utama Berdasarkan ID yang Dipilih
+        function loadActiveContent(id) {
+            currentActiveId = id;
+            const data = contentDatabase.find(item => item.id === id);
+            if (!data) return;
+
+            // Render Video Player
+            const videoPlayer = document.getElementById('main-video-player');
+            const videoSrc = document.getElementById('video-source');
+            videoSrc.src = data.videoUrl;
+            videoPlayer.load(); // Reload video stream
+
+            // Render Teks & Info
+            document.getElementById('content-badge').innerText = data.category;
+            document.getElementById('content-title').innerText = data.title;
+            document.getElementById('content-meta').innerHTML = `Status: <span class="text-emerald-400 font-semibold">${data.status}</span> • ${data.episodes} • Studio: ${data.studio}`;
+            document.getElementById('rating-score').innerText = data.rating.toFixed(2);
+            document.getElementById('rating-voters').innerText = `(${data.voters.toLocaleString('id-ID')} Suara)`;
+            document.getElementById('content-synopsis').innerText = data.synopsis;
+
+            // Render Badges Genre
+            const genreContainer = document.getElementById('content-genres');
+            genreContainer.innerHTML = '';
+            data.genres.forEach(g => {
+                genreContainer.innerHTML += `<span class="bg-indigo-950/60 text-xs px-3 py-1 rounded-lg text-indigo-300 border border-indigo-800/40 hover:border-indigo-500 cursor-pointer transition-colors">${g}</span>`;
+            });
+
+            // Sinkronisasi Kondisi Suka/Like Button
+            const likeIcon = document.getElementById('like-icon');
+            const btnLike = document.getElementById('action-like');
+            document.getElementById('like-count').innerText = data.likes >= 1000 ? (data.likes / 1000).toFixed(1) + "K" : data.likes;
+            if (data.isLiked) {
+                likeIcon.className = "fa-solid fa-thumbs-up text-indigo-400";
+                btnLike.className = "flex items-center gap-2 bg-indigo-950/40 hover:bg-indigo-900/30 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all border border-indigo-500/50 group cursor-pointer";
+            } else {
+                likeIcon.className = "fa-regular fa-thumbs-up text-gray-400";
+                btnLike.className = "flex items-center gap-2 bg-gray-900 hover:bg-gray-800 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all border border-gray-800 group cursor-pointer";
+            }
+
+            // Sinkronisasi Kondisi Bookmark Button
             const bookmarkIcon = document.getElementById('bookmark-icon');
             const bookmarkText = document.getElementById('bookmark-text');
-            const bookmarkNavCount = document.getElementById('bookmark-count');
-            const btnBookmark = document.getElementById('btn-bookmark');
-
-            isBookmarked = !isBookmarked;
-            if (isBookmarked) {
-                bookmarkCount++;
-                bookmarkIcon.className = "fa-solid fa-bookmark";
-                bookmarkText.innerText = "Tersimpan";
-                btnBookmark.className = "flex items-center gap-2 bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-lg text-sm transition-colors border border-gray-700 text-blue-400";
+            if (data.isBookmarked) {
+                bookmarkIcon.className = "fa-solid fa-bookmark text-pink-500";
+                bookmarkText.innerText = "Tersimpan di Lapak";
             } else {
-                bookmarkCount--;
-                bookmarkIcon.className = "fa-regular fa-bookmark";
-                bookmarkText.innerText = "Bookmark";
-                btnBookmark.className = "flex items-center gap-2 bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-lg text-sm transition-colors border border-gray-700 text-gray-400";
+                bookmarkIcon.className = "fa-regular fa-bookmark text-gray-400";
+                bookmarkText.innerText = "Simpan ke Lapak";
             }
-            bookmarkNavCount.innerText = bookmarkCount;
+
+            // Render Interaktivitas Bintang Pemberian Rating
+            renderStarRatingWidgets();
+
+            // Render Arus Komentar Terkait
+            renderComments();
         }
 
-        // Fungsi Submit Komentar Dinamis
-        function addComment() {
-            const input = document.getElementById('comment-input');
-            const list = document.getElementById('comments-list');
-            const totalCount = document.getElementById('comment-total');
+        // Fungsi Menangani Toggle Like
+        function handleLike() {
+            const data = contentDatabase.find(item => item.id === currentActiveId);
+            if (!data) return;
 
-            if (input.value.trim() === "") {
-                alert("Harap tulis isi komentar terlebih dahulu.");
+            data.isLiked = !data.isLiked;
+            data.likes += data.isLiked ? 1 : -1;
+            loadActiveContent(currentActiveId);
+        }
+
+        // Fungsi Menangani Toggle Bookmark
+        function handleBookmark() {
+            const data = contentDatabase.find(item => item.id === currentActiveId);
+            if (!data) return;
+
+            data.isBookmarked = !data.isBookmarked;
+            updateGlobalBookmarkBadge();
+            loadActiveContent(currentActiveId);
+            
+            if (showBookmarksOnly) {
+                renderSidebarLists();
+            }
+        }
+
+        // Fungsi Update Monitor Jumlah Bookmark Global atas Navigasi
+        function updateGlobalBookmarkBadge() {
+            const count = contentDatabase.filter(item => item.isBookmarked).length;
+            document.getElementById('global-bookmark-count').innerText = count;
+        }
+
+        // Fungsi Membuat Sistem Widget Bintang yang Bisa Di-hover dan Diklik
+        function renderStarRatingWidgets() {
+            const container = document.getElementById('star-rating-container');
+            container.innerHTML = '';
+            for(let i = 1; i <= 5; i++) {
+                container.innerHTML += `
+                    <i class="fa-solid fa-star cursor-pointer transition-colors hover:text-amber-400" 
+                       onmouseover="highlightStars(${i})" 
+                       onmouseout="resetStars()" 
+                       onclick="submitUserRating(${i})"></i>
+                `;
+            }
+        }
+
+        function highlightStars(index) {
+            const stars = document.getElementById('star-rating-container').children;
+            for(let i = 0; i < stars.length; i++) {
+                stars[i].classList.toggle('text-amber-400', i < index);
+                stars[i].classList.toggle('text-gray-600', i >= index);
+            }
+        }
+
+        function resetStars() {
+            const stars = document.getElementById('star-rating-container').children;
+            for(let i = 0; i < stars.length; i++) {
+                stars[i].className = "fa-solid fa-star cursor-pointer transition-colors text-gray-600";
+            }
+        }
+
+        function submitUserRating(score) {
+            const data = contentDatabase.find(item => item.id === currentActiveId);
+            if (!data) return;
+
+            // Rumus perhitungan kalkulasi rata-rata rating baru
+            const currentTotalScore = data.rating * data.voters;
+            data.voters += 1;
+            data.rating = (currentTotalScore + (score * 2)) / data.voters; // Skor bintang dikali 2 untuk menyamakan skala maks 10
+
+            alert(`Terima kasih! Penilaian ${score * 2} poin berhasil dikirim.`);
+            loadActiveContent(currentActiveId);
+            renderSidebarLists();
+        }
+
+        // Fungsi Mengolah List Sidebar (Terpopuler & Update Terbaru)
+        function renderSidebarLists() {
+            const popularContainer = document.getElementById('sidebar-popular-list');
+            const updateContainer = document.getElementById('sidebar-update-list');
+
+            popularContainer.innerHTML = '';
+            updateContainer.innerHTML = '';
+
+            // Saring Data Berdasarkan Kategori Navigasi / Bookmark View aktif
+            let filteredData = contentDatabase;
+            if (currentCategoryFilter !== 'all') {
+                filteredData = filteredData.filter(item => item.category === currentCategoryFilter);
+            }
+            if (showBookmarksOnly) {
+                filteredData = filteredData.filter(item => item.isBookmarked);
+            }
+
+            // A. Urutkan Berdasarkan Rating Tertinggi (Untuk List Populer)
+            const sortedByRating = [...filteredData].sort((a, b) => b.rating - a.rating);
+            
+            if (sortedByRating.length === 0) {
+                popularContainer.innerHTML = `<p class="text-xs text-gray-600 italic py-4 text-center">Tidak ada konten ditemukan</p>`;
+            }
+
+            sortedByRating.forEach((item, index) => {
+                const borderActive = item.id === currentActiveId ? 'border-indigo-500/60 bg-indigo-950/20' : 'border-transparent hover:border-gray-800/80';
+                const rankColor = index === 0 ? 'text-amber-500' : index === 1 ? 'text-purple-400' : 'text-indigo-400';
+                
+                popularContainer.innerHTML += `
+                    <div onclick="loadActiveContent('${item.id}')" class="flex items-center gap-3 p-2 bg-gray-900/30 rounded-xl cursor-pointer transition-all border ${borderActive}">
+                        <span class="text-lg font-black ${rankColor} w-6 text-center">${index + 1}</span>
+                        <div class="flex-1 min-w-0">
+                            <h4 class="text-xs font-bold text-gray-200 truncate group-hover:text-indigo-400">${item.title}</h4>
+                            <p class="text-[10px] text-gray-500 mt-0.5">${item.category} • ${item.episodes}</p>
+                            <div class="flex items-center gap-1 text-[10px] text-amber-400 font-bold mt-0.5">
+                                <i class="fa-solid fa-star text-[9px]"></i> ${item.rating.toFixed(2)}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            // B. List Update Terbaru
+            if (filteredData.length === 0) {
+                updateContainer.innerHTML = `<p class="text-xs text-gray-600 italic py-4 text-center">Tidak ada konten ditemukan</p>`;
+            }
+
+            filteredData.forEach(item => {
+                const badgeColor = item.category === 'Anime' ? 'bg-blue-950/50 text-blue-400 border-blue-800/40' : item.category === 'Donghua' ? 'bg-purple-950/50 text-purple-400 border-purple-800/40' : 'bg-pink-950/50 text-pink-400 border-pink-800/40';
+                updateContainer.innerHTML += `
+                    <div onclick="loadActiveContent('${item.id}')" class="flex gap-3 items-center border-b border-gray-900/80 pb-2.5 last:border-0 last:pb-0 cursor-pointer group">
+                        <div class="${badgeColor} text-[9px] uppercase font-black px-2 py-0.5 rounded border tracking-wider flex-shrink-0 w-18 text-center">${item.category}</div>
+                        <div class="flex-1 min-w-0">
+                            <span class="text-xs font-semibold text-gray-300 group-hover:text-indigo-400 transition-colors block truncate">${item.title}</span>
+                            <span class="text-[10px] text-gray-500 block mt-0.5">Baru Saja Di-update • ${item.episodes}</span>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // Fungsi Memproses Kiriman Komentar Baru
+        function submitComment() {
+            const inputField = document.getElementById('comment-field');
+            const data = contentDatabase.find(item => item.id === currentActiveId);
+            
+            if (!data || inputField.value.trim() === "") {
+                alert("Kotak komentar masih kosong!");
                 return;
             }
 
-            // Membuat element komentar baru secara real-time
-            const newComment = document.createElement('div');
-            newComment.className = "flex gap-3 text-sm p-3 bg-gray-950 rounded-lg border border-gray-800 animate-fadeIn";
-            newComment.innerHTML = `
-                <div class="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center font-bold text-xs shadow-inner">U</div>
-                <div>
-                    <div class="flex items-center gap-2">
-                        <span class="font-semibold text-gray-200">Kamu (User)</span>
-                        <span class="text-[10px] text-gray-500">Baru saja</span>
+            // Menyisipkan data komentar baru di baris teratas
+            data.comments.unshift({
+                user: "Kamu (User)",
+                time: "Baru saja",
+                text: inputField.value.trim()
+            });
+
+            inputField.value = "";
+            renderComments();
+        }
+
+        // Fungsi Merender Daftar Komentar yang Sesuai dengan Konten Aktif
+        function renderComments() {
+            const data = contentDatabase.find(item => item.id === currentActiveId);
+            const container = document.getElementById('comments-flow-container');
+            const totalNode = document.getElementById('total-comment-node');
+
+            if (!data) return;
+            totalNode.innerText = data.comments.length;
+            container.innerHTML = '';
+
+            if (data.comments.length === 0) {
+                container.innerHTML = `<p class="text-xs text-gray-600 italic py-6 text-center">Belum ada diskusi, jadilah yang pertama berkomentar!</p>`;
+                return;
+            }
+
+            data.comments.forEach(c => {
+                const isUser = c.user === "Kamu (User)" ? "bg-indigo-600" : "bg-gray-800";
+                container.innerHTML += `
+                    <div class="flex gap-3 text-xs p-3.5 bg-gray-950/40 rounded-xl border border-gray-900/60 animate-fade-in">
+                        <div class="w-8 h-8 rounded-lg ${isUser} flex items-center justify-center font-bold text-white shadow-inner flex-shrink-0">
+                            ${c.user.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold text-gray-200">${c.user}</span>
+                                <span class="text-[10px] text-gray-600">${c.time}</span>
+                            </div>
+                            <p class="text-gray-400 mt-1 leading-relaxed">${escapeHTML(c.text)}</p>
+                        </div>
                     </div>
-                    <p class="text-gray-400 mt-1">${escapeHTML(input.value)}</p>
-                </div>
-            `;
-            
-            list.insertBefore(newComment, list.firstChild);
-            input.value = "";
-            
-            // Perbarui jumlah total komentar
-            let currentTotal = parseInt(totalCount.innerText);
-            totalCount.innerText = currentTotal + 1;
+                `;
+            });
         }
 
-        // Proteksi sederhana dari serangan XSS di kolom komentar
+        // Filter Berdasarkan Kategori Atas
+        function filterCategory(category) {
+            showBookmarksOnly = false;
+            currentCategoryFilter = category;
+            
+            // Atur Visual Style Tombol Aktif
+            const buttons = ['all', 'Anime', 'Donghua', 'Live Action'];
+            buttons.forEach(b => {
+                const id = b === 'Live Action' ? 'LiveAction' : b;
+                const el = document.getElementById(`nav-${id}`);
+                if (b === category) {
+                    el.className = "px-4 py-1.5 rounded-full transition-all text-white bg-indigo-600";
+                } else {
+                    el.className = "px-4 py-1.5 rounded-full transition-all hover:text-white";
+                }
+            });
+            document.getElementById('btn-view-bookmark').classList.remove('text-pink-500', 'border-pink-500/50');
+
+            renderSidebarLists();
+        }
+
+        // Toggle Melihat Daftar Konten yang Dibookmark Saja
+        function toggleBookmarkView() {
+            showBookmarksOnly = !showBookmarksOnly;
+            const btn = document.getElementById('btn-view-bookmark');
+            
+            if (showBookmarksOnly) {
+                btn.classList.add('text-pink-500', 'border-pink-500/50');
+                // Nonaktifkan semua button nav
+                ['all', 'Anime', 'Donghua', 'LiveAction'].forEach(id => {
+                    document.getElementById(`nav-${id}`).className = "px-4 py-1.5 rounded-full transition-all hover:text-white";
+                });
+            } else {
+                filterCategory('all');
+            }
+            renderSidebarLists();
+        }
+
+        // Live Real-Time Search Function
+        function searchContent() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const filtered = contentDatabase.filter(item => item.title.toLowerCase().includes(query));
+            
+            // Memaksa sidebar memuat hasil pencarian secara dinamis
+            const popularContainer = document.getElementById('sidebar-popular-list');
+            popularContainer.innerHTML = '';
+            
+            if(filtered.length === 0) {
+                popularContainer.innerHTML = `<p class="text-xs text-gray-600 italic py-4 text-center">Judul tidak ditemukan</p>`;
+                return;
+            }
+
+            filtered.forEach((item, index) => {
+                const borderActive = item.id === currentActiveId ? 'border-indigo-500/60 bg-indigo-950/20' : 'border-transparent hover:border-gray-800/80';
+                popularContainer.innerHTML += `
+                    <div onclick="loadActiveContent('${item.id}')" class="flex items-center gap-3 p-2 bg-gray-900/30 rounded-xl cursor-pointer transition-all border ${borderActive}">
+                        <span class="text-sm font-black text-indigo-400 w-6 text-center"><i class="fa-solid fa-magnifying-glass text-xs"></i></span>
+                        <div class="flex-1 min-w-0">
+                            <h4 class="text-xs font-bold text-gray-200 truncate">${item.title}</h4>
+                            <p class="text-[10px] text-gray-500 mt-0.5">${item.category} • ${item.episodes}</p>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // Pengaman input dari injeksi skrip berbahaya (Anti-XSS)
         function escapeHTML(str) {
-            return str.replace(/[&<>'"]/g, 
-                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
-            );
-        }
-
-        // Simulasi fungsi Klik Rating Bintang
-        function rateVideo(starCount) {
-            alert(`Terima kasih! Kamu memberikan nilai ${starCount} bintang untuk serial ini.`);
-            document.getElementById('rating-value').innerText = ((4.9 * 1204 + starCount) / 1205).toFixed(2);
+            return str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
         }
     </script>
 </body>
