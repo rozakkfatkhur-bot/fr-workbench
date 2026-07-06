@@ -1,67 +1,539 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Revelator Style DLMS Web Interface</title>
     <style>
         :root {
             --bg-dark: #121418;
-            --panel-bg: #1e2128;
-            --accent-blue: #00a8ff;
-            --text-light: #d1d1d1;
-            --fader-track: #0e0f12;
+            --panel-bg: #1a1d24;
+            --panel-border: #2a2e37;
+            --accent-blue: #00a2ff;
+            --text-main: #e1e4ea;
+            --text-muted: #7c8494;
+            --fader-track: #0f1115;
         }
 
-        body { background: var(--bg-dark); color: var(--text-light); font-family: sans-serif; display: flex; justify-content: center; padding: 20px; }
-        
-        /* Container Utama */
-        .mixer-wrapper { background: var(--panel-bg); padding: 20px; border-radius: 10px; width: 900px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            user-select: none;
+        }
 
-        /* EQ Graph (Visualisasi Grafik) */
-        .eq-graph { background: #15171d; height: 150px; border: 1px solid #333; position: relative; margin-bottom: 20px; border-radius: 4px; }
-        .eq-line { stroke: var(--accent-blue); fill: none; stroke-width: 2; }
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
 
-        /* Channel Strip */
-        .mixer-board { display: flex; gap: 15px; }
-        .channel { width: 100px; display: flex; flex-direction: column; align-items: center; gap: 10px; border-right: 1px solid #333; padding-right: 10px; }
+        .dlms-container {
+            width: 1000px;
+            background-color: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 4px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
 
-        /* Fader */
-        .fader-track { height: 150px; width: 20px; background: var(--fader-track); border-radius: 10px; position: relative; }
-        .fader-thumb { width: 30px; height: 15px; background: var(--accent-blue); position: absolute; left: -5px; cursor: pointer; border-radius: 3px; }
+        /* Top Header / FX Selector */
+        .top-bar {
+            display: flex;
+            background-color: #171a21;
+            border-bottom: 1px solid var(--panel-border);
+            padding: 8px;
+            gap: 5px;
+            align-items: center;
+        }
+        .brand {
+            font-weight: 300;
+            font-size: 1.2rem;
+            margin-right: 20px;
+            color: var(--text-main);
+            letter-spacing: 1px;
+        }
+        .fx-btn {
+            background: #242933;
+            border: 1px solid var(--panel-border);
+            color: var(--text-muted);
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            border-radius: 3px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .fx-btn.active {
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
+        .power-icon {
+            width: 8px;
+            height: 8px;
+            background-color: var(--text-muted);
+            border-radius: 50%;
+        }
+        .fx-btn.active .power-icon {
+            background-color: var(--accent-blue);
+            box-shadow: 0 0 8px var(--accent-blue);
+        }
 
-        /* Knob (Potensio) */
-        .knob { width: 35px; height: 35px; border-radius: 50%; border: 2px solid #555; display: flex; align-items: center; justify-content: center; position: relative; }
-        .knob::after { content: ''; width: 2px; height: 15px; background: var(--accent-blue); position: absolute; top: 2px; }
+        /* Middle Processing Area (EQ & Limiter) */
+        .processing-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            border-bottom: 1px solid var(--panel-border);
+            background-color: #15181e;
+        }
 
-        /* Button */
-        .btn-mute-solo { display: flex; gap: 5px; margin-top: 10px; }
-        button { background: #333; color: white; border: none; padding: 5px 10px; cursor: pointer; font-size: 10px; }
+        .eq-section {
+            padding: 15px;
+            border-right: 1px solid var(--panel-border);
+        }
+        .section-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--text-main);
+        }
+        .eq-display-container {
+            display: flex;
+            gap: 15px;
+        }
+        .knob-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-width: 100px;
+        }
+        .knob-control {
+            display: flex;
+            flex-direction: column;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+        .knob-control input {
+            accent-color: var(--accent-blue);
+            margin-top: 2px;
+        }
+        .knob-val {
+            color: var(--accent-blue);
+            font-weight: bold;
+        }
+
+        /* Fake Visualizer Plot */
+        .eq-plot {
+            flex-grow: 1;
+            height: 120px;
+            background: #0d0f13;
+            border: 1px solid #22262f;
+            position: relative;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .eq-curve {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0; left: 0;
+        }
+
+        .limiter-section {
+            padding: 15px;
+        }
+
+        /* Mixer / Fader Area */
+        .mixer-section {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr) 1.2fr;
+            height: 320px;
+            background-color: #121418;
+        }
+
+        .channel-strip {
+            border-right: 1px solid var(--panel-border);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 15px 10px 5px 10px;
+            align-items: center;
+            position: relative;
+        }
+        .channel-strip.master {
+            background-color: #161920;
+            border-right: none;
+        }
+
+        .fader-wrapper {
+            height: 180px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+        /* Vertical Slider Styling */
+        .fader-input {
+            -webkit-appearance: none;
+            transform: rotate(-90deg);
+            width: 160px;
+            height: 4px;
+            background: var(--fader-track);
+            border-radius: 2px;
+            outline: none;
+            accent-color: #9aa0a6;
+        }
+        .channel-strip.master .fader-input {
+            accent-color: var(--accent-blue);
+        }
+
+        .fader-val {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 5px;
+            width: 100%;
+            margin-top: 10px;
+        }
+        .strip-btn {
+            flex: 1;
+            background: #1c2029;
+            border: 1px solid #2d3341;
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            padding: 4px 0;
+            cursor: pointer;
+            border-radius: 2px;
+            text-transform: uppercase;
+        }
+        .strip-btn.mute.active {
+            background: #cc3333;
+            color: white;
+            border-color: #ff4444;
+        }
+
+        .channel-name {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-top: 8px;
+            border-top: 1px solid var(--panel-border);
+            width: 100%;
+            text-align: center;
+            padding-top: 5px;
+        }
+
+        /* Utilitas Audio On/Off */
+        .audio-engine-trigger {
+            background: var(--accent-blue);
+            color: #000;
+            font-weight: bold;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            margin-left: auto;
+        }
     </style>
 </head>
 <body>
 
-<div class="mixer-wrapper">
-    <!-- Top EQ Section (Representasi dari 1000746978_2.jpg) -->
-    <div class="eq-graph">
-        <svg width="100%" height="100%">
-            <path class="eq-line" d="M0 80 Q 200 40, 400 80 T 800 80" />
-        </svg>
+<div class="dlms-container">
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="brand">revelator</div>
+        <button class="fx-btn active"><div class="power-icon"></div>HPF</button>
+        <button class="fx-btn"><div class="power-icon"></div>Gate</button>
+        <button class="fx-btn active"><div class="power-icon"></div>Comp</button>
+        <button class="fx-btn active"><div class="power-icon"></div>EQ</button>
+        <button class="fx-btn active"><div class="power-icon"></div>Limiter</button>
+        
+        <button class="audio-engine-trigger" id="audioBtn">START AUDIO</button>
     </div>
 
-    <!-- Mixer Board Section -->
-    <div class="mixer-board">
-        <!-- Contoh Channel -->
-        <div class="channel">
-            <div class="knob"></div>
-            <span>Gain</span>
-            <div class="fader-track"><div class="fader-thumb" style="top: 50px;"></div></div>
-            <div class="btn-mute-solo">
-                <button>Mute</button>
-                <button>Solo</button>
+    <!-- Processing (EQ & Limiter) -->
+    <div class="processing-grid">
+        <!-- EQ Section -->
+        <div class="eq-section">
+            <div class="section-title">EQ (Low Band Control)</div>
+            <div class="eq-display-container">
+                <div class="knob-grid">
+                    <div class="knob-control">
+                        <label>Freq: <span id="lbl-freq" class="knob-val">100 Hz</span></label>
+                        <input type="range" id="eq-freq" min="40" max="400" value="100">
+                    </div>
+                    <div class="knob-control">
+                        <label>Gain: <span id="lbl-gain" class="knob-val">0.00 dB</span></label>
+                        <input type="range" id="eq-gain" min="-12" max="12" step="0.5" value="0">
+                    </div>
+                </div>
+                <!-- EQ Canvas Curve Simulation -->
+                <div class="eq-plot">
+                    <svg class="eq-curve" viewBox="0 0 400 120">
+                        <path id="eqPath" d="M 0 60 Q 100 60 400 60" fill="none" stroke="#00a2ff" stroke-width="2"/>
+                        <circle id="eqPoint" cx="100" cy="60" r="5" fill="#00a2ff" />
+                    </svg>
+                </div>
             </div>
-            <p>Mic</p>
         </div>
-        <!-- Tambahkan lebih banyak channel dengan struktur sama -->
+
+        <!-- Limiter Section -->
+        <div class="limiter-section">
+            <div class="section-title">Limiter</div>
+            <div class="knob-control" style="margin-top: 15px;">
+                <label>Threshold: <span id="lbl-limit" class="knob-val">-3.00 dB</span></label>
+                <input type="range" id="limiter-thsh" min="-40" max="0" step="0.5" value="-3">
+            </div>
+        </div>
+    </div>
+
+    <!-- Mixer Strip Section -->
+    <div class="mixer-section">
+        <!-- Input 1: Mic / Gen -->
+        <div class="channel-strip">
+            <div class="fader-val" id="lbl-ch1">0.00 dB</div>
+            <div class="fader-wrapper">
+                <input type="range" class="fader-input" id="fader-ch1" min="0" max="1" step="0.01" value="0.7">
+            </div>
+            <div class="btn-group">
+                <button class="strip-btn mute" onclick="toggleMute(this, 0)">Mute</button>
+                <button class="strip-btn">Solo</button>
+            </div>
+            <div class="channel-name">Input L</div>
+        </div>
+
+        <!-- Input 2: Playback -->
+        <div class="channel-strip">
+            <div class="fader-val" id="lbl-ch2">0.00 dB</div>
+            <div class="fader-wrapper">
+                <input type="range" class="fader-input" id="fader-ch2" min="0" max="1" step="0.01" value="0.7">
+            </div>
+            <div class="btn-group">
+                <button class="strip-btn mute" onclick="toggleMute(this, 1)">Mute</button>
+                <button class="strip-btn">Solo</button>
+            </div>
+            <div class="channel-name">Input R</div>
+        </div>
+
+        <!-- Virtual A -->
+        <div class="channel-strip">
+            <div class="fader-val">0.00 dB</div>
+            <div class="fader-wrapper">
+                <input type="range" class="fader-input" min="0" max="1" step="0.01" value="0.7">
+            </div>
+            <div class="btn-group">
+                <button class="strip-btn mute">Mute</button>
+                <button class="strip-btn">Solo</button>
+            </div>
+            <div class="channel-name">Virtual A</div>
+        </div>
+
+        <!-- Virtual B -->
+        <div class="channel-strip">
+            <div class="fader-val">0.00 dB</div>
+            <div class="fader-wrapper">
+                <input type="range" class="fader-input" min="0" max="1" step="0.01" value="0.7">
+            </div>
+            <div class="btn-group">
+                <button class="strip-btn mute">Mute</button>
+                <button class="strip-btn">Solo</button>
+            </div>
+            <div class="channel-name">Virtual B</div>
+        </div>
+
+        <!-- Master Stereo Output -->
+        <div class="channel-strip master">
+            <div class="fader-val" id="lbl-master">0.00 dB</div>
+            <div class="fader-wrapper">
+                <input type="range" class="fader-input" id="fader-master" min="0" max="1" step="0.01" value="0.8">
+            </div>
+            <div class="btn-group">
+                <button class="strip-btn mute" onclick="toggleMute(this, 'master')">Mute</button>
+            </div>
+            <div class="channel-name" style="color: var(--accent-blue);">Main Stereo</div>
+        </div>
     </div>
 </div>
+
+<script>
+    // --- AUDIO ENGINE (Web Audio API) ---
+    let audioCtx = null;
+    let mainGain, leftGain, rightGain, eqFilter, dynamicsLimiter;
+    let noiseNode = null; // Sebagai simulasi sinyal generator stereo
+
+    const audioBtn = document.getElementById('audioBtn');
+
+    function initAudio() {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        // 1. Create Source (Stereo Noise Generator untuk Testing)
+        const bufferSize = 2 * audioCtx.sampleRate;
+        const noiseBuffer = audioCtx.createBuffer(2, bufferSize, audioCtx.sampleRate);
+        for (let channel = 0; channel < 2; channel++) {
+            let nowBuffering = noiseBuffer.getChannelData(channel);
+            for (let i = 0; i < bufferSize; i++) {
+                nowBuffering[i] = (Math.random() * 2 - 1) * 0.1; // Pinkish/White noise soft
+            }
+        }
+        noiseNode = audioCtx.createBufferSource();
+        noiseNode.buffer = noiseBuffer;
+        noiseNode.loop = true;
+
+        // Channel Splitter & Merger untuk memproses Stereo Input terpisah (L & R)
+        const splitter = audioCtx.createChannelSplitter(2);
+        const merger = audioCtx.createChannelMerger(2);
+
+        leftGain = audioCtx.createGain();
+        rightGain = audioCtx.createGain();
+
+        // 2. EQ Filter (Peaking Filter)
+        eqFilter = audioCtx.createBiquadFilter();
+        eqFilter.type = "peaking";
+        eqFilter.frequency.value = document.getElementById('eq-freq').value;
+        eqFilter.gain.value = document.getElementById('eq-gain').value;
+        eqFilter.Q.value = 1.0;
+
+        // 3. Limiter Node
+        dynamicsLimiter = audioCtx.createDynamicsCompressor();
+        dynamicsLimiter.threshold.value = document.getElementById('limiter-thsh').value;
+        dynamicsLimiter.knee.value = 0.0; // Hard limiter style
+        dynamicsLimiter.ratio.value = 20.0;
+        dynamicsLimiter.attack.value = 0.001;
+        dynamicsLimiter.release.value = 0.05;
+
+        // 4. Master Output Gain
+        mainGain = audioCtx.createGain();
+
+        // --- Routing Graph ---
+        // Source -> Splitter (L & R Input)
+        noiseNode.connect(splitter);
+        
+        // Routing Per-Channel Fader
+        splitter.connect(leftGain, 0);  // Left Channel ke Fader 1
+        splitter.connect(rightGain, 1); // Right Channel ke Fader 2
+
+        // Gabungkan kembali ke Jalur Stereo setelah Fader Input
+        leftGain.connect(merger, 0, 0);
+        rightGain.connect(merger, 0, 1);
+
+        // Jalur FX Chain: Merger -> EQ -> Limiter -> Master Gain -> Speakers
+        merger.connect(eqFilter);
+        eqFilter.connect(dynamicsLimiter);
+        dynamicsLimiter.connect(mainGain);
+        mainGain.connect(audioCtx.destination);
+
+        noiseNode.start();
+        audioBtn.textContent = "AUDIO ACTIVE";
+        audioBtn.style.backgroundColor = "#28a745";
+    }
+
+    audioBtn.addEventListener('click', () => {
+        if (!audioCtx) {
+            initAudio();
+        } else if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+            audioBtn.textContent = "AUDIO ACTIVE";
+        } else {
+            audioCtx.suspend();
+            audioBtn.textContent = "AUDIO PAUSED";
+        }
+    });
+
+    // --- UI CONTROLS INTERACTION ---
+
+    // Fader & Level Control
+    const faderCh1 = document.getElementById('fader-ch1');
+    const faderCh2 = document.getElementById('fader-ch2');
+    const faderMaster = document.getElementById('fader-master');
+
+    function linearToDb(val) {
+        if(val === 0) return '-inf';
+        let db = 20 * Math.log10(val);
+        return db.toFixed(2) + " dB";
+    }
+
+    faderCh1.addEventListener('input', (e) => {
+        let v = parseFloat(e.target.value);
+        if(leftGain) leftGain.gain.value = v;
+        document.getElementById('lbl-ch1').textContent = linearToDb(v);
+    });
+
+    faderCh2.addEventListener('input', (e) => {
+        let v = parseFloat(e.target.value);
+        if(rightGain) rightGain.gain.value = v;
+        document.getElementById('lbl-ch2').textContent = linearToDb(v);
+    });
+
+    faderMaster.addEventListener('input', (e) => {
+        let v = parseFloat(e.target.value);
+        if(mainGain) mainGain.gain.value = v;
+        document.getElementById('lbl-master').textContent = linearToDb(v);
+    });
+
+    // Mute Logic
+    function toggleMute(btn, channel) {
+        btn.classList.toggle('active');
+        let isMuted = btn.classList.contains('active');
+        
+        if (channel === 0 && leftGain) leftGain.gain.value = isMuted ? 0 : faderCh1.value;
+        if (channel === 1 && rightGain) rightGain.gain.value = isMuted ? 0 : faderCh2.value;
+        if (channel === 'master' && mainGain) mainGain.gain.value = isMuted ? 0 : faderMaster.value;
+    }
+
+    // EQ UI & Control
+    const eqFreqInput = document.getElementById('eq-freq');
+    const eqGainInput = document.getElementById('eq-gain');
+    const eqPath = document.getElementById('eqPath');
+    const eqPoint = document.getElementById('eqPoint');
+
+    function updateEQCurve() {
+        let freq = eqFreqInput.value;
+        let gain = eqGainInput.value;
+
+        document.getElementById('lbl-freq').textContent = freq + " Hz";
+        document.getElementById('lbl-gain').textContent = parseFloat(gain).toFixed(2) + " dB";
+
+        if(eqFilter) {
+            eqFilter.frequency.value = freq;
+            eqFilter.gain.value = gain;
+        }
+
+        // Koreksi visual grafik kurva
+        let mapX = ((freq - 40) / 360) * 300 + 50; 
+        let mapY = 60 - (gain * 4); // menggeser titik grafik ke atas/bawah
+        
+        eqPath.setAttribute('d', `M 0 60 Q ${mapX} ${mapY} 400 60`);
+        eqPoint.setAttribute('cx', mapX);
+        eqPoint.setAttribute('cy', mapY);
+    }
+
+    eqFreqInput.addEventListener('input', updateEQCurve);
+    eqGainInput.addEventListener('input', updateEQCurve);
+
+    // Limiter UI & Control
+    const limThshInput = document.getElementById('limiter-thsh');
+    limThshInput.addEventListener('input', (e) => {
+        let v = parseFloat(e.target.value);
+        document.getElementById('lbl-limit').textContent = v.toFixed(2) + " dB";
+        if(dynamicsLimiter) dynamicsLimiter.threshold.value = v;
+    });
+
+    // Inisialisasi awal kurva grafik
+    updateEQCurve();
+</script>
 
 </body>
 </html>
