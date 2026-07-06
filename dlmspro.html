@@ -1,539 +1,1211 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Revelator Style DLMS Web Interface</title>
+    <title>Enterprise Admin Dashboard Pro v1.0</title>
+    <!-- Font Awesome untuk Icon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js untuk Grafik -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <style>
+        /* ==========================================================================
+           1. VARIABEL CSS & CONFIGURATION (Baris 1-150)
+           ========================================================================== */
         :root {
-            --bg-dark: #121418;
-            --panel-bg: #1a1d24;
-            --panel-border: #2a2e37;
-            --accent-blue: #00a2ff;
-            --text-main: #e1e4ea;
-            --text-muted: #7c8494;
-            --fader-track: #0f1115;
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --primary-light: #e0e7ff;
+            --secondary-color: #06b6d4;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --info-color: #3b82f6;
+            
+            /* Light Theme Tokens */
+            --bg-main: #f8fafc;
+            --bg-card: #ffffff;
+            --bg-sidebar: #0f172a;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --text-on-sidebar: #94a3b8;
+            --text-on-sidebar-active: #ffffff;
+            --border-color: #e2e8f0;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            
+            --transition-speed: 0.3s;
+            --sidebar-width: 260px;
+            --sidebar-collapsed-width: 70px;
         }
 
+        [data-theme="dark"] {
+            /* Dark Theme Tokens */
+            --bg-main: #0f172a;
+            --bg-card: #1e293b;
+            --bg-sidebar: #020617;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --text-on-sidebar: #64748b;
+            --text-on-sidebar-active: #38bdf8;
+            --border-color: #334155;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+        }
+
+        /* ==========================================================================
+           2. RESET & BASE STYLES (Baris 151-300)
+           ========================================================================== */
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            user-select: none;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
         }
 
         body {
-            background-color: var(--bg-dark);
+            background-color: var(--bg-main);
             color: var(--text-main);
+            overflow-x: hidden;
+            transition: background-color var(--transition-speed), color var(--transition-speed);
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        li {
+            list-style: none;
+        }
+
+        button, input, select, textarea {
+            font-family: inherit;
+            font-size: inherit;
+            outline: none;
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-main);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+
+        /* ==========================================================================
+           3. LAYOUT STRUCTURE (Baris 301-450)
+           ========================================================================== */
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--bg-sidebar);
+            color: var(--text-on-sidebar);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            transition: width var(--transition-speed);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .sidebar.collapsed {
+            width: var(--sidebar-collapsed-width);
+        }
+
+        .sidebar-brand {
             padding: 20px;
             display: flex;
-            justify-content: center;
             align-items: center;
-            min-height: 100vh;
-        }
-
-        .dlms-container {
-            width: 1000px;
-            background-color: var(--panel-bg);
-            border: 1px solid var(--panel-border);
-            border-radius: 4px;
+            gap: 12px;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #ffffff;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            white-space: nowrap;
         }
 
-        /* Top Header / FX Selector */
-        .top-bar {
-            display: flex;
-            background-color: #171a21;
-            border-bottom: 1px solid var(--panel-border);
-            padding: 8px;
-            gap: 5px;
-            align-items: center;
-        }
-        .brand {
-            font-weight: 300;
-            font-size: 1.2rem;
-            margin-right: 20px;
-            color: var(--text-main);
-            letter-spacing: 1px;
-        }
-        .fx-btn {
-            background: #242933;
-            border: 1px solid var(--panel-border);
-            color: var(--text-muted);
-            padding: 6px 12px;
-            font-size: 0.8rem;
-            border-radius: 3px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        .fx-btn.active {
-            border-color: var(--accent-blue);
-            color: var(--accent-blue);
-        }
-        .power-icon {
-            width: 8px;
-            height: 8px;
-            background-color: var(--text-muted);
-            border-radius: 50%;
-        }
-        .fx-btn.active .power-icon {
-            background-color: var(--accent-blue);
-            box-shadow: 0 0 8px var(--accent-blue);
+        .sidebar-brand i {
+            color: var(--primary-color);
+            font-size: 1.5rem;
         }
 
-        /* Middle Processing Area (EQ & Limiter) */
-        .processing-grid {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            border-bottom: 1px solid var(--panel-border);
-            background-color: #15181e;
+        .sidebar-menu {
+            padding: 20px 10px;
+            flex: 1;
+            overflow-y: auto;
         }
 
-        .eq-section {
-            padding: 15px;
-            border-right: 1px solid var(--panel-border);
-        }
-        .section-title {
-            font-size: 0.9rem;
+        .menu-category {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 10px 10px 5px 10px;
+            color: rgba(255, 255, 255, 0.3);
             font-weight: 600;
-            margin-bottom: 10px;
-            color: var(--text-main);
-        }
-        .eq-display-container {
-            display: flex;
-            gap: 15px;
-        }
-        .knob-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            min-width: 100px;
-        }
-        .knob-control {
-            display: flex;
-            flex-direction: column;
-            font-size: 0.75rem;
-            color: var(--text-muted);
-        }
-        .knob-control input {
-            accent-color: var(--accent-blue);
-            margin-top: 2px;
-        }
-        .knob-val {
-            color: var(--accent-blue);
-            font-weight: bold;
-        }
-
-        /* Fake Visualizer Plot */
-        .eq-plot {
-            flex-grow: 1;
-            height: 120px;
-            background: #0d0f13;
-            border: 1px solid #22262f;
-            position: relative;
-            border-radius: 4px;
             overflow: hidden;
-        }
-        .eq-curve {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            top: 0; left: 0;
+            white-space: nowrap;
         }
 
-        .limiter-section {
-            padding: 15px;
+        .sidebar.collapsed .menu-category {
+            opacity: 0;
         }
 
-        /* Mixer / Fader Area */
-        .mixer-section {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr) 1.2fr;
-            height: 320px;
-            background-color: #121418;
+        .menu-item {
+            margin-bottom: 4px;
         }
 
-        .channel-strip {
-            border-right: 1px solid var(--panel-border);
+        .menu-link {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px 15px;
+            border-radius: 8px;
+            color: var(--text-on-sidebar);
+            font-weight: 500;
+            transition: all var(--transition-speed);
+            white-space: nowrap;
+        }
+
+        .menu-link:hover, .menu-item.active .menu-link {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: var(--text-on-sidebar-active);
+        }
+
+        .menu-item.active .menu-link i {
+            color: var(--primary-color);
+        }
+
+        .menu-link i {
+            font-size: 1.1rem;
+            width: 20px;
+            text-align: center;
+            transition: var(--transition-speed);
+        }
+
+        .menu-text {
+            transition: opacity var(--transition-speed);
+        }
+
+        .sidebar.collapsed .menu-text {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Main Content Wrapper */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            flex: 1;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
-            padding: 15px 10px 5px 10px;
-            align-items: center;
-            position: relative;
-        }
-        .channel-strip.master {
-            background-color: #161920;
-            border-right: none;
+            min-width: 0;
+            transition: margin-left var(--transition-speed);
         }
 
-        .fader-wrapper {
-            height: 180px;
-            position: relative;
+        .sidebar.collapsed + .main-content {
+            margin-left: var(--sidebar-collapsed-width);
+        }
+
+        /* ==========================================================================
+           4. TOP NAVBAR STYLES (Baris 451-600)
+           ========================================================================== */
+        .navbar {
+            height: 70px;
+            background-color: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
             display: flex;
             align-items: center;
-            justify-content: center;
-            width: 100%;
-        }
-        /* Vertical Slider Styling */
-        .fader-input {
-            -webkit-appearance: none;
-            transform: rotate(-90deg);
-            width: 160px;
-            height: 4px;
-            background: var(--fader-track);
-            border-radius: 2px;
-            outline: none;
-            accent-color: #9aa0a6;
-        }
-        .channel-strip.master .fader-input {
-            accent-color: var(--accent-blue);
+            justify-content: space-between;
+            padding: 0 30px;
+            position: sticky;
+            top: 0;
+            z-index: 90;
+            box-shadow: var(--shadow-sm);
+            transition: background-color var(--transition-speed), border-color var(--transition-speed);
         }
 
-        .fader-val {
+        .nav-left, .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .toggle-sidebar-btn {
+            background: none;
+            border: none;
+            color: var(--text-main);
+            cursor: pointer;
+            font-size: 1.25rem;
+            padding: 5px;
+            border-radius: 4px;
+            transition: background var(--transition-speed);
+        }
+
+        .toggle-sidebar-btn:hover {
+            background-color: var(--border-color);
+        }
+
+        .search-box {
+            position: relative;
+            max-width: 300px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 8px 16px 8px 36px;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            transition: all var(--transition-speed);
+        }
+
+        .search-box input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+
+        .nav-icon-btn {
+            background: none;
+            border: none;
+            color: var(--text-main);
+            font-size: 1.2rem;
+            cursor: pointer;
+            position: relative;
+            padding: 8px;
+            border-radius: 50%;
+            transition: background var(--transition-speed);
+        }
+
+        .nav-icon-btn:hover {
+            background-color: var(--border-color);
+        }
+
+        .nav-icon-btn .badge {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            background-color: var(--danger-color);
+            color: white;
+            font-size: 0.65rem;
+            padding: 2px 5px;
+            border-radius: 10px;
+            font-weight: 700;
+        }
+
+        .user-profile-menu {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 8px;
+            transition: background var(--transition-speed);
+        }
+
+        .user-profile-menu:hover {
+            background-color: var(--border-color);
+        }
+
+        .user-profile-menu img {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .user-role {
             font-size: 0.75rem;
             color: var(--text-muted);
+        }
+
+        /* ==========================================================================
+           5. DASHBOARD BODY & UTILITIES (Baris 601-850)
+           ========================================================================== */
+        .content-body {
+            padding: 30px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-title h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
             margin-bottom: 5px;
         }
 
-        .btn-group {
+        .breadcrumbs {
             display: flex;
             gap: 5px;
-            width: 100%;
-            margin-top: 10px;
-        }
-        .strip-btn {
-            flex: 1;
-            background: #1c2029;
-            border: 1px solid #2d3341;
+            font-size: 0.85rem;
             color: var(--text-muted);
-            font-size: 0.7rem;
-            padding: 4px 0;
-            cursor: pointer;
-            border-radius: 2px;
-            text-transform: uppercase;
-        }
-        .strip-btn.mute.active {
-            background: #cc3333;
-            color: white;
-            border-color: #ff4444;
         }
 
-        .channel-name {
-            font-size: 0.75rem;
+        .breadcrumbs span.active {
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+
+        .action-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* Buttons Styling */
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all var(--transition-speed);
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        .btn-primary:hover { background-color: var(--primary-hover); }
+
+        .btn-secondary {
+            background-color: var(--border-color);
+            color: var(--text-main);
+        }
+        .btn-secondary:hover { background-color: var(--text-muted); color: white;}
+
+        /* Cards Grid Layout */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: var(--shadow-sm);
+            transition: transform var(--transition-speed), box-shadow var(--transition-speed), background-color var(--transition-speed);
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .stats-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stats-info h3 {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 10px;
+        }
+
+        .stats-info .number {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .stats-indicator {
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .stats-indicator.up { color: var(--success-color); }
+        .stats-indicator.down { color: var(--danger-color); }
+
+        .stats-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .stats-icon.p-bg { background-color: rgba(79, 70, 229, 0.1); color: var(--primary-color); }
+        .stats-icon.s-bg { background-color: rgba(6, 182, 212, 0.1); color: var(--secondary-color); }
+        .stats-icon.succ-bg { background-color: rgba(16, 183, 129, 0.1); color: var(--success-color); }
+        .stats-icon.warn-bg { background-color: rgba(245, 158, 11, 0.1); color: var(--warning-color); }
+
+        /* ==========================================================================
+           6. VISUALIZATION / CHARTS SECTION (Baris 851-1100)
+           ========================================================================== */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 1024px) {
+            .charts-grid { grid-template-columns: 1fr; }
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 15px;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+
+        /* ==========================================================================
+           7. DATA TABLE COMPONENTS (Baris 1101-1400)
+           ========================================================================== */
+        .table-responsive {
+            overflow-x: auto;
+            width: 100%;
+        }
+
+        .custom-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        .custom-table th {
+            background-color: var(--bg-main);
+            color: var(--text-muted);
+            padding: 14px 20px;
+            font-size: 0.85rem;
             font-weight: 600;
             text-transform: uppercase;
-            color: var(--text-muted);
-            margin-top: 8px;
-            border-top: 1px solid var(--panel-border);
-            width: 100%;
-            text-align: center;
-            padding-top: 5px;
+            border-bottom: 1px solid var(--border-color);
         }
 
-        /* Utilitas Audio On/Off */
-        .audio-engine-trigger {
-            background: var(--accent-blue);
-            color: #000;
-            font-weight: bold;
-            border: none;
-            padding: 5px 15px;
-            border-radius: 3px;
+        .custom-table td {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.9rem;
+            color: var(--text-main);
+        }
+
+        .custom-table tr:hover td {
+            background-color: rgba(0, 0, 0, 0.01);
+        }
+
+        /* Badges for status */
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-badge.active { background-color: rgba(16, 183, 129, 0.1); color: var(--success-color); }
+        .status-badge.pending { background-color: rgba(245, 158, 11, 0.1); color: var(--warning-color); }
+        .status-badge.suspended { background-color: rgba(239, 68, 68, 0.1); color: var(--danger-color); }
+
+        /* Pagination Style */
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        .pag-buttons {
+            display: flex;
+            gap: 5px;
+        }
+
+        .pag-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-card);
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
-            font-size: 0.8rem;
-            margin-left: auto;
+            transition: all var(--transition-speed);
+        }
+
+        .pag-btn:hover, .pag-btn.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        /* ==========================================================================
+           8. MODAL WINDOWS & NOTIFICATIONS (Baris 1401-1600)
+           ========================================================================== */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all var(--transition-speed);
+        }
+
+        .modal-overlay.open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-box {
+            background-color: var(--bg-card);
+            border-radius: 12px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-50px);
+            transition: transform var(--transition-speed);
+            overflow: hidden;
+        }
+
+        .modal-overlay.open .modal-box {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .modal-footer {
+            padding: 15px 20px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        /* Toast Notification Container */
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            background-color: var(--bg-card);
+            border-left: 4px solid var(--primary-color);
+            box-shadow: var(--shadow-lg);
+            padding: 15px 25px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transform: translateX(120%);
+            transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            color: var(--text-main);
+        }
+
+        .toast.show { transform: translateX(0); }
+        .toast.success { border-left-color: var(--success-color); }
+        .toast.error { border-left-color: var(--danger-color); }
+
+        /* Form Controls */
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        .form-control {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+        }
+        .form-control:focus {
+            border-color: var(--primary-color);
+        }
+
+        /* Footer styling */
+        .main-footer {
+            padding: 20px 30px;
+            background-color: var(--bg-card);
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: auto;
         }
     </style>
 </head>
 <body>
 
-<div class="dlms-container">
-    <!-- Top Bar -->
-    <div class="top-bar">
-        <div class="brand">revelator</div>
-        <button class="fx-btn active"><div class="power-icon"></div>HPF</button>
-        <button class="fx-btn"><div class="power-icon"></div>Gate</button>
-        <button class="fx-btn active"><div class="power-icon"></div>Comp</button>
-        <button class="fx-btn active"><div class="power-icon"></div>EQ</button>
-        <button class="fx-btn active"><div class="power-icon"></div>Limiter</button>
+    <!-- ==========================================================================
+       9. HTML LAYOUT DOM STRUCTURE (Baris 1601-1800)
+       ========================================================================== -->
+    <div class="app-container">
         
-        <button class="audio-engine-trigger" id="audioBtn">START AUDIO</button>
-    </div>
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="appSidebar">
+            <div class="sidebar-brand">
+                <i class="fa-solid pipelines fa-layer-group"></i>
+                <span class="menu-text">NexusAdmin</span>
+            </div>
+            <ul class="sidebar-menu">
+                <li class="menu-category">Menu Utama</li>
+                <li class="menu-item active">
+                    <a href="#" class="menu-link">
+                        <i class="fa-solid fa-chart-pie"></i>
+                        <span class="menu-text">Dashboard</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="#" class="menu-link">
+                        <i class="fa-solid fa-users"></i>
+                        <span class="menu-text">Manajemen User</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="#" class="menu-link">
+                        <i class="fa-solid fa-boxes-stacked"></i>
+                        <span class="menu-text">Produk & Inventori</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="#" class="menu-link">
+                        <i class="fa-solid fa-wallet"></i>
+                        <span class="menu-text">Transaksi</span>
+                    </a>
+                </li>
 
-    <!-- Processing (EQ & Limiter) -->
-    <div class="processing-grid">
-        <!-- EQ Section -->
-        <div class="eq-section">
-            <div class="section-title">EQ (Low Band Control)</div>
-            <div class="eq-display-container">
-                <div class="knob-grid">
-                    <div class="knob-control">
-                        <label>Freq: <span id="lbl-freq" class="knob-val">100 Hz</span></label>
-                        <input type="range" id="eq-freq" min="40" max="400" value="100">
-                    </div>
-                    <div class="knob-control">
-                        <label>Gain: <span id="lbl-gain" class="knob-val">0.00 dB</span></label>
-                        <input type="range" id="eq-gain" min="-12" max="12" step="0.5" value="0">
+                <li class="menu-category">Analitik & Laporan</li>
+                <li class="menu-item">
+                    <a href="#" class="menu-link">
+                        <i class="fa-solid fa-chart-line"></i>
+                        <span class="menu-text">Performa Penjualan</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="#" class="menu-link">
+                        <i class="fa-solid fa-file-invoice-dollar"></i>
+                        <span class="menu-text">Laporan Keuangan</span>
+                    </a>
+                </li>
+
+                <li class="menu-category">Pengaturan Sistem</li>
+                <li class="menu-item">
+                    <a href="#" class="menu-link">
+                        <i class="fa-solid fa-gear"></i>
+                        <span class="menu-text">Konfigurasi Global</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="#" class="menu-link">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        <span class="menu-text">Keamanan & Hak Akses</span>
+                    </a>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="main-content">
+            
+            <!-- Top Navigation Bar -->
+            <nav class="navbar">
+                <div class="nav-left">
+                    <button class="toggle-sidebar-btn" id="toggleSidebar">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" placeholder="Cari data, laporan...">
                     </div>
                 </div>
-                <!-- EQ Canvas Curve Simulation -->
-                <div class="eq-plot">
-                    <svg class="eq-curve" viewBox="0 0 400 120">
-                        <path id="eqPath" d="M 0 60 Q 100 60 400 60" fill="none" stroke="#00a2ff" stroke-width="2"/>
-                        <circle id="eqPoint" cx="100" cy="60" r="5" fill="#00a2ff" />
-                    </svg>
+                <div class="nav-right">
+                    <!-- Theme Toggle -->
+                    <button class="nav-icon-btn" id="themeToggle" title="Ganti Tema">
+                        <i class="fa-solid fa-moon"></i>
+                    </button>
+                    <!-- Notification Dropdown Trigger -->
+                    <button class="nav-icon-btn" id="notiBtn" title="Notifikasi">
+                        <i class="fa-solid fa-bell"></i>
+                        <span class="badge">3</span>
+                    </button>
+                    <!-- Profile Widget -->
+                    <div class="user-profile-menu">
+                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80" alt="Avatar">
+                        <div class="user-info">
+                            <span class="user-name">Sarah Connor</span>
+                            <span class="user-role">Super Administrator</span>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
+            </nav>
 
-        <!-- Limiter Section -->
-        <div class="limiter-section">
-            <div class="section-title">Limiter</div>
-            <div class="knob-control" style="margin-top: 15px;">
-                <label>Threshold: <span id="lbl-limit" class="knob-val">-3.00 dB</span></label>
-                <input type="range" id="limiter-thsh" min="-40" max="0" step="0.5" value="-3">
+            <!-- Dashboard Content Workspace Area -->
+            <div class="content-body">
+                
+                <!-- Page Breadcrumbs & Title Head -->
+                <div class="page-header">
+                    <div class="page-title">
+                        <h1>Sistem Analitik Bisnis</h1>
+                        <div class="breadcrumbs">
+                            <span>Utama</span> / <span>Aplikasi</span> / <span class="active">Dashboard</span>
+                        </div>
+                    </div>
+                    <div class="action-group">
+                        <button class="btn btn-secondary" onclick="showToast('Memperbarui data...', 'info')">
+                            <i class="fa-solid fa-rotate"></i> Refresh Data
+                        </button>
+                        <button class="btn btn-primary" id="openModalBtn">
+                            <i class="fa-solid fa-plus"></i> Tambah Pengguna Baru
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 4 Counter Metric Widget Summary Cards -->
+                <section class="stats-grid">
+                    <div class="card stats-card">
+                        <div class="stats-info">
+                            <h3>Total Pendapatan</h3>
+                            <div class="number">Rp 148.250.000</div>
+                            <div class="stats-indicator up">
+                                <i class="fa-solid fa-arrow-up"></i> 12.5% <span>vs bulan lalu</span>
+                            </div>
+                        </div>
+                        <div class="stats-icon p-bg">
+                            <i class="fa-solid fa-money-bill-wave"></i>
+                        </div>
+                    </div>
+                    <div class="card stats-card">
+                        <div class="stats-info">
+                            <h3>Pengguna Aktif</h3>
+                            <div class="number">3,842</div>
+                            <div class="stats-indicator up">
+                                <i class="fa-solid fa-arrow-up"></i> 8.2% <span>vs minggu lalu</span>
+                            </div>
+                        </div>
+                        <div class="stats-icon s-bg">
+                            <i class="fa-solid fa-users"></i>
+                        </div>
+                    </div>
+                    <div class="card stats-card">
+                        <div class="stats-info">
+                            <h3>Total Penjualan</h3>
+                            <div class="number">1,204 Transaksi</div>
+                            <div class="stats-indicator down">
+                                <i class="fa-solid fa-arrow-down"></i> 2.1% <span>vs kemarin</span>
+                            </div>
+                        </div>
+                        <div class="stats-icon succ-bg">
+                            <i class="fa-solid fa-cart-shopping"></i>
+                        </div>
+                    </div>
+                    <div class="card stats-card">
+                        <div class="stats-info">
+                            <h3>Tingkat Konversi</h3>
+                            <div class="number">4.32 %</div>
+                            <div class="stats-indicator up">
+                                <i class="fa-solid fa-arrow-up"></i> 0.7% <span>stabil</span>
+                            </div>
+                        </div>
+                        <div class="stats-icon warn-bg">
+                            <i class="fa-solid fa-chart-line"></i>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Charts Matrix Visualization Engine Area -->
+                <section class="charts-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">Grafik Pertumbuhan Penjualan 2026</span>
+                            <i class="fa-solid fa-ellipsis-vertical text-muted"></i>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="lineChartMain"></canvas>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">Komposisi Sumber Trafik</span>
+                            <i class="fa-solid fa-ellipsis-vertical text-muted"></i>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="doughnutChartMain"></canvas>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- User Management Complex Table Data Component -->
+                <section class="card">
+                    <div class="card-header">
+                        <span class="card-title">Daftar Pengguna Sistem Terbaru</span>
+                        <input type="text" id="tableSearchInput" class="form-control" style="max-width: 200px; padding: 6px 12px;" placeholder="Cari baris...">
+                    </div>
+                    <div class="table-responsive">
+                        <table class="custom-table" id="dataTableUser">
+                            <thead>
+                                <tr>
+                                    <th>ID Pegawai</th>
+                                    <th>Nama Pengguna</th>
+                                    <th>Departemen</th>
+                                    <th>Tanggal Masuk</th>
+                                    <th>Status Akun</th>
+                                    <th>Aksi Komando</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>#USR-0021</td>
+                                    <td><strong>Ahmad Dahlan</strong><br><small style="color:var(--text-muted)">ahmad@company.com</small></td>
+                                    <td>Core Engineering</td>
+                                    <td>12 Jan 2024</td>
+                                    <td><span class="status-badge active">Aktif</span></td>
+                                    <td>
+                                        <button class="btn btn-secondary" style="padding: 5px 10px;" onclick="showToast('Mengedit user Ahmad', 'info')"><i class="fa-solid fa-pen"></i></button>
+                                        <button class="btn btn-secondary" style="padding: 5px 10px; color: var(--danger-color);" onclick="showToast('User dihapus', 'error')"><i class="fa-solid fa-trash"></i></button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>#USR-0022</td>
+                                    <td><strong>Budi Setiadi</strong><br><small style="color:var(--text-muted)">budi@company.com</small></td>
+                                    <td>Product Designer</td>
+                                    <td>15 Feb 2024</td>
+                                    <td><span class="status-badge pending">Tertunda</span></td>
+                                    <td>
+                                        <button class="btn btn-secondary" style="padding: 5px 10px;" onclick="showToast('Mengedit user Budi', 'info')"><i class="fa-solid fa-pen"></i></button>
+                                        <button class="btn btn-secondary" style="padding: 5px 10px; color: var(--danger-color);" onclick="showToast('User dihapus', 'error')"><i class="fa-solid fa-trash"></i></button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>#USR-0023</td>
+                                    <td><strong>Chandra Kirana</strong><br><small style="color:var(--text-muted)">chandra@company.com</small></td>
+                                    <td>Marketing Specialist</td>
+                                    <td>01 Mar 2024</td>
+                                    <td><span class="status-badge active">Aktif</span></td>
+                                    <td>
+                                        <button class="btn btn-secondary" style="padding: 5px 10px;" onclick="showToast('Mengedit user Chandra', 'info')"><i class="fa-solid fa-pen"></i></button>
+                                        <button class="btn btn-secondary" style="padding: 5px 10px; color: var(--danger-color);" onclick="showToast('User dihapus', 'error')"><i class="fa-solid fa-trash"></i></button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>#USR-0024</td>
+                                    <td><strong>Diana Puspita</strong><br><small style="color:var(--text-muted)">diana@company.com</small></td>
+                                    <td>Finance Ops</td>
+                                    <td>18 Apr 2024</td>
+                                    <td><span class="status-badge suspended">Ditangguhkan</span></td>
+                                    <td>
+                                        <button class="btn btn-secondary" style="padding: 5px 10px;" onclick="showToast('Mengedit user Diana', 'info')"><i class="fa-solid fa-pen"></i></button>
+                                        <button class="btn btn-secondary" style="padding: 5px 10px; color: var(--danger-color);" onclick="showToast('User dihapus', 'error')"><i class="fa-solid fa-trash"></i></button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="pagination">
+                        <span>Menampilkan 1 sampai 4 dari 4 entri data</span>
+                        <div class="pag-buttons">
+                            <button class="pag-btn"><i class="fa-solid fa-angle-left"></i></button>
+                            <button class="pag-btn active">1</button>
+                            <button class="pag-btn">2</button>
+                            <button class="pag-btn"><i class="fa-solid fa-angle-right"></i></button>
+                        </div>
+                    </div>
+                </section>
             </div>
+
+            <!-- Footer Area Component -->
+            <footer class="main-footer">
+                <p>&copy; 2026 NexusAdmin Enterprise Solution System Group. All Rights Reserved Enterprise Platform Inc.</p>
+            </footer>
+        </main>
+    </div>
+
+    <!-- Container For Toast System Popup Messages Notification -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Overlay Component Modal Form System UI Element -->
+    <div class="modal-overlay" id="userFormModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>Tambah Akun Karyawan</h3>
+                <button class="nav-icon-btn" id="closeModalBtn" style="font-size: 1rem;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="newUserFormSystem">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="formName">Nama Lengkap Karyawan</label>
+                        <input type="text" id="formName" class="form-control" placeholder="Contoh: Raymond" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="formEmail">Alamat Surel Korporat</label>
+                        <input type="email" id="formEmail" class="form-control" placeholder="nama@perusahaan.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="formDept">Divisi/Departemen Kerja</label>
+                        <select id="formDept" class="form-control">
+                            <option value="Engineering">Core Engineering</option>
+                            <option value="Product">Product Designer</option>
+                            <option value="Marketing">Marketing Specialist</option>
+                            <option value="Finance">Finance Ops</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="cancelModalBtn">Batalkan</button>
+                    <button type="submit" class="btn btn-primary">Simpan Database</button>
+                </div>
+            </form>
         </div>
     </div>
 
-    <!-- Mixer Strip Section -->
-    <div class="mixer-section">
-        <!-- Input 1: Mic / Gen -->
-        <div class="channel-strip">
-            <div class="fader-val" id="lbl-ch1">0.00 dB</div>
-            <div class="fader-wrapper">
-                <input type="range" class="fader-input" id="fader-ch1" min="0" max="1" step="0.01" value="0.7">
-            </div>
-            <div class="btn-group">
-                <button class="strip-btn mute" onclick="toggleMute(this, 0)">Mute</button>
-                <button class="strip-btn">Solo</button>
-            </div>
-            <div class="channel-name">Input L</div>
-        </div>
+    <!-- ==========================================================================
+       10. JAVASCRIPT APP LOGIC ARCHITECTURE (Baris 1801-2200)
+       ========================================================================== -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // --- INisialisasi Selektor Element DOM ---
+            const sidebar = document.getElementById('appSidebar');
+            const toggleSidebar = document.getElementById('toggleSidebar');
+            const themeToggle = document.getElementById('themeToggle');
+            const openModalBtn = document.getElementById('openModalBtn');
+            const closeModalBtn = document.getElementById('closeModalBtn');
+            const cancelModalBtn = document.getElementById('cancelModalBtn');
+            const userFormModal = document.getElementById('userFormModal');
+            const newUserFormSystem = document.getElementById('newUserFormSystem');
+            const tableSearchInput = document.getElementById('tableSearchInput');
+            const dataTableUser = document.getElementById('dataTableUser');
 
-        <!-- Input 2: Playback -->
-        <div class="channel-strip">
-            <div class="fader-val" id="lbl-ch2">0.00 dB</div>
-            <div class="fader-wrapper">
-                <input type="range" class="fader-input" id="fader-ch2" min="0" max="1" step="0.01" value="0.7">
-            </div>
-            <div class="btn-group">
-                <button class="strip-btn mute" onclick="toggleMute(this, 1)">Mute</button>
-                <button class="strip-btn">Solo</button>
-            </div>
-            <div class="channel-name">Input R</div>
-        </div>
+            // --- Logika Sidebar Toggle ---
+            toggleSidebar.addEventListener('click', () => {
+                sidebar.classList.toggle('collapsed');
+                showToast('Ukuran Navigasi Sidebar Berubah', 'info');
+            });
 
-        <!-- Virtual A -->
-        <div class="channel-strip">
-            <div class="fader-val">0.00 dB</div>
-            <div class="fader-wrapper">
-                <input type="range" class="fader-input" min="0" max="1" step="0.01" value="0.7">
-            </div>
-            <div class="btn-group">
-                <button class="strip-btn mute">Mute</button>
-                <button class="strip-btn">Solo</button>
-            </div>
-            <div class="channel-name">Virtual A</div>
-        </div>
+            // --- Logika Pergantian Tema (Dark / Light Theme) ---
+            themeToggle.addEventListener('click', () => {
+                const currentTheme = document.documentElement.getAttribute('data-theme');
+                let targetTheme = 'light';
+                
+                if(currentTheme === 'light') {
+                    targetTheme = 'dark';
+                    themeToggle.innerHTML = '<i class="fa-solid fa-sun"></i>';
+                    showToast('Mode Gelap Diaktifkan', 'success');
+                } else {
+                    targetTheme = 'light';
+                    themeToggle.innerHTML = '<i class="fa-solid fa-moon"></i>';
+                    showToast('Mode Terang Diaktifkan', 'success');
+                }
+                document.documentElement.setAttribute('data-theme', targetTheme);
+            });
 
-        <!-- Virtual B -->
-        <div class="channel-strip">
-            <div class="fader-val">0.00 dB</div>
-            <div class="fader-wrapper">
-                <input type="range" class="fader-input" min="0" max="1" step="0.01" value="0.7">
-            </div>
-            <div class="btn-group">
-                <button class="strip-btn mute">Mute</button>
-                <button class="strip-btn">Solo</button>
-            </div>
-            <div class="channel-name">Virtual B</div>
-        </div>
+            // --- Logika Manajemen Jendela Dialog Modal System ---
+            const toggleModal = () => userFormModal.classList.toggle('open');
+            openModalBtn.addEventListener('click', toggleModal);
+            closeModalBtn.addEventListener('click', toggleModal);
+            cancelModalBtn.addEventListener('click', toggleModal);
 
-        <!-- Master Stereo Output -->
-        <div class="channel-strip master">
-            <div class="fader-val" id="lbl-master">0.00 dB</div>
-            <div class="fader-wrapper">
-                <input type="range" class="fader-input" id="fader-master" min="0" max="1" step="0.01" value="0.8">
-            </div>
-            <div class="btn-group">
-                <button class="strip-btn mute" onclick="toggleMute(this, 'master')">Mute</button>
-            </div>
-            <div class="channel-name" style="color: var(--accent-blue);">Main Stereo</div>
-        </div>
-    </div>
-</div>
+            userFormModal.addEventListener('click', (e) => {
+                if(e.target === userFormModal) toggleModal();
+            });
 
-<script>
-    // --- AUDIO ENGINE (Web Audio API) ---
-    let audioCtx = null;
-    let mainGain, leftGain, rightGain, eqFilter, dynamicsLimiter;
-    let noiseNode = null; // Sebagai simulasi sinyal generator stereo
+            // --- Form Submit Handling & Append Table Row ---
+            newUserFormSystem.addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                const name = document.getElementById('formName').value;
+                const email = document.getElementById('formEmail').value;
+                const dept = document.getElementById('formDept').value;
+                const randomId = Math.floor(1000 + Math.random() * 9000);
 
-    const audioBtn = document.getElementById('audioBtn');
+                const tbody = dataTableUser.querySelector('tbody');
+                const newRow = document.createElement('tr');
 
-    function initAudio() {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        
-        // 1. Create Source (Stereo Noise Generator untuk Testing)
-        const bufferSize = 2 * audioCtx.sampleRate;
-        const noiseBuffer = audioCtx.createBuffer(2, bufferSize, audioCtx.sampleRate);
-        for (let channel = 0; channel < 2; channel++) {
-            let nowBuffering = noiseBuffer.getChannelData(channel);
-            for (let i = 0; i < bufferSize; i++) {
-                nowBuffering[i] = (Math.random() * 2 - 1) * 0.1; // Pinkish/White noise soft
-            }
+                newRow.innerHTML = `
+                    <td>#USR-${randomId}</td>
+                    <td><strong>${name}</strong><br><small style="color:var(--text-muted)">${email}</small></td>
+                    <td>${dept}</td>
+                    <td>6 Jul 2026</td>
+                    <td><span class="status-badge active">Aktif</span></td>
+                    <td>
+                        <button class="btn btn-secondary" style="padding: 5px 10px;" onclick="showToast('Mengedit user ${name}', 'info')"><i class="fa-solid fa-pen"></i></button>
+                        <button class="btn btn-secondary" style="padding: 5px 10px; color: var(--danger-color);" onclick="showToast('User dihapus', 'error')"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                `;
+
+                tbody.appendChild(newRow);
+                newUserFormSystem.reset();
+                toggleModal();
+                showToast(`Data karyawan ${name} berhasil ditambahkan!`, 'success');
+            });
+
+            // --- Logika Pencarian Dinamis pada Data Tabel Konten ---
+            tableSearchInput.addEventListener('keyup', function() {
+                const filter = this.value.toLowerCase();
+                const rows = dataTableUser.querySelectorAll('tbody tr');
+
+                rows.forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    if(text.includes(filter)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            });
+
+            // --- Render Data Visualisasi Menggunakan ChartJS CDN Engine ---
+            const ctxLine = document.getElementById('lineChartMain').getContext('2d');
+            new Chart(ctxLine, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul'],
+                    datasets: [{
+                        label: 'Pendapatan 2026 (Juta Rp)',
+                        data: [65, 78, 72, 95, 110, 130, 148],
+                        borderColor: '#4f46e5',
+                        backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { grid: { color: 'rgba(0,0,0,0.05)' } }, x: { grid: { display: false } } }
+                }
+            });
+
+            const ctxDoughnut = document.getElementById('doughnutChartMain').getContext('2d');
+            new Chart(ctxDoughnut, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Direct', 'Organic SEO', 'Paid Ads', 'Referral'],
+                    datasets: [{
+                        data: [40, 30, 20, 10],
+                        backgroundColor: ['#4f46e5', '#06b6d4', '#f59e0b', '#10b981'],
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+        });
+
+        // --- Fungsi Global Toast Notification Generator ---
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            let icon = '<i class="fa-solid fa-circle-check" style="color:var(--success-color)"></i>';
+            if(type === 'error') icon = '<i class="fa-solid fa-circle-exclamation" style="color:var(--danger-color)"></i>';
+            if(type === 'info') icon = '<i class="fa-solid fa-circle-info" style="color:var(--info-color)"></i>';
+
+            toast.innerHTML = `${icon} <span>${message}</span>`;
+            container.appendChild(toast);
+
+            setTimeout(() => toast.classList.add('show'), 50);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
         }
-        noiseNode = audioCtx.createBufferSource();
-        noiseNode.buffer = noiseBuffer;
-        noiseNode.loop = true;
-
-        // Channel Splitter & Merger untuk memproses Stereo Input terpisah (L & R)
-        const splitter = audioCtx.createChannelSplitter(2);
-        const merger = audioCtx.createChannelMerger(2);
-
-        leftGain = audioCtx.createGain();
-        rightGain = audioCtx.createGain();
-
-        // 2. EQ Filter (Peaking Filter)
-        eqFilter = audioCtx.createBiquadFilter();
-        eqFilter.type = "peaking";
-        eqFilter.frequency.value = document.getElementById('eq-freq').value;
-        eqFilter.gain.value = document.getElementById('eq-gain').value;
-        eqFilter.Q.value = 1.0;
-
-        // 3. Limiter Node
-        dynamicsLimiter = audioCtx.createDynamicsCompressor();
-        dynamicsLimiter.threshold.value = document.getElementById('limiter-thsh').value;
-        dynamicsLimiter.knee.value = 0.0; // Hard limiter style
-        dynamicsLimiter.ratio.value = 20.0;
-        dynamicsLimiter.attack.value = 0.001;
-        dynamicsLimiter.release.value = 0.05;
-
-        // 4. Master Output Gain
-        mainGain = audioCtx.createGain();
-
-        // --- Routing Graph ---
-        // Source -> Splitter (L & R Input)
-        noiseNode.connect(splitter);
-        
-        // Routing Per-Channel Fader
-        splitter.connect(leftGain, 0);  // Left Channel ke Fader 1
-        splitter.connect(rightGain, 1); // Right Channel ke Fader 2
-
-        // Gabungkan kembali ke Jalur Stereo setelah Fader Input
-        leftGain.connect(merger, 0, 0);
-        rightGain.connect(merger, 0, 1);
-
-        // Jalur FX Chain: Merger -> EQ -> Limiter -> Master Gain -> Speakers
-        merger.connect(eqFilter);
-        eqFilter.connect(dynamicsLimiter);
-        dynamicsLimiter.connect(mainGain);
-        mainGain.connect(audioCtx.destination);
-
-        noiseNode.start();
-        audioBtn.textContent = "AUDIO ACTIVE";
-        audioBtn.style.backgroundColor = "#28a745";
-    }
-
-    audioBtn.addEventListener('click', () => {
-        if (!audioCtx) {
-            initAudio();
-        } else if (audioCtx.state === 'suspended') {
-            audioCtx.resume();
-            audioBtn.textContent = "AUDIO ACTIVE";
-        } else {
-            audioCtx.suspend();
-            audioBtn.textContent = "AUDIO PAUSED";
-        }
-    });
-
-    // --- UI CONTROLS INTERACTION ---
-
-    // Fader & Level Control
-    const faderCh1 = document.getElementById('fader-ch1');
-    const faderCh2 = document.getElementById('fader-ch2');
-    const faderMaster = document.getElementById('fader-master');
-
-    function linearToDb(val) {
-        if(val === 0) return '-inf';
-        let db = 20 * Math.log10(val);
-        return db.toFixed(2) + " dB";
-    }
-
-    faderCh1.addEventListener('input', (e) => {
-        let v = parseFloat(e.target.value);
-        if(leftGain) leftGain.gain.value = v;
-        document.getElementById('lbl-ch1').textContent = linearToDb(v);
-    });
-
-    faderCh2.addEventListener('input', (e) => {
-        let v = parseFloat(e.target.value);
-        if(rightGain) rightGain.gain.value = v;
-        document.getElementById('lbl-ch2').textContent = linearToDb(v);
-    });
-
-    faderMaster.addEventListener('input', (e) => {
-        let v = parseFloat(e.target.value);
-        if(mainGain) mainGain.gain.value = v;
-        document.getElementById('lbl-master').textContent = linearToDb(v);
-    });
-
-    // Mute Logic
-    function toggleMute(btn, channel) {
-        btn.classList.toggle('active');
-        let isMuted = btn.classList.contains('active');
-        
-        if (channel === 0 && leftGain) leftGain.gain.value = isMuted ? 0 : faderCh1.value;
-        if (channel === 1 && rightGain) rightGain.gain.value = isMuted ? 0 : faderCh2.value;
-        if (channel === 'master' && mainGain) mainGain.gain.value = isMuted ? 0 : faderMaster.value;
-    }
-
-    // EQ UI & Control
-    const eqFreqInput = document.getElementById('eq-freq');
-    const eqGainInput = document.getElementById('eq-gain');
-    const eqPath = document.getElementById('eqPath');
-    const eqPoint = document.getElementById('eqPoint');
-
-    function updateEQCurve() {
-        let freq = eqFreqInput.value;
-        let gain = eqGainInput.value;
-
-        document.getElementById('lbl-freq').textContent = freq + " Hz";
-        document.getElementById('lbl-gain').textContent = parseFloat(gain).toFixed(2) + " dB";
-
-        if(eqFilter) {
-            eqFilter.frequency.value = freq;
-            eqFilter.gain.value = gain;
-        }
-
-        // Koreksi visual grafik kurva
-        let mapX = ((freq - 40) / 360) * 300 + 50; 
-        let mapY = 60 - (gain * 4); // menggeser titik grafik ke atas/bawah
-        
-        eqPath.setAttribute('d', `M 0 60 Q ${mapX} ${mapY} 400 60`);
-        eqPoint.setAttribute('cx', mapX);
-        eqPoint.setAttribute('cy', mapY);
-    }
-
-    eqFreqInput.addEventListener('input', updateEQCurve);
-    eqGainInput.addEventListener('input', updateEQCurve);
-
-    // Limiter UI & Control
-    const limThshInput = document.getElementById('limiter-thsh');
-    limThshInput.addEventListener('input', (e) => {
-        let v = parseFloat(e.target.value);
-        document.getElementById('lbl-limit').textContent = v.toFixed(2) + " dB";
-        if(dynamicsLimiter) dynamicsLimiter.threshold.value = v;
-    });
-
-    // Inisialisasi awal kurva grafik
-    updateEQCurve();
-</script>
-
+    </script>
 </body>
 </html>
