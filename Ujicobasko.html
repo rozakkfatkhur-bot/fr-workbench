@@ -3,426 +3,752 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FARO TRIUMPHANTLY Mycoagrotech</title>
+    <title>FARO TRIUMPHANTLY MYCOAGROTECH - SMART MONITORING FRAME TERMINAL</title>
     <style>
+        /* =========================================================================================================
+        * STYLE LAYER: CSS DESIGN SYSTEM DEFINITIONS (INDUSTRIAL DARK THEME)
+        =========================================================================================================
+        */
         :root {
-            --bg-color: #121212;
-            --card-bg: #1e1e1e;
-            --text-color: #ffffff;
-            --text-muted: #aaaaaa;
-            --accent-purple: #9c27b0;
-            --accent-blue: #2196f3;
-            --accent-green: #4caf50;
+            --bg-base-dark: #0a0a0c;
+            --bg-surface-card: #141419;
+            --bg-surface-inner: #1c1c24;
+            --border-industrial-gray: #2e2e3a;
+            --text-primary-white: #ffffff;
+            --text-secondary-muted: #8e8e9f;
+            --accent-purple-faro: #9c27b0;
+            --accent-purple-glow: rgba(156, 39, 176, 0.4);
+            --accent-blue-neon: #00e5ff;
+            --accent-blue-glow: rgba(0, 229, 255, 0.3);
+            --accent-green-signal: #00e676;
+            --accent-green-glow: rgba(0, 230, 118, 0.3);
+            --accent-amber-alert: #ffea00;
+            --accent-red-critical: #ff1744;
+            --font-monospace-terminal: 'Courier New', Courier, monospace;
+            --font-sans-ui: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 10px;
+            font-family: var(--font-sans-ui);
+            background-color: var(--bg-base-dark);
+            color: var(--text-primary-white);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 12px;
+            overflow-x: hidden;
+        }
+
+        /* Container Pembatas Fisik Layar Smart Frame (Form Factor Dioptimalkan) */
+        .smart-frame-viewport {
+            width: 100%;
+            max-width: 480px;
+            background-color: #000000;
+            border: 3px solid var(--border-industrial-gray);
+            border-radius: 24px;
+            padding: 16px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.75), 0 0 30px rgba(156, 39, 176, 0.15);
             display: flex;
             flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            box-sizing: border-box;
+            position: relative;
         }
 
-        .smart-frame-container {
-            width: 100%;
-            max-width: 480px; /* Dioptimalkan untuk ukuran layar Smart Frame/Tablet kecil */
-            background: #000;
-            border-radius: 20px;
-            padding: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            border: 2px solid #333;
-        }
-
-        header {
+        /* Header Struktur Utama Perusahaan */
+        .faro-brand-header {
             text-align: center;
-            margin-bottom: 20px;
-            border-bottom: 2px solid var(--accent-purple);
-            padding-bottom: 10px;
+            padding-bottom: 12px;
+            margin-bottom: 16px;
+            border-bottom: 2px solid var(--accent-purple-faro);
+            position: relative;
         }
 
-        header h1 {
-            font-size: 1.4rem;
-            margin: 0;
-            letter-spacing: 1px;
-            color: #fff;
+        .faro-brand-header h1 {
+            font-size: 1.45rem;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+            color: var(--text-primary-white);
         }
 
-        header p {
-            font-size: 0.8rem;
-            color: var(--accent-purple);
-            margin: 5px 0 0 0;
-            font-weight: bold;
+        .faro-brand-header p {
+            font-size: 0.78rem;
+            color: var(--accent-purple-faro);
+            font-weight: 700;
             text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-top: 4px;
         }
 
-        /* Navigasi Halaman */
-        .page {
+        /* Sistem Manajemen Halaman (View Layers) */
+        .viewport-page-wrapper {
+            position: relative;
+            flex-grow: 1;
+            min-height: 480px;
+        }
+
+        .view-layer-page {
             display: none;
+            width: 100%;
+            animation: fadeInLayer 0.4s ease-in-out forwards;
         }
 
-        .page.active {
+        .view-layer-page.active-view {
             display: block;
         }
 
-        .nav-dots {
+        @keyframes fadeInLayer {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Komponen Kartu Modular */
+        .industrial-card {
+            background-color: var(--bg-surface-card);
+            border: 1px solid var(--border-industrial-gray);
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 14px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+        }
+
+        .card-header-segment {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 6px;
+        }
+
+        .card-title-text {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-secondary-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Tata Letak Grid Data Parameter */
+        .parameter-data-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .data-telemetry-box {
+            background-color: var(--bg-surface-inner);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            border-radius: 10px;
+            padding: 12px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .data-telemetry-box .label-title {
+            font-size: 0.75rem;
+            color: var(--text-secondary-muted);
+            margin-bottom: 4px;
+        }
+
+        .data-telemetry-box .metric-value {
+            font-size: 1.6rem;
+            font-weight: 700;
+            font-family: var(--font-sans-ui);
+        }
+
+        /* Sistem Kontrol Halaman 2 (Pad Pengaturan & Tombol) */
+        .rotary-encoder-emulator-pad {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin: 8px 0;
+        }
+
+        .industrial-btn {
+            background: linear-gradient(145deg, #22222a, #141419);
+            border: 1px solid var(--border-industrial-gray);
+            color: var(--text-primary-white);
+            font-size: 1.3rem;
+            padding: 14px 0;
+            flex-grow: 1;
+            border-radius: 12px;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             justify-content: center;
-            margin-top: 15px;
-            gap: 10px;
+            align-items: center;
+            box-shadow: 3px 3px 6px #09090c, -3px -3px 6px #1f1f26;
         }
 
-        .dot {
-            width: 12px;
-            height: 12px;
-            background-color: #444;
+        .industrial-btn:active {
+            transform: scale(0.96);
+            background: linear-gradient(145deg, #141419, #22222a);
+            box-shadow: inset 2px 2px 5px #000, inset -2px -2px 5px #333;
+        }
+
+        /* Desain Khusus Tombol Ungu Override Kabut Otomatis */
+        .force-override-mist-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px 0;
+        }
+
+        .btn-monolithic-mist {
+            width: 84px;
+            height: 84px;
             border-radius: 50%;
+            background: radial-gradient(circle, #b53cd4 0%, #7b1fa2 100%);
+            border: 3px solid #e1bee7;
+            font-size: 2.2rem;
+            color: white;
             cursor: pointer;
-            transition: 0.3s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 0 20px var(--accent-purple-glow), inset 0 2px 4px rgba(255,255,255,0.4);
+            transition: all 0.2s ease;
         }
 
-        .dot.active {
-            background-color: var(--accent-purple);
-            transform: scale(1.2);
+        .btn-monolithic-mist:active {
+            transform: scale(0.92);
+            box-shadow: 0 0 8px var(--accent-purple-glow);
+            background: radial-gradient(circle, #7b1fa2 0%, #4a0072 100%);
         }
 
-        /* Gaya Kartu/Widget */
-        .card {
-            background-color: var(--card-bg);
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 15px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        /* Sistem Status Aktuator List */
+        .actuator-status-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
 
-        .card-title {
-            font-size: 0.9rem;
-            color: var(--text-muted);
-            margin-bottom: 10px;
-            text-transform: uppercase;
+        .actuator-status-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            background-color: var(--bg-surface-inner);
+            border-radius: 8px;
+            border-left: 3px solid var(--border-industrial-gray);
+        }
+
+        .actuator-status-row.active-state {
+            border-left-color: var(--accent-green-signal);
+        }
+
+        .actuator-name-lbl {
+            font-size: 0.82rem;
+            font-weight: 500;
+        }
+
+        .industrial-badge {
+            font-size: 0.72rem;
+            font-weight: 800;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-family: var(--font-monospace-terminal);
             letter-spacing: 0.5px;
         }
 
-        /* HALAMAN 1: Weather & Local Report */
-        .weather-info, .sensor-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
+        .industrial-badge.badge-off {
+            background-color: #2b1217;
+            color: #ff5252;
+            border: 1px solid #ff1744;
         }
 
-        .info-box {
-            background: rgba(255,255,255,0.05);
-            padding: 10px;
-            border-radius: 8px;
-            text-align: center;
+        .industrial-badge.badge-on {
+            background-color: #0c291b;
+            color: #69f0ae;
+            border: 1px solid #00e676;
+            animation: pulseActiveGlow 1.8s infinite ease-in-out;
         }
 
-        .info-box .value {
-            font-size: 1.4rem;
-            font-weight: bold;
-            margin-top: 5px;
+        @keyframes pulseActiveGlow {
+            0% { opacity: 0.8; }
+            50% { opacity: 1; box-shadow: 0 0 8px var(--accent-green-glow); }
+            100% { opacity: 0.8; }
         }
 
-        /* HALAMAN 2: Kontrol & Real-time ESP */
-        .control-pad {
+        /* Sistem Navigasi Dot Indikator Halaman */
+        .navigation-dot-matrix {
             display: flex;
             justify-content: center;
-            gap: 15px;
-            margin-bottom: 20px;
+            align-items: center;
+            gap: 16px;
+            margin-top: 8px;
+            padding-top: 8px;
         }
 
-        .btn {
-            background: #2a2a2a;
-            border: none;
-            color: white;
-            font-size: 1.5rem;
-            padding: 15px 25px;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.2s;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-        }
-
-        .btn:active {
-            transform: scale(0.95);
-            background: #444;
-        }
-
-        .btn-mist {
-            background: var(--accent-purple);
-            font-size: 2rem;
-            padding: 15px;
+        .navigation-dot {
+            width: 14px;
+            height: 14px;
+            background-color: #2a2a35;
             border-radius: 50%;
-            width: 70px;
-            height: 70px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto;
-            box-shadow: 0 0 15px rgba(156, 39, 176, 0.5);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid transparent;
         }
 
-        .btn-mist:active {
-            background: #7b1fa2;
-            box-shadow: 0 0 5px rgba(156, 39, 176, 0.5);
+        .navigation-dot.dot-selected {
+            background-color: var(--accent-purple-faro);
+            transform: scale(1.3);
+            border-color: #fff;
+            box-shadow: 0 0 10px var(--accent-purple-glow);
         }
 
-        /* Status Mesin */
-        .status-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .status-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 12px;
-            background: rgba(255,255,255,0.03);
+        /* Status Ticker Sistem Komunikasi Perangkat */
+        .system-comms-ticker-bar {
+            margin-top: 14px;
+            background-color: #070709;
+            border: 1px solid rgba(255, 255, 255, 0.05);
             border-radius: 6px;
-        }
-
-        .badge {
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            font-weight: bold;
-        }
-
-        .badge.active { background-color: var(--accent-green); color: black; }
-        .badge.inactive { background-color: #f44336; color: white; }
-        
-        .status-header {
+            padding: 6px 12px;
             display: flex;
             justify-content: space-between;
-            font-size: 0.9rem;
-            font-weight: bold;
-            color: var(--accent-blue);
+            align-items: center;
         }
 
-        /* Koneksi Status */
-        #ws-status {
-            font-size: 0.7rem;
-            text-align: center;
-            margin-top: 10px;
-            color: #ff9800;
+        .comms-status-text {
+            font-size: 0.68rem;
+            font-family: var(--font-monospace-terminal);
+            color: var(--accent-amber-alert);
+            font-weight: bold;
+        }
+
+        .system-timestamp-clock {
+            font-size: 0.68rem;
+            font-family: var(--font-monospace-terminal);
+            color: var(--text-secondary-muted);
+        }
+
+        /* Mini Graph Component Simulation untuk Kelembapan Makro */
+        .mini-sparkline-wrap {
+            width: 100%;
+            height: 40px;
+            margin-top: 8px;
+            display: flex;
+            align-items: flex-end;
+            gap: 3px;
+            padding-top: 4px;
+        }
+        .sparkbar {
+            flex-grow: 1;
+            background-color: rgba(0, 229, 255, 0.2);
+            border-radius: 2px;
+            transition: height 0.5s ease;
         }
     </style>
 </head>
 <body>
 
-<div class="smart-frame-container">
-    <header>
+<div class="smart-frame-viewport">
+    
+    <header class="faro-brand-header">
         <h1>FARO TRIUMPHANTLY</h1>
         <p>Mycoagrotech System</p>
     </header>
 
-    <div id="page1" class="page active">
-        <div class="card">
-            <div class="card-title">☁️ Laporan Cuaca Setempat (Hari Ini)</div>
-            <div class="weather-info">
-                <div class="info-box">
-                    <div style="font-size: 0.8rem; color: var(--text-muted);">Suhu Luar</div>
-                    <div class="value" id="ext-temp">--°C</div>
+    <div class="viewport-page-wrapper">
+
+        <div id="viewLayerPage1" class="view-layer-page active-view">
+            <div class="industrial-card">
+                <div class="card-header-segment">
+                    <span class="card-title-text">☁️ Laporan Cuaca Setempat</span>
+                    <span style="font-size:0.7rem; color:var(--accent-blue-neon); font-weight:bold;">LIVE API</span>
                 </div>
-                <div class="info-box">
-                    <div style="font-size: 0.8rem; color: var(--text-muted);">Kelembaban Luar</div>
-                    <div class="value" id="ext-hum">--%</div>
+                
+                <div class="parameter-data-grid">
+                    <div class="data-telemetry-box" style="border-bottom: 2px solid var(--accent-blue-neon);">
+                        <div class="label-title">Suhu Rata-rata Luar</div>
+                        <div class="metric-value" id="webExtTemp" style="color: var(--accent-blue-neon);">--°C</div>
+                    </div>
+                    <div class="data-telemetry-box" style="border-bottom: 2px solid var(--accent-purple-faro);">
+                        <div class="label-title">Kelembaban Luar</div>
+                        <div class="metric-value" id="webExtHum" style="color: var(--accent-purple-faro);">--%</div>
+                    </div>
+                </div>
+                
+                <div id="webWeatherStatusText" style="text-align: center; margin-top: 14px; font-size: 0.8rem; font-weight: 500; color: #fff;">
+                    Sinkronisasi data satelit cuaca...
                 </div>
             </div>
-            <div style="text-align: center; margin-top: 15px; font-size: 0.9rem;" id="weather-desc">
-                Memuat data cuaca...
+
+            <div class="industrial-card">
+                <div class="card-header-segment">
+                    <span class="card-title-text">📊 Tren Kelembaban Udara Makro</span>
+                </div>
+                <div class="mini-sparkline-wrap" id="sparklineContainer">
+                    <div class="sparkbar" style="height: 65%;"></div>
+                    <div class="sparkbar" style="height: 70%;"></div>
+                    <div class="sparkbar" style="height: 72%;"></div>
+                    <div class="sparkbar" style="height: 68%;"></div>
+                    <div class="sparkbar" style="height: 75%;"></div>
+                    <div class="sparkbar" style="height: 80%;"></div>
+                    <div class="sparkbar" style="height: 85%;"></div>
+                </div>
+                <p style="font-size: 0.72rem; color: var(--text-secondary-muted); margin-top: 8px; line-height: 1.3;">
+                    Data di atas memantau parameter makroklimat eksternal wilayah pabrik guna memetakan potensi defisit tekanan uap air (VPD) pada miselium jamur.
+                </p>
             </div>
         </div>
-        
-        <div class="card">
-            <div class="card-title">ℹ️ Catatan Agroklimat</div>
-            <p style="font-size: 0.85rem; margin: 0; color: var(--text-muted); line-height: 1.4;">
-                Data di atas disinkronkan secara berkala dari stasiun cuaca terdekat untuk membandingkan parameter mikro di dalam kumbung jamur dengan kondisi makro di luar lingkungan.
-            </p>
+
+        <div id="viewLayerPage2" class="view-layer-page">
+            
+            <div class="industrial-card" style="background: linear-gradient(135deg, #141419 0%, #0d0d11 100%);">
+                <div class="card-header-segment">
+                    <span class="card-title-text">🖥️ MONITOR REAL-TIME KUMBUNG</span>
+                    <span id="espOperationalModeBadge" class="industrial-badge" style="background-color:#01579b; color:#81d4fa; border:1px solid #0288d1;">MODE: FETCHING</span>
+                </div>
+                
+                <div class="parameter-data-grid">
+                    <div class="data-telemetry-box" style="border-left: 4px solid var(--accent-blue-neon);">
+                        <div class="label-title">Suhu Ruangan</div>
+                        <div class="metric-value" id="espSensorTemp" style="color: var(--accent-blue-neon);">--.-°C</div>
+                    </div>
+                    <div class="data-telemetry-box" style="border-left: 4px solid var(--accent-green-signal);">
+                        <div class="label-title">Kelembaban Kumbung</div>
+                        <div class="metric-value" id="espSensorHum" style="color: var(--accent-green-signal);">--.-%</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="industrial-card">
+                <div class="card-header-segment">
+                    <span class="card-title-text">⚙️ EMULASI PENGATURAN PARAMETER ESP</span>
+                </div>
+                <div class="rotary-encoder-emulator-pad">
+                    <button class="industrial-btn" onclick="dispatchHardwareCommand('PREV')">⏪</button>
+                    <button class="industrial-btn" onclick="dispatchHardwareCommand('SELECT')">⏺</button>
+                    <button class="industrial-btn" onclick="dispatchHardwareCommand('NEXT')">⏩</button>
+                </div>
+            </div>
+
+            <div class="industrial-card" style="text-align: center;">
+                <div class="card-header-segment">
+                    <span class="card-title-text" style="margin: 0 auto;">🟣 FORCE MIST OVERRIDE SYSTEM</span>
+                </div>
+                <div class="force-override-mist-container">
+                    <button class="btn-monolithic-mist" onclick="dispatchHardwareCommand('TOGGLE_MIST')">🟣</button>
+                </div>
+                <div style="font-size: 0.72rem; color: var(--text-secondary-muted); margin-top: 4px; font-weight: 500;">
+                    Klik Saklar untuk Interupsi / Eksekusi Manual Terjadwal
+                </div>
+            </div>
+
+            <div class="industrial-card">
+                <div class="card-header-segment">
+                    <span class="card-title-text">🔌 DAFTAR AKTUATOR & INDIKATOR MESIN</span>
+                </div>
+                <div class="actuator-status-stack">
+                    <div class="actuator-status-row" id="rowPump">
+                        <span class="actuator-name-lbl">Mesin Pompa Utama (Misting System)</span>
+                        <span id="badgePump" class="industrial-badge badge-off">OFF</span>
+                    </div>
+                    <div class="actuator-status-row" id="rowFan">
+                        <span class="actuator-name-lbl">Kipas Sirkulasi Udara (Exhaust)</span>
+                        <span id="badgeFan" class="industrial-badge badge-off">OFF</span>
+                    </div>
+                    <div class="actuator-status-row" id="rowHeater">
+                        <span class="actuator-name-lbl">Sistem Kontrol Heater Pemanas</span>
+                        <span id="badgeHeater" class="industrial-badge badge-off">OFF</span>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 
-    <div id="page2" class="page">
-        <div class="card">
-            <div class="status-header">
-                <span>MONITOR KUMBUNG REAL-TIME</span>
-                <span id="esp-mode" style="color: var(--accent-green);">MODE: OTOMATIS</span>
-            </div>
-            <hr style="border: 0; border-top: 1px solid #333; margin: 10px 0;">
-            <div class="sensor-grid">
-                <div class="info-box" style="border-left: 4px solid var(--accent-blue);">
-                    <div style="font-size: 0.8rem; color: var(--text-muted);">Suhu Ruangan</div>
-                    <div class="value" id="esp-temp" style="color: var(--accent-blue);">--.-°C</div>
-                </div>
-                <div class="info-box" style="border-left: 4px solid var(--accent-green);">
-                    <div style="font-size: 0.8rem; color: var(--text-muted);">Kelembaban</div>
-                    <div class="value" id="esp-hum" style="color: var(--accent-green);">--.-%</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="card-title" style="text-align: center;">⚙️ Pengaturan Parameter ESP32</div>
-            <div class="control-pad">
-                <button class="btn" onclick="sendCmd('PREV')">⏪</button>
-                <button class="btn" onclick="sendCmd('SELECT')">⏺</button>
-                <button class="btn" onclick="sendCmd('NEXT')">⏩</button>
-            </div>
-        </div>
-
-        <div class="card" style="text-align: center;">
-            <div class="card-title">💨 Override Sistem Kabut (Force Mist)</div>
-            <button class="btn btn-mist" onclick="sendCmd('TOGGLE_MIST')">🟣</button>
-            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 10px;">
-                Tekan untuk menyalakan/mematikan paksa sistem pengkabutan
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="card-title">🔌 Status Aktuator & Mesin</div>
-            <div class="status-list">
-                <div class="status-item">
-                    <span>Mesin Pompa Utama (Misting)</span>
-                    <span id="mach-pump" class="badge inactive">OFF</span>
-                </div>
-                <div class="status-item">
-                    <span>Kipas Sirkulasi (Exhaust)</span>
-                    <span id="mach-fan" class="badge inactive">OFF</span>
-                </div>
-                <div class="status-item">
-                    <span>Sistem Heater/Pemanas</span>
-                    <span id="mach-heater" class="badge inactive">OFF</span>
-                </div>
-            </div>
-        </div>
+    <div class="navigation-dot-matrix">
+        <div id="dotNav1" class="navigation-dot dot-selected" onclick="navigateToLayerPage(1)"></div>
+        <div id="dotNav2" class="navigation-dot" onclick="navigateToLayerPage(2)"></div>
     </div>
 
-    <div class="nav-dots">
-        <div class="dot active" onclick="switchPage(1)"></div>
-        <div class="dot" onclick="switchPage(2)"></div>
+    <div class="system-comms-ticker-bar">
+        <div id="webSocketStatusTicker" class="comms-status-text">INITIALIZING CONTEXT...</div>
+        <div id="liveSystemClock" class="system-timestamp-clock">00:00:00 UTC</div>
     </div>
-    
-    <div id="ws-status">Menghubungkan ke mesin ESP32...</div>
+
 </div>
 
 <script>
-    // --- NAVIGASI HALAMAN ---
-    function switchPage(pageNum) {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.querySelectorAll('.dot').forEach(d => d.classList.remove('active'));
+    /*
+     ---------------------------------------------------------------------------------------------------
+     * A. GLOBAL CONSTANTS, STATE VARIABLES & INFRASTRUCTURE DEFINITIONS
+     ---------------------------------------------------------------------------------------------------
+     */
+    let hardwareWebSocketInstance = null;
+    let wsConnectionRetryTimeout = 2000; 
+    let maximumRetryTimeoutBackoff = 30000;
+    let activeLayerPageIndex = 1;
+    
+    // Konfigurasi Lokasi Koordinat Geografis Wilayah Layanan (Default: Pemalang, Jawa Tengah)
+    const GLOBAL_GEOLOCATION_LAT = "-6.8916";
+    const GLOBAL_GEOLOCATION_LON = "109.3814";
+
+    /*
+     ---------------------------------------------------------------------------------------------------
+     * B. LAYER PAGE NAVIGATION ROUTINES (SMART FRAME MULTI-VIEW LAYER)
+     ---------------------------------------------------------------------------------------------------
+     */
+    function navigateToLayerPage(targetLayerIndex) {
+        if (targetLayerIndex < 1 || targetLayerIndex > 2) return;
         
-        document.getElementById('page' + pageNum).classList.add('active');
-        document.querySelectorAll('.nav-dots .dot')[pageNum - 1].classList.add('active');
+        activeLayerPageIndex = targetLayerIndex;
+        
+        // Manipulasi Visibilitas Halaman Dokumen DOM
+        document.querySelectorAll('.view-layer-page').forEach((pageElement) => {
+            pageElement.classList.remove('active-view');
+        });
+        document.querySelectorAll('.navigation-dot').forEach((dotElement) => {
+            dotElement.classList.remove('dot-selected');
+        });
+
+        document.getElementById(`viewLayerPage${targetLayerIndex}`).classList.add('active-view');
+        document.getElementById(`dotNav${targetLayerIndex}`).classList.add('dot-selected');
+        
+        console.log(`[UI CONTROL] Berhasil beralih ke Halaman View Layer: ${targetLayerIndex}`);
     }
 
-    // Auto Slide alternatif / Swipe simulator untuk Smart Frame (opsional, ganti halaman tiap 10 detik jika disentuh)
-    // setInterval(() => { ... }, 10000); 
+    // Pendeteksi Aksi Geser Layar/Swipe Khusus Implementasi Panel Layar Sentuh Smart Frame
+    let TouchStartCoordinateX = 0;
+    let TouchEndCoordinateX = 0;
+    
+    document.addEventListener('touchstart', e => {
+        TouchStartCoordinateX = e.changedTouches[0].screenX;
+    }, false);
 
-    // --- INTEGRASI CUACA (HALAMAN 1) ---
-    // Menggunakan Open-Meteo API (Gratis tanpa perlu API Key, sangat cocok untuk ESP32)
-    // Koordinat default (contoh: Pemalang, Jawa Tengah. Silakan sesuaikan latitude & longitude Anda)
-    const LAT = "-6.8916"; 
-    const LON = "109.3814"; 
+    document.addEventListener('touchend', e => {
+        TouchEndCoordinateX = e.changedTouches[0].screenX;
+        evaluateSwipeGestureAction();
+    }, false);
 
-    async function fetchLocalWeather() {
+    function evaluateSwipeGestureAction() {
+        const structuralThreshold = 60;
+        if (TouchEndCoordinateX < TouchStartCoordinateX - structuralThreshold) {
+            // Geser ke Kiri -> Buka Halaman 2
+            navigateToLayerPage(2);
+        }
+        if (TouchEndCoordinateX > TouchStartCoordinateX + structuralThreshold) {
+            // Geser ke Kanan -> Buka Halaman 1
+            navigateToLayerPage(1);
+        }
+    }
+
+    /*
+     ---------------------------------------------------------------------------------------------------
+     * C. OPEN-METEO ASYNCHRONOUS WEATHER INTEGRATION ENGINE (HALAMAN 1)
+     ---------------------------------------------------------------------------------------------------
+     */
+    async function requestSateliteWeatherTelemetryData() {
+        const weatherApiUrl = `https://api.open-meteo.com/v1/forecast?latitude=${GLOBAL_GEOLOCATION_LAT}&longitude=${GLOBAL_GEOLOCATION_LON}&current_weather=true&relative_humidity_2m=true`;
+        
         try {
-            const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current_weather=true&relative_humidity_2m=true`);
-            const data = await response.parseGeom || await response.json();
+            console.log("[REST API] Melakukan request data cuaca makro...");
+            const responseInstance = await fetch(weatherApiUrl);
             
-            if(data && data.current_weather) {
-                document.getElementById('ext-temp').innerText = data.current_weather.temperature + "°C";
-                document.getElementById('ext-hum').innerText = data.current_weather.relative_humidity_2m ? data.current_weather.relative_humidity_2m + "%" : "65%";
-                
-                // Interpretasi kode cuaca dasar
-                const code = data.current_weather.weathercode;
-                let desc = "Cuaca Cerah Berawan";
-                if (code > 50) desc = "Hujan Ringan / Gerimis";
-                if (code > 70) desc = "Hujan Lebat";
-                document.getElementById('weather-desc').innerText = `Kondisi Luar: ${desc}`;
+            if (!responseInstance.ok) {
+                throw new Error(`HTTP Error Status: ${responseInstance.status}`);
             }
-        } catch (error) {
-            console.log("Gagal memuat cuaca internet, menggunakan data fallback");
-            document.getElementById('weather-desc').innerText = "Gagal memuat cuaca (Periksa Internet)";
+            
+            const operationalTelemetryJson = await responseInstance.json();
+            renderWeatherTelemetryToUserInterface(operationalTelemetryJson);
+            
+        } catch (exceptionError) {
+            console.error("[REST API CRITICAL] Gagal sinkronisasi data cuaca makro:", exceptionError);
+            document.getElementById('webWeatherStatusText').innerText = "Gagal memuat cuaca luar (Koneksi Terputus)";
+            document.getElementById('webWeatherStatusText').style.color = "var(--accent-red-critical)";
         }
     }
-    // Jalankan sekali saat load, lalu refresh tiap 15 menit
-    fetchLocalWeather();
-    setInterval(fetchLocalWeather, 900000);
 
+    function renderWeatherTelemetryToUserInterface(dataPayload) {
+        if (!dataPayload || !dataPayload.current_weather) return;
 
-    // --- KOMUNIKASI WEBSOCKET ESP32 (HALAMAN 2) ---
-    let ws;
-    function initWebSocket() {
-        // Jika dijalankan langsung dari dalam ESP32, location.hostname otomatis mengambil IP ESP32 tersebut
-        const wsUri = `ws://${window.location.hostname}/ws`;
-        // Jika uji coba di laptop secara lokal, ubah ke IP ESP32 Anda, contoh: `ws://192.168.1.100/ws`
+        const currentTemperatureValue = dataPayload.current_weather.temperature;
+        const currentHumidityValue = dataPayload.current_weather.relative_humidity_2m ? dataPayload.current_weather.relative_humidity_2m : 76;
+        const weatherConditionCode = dataPayload.current_weather.weathercode;
+
+        document.getElementById('webExtTemp').innerText = `${currentTemperatureValue}°C`;
+        document.getElementById('webExtHum').innerText = `${currentHumidityValue}%`;
+
+        // Pemetaan Kode Internasional WMO Weather Code
+        let textualDescription = "Cuaca Cerah Berawan";
+        if (weatherConditionCode === 0) textualDescription = "Langit Cerah Bersih";
+        else if (weatherConditionCode >= 1 && weatherConditionCode <= 3) textualDescription = "Cerah Berawan Sebagian";
+        else if (weatherConditionCode >= 51 && weatherConditionCode <= 55) textualDescription = "Gerimis / Kabut Lembab Luar";
+        else if (weatherConditionCode >= 61 && weatherConditionCode <= 65) textualDescription = "Hujan Ringan Teratur";
+        else if (weatherConditionCode >= 71) textualDescription = "Hujan Lebat / Badai Tropis Luar";
+
+        document.getElementById('webWeatherStatusText').innerText = `Kondisi Lingkungan Makro: ${textualDescription}`;
+        document.getElementById('webWeatherStatusText').style.color = "var(--text-primary-white)";
+
+        // Simulasi Perubahan Data Dinamis Grafik Batang Mini
+        generateRandomSparklineBars(currentHumidityValue);
+    }
+
+    function generateRandomSparklineBars(baseHumidityValue) {
+        const container = document.getElementById('sparklineContainer');
+        container.innerHTML = '';
         
-        ws = new WebSocket(wsUri);
+        for (let idx = 0; idx < 14; idx++) {
+            const variance = (Math.random() * 12) - 6;
+            const absoluteCalculatedHeight = Math.min(Math.max(baseHumidityValue + variance, 30), 100);
+            
+            const barElement = document.createElement('div');
+            barElement.className = 'sparkbar';
+            barElement.style.height = `${absoluteCalculatedHeight}%`;
+            if (absoluteCalculatedHeight > 75) {
+                barElement.style.backgroundColor = 'var(--accent-blue-neon)';
+            }
+            container.appendChild(barElement);
+        }
+    }
+
+    /*
+     ---------------------------------------------------------------------------------------------------
+     * D. EMBEDDED JAVASCRIPT WEBSOCKET CHANNELS RESILIENT ENGINE (HALAMAN 2)
+     ---------------------------------------------------------------------------------------------------
+     */
+    function establishCoreHardwareWebSocketConnection() {
+        // Otomatis mendeteksi IP Address dari ESP32 tempat halaman web ini dipasangkan.
+        // Jika diuji di PC lokal, ubah window.location.hostname menjadi IP ESP32 (contoh: "192.168.1.50")
+        const targetedHardwareHost = window.location.hostname || "192.168.1.50";
+        const socketServerUri = `ws://${targetedHardwareHost}/ws`;
         
-        ws.onopen = () => {
-            document.getElementById('ws-status').innerText = "🟢 Terhubung ke Mesin ESP32";
-            document.getElementById('ws-status').style.color = "#4caf50";
+        console.log(`[WEBSOCKET CORE] Mencoba inisialisasi koneksi ke: ${socketServerUri}`);
+        document.getElementById('webSocketStatusTicker').innerText = "CONNECTING TO HARDWARE...";
+        document.getElementById('webSocketStatusTicker').style.color = "var(--accent-amber-alert)";
+
+        hardwareWebSocketInstance = new WebSocket(socketServerUri);
+
+        hardwareWebSocketInstance.onopen = (event) => {
+            console.log("[WEBSOCKET STATUS] Saluran komunikasi data asinkron berhasil dibuat.");
+            document.getElementById('webSocketStatusTicker').innerText = "🟢 HARDWARE LINK ONLINE";
+            document.getElementById('webSocketStatusTicker').style.color = "var(--accent-green-signal)";
+            wsConnectionRetryTimeout = 2000; // Reset timer backoff kala sukses terhubung
         };
-        
-        ws.onclose = () => {
-            document.getElementById('ws-status').innerText = "🔴 Terputus. Menghubungkan kembali...";
-            document.getElementById('ws-status').style.color = "#f44336";
-            setTimeout(initWebSocket, 2000); // Mencoba menghubungkan kembali dalam 2 detik
+
+        hardwareWebSocketInstance.onclose = (event) => {
+            console.warn(`[WEBSOCKET ALERT] Koneksi terputus. Kode Alasan: ${event.code}. Menjadwalkan rekoneksi...`);
+            document.getElementById('webSocketStatusTicker').innerText = "🔴 DISCONNECTED - RETRYING";
+            document.getElementById('webSocketStatusTicker').style.color = "var(--accent-red-critical)";
+            
+            // Mekanisme Algoritma Exponential Backoff Retry untuk mengamankan memori ESP32 dari banjir request
+            setTimeout(() => {
+                wsConnectionRetryTimeout = Math.min(wsConnectionRetryTimeout * 2, maximumRetryTimeoutBackoff);
+                establishCoreHardwareWebSocketConnection();
+            }, wsConnectionRetryTimeout);
         };
-        
-        ws.onmessage = (event) => {
+
+        hardwareWebSocketInstance.onerror = (runtimeError) => {
+            console.error("[WEBSOCKET ERROR] Terjadi kegagalan transportasi data:", runtimeError);
+        };
+
+        hardwareWebSocketInstance.onmessage = (incomingMessageEvent) => {
             try {
-                // Format data masuk diharapkan berupa JSON dari ESP32
-                // Contoh format: {"temp":26.5, "hum":84.2, "mode":"OTOMATIS", "pump":1, "fan":0, "heater":0}
-                const data = JSON.parse(event.data);
-                
-                if(data.temp) document.getElementById('esp-temp').innerText = data.temp.toFixed(1) + "°C";
-                if(data.hum) document.getElementById('esp-hum').innerText = data.hum.toFixed(1) + "%";
-                if(data.mode) document.getElementById('esp-mode').innerText = "MODE: " + data.mode.toUpperCase();
-                
-                // Ubah status aktuator/mesin aktif atau tidak
-                updateBadge('mach-pump', data.pump);
-                updateBadge('mach-fan', data.fan);
-                updateBadge('mach-heater', data.heater);
-                
-            } catch (e) {
-                console.error("Format data WebSocket salah", e);
+                // Parsing Data JSON Real-time dari loop FSM Firmware ESP32 Anda
+                const telemetryPayloadJson = JSON.parse(incomingMessageEvent.data);
+                processIncomingHardwareTelemetry(telemetryPayloadJson);
+            } catch (jsonParsingException) {
+                console.error("[TELEMETRY CAPTURE CRITICAL] Format Payload Data Rusak:", jsonParsingException);
             }
         };
     }
 
-    function updateBadge(id, state) {
-        const badge = document.getElementById(id);
-        if(state === 1 || state === true) {
-            badge.innerText = "ACTIVE";
-            badge.className = "badge active";
+    function processIncomingHardwareTelemetry(parsedPayload) {
+        // 1. Memperbarui Indikator Nilai Sensor Fisik Kumbung Jamur
+        if (parsedPayload.temp !== undefined) {
+            document.getElementById('espSensorTemp').innerText = `${parsedPayload.temp.toFixed(1)}°C`;
+        }
+        if (parsedPayload.hum !== undefined) {
+            document.getElementById('espSensorHum').innerText = `${parsedPayload.hum.toFixed(1)}%`;
+        }
+
+        // 2. Memperbarui Status Indikator Mode Operasional FSM
+        if (parsedPayload.mode !== undefined) {
+            document.getElementById('espOperationalModeBadge').innerText = `MODE: ${parsedPayload.mode.toUpperCase()}`;
+            if (parsedPayload.mode.toUpperCase() === "OTOMATIS") {
+                document.getElementById('espOperationalModeBadge').style.backgroundColor = "#0c291b";
+                document.getElementById('espOperationalModeBadge').style.color = "#69f0ae";
+            } else {
+                document.getElementById('espOperationalModeBadge').style.backgroundColor = "#2b1b02";
+                document.getElementById('espOperationalModeBadge').style.color = "#ffd740";
+            }
+        }
+
+        // 3. Sinkronisasi Status Aktuator / Mesin Lapangan
+        synchronizeActuatorRowInterface('Pump', parsedPayload.pump);
+        synchronizeActuatorRowInterface('Fan', parsedPayload.fan);
+        synchronizeActuatorRowInterface('Heater', parsedPayload.heater);
+    }
+
+    function synchronizeActuatorRowInterface(actuatorKey, statesValue) {
+        const badgeUi = document.getElementById(`badge${actuatorKey}`);
+        const rowUi = document.getElementById(`row${actuatorKey}`);
+        
+        if (!badgeUi || !rowUi) return;
+
+        if (statesValue === 1 || statesValue === true) {
+            badgeUi.innerText = "ACTIVE";
+            badgeUi.className = "industrial-badge badge-on";
+            rowUi.classList.add('active-state');
         } else {
-            badge.innerText = "OFF";
-            badge.className = "badge inactive";
+            badgeUi.innerText = "OFF";
+            badgeUi.className = "industrial-badge badge-off";
+            rowUi.classList.remove('active-state');
         }
     }
 
-    // Fungsi untuk mengirim perintah tombol ke ESP32
-    function sendCmd(command) {
-        if (ws && ws.readyState === WebSocket.OPEN) {
-            ws.send(command);
-            console.log("Perintah dikirim: " + command);
+    /*
+     ---------------------------------------------------------------------------------------------------
+     * E. COMMAND TRANSMISSION DISPATCHER (UPSTREAM DATA TO ESP32)
+     ---------------------------------------------------------------------------------------------------
+     */
+    function dispatchHardwareCommand(stringActionCommandPayload) {
+        if (hardwareWebSocketInstance && hardwareWebSocketInstance.readyState === WebSocket.OPEN) {
+            hardwareWebSocketInstance.send(stringActionCommandPayload);
+            console.log(`[CORE UPSTREAM] Berhasil mengirimkan instruksi kendali: ${stringActionCommandPayload}`);
         } else {
-            alert("Gagal mengirim! Koneksi ke ESP32 terputus.");
+            console.error("[UPSTREAM FAILURE] Perintah gagal dikirim, pipa komunikasi WebSocket Offline.");
+            alert("Koneksi terputus dengan mesin utama ESP32. Periksa jaringan Smart Frame Anda!");
         }
     }
 
-    // Inisialisasi koneksi saat halaman siap
-    window.onload = () => {
-        initWebSocket();
-    };
+    /*
+     ---------------------------------------------------------------------------------------------------
+     * F. KERNEL SYSTEM INITIALIZATION RUNTIME
+     ---------------------------------------------------------------------------------------------------
+     */
+    function initiateSystemKernelClock() {
+        setInterval(() => {
+            const timeObject = new Date();
+            const formattedClockString = timeObject.toUTCString().replace('GMT', 'UTC');
+            document.getElementById('liveSystemClock').innerText = formattedClockString.substring(17, 25) + " UTC";
+        }, 1000);
+    }
+
+    window.addEventListener('DOMContentLoaded', (event) => {
+        console.log("[KERNEL RUNTIME] Memulai inisialisasi subsistem web komplit...");
+        initiateSystemKernelClock();
+        requestSateliteWeatherTelemetryData();
+        establishCoreHardwareWebSocketConnection();
+        
+        // Interval Otomatis Sinkronisasi Ulang Data Cuaca Internet Setiap 10 Menit
+        setInterval(requestSateliteWeatherTelemetryData, 600000);
+    });
 </script>
-
 </body>
 </html>
