@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FR AUDIO PRO — Ultimate Cloud DSP & VIP Gateway</title>
+  <title>FR AUDIO PRO — Real Cloud DSP & VIP Gateway System</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     :root {
@@ -11,12 +11,13 @@
       --panel-dark: #151d30;
       --purple-primary: #6c5ce7;
       --purple-glow: #8b5cf6;
+      --purple-light: #f3f0ff;
       --gold-vip: #f59e0b;
       --gold-glow: #fbbf24;
+      --accent-green: #10b981;
       --text-light: #f8fafc;
       --text-muted: #94a3b8;
       --border-dark: #243049;
-      --accent-green: #10b981;
       --font-main: 'Inter', system-ui, -apple-system, sans-serif;
       --font-mono: 'Consolas', 'Courier New', monospace;
     }
@@ -31,12 +32,12 @@
       overflow-x: hidden;
     }
 
-    .container { max-width: 1500px; margin: 0 auto; padding: 20px; }
+    .container { max-width: 1600px; margin: 0 auto; padding: 20px; }
 
     header {
       background: var(--panel-dark);
       border-bottom: 1px solid var(--border-dark);
-      padding: 20px;
+      padding: 20px 25px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -61,17 +62,17 @@
       color: #000000;
       font-size: 10px;
       font-weight: 900;
-      padding: 3px 10px;
+      padding: 4px 12px;
       border-radius: 20px;
       text-transform: uppercase;
       letter-spacing: 1px;
       display: none;
     }
 
-    .nav-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+    .nav-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 
     .btn {
-      padding: 10px 18px;
+      padding: 10px 16px;
       border-radius: 8px;
       font-size: 13px;
       font-weight: 700;
@@ -98,6 +99,9 @@
     }
     .btn-key:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(108, 92, 231, 0.4); }
 
+    .btn-yt { background: #ff0000; color: #ffffff; }
+    .btn-yt:hover { background: #cc0000; }
+
     .btn-action { background: var(--panel-dark); color: var(--text-light); border: 1px solid var(--border-dark); }
     .btn-action:hover { border-color: var(--purple-glow); background: #1c273e; }
 
@@ -108,6 +112,16 @@
       border: 1px solid var(--border-dark);
       margin-bottom: 25px;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .card h3, .card h2 {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-light);
     }
 
     .status-banner {
@@ -131,7 +145,18 @@
       flex-wrap: wrap;
     }
 
-    input[type="text"], input[type="password"] {
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 25px;
+      margin-bottom: 25px;
+    }
+
+    @media (max-width: 992px) {
+      .dashboard-grid, .eq-grid { grid-template-columns: 1fr !important; }
+    }
+
+    input[type="text"], input[type="password"], input[type="email"], textarea {
       background: var(--bg-dark);
       border: 1px solid var(--border-dark);
       color: var(--text-light);
@@ -143,18 +168,77 @@
       transition: border-color 0.2s ease;
     }
 
-    input[type="text"]:focus, input[type="password"]:focus {
+    input[type="text"]:focus, input[type="password"]:focus, input[type="email"]:focus, textarea:focus {
       border-color: var(--purple-glow);
     }
 
-    /* EQ & Potensio Styles */
+    select {
+      background: var(--bg-dark);
+      color: var(--text-light);
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border-dark);
+      outline: none;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .video-container {
+      position: relative;
+      padding-bottom: 56.25%;
+      height: 0;
+      overflow: hidden;
+      border-radius: 12px;
+      background: #000000;
+      border: 1px solid var(--border-dark);
+    }
+
+    .video-container iframe {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%; border: 0;
+    }
+
+    canvas#spectrum-canvas {
+      width: 100%;
+      height: 160px;
+      background: var(--bg-dark);
+      border-radius: 12px;
+      border: 1px solid var(--border-dark);
+      display: block;
+    }
+
+    .status-panel { display: flex; flex-direction: column; gap: 12px; }
+
+    .status-box {
+      background: var(--bg-dark);
+      border-radius: 10px;
+      padding: 14px;
+      border-left: 4px solid var(--purple-glow);
+    }
+
+    .status-box.right { border-left-color: var(--gold-vip); }
+
+    .status-title {
+      font-size: 10px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .status-value {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-light);
+      margin-top: 3px;
+    }
+
+    /* EQUALIZER & POTENSIO STYLES */
     .eq-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 25px;
     }
-
-    @media (max-width: 992px) { .eq-grid { grid-template-columns: 1fr; } }
 
     .channel-card.left { border-top: 4px solid var(--purple-glow); }
     .channel-card.right { border-top: 4px solid var(--gold-vip); }
@@ -177,6 +261,31 @@
       border-radius: 10px;
       border: 1px solid var(--border-dark);
     }
+
+    .gain-pot-control label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--purple-glow);
+    }
+
+    .right .gain-pot-control label { color: var(--gold-vip); }
+
+    .gain-pot-control input[type="range"] {
+      width: 80px;
+      cursor: pointer;
+      accent-color: var(--purple-glow);
+    }
+
+    .right .gain-pot-control input[type="range"] { accent-color: var(--gold-vip); }
+
+    .gain-val {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: bold;
+      color: var(--purple-glow);
+    }
+
+    .right .gain-val { color: var(--gold-vip); }
 
     .sliders-wrapper {
       display: flex;
@@ -234,6 +343,20 @@
 
     .right .val-label { color: var(--gold-vip); }
 
+    .preset-section {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .preset-section label {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
     /* Modals */
     .modal-overlay {
       position: fixed;
@@ -253,14 +376,19 @@
       border-radius: 18px;
       width: 100%;
       max-width: 480px;
-      padding: 28px;
+      padding: 26px;
       position: relative;
       box-shadow: 0 20px 50px rgba(0,0,0,0.5);
     }
 
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
     .modal-close {
-      position: absolute;
-      top: 20px; right: 20px;
       background: transparent;
       border: none;
       color: var(--text-muted);
@@ -277,21 +405,6 @@
       margin: 18px 0;
       text-align: center;
     }
-
-    .qris-box img {
-      max-width: 100%;
-      height: auto;
-      border-radius: 8px;
-    }
-
-    canvas#spectrum-canvas {
-      width: 100%;
-      height: 140px;
-      background: var(--bg-dark);
-      border-radius: 12px;
-      border: 1px solid var(--border-dark);
-      display: block;
-    }
   </style>
 </head>
 <body>
@@ -302,21 +415,21 @@
       <span class="badge-vip" id="vip-badge">👑 VIP UNLOCKED</span>
     </div>
     <div class="nav-actions">
-      <!-- Tombol 1: Beli QRIS VIP 5K -->
       <button class="btn btn-buy" onclick="openModal('modal-qris')">💳 Beli VIP (Rp 5.000)</button>
-      <!-- Tombol 2: Kunci Akses VIP Terpisah -->
-      <button class="btn btn-key" onclick="openModal('modal-key')">🔑 Masukkan Kunci VIP</button>
+      <button class="btn btn-key" onclick="openModal('modal-key')">🔑 Kunci VIP</button>
+      <button class="btn btn-action" id="btn-secret-modal">🔒 Secret Page</button>
+      <button class="btn btn-action" id="btn-admin-modal">👤 Admin Panel</button>
     </div>
   </header>
 
   <div class="container">
 
-    <!-- Status Banner Mode Active -->
+    <!-- Status Banner Engine -->
     <div class="status-banner">
       <div id="status-text" style="font-size: 13px;">
         Status Engine: <strong style="color: var(--text-muted);">FREE TIER (10-Band Standard DSP)</strong>
       </div>
-      <small style="color: var(--text-muted);">Masukkan Kunci VIP untuk mengaktifkan Precision 50-Band L/R DSP Engine</small>
+      <small style="color: var(--text-muted);">Aktivasi Kunci VIP untuk membuka Precision 50-Band L/R Engine</small>
     </div>
 
     <!-- Main Controls Panel -->
@@ -330,44 +443,82 @@
       </div>
 
       <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-        <input type="text" id="yt-url-input" placeholder="Tempel URL Video YouTube..." style="width: 260px;">
-        <button class="btn btn-key" id="btn-load-yt">⚡ Process YT Stream</button>
+        <input type="text" id="yt-url-input" placeholder="Tempel URL Video YouTube..." style="width: 240px;">
+        <button class="btn btn-yt" id="btn-load-yt">⚡ Cloud Stream YT</button>
         <button class="btn btn-buy" id="btn-play">▶ Play / Pause</button>
       </div>
 
       <audio id="audio-element" crossorigin="anonymous"></audio>
     </div>
 
-    <!-- Spectrum Analyzer Canvas -->
+    <!-- Output Spectrum Visualizer -->
     <div class="card">
-      <h3 style="font-size: 14px; margin-bottom: 12px;">📈 Real-Time Audio Signal Visualizer</h3>
+      <h3>📈 Output Spectrum Analyzer (Real-Time DSP Signal)</h3>
       <canvas id="spectrum-canvas"></canvas>
     </div>
 
-    <!-- Dual-Channel Equalizer System -->
+    <!-- Dashboard Status Grid -->
+    <div class="dashboard-grid">
+      <div class="card">
+        <h3>📺 Pemutar Video YouTube Visual</h3>
+        <div class="video-container">
+          <div id="yt-player"></div>
+        </div>
+      </div>
+
+      <div class="card status-panel">
+        <h3>📊 Monitor Efek & Status Real-Time</h3>
+        <div class="status-box">
+          <div class="status-title">Judul / Sumber Media</div>
+          <div class="status-value" id="status-media-title">Belum ada media dimuat</div>
+        </div>
+        <div class="status-box">
+          <div class="status-title">Channel Left (L)</div>
+          <div class="status-value" id="status-l-eq">EQ: Flat</div>
+          <div class="status-value" id="status-l-vocal" style="font-size:12px; color:var(--purple-glow); margin-top:2px;">Vocal Reverb: Clean / Bypass</div>
+        </div>
+        <div class="status-box right">
+          <div class="status-title">Channel Right (R)</div>
+          <div class="status-value" id="status-r-eq">EQ: Flat</div>
+          <div class="status-value" id="status-r-vocal" style="font-size:12px; color:var(--gold-vip); margin-top:2px;">Vocal Reverb: Clean / Bypass</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dual-Channel Equalizer & Vocal Engine System -->
     <div class="eq-grid">
-      <!-- Channel LEFT -->
+      <!-- Left Channel Card -->
       <div class="card channel-card left">
         <div class="channel-header">
-          <h3 style="font-size: 16px;">🎚️ Channel LEFT (L)</h3>
+          <h2>🎚️ Channel LEFT (L)</h2>
           <div class="gain-pot-control">
-            <label style="font-size:11px; font-weight:bold; color:var(--purple-glow);">Gain L:</label>
-            <input type="range" id="pot-gain-l" min="0" max="2" step="0.05" value="1" style="width:80px; accent-color:var(--purple-glow);">
-            <span id="val-gain-l" style="font-family:var(--font-mono); font-size:12px; font-weight:bold;">100%</span>
+            <label>Master Gain L:</label>
+            <input type="range" id="pot-gain-l" min="0" max="2" step="0.05" value="1">
+            <span class="gain-val" id="val-gain-l">100%</span>
           </div>
+        </div>
+        <div class="preset-section">
+          <label>EQ Preset:</label><select id="preset-eq-l"></select>
+          <label>Vocal Reverb:</label><select id="preset-vocal-l"></select>
+          <button class="btn btn-action" id="btn-reset-l" style="padding: 4px 10px; font-size:11px;">Reset Flat</button>
         </div>
         <div class="sliders-wrapper" id="container-eq-l"></div>
       </div>
 
-      <!-- Channel RIGHT -->
+      <!-- Right Channel Card -->
       <div class="card channel-card right">
         <div class="channel-header">
-          <h3 style="font-size: 16px;">🎚️ Channel RIGHT (R)</h3>
+          <h2>🎚️ Channel RIGHT (R)</h2>
           <div class="gain-pot-control">
-            <label style="font-size:11px; font-weight:bold; color:var(--gold-vip);">Gain R:</label>
-            <input type="range" id="pot-gain-r" min="0" max="2" step="0.05" value="1" style="width:80px; accent-color:var(--gold-vip);">
-            <span id="val-gain-r" style="font-family:var(--font-mono); font-size:12px; font-weight:bold;">100%</span>
+            <label>Master Gain R:</label>
+            <input type="range" id="pot-gain-r" min="0" max="2" step="0.05" value="1">
+            <span class="gain-val" id="val-gain-r">100%</span>
           </div>
+        </div>
+        <div class="preset-section">
+          <label>EQ Preset:</label><select id="preset-eq-r"></select>
+          <label>Vocal Reverb:</label><select id="preset-vocal-r"></select>
+          <button class="btn btn-action" id="btn-reset-r" style="padding: 4px 10px; font-size:11px;">Reset Flat</button>
         </div>
         <div class="sliders-wrapper" id="container-eq-r"></div>
       </div>
@@ -379,13 +530,12 @@
   <div class="modal-overlay" id="modal-qris">
     <div class="modal-content" style="text-align: center;">
       <button class="modal-close" onclick="closeModal('modal-qris')">✕</button>
-      <h3 style="color:var(--text-light); font-size: 18px;">Aktivasi VIP Cloud DSP</h3>
+      <h3 style="font-size: 18px; justify-content: center;">Aktivasi VIP Cloud DSP</h3>
       <p style="font-size:12px; color:var(--text-muted); margin-top:6px;">
         Scan QRIS di bawah ini sebesar <strong style="color:var(--accent-green)">Rp 5.000</strong> (OVO/DANA/GoPay/ShopeePay/BCA)
       </p>
 
       <div class="qris-box">
-        <!-- Contoh Elemen QRIS Placeholder -->
         <div style="padding: 30px; background: #e2e8f0; color: #000; font-weight: bold; border-radius: 8px;">
           [ QRIS PEMBAYARAN 5K ]
         </div>
@@ -401,7 +551,7 @@
   <div class="modal-overlay" id="modal-key">
     <div class="modal-content">
       <button class="modal-close" onclick="closeModal('modal-key')">✕</button>
-      <h3 style="color:var(--text-light); font-size: 18px;">🔑 Masukkan Kunci Akses VIP</h3>
+      <h3 style="font-size: 18px;">🔑 Masukkan Kunci Akses VIP</h3>
       <p style="font-size:12px; color:var(--text-muted); margin-top:6px;">
         Tempelkan Kode Seri VIP 16-Digit yang Anda dapatkan setelah aktivasi Rp 5.000.
       </p>
@@ -414,9 +564,51 @@
     </div>
   </div>
 
+  <!-- MODAL 3: SECRET PAGE -->
+  <div class="modal-overlay" id="modal-secret">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>🔒 Halaman Rahasia FR AUDIO</h3>
+        <button class="modal-close" onclick="closeModal('modal-secret')">✕</button>
+      </div>
+      <div id="secret-login-form">
+        <input type="password" id="secret-passcode" placeholder="Masukkan kode akses rahasia...">
+        <button class="btn btn-key" id="btn-unlock-secret" style="width:100%; margin-top:14px; justify-content: center;">Buka Akses DSP Matrix</button>
+      </div>
+      <div id="secret-content" style="display:none;">
+        <h4 style="color:var(--purple-glow);">✨ Ultra-Harmonics Engine Unlocked</h4>
+        <p style="font-size:12px; color:var(--text-muted); margin-top:10px; line-height:1.6;">
+          Mode DSP Tingkat Lanjut Aktif. Algoritma Real Biquad Cascading & Convolution Matrix berjalan pada arsitektur Web Audio Background Threading.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 4: ADMIN PANEL -->
+  <div class="modal-overlay" id="modal-admin">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>👤 Admin Panel Control</h3>
+        <button class="modal-close" onclick="closeModal('modal-admin')">✕</button>
+      </div>
+      <div id="admin-login-form">
+        <input type="text" id="admin-username" placeholder="Username Admin" style="margin-bottom:10px;">
+        <input type="email" id="admin-email" placeholder="Email Admin" style="margin-bottom:14px;">
+        <button class="btn btn-key" id="btn-admin-login" style="width:100%; justify-content: center;">Login Administrator</button>
+      </div>
+      <div id="admin-dashboard" style="display:none;">
+        <label style="font-size:12px; color:var(--text-muted);">Ubah Endpoint Cloud Server URL:</label>
+        <input type="text" id="admin-cloud-url" value="https://fr-audio-cloud.onrender.com/api/stream-yt?url=" style="margin-top:6px; margin-bottom:12px;">
+        <button class="btn btn-buy" id="btn-save-admin" style="width:100%; justify-content: center;">💾 Simpan Konfigurasi</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://www.youtube.com/iframe_api"></script>
+
   <script>
     /* ==========================================================================
-       1. FREQUENCIES DATA & CONFIG
+       1. DATA CONFIG, FREQUENCIES & PRESETS
        ========================================================================== */
     const FREQ_FREE = [60, 170, 310, 600, 1000, 3000, 6000, 12000, 14000, 16000];
 
@@ -430,13 +622,31 @@
 
     const VALID_VIP_KEYS = ["VIP-FR-9821-2026", "VIP-FARO-5K", "VIP-SOUND-SYSTEM"];
 
+    const EQ_PRESETS = {
+      "Flat": [],
+      "Sub-Bass Boost": [10, 8, 6, 4, 2, 0, 0, 0, 0, 0],
+      "Clarity Treble": [0, 0, 0, 0, 2, 4, 6, 8, 8, 8],
+      "Vocal Boost": [-2, -2, 0, 4, 6, 6, 4, 0, -2, -2]
+    };
+
+    const VOCAL_PRESETS = {
+      "Clean / Bypass": { midGain: 0, verbWet: 0.0 },
+      "Vocal Air + Warmth": { midGain: 4, verbWet: 0.2 },
+      "Studio Reverb Hall": { midGain: 2, verbWet: 0.45 },
+      "Live Concert Echo": { midGain: 3, verbWet: 0.75 }
+    };
+
     let isVIP = false;
     let currentFrequencies = FREQ_FREE;
+    let cloudServerApi = "https://fr-audio-cloud.onrender.com/api/stream-yt?url=";
 
     /* Web Audio API Variables */
-    let audioCtx, sourceNode, splitter, merger, analyserNode;
+    let audioCtx, sourceNode, micStreamNode;
+    let splitter, merger, analyserNode;
     let filtersL = [], filtersR = [];
     let gainMasterL, gainMasterR;
+    let convolverL, convolverR, verbGainL, verbGainR;
+    let ytPlayer, isYTReady = false;
     let isDSPInit = false;
 
     const audioElement = document.getElementById('audio-element');
@@ -445,7 +655,7 @@
     const canvasCtx = canvas.getContext('2d');
 
     /* ==========================================================================
-       2. DSP ENGINE INITIALIZATION
+       2. DSP ENGINE INITIALIZATION & REBUILD
        ========================================================================== */
     function initDSP() {
       if (isDSPInit) {
@@ -459,10 +669,22 @@
       splitter = audioCtx.createChannelSplitter(2);
       merger = audioCtx.createChannelMerger(2);
       analyserNode = audioCtx.createAnalyser();
-      analyserNode.fftSize = 128;
+      analyserNode.fftSize = 256;
 
       gainMasterL = audioCtx.createGain();
       gainMasterR = audioCtx.createGain();
+
+      // Reverb Engine Convolvers
+      const impulse = createImpulseResponse(audioCtx, 1.8, 2.0);
+      convolverL = audioCtx.createConvolver();
+      convolverR = audioCtx.createConvolver();
+      convolverL.buffer = impulse;
+      convolverR.buffer = impulse;
+
+      verbGainL = audioCtx.createGain();
+      verbGainR = audioCtx.createGain();
+      verbGainL.gain.value = 0;
+      verbGainR.gain.value = 0;
 
       rebuildFilters();
 
@@ -487,10 +709,18 @@
       let lastL = createFilterArray(0, filtersL);
       let lastR = createFilterArray(1, filtersR);
 
+      // Routing L: EQ -> Split (Dry + Wet Reverb) -> Gain Master L -> Merger Ch0
       lastL.connect(gainMasterL);
+      lastL.connect(convolverL);
+      convolverL.connect(verbGainL);
+      verbGainL.connect(gainMasterL);
       gainMasterL.connect(merger, 0, 0);
 
+      // Routing R: EQ -> Split (Dry + Wet Reverb) -> Gain Master R -> Merger Ch1
       lastR.connect(gainMasterR);
+      lastR.connect(convolverR);
+      convolverR.connect(verbGainR);
+      verbGainR.connect(gainMasterR);
       gainMasterR.connect(merger, 0, 1);
     }
 
@@ -502,7 +732,7 @@
         const biquad = audioCtx.createBiquadFilter();
         biquad.type = 'peaking';
         biquad.frequency.value = freq;
-        biquad.Q.value = 2.5;
+        biquad.Q.value = 3.0;
         biquad.gain.value = 0;
 
         storageArray.push(biquad);
@@ -513,8 +743,96 @@
       return pointer;
     }
 
+    function createImpulseResponse(ctx, duration, decay) {
+      const rate = ctx.sampleRate;
+      const length = rate * duration;
+      const impulse = ctx.createBuffer(2, length, rate);
+      for (let c = 0; c < 2; c++) {
+        const data = impulse.getChannelData(c);
+        for (let i = 0; i < length; i++) {
+          data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, decay) * 0.12;
+        }
+      }
+      return impulse;
+    }
+
     /* ==========================================================================
-       3. UI GENERATOR & EVENT BINDING
+       3. YOUTUBE CLOUD STREAMING & IFRAME
+       ========================================================================== */
+    function onYouTubeIframeAPIReady() {
+      ytPlayer = new YT.Player('yt-player', {
+        height: '100%', width: '100%', videoId: 'dQw4w9WgXcQ',
+        playerVars: { 'autoplay': 0, 'controls': 0, 'mute': 1 },
+        events: { 'onReady': () => { isYTReady = true; } }
+      });
+    }
+
+    function extractYouTubeID(url) {
+      if (!url) return null;
+      const match = url.match(/^.*(?:youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/);
+      return (match && match[1].length === 11) ? match[1] : null;
+    }
+
+    function loadCloudYouTubeAudioStream(url) {
+      initDSP();
+      const statusTitle = document.getElementById('status-media-title');
+      const vidId = extractYouTubeID(url);
+
+      if (vidId && isYTReady) {
+        ytPlayer.loadVideoById(vidId);
+        ytPlayer.mute();
+      }
+
+      statusTitle.innerText = "☁️ Streaming dari Cloud Server...";
+      const streamUrl = cloudServerApi + encodeURIComponent(url);
+
+      audioElement.src = streamUrl;
+      audioElement.play().then(() => {
+        btnPlay.innerText = "⏸ Pause";
+        statusTitle.innerText = "☁️ Live YouTube Cloud DSP Active";
+      }).catch(err => {
+        alert("Gagal terhubung ke Cloud DSP Server! Pastikan Server Aktif.");
+        statusTitle.innerText = "⚠️ Server Error / Off";
+      });
+    }
+
+    /* ==========================================================================
+       4. VISUALIZER ENGINE
+       ========================================================================== */
+    function startVisualizer() {
+      const bufferLength = analyserNode.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+
+      function draw() {
+        requestAnimationFrame(draw);
+        if (audioElement.paused && !micStreamNode) return;
+
+        analyserNode.getByteFrequencyData(dataArray);
+        canvasCtx.fillStyle = '#0b0f19';
+        canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+
+        const barWidth = (canvas.width / bufferLength) * 2;
+        let x = 0;
+
+        for (let i = 0; i < bufferLength; i++) {
+          const barHeight = (dataArray[i] / 255) * canvas.height;
+          canvasCtx.fillStyle = isVIP ? '#f59e0b' : '#8b5cf6';
+          canvasCtx.fillRect(x, canvas.height - barHeight, barWidth - 1, barHeight);
+          x += barWidth;
+        }
+      }
+
+      function resize() {
+        canvas.width = canvas.parentElement.clientWidth;
+        canvas.height = 160;
+      }
+      window.addEventListener('resize', resize);
+      resize();
+      draw();
+    }
+
+    /* ==========================================================================
+       5. UI RENDERER & PRESETS
        ========================================================================== */
     function renderSliders() {
       const cL = document.getElementById('container-eq-l');
@@ -548,43 +866,30 @@
       return grp;
     }
 
-    /* ==========================================================================
-       4. VISUALIZER ENGINE
-       ========================================================================== */
-    function startVisualizer() {
-      const bufferLength = analyserNode.frequencyBinCount;
-      const dataArray = new Uint8Array(bufferLength);
-
-      function draw() {
-        requestAnimationFrame(draw);
-        if (audioElement.paused) return;
-
-        analyserNode.getByteFrequencyData(dataArray);
-        canvasCtx.fillStyle = '#0b0f19';
-        canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
-
-        const barWidth = (canvas.width / bufferLength) * 2;
-        let x = 0;
-
-        for (let i = 0; i < bufferLength; i++) {
-          const barHeight = (dataArray[i] / 255) * canvas.height;
-          canvasCtx.fillStyle = isVIP ? '#f59e0b' : '#8b5cf6';
-          canvasCtx.fillRect(x, canvas.height - barHeight, barWidth - 1, barHeight);
-          x += barWidth;
-        }
+    function applyVocalPreset(ch, presetName) {
+      const p = VOCAL_PRESETS[presetName];
+      if (!p) return;
+      const targetVerbGain = ch === 'L' ? verbGainL : verbGainR;
+      if (targetVerbGain && audioCtx) {
+        targetVerbGain.gain.setTargetAtTime(p.verbWet, audioCtx.currentTime, 0.02);
       }
+      document.getElementById(`status-${ch.toLowerCase()}-vocal`).innerText = `Vocal Reverb: ${presetName}`;
+    }
 
-      function resize() {
-        canvas.width = canvas.parentElement.clientWidth;
-        canvas.height = 140;
-      }
-      window.addEventListener('resize', resize);
-      resize();
-      draw();
+    function populateSelects() {
+      const selVocalL = document.getElementById('preset-vocal-l');
+      const selVocalR = document.getElementById('preset-vocal-r');
+      Object.keys(VOCAL_PRESETS).forEach(k => {
+        selVocalL.innerHTML += `<option value="${k}">${k}</option>`;
+        selVocalR.innerHTML += `<option value="${k}">${k}</option>`;
+      });
+
+      selVocalL.addEventListener('change', (e) => applyVocalPreset('L', e.target.value));
+      selVocalR.addEventListener('change', (e) => applyVocalPreset('R', e.target.value));
     }
 
     /* ==========================================================================
-       5. VIP SYSTEM & MODALS CONTROL
+       6. VIP SYSTEM & MODALS CONTROL
        ========================================================================== */
     function checkVIPStatus() {
       const savedKey = localStorage.getItem('FR_VIP_KEY');
@@ -620,7 +925,33 @@
       }
     });
 
-    /* Event Listeners Controls */
+    /* Event Listeners Admin & Secret Modal */
+    document.getElementById('btn-secret-modal').onclick = () => openModal('modal-secret');
+    document.getElementById('btn-admin-modal').onclick = () => openModal('modal-admin');
+
+    document.getElementById('btn-unlock-secret').onclick = () => {
+      if(document.getElementById('secret-passcode').value === "124578faro") {
+        document.getElementById('secret-login-form').style.display = 'none';
+        document.getElementById('secret-content').style.display = 'block';
+      } else { alert("Passcode Salah!"); }
+    };
+
+    document.getElementById('btn-admin-login').addEventListener('click', () => {
+      const u = document.getElementById('admin-username').value.trim();
+      const e = document.getElementById('admin-email').value.trim();
+      if (u === "admin fr audio" && e === "rozakkfatkhur@gmail.com") {
+        document.getElementById('admin-login-form').style.display = 'none';
+        document.getElementById('admin-dashboard').style.display = 'block';
+      } else { alert("Credential Admin Salah!"); }
+    });
+
+    document.getElementById('btn-save-admin').addEventListener('click', () => {
+      cloudServerApi = document.getElementById('admin-cloud-url').value.trim();
+      alert("Konfigurasi Endpoint Cloud Server Diperbarui!");
+      closeModal('modal-admin');
+    });
+
+    /* Hardware Controls */
     document.getElementById('pot-gain-l').addEventListener('input', (e) => {
       const val = parseFloat(e.target.value);
       if (gainMasterL) gainMasterL.gain.setTargetAtTime(val, audioCtx.currentTime, 0.02);
@@ -640,7 +971,26 @@
         audioElement.src = URL.createObjectURL(file);
         audioElement.play();
         btnPlay.innerText = "⏸ Pause";
+        document.getElementById('status-media-title').innerText = "📁 File Lokal: " + file.name;
       }
+    });
+
+    document.getElementById('btn-mic').addEventListener('click', async () => {
+      initDSP();
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+        if (micStreamNode) micStreamNode.disconnect();
+        micStreamNode = audioCtx.createMediaStreamSource(stream);
+        micStreamNode.connect(splitter);
+        document.getElementById('status-media-title').innerText = "🎙️ Microphone Input Live";
+        alert("Microphone berhasil terhubung ke Engine DSP!");
+      } catch (err) { alert("Gagal mengakses Microphone: " + err.message); }
+    });
+
+    document.getElementById('btn-load-yt').addEventListener('click', () => {
+      const ytUrl = document.getElementById('yt-url-input').value.trim();
+      if (!ytUrl) { alert("Masukkan URL YouTube!"); return; }
+      loadCloudYouTubeAudioStream(ytUrl);
     });
 
     btnPlay.addEventListener('click', () => {
@@ -648,14 +998,18 @@
       if (audioElement.src) {
         if (audioElement.paused) {
           audioElement.play();
+          if (isYTReady) ytPlayer.playVideo();
           btnPlay.innerText = "⏸ Pause";
         } else {
           audioElement.pause();
+          if (isYTReady) ytPlayer.pauseVideo();
           btnPlay.innerText = "▶ Play";
         }
       }
     });
 
+    /* Initialization Call */
+    populateSelects();
     checkVIPStatus();
   </script>
 </body>
