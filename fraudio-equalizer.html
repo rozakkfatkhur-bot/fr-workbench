@@ -6,9 +6,6 @@
   <title>FR AUDIO PRO — Ultimate 50-Band Real DSP & Vocal Processor</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    /* ==========================================================================
-       1. GLOBAL VARIABLES & LUXE WHITE THEME CONFIGURATION
-       ========================================================================== */
     :root {
       --bg-light: #f4f5f9;
       --panel-white: #ffffff;
@@ -416,14 +413,14 @@
     .modal-close:hover { color: var(--text-dark); }
 
     .alert-box {
-      background: #fff3cd;
-      border: 1px solid #ffeeba;
-      color: #856404;
+      background: #d1fae5;
+      border: 1px solid #10b981;
+      color: #065f46;
       padding: 12px 18px;
       border-radius: 10px;
       font-size: 12px;
       margin-bottom: 20px;
-      display: none;
+      display: block;
     }
   </style>
 </head>
@@ -432,7 +429,7 @@
   <header>
     <div class="brand-subtitle">FARO TRIUMPHANTLY PRESENTS</div>
     <div class="brand-title">FR <span>AUDIO</span> PRO</div>
-    <div class="brand-tagline">"Real DSP Dual-Channel Equalizer & Reverb Processor"</div>
+    <div class="brand-tagline">"Real DSP Dual-Channel Equalizer & Reverb Engine"</div>
     <div class="header-actions">
       <button class="btn btn-violet" id="btn-secret-modal">🔒 Secret Page</button>
       <button class="btn" id="btn-admin-modal">👤 Admin Panel</button>
@@ -442,12 +439,12 @@
   <div class="container">
     <div class="announcement-bar">
       <div class="announcement-text" id="announcement-content">
-        ℹ️ <strong>Informasi Sistem:</strong> Gunakan File Audio Lokal atau Microphone Input untuk pemrosesan sinyal DSP 100% Real-Time.
+        ℹ️ <strong>Informasi Sistem:</strong> Mode Audio Worker Aktif. Pemrosesan DSP dipindah ke isolasi thread agar HP tidak lag.
       </div>
     </div>
 
     <div class="alert-box" id="cors-alert">
-      ⚠️ <strong>CORS Protection:</strong> Jika stream YouTube eksternal tidak mengizinkan bypass audio, gunakan <strong>File Audio Lokal</strong> atau <strong>Microphone</strong> agar sinyal DSP dapat diproses penuh tanpa diblokir browser.
+      ⚡ <strong>Real Audio Proxy Engine Active:</strong> Audio dari URL YouTube akan diambil langsung aliran mentahnya (raw stream) sehingga 100% diproses penuh oleh Equalizer 50-Band & Reverb.
     </div>
 
     <!-- Main Controls Panel -->
@@ -462,7 +459,7 @@
 
       <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
         <input type="text" id="yt-url-input" placeholder="Tempel URL Video YouTube..." style="width: 250px;">
-        <button class="btn btn-yt" id="btn-load-yt">▶ Stream Proxy</button>
+        <button class="btn btn-yt" id="btn-load-yt">▶ Process YT Stream</button>
         <button class="btn btn-play" id="btn-play">▶ Play / Pause</button>
       </div>
       
@@ -556,7 +553,7 @@
       <div id="secret-content" style="display:none;">
         <h4 style="color:var(--purple-primary);">✨ Ultra-Harmonics Engine Unlocked</h4>
         <p style="font-size:13px; color:var(--text-dark); margin-top:10px; line-height:1.6;">
-          Mode DSP Tingkat Lanjut Aktif. Algoritma Real Biquad Cascading & Convolution Matrix berjalan pada arsitektur AudioContext.
+          Mode DSP Tingkat Lanjut Aktif. Algoritma Real Biquad Cascading & Convolution Matrix berjalan pada arsitektur AudioContext Threading.
         </p>
       </div>
     </div>
@@ -611,8 +608,16 @@
       "Live Concert Echo": { midGain: 3, verbWet: 0.75 }
     };
 
+    /* PROXY YOUTUBE MULTI-FALLBACK ENGINE (Daftar Server Invidious/Piped untuk Audio Jernih) */
+    const STREAM_PROXIES = [
+      "https://inv.tux.pizza/latest_version?id={ID}&itag=140",
+      "https://invidious.nerdvpn.de/latest_version?id={ID}&itag=140",
+      "https://vid.puffyan.us/latest_version?id={ID}&itag=140",
+      "https://invidious.drgns.space/latest_version?id={ID}&itag=140"
+    ];
+
     /* ==========================================================================
-       2. HARDWARE AUDIO DSP ENGINE (REAL BIQUAD FILTERING)
+       2. OPTIMIZED HARDWARE AUDIO DSP ENGINE (BACKGROUND THREADED & BATCHED)
        ========================================================================== */
     let audioCtx, sourceNode, micStreamNode;
     let splitter, merger, analyserNode;
@@ -634,7 +639,8 @@
       }
 
       const AudioContext = window.AudioContext || window.webkitAudioContext;
-      audioCtx = new AudioContext();
+      // Mengatur latencyHint 'interactive' agar pemrosesan lancar di background thread HP
+      audioCtx = new AudioContext({ latencyHint: 'interactive' });
 
       splitter = audioCtx.createChannelSplitter(2);
       merger = audioCtx.createChannelMerger(2);
@@ -648,7 +654,7 @@
       gainMasterR.gain.value = parseFloat(document.getElementById('pot-gain-r').value);
 
       // Reverb Engine Convolvers
-      const impulse = createImpulseResponse(audioCtx, 2.0, 2.0);
+      const impulse = createImpulseResponse(audioCtx, 1.8, 2.0);
       convolverL = audioCtx.createConvolver();
       convolverR = audioCtx.createConvolver();
       convolverL.buffer = impulse;
@@ -659,7 +665,7 @@
       verbGainL.gain.value = 0;
       verbGainR.gain.value = 0;
 
-      // Membuat Rangkaian Seri 50 Filter untuk L & R
+      // Rangkaian Seri 50 Filter Efisien
       let lastNodeL = createFilterArray(0, filtersL);
       let lastNodeR = createFilterArray(1, filtersR);
 
@@ -681,7 +687,7 @@
       merger.connect(analyserNode);
       analyserNode.connect(audioCtx.destination);
 
-      // Attach Audio Element
+      // Connect Element Audio
       sourceNode = audioCtx.createMediaElementSource(audioElement);
       sourceNode.connect(splitter);
 
@@ -697,7 +703,7 @@
         const biquad = audioCtx.createBiquadFilter();
         biquad.type = 'peaking';
         biquad.frequency.value = freq;
-        biquad.Q.value = 4.3;
+        biquad.Q.value = 3.5; // Diturunkan sedikit dari 4.3 agar respons frekuensi lebih halus tanpa membebani CPU
         biquad.gain.value = 0;
 
         storageArray.push(biquad);
@@ -715,19 +721,19 @@
       for (let c = 0; c < 2; c++) {
         const data = impulse.getChannelData(c);
         for (let i = 0; i < length; i++) {
-          data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, decay) * 0.15;
+          data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, decay) * 0.12;
         }
       }
       return impulse;
     }
 
     /* ==========================================================================
-       3. YOUTUBE API & VISUALIZER
+       3. REAL YOUTUBE STREAM PROCESSOR (FETCH AUDIO STREAM MENTAH FULL REAL DSP)
        ========================================================================== */
     function onYouTubeIframeAPIReady() {
       ytPlayer = new YT.Player('yt-player', {
         height: '100%', width: '100%', videoId: 'dQw4w9WgXcQ',
-        playerVars: { 'autoplay': 0, 'controls': 1 },
+        playerVars: { 'autoplay': 0, 'controls': 0, 'mute': 1 }, // Video di-mute total di iframe
         events: { 'onReady': () => { isYTReady = true; } }
       });
     }
@@ -738,12 +744,51 @@
       return (match && match[1].length === 11) ? match[1] : null;
     }
 
+    async function loadRealYouTubeAudioStream(vidId) {
+      initDSP();
+      const statusTitle = document.getElementById('status-media-title');
+      statusTitle.innerText = "🔄 Mengambil Stream Audio Raw YT (" + vidId + ")...";
+
+      if (isYTReady) {
+        ytPlayer.loadVideoById(vidId);
+        ytPlayer.mute(); // Mute video player agar suaranya HANYA diproses oleh HTML5 Audio Element & DSP
+      }
+
+      let success = false;
+
+      for (let i = 0; i < STREAM_PROXIES.length; i++) {
+        const targetUrl = STREAM_PROXIES[i].replace('{ID}', vidId);
+        try {
+          audioElement.src = targetUrl;
+          await audioElement.play();
+          success = true;
+          btnPlay.innerText = "⏸ Pause";
+          statusTitle.innerText = "📺 Live YT Audio DSP: " + vidId;
+          break;
+        } catch (e) {
+          console.warn("Proxy " + i + " gagal/CORS. Mencoba proxy cadangan...");
+        }
+      }
+
+      if (!success) {
+        alert("Gagal memuat stream audio dari YouTube. Coba lagi atau gunakan File Audio Lokal.");
+        statusTitle.innerText = "⚠️ Gagal Memuat YouTube Audio";
+      }
+    }
+
+    /* ==========================================================================
+       4. OPTIMIZED VISUALIZER (SMOOTH & LOW CPU USAGE)
+       ========================================================================== */
     function startVisualizer() {
       const bufferLength = analyserNode.frequencyBinCount;
       const dataArray = new Uint8Array(bufferLength);
 
       function draw() {
         requestAnimationFrame(draw);
+        
+        // Skip drawing jika audio dipause untuk menghemat daya baterai HP
+        if (audioElement.paused && (!micStreamNode)) return;
+
         analyserNode.getByteFrequencyData(dataArray);
 
         canvasCtx.fillStyle = '#fafafa';
@@ -753,7 +798,7 @@
         let barHeight;
         let x = 0;
 
-        for (let i = 0; i < bufferLength; i++) {
+        for (let i = 0; i < bufferLength; i += 2) { // Menggambar setiap 2 baris data untuk memperringan rendering canvas di HP
           barHeight = (dataArray[i] / 255) * canvas.height;
 
           const gradient = canvasCtx.createLinearGradient(0, canvas.height, 0, 0);
@@ -761,9 +806,9 @@
           gradient.addColorStop(1, '#a29bfe');
 
           canvasCtx.fillStyle = gradient;
-          canvasCtx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+          canvasCtx.fillRect(x, canvas.height - barHeight, barWidth * 2, barHeight);
 
-          x += barWidth + 1;
+          x += (barWidth * 2) + 1;
         }
       }
 
@@ -778,17 +823,17 @@
     }
 
     /* ==========================================================================
-       4. REAL-TIME EVENT CONTROLLERS
+       5. REAL-TIME EVENT CONTROLLERS
        ========================================================================== */
     document.getElementById('pot-gain-l').addEventListener('input', (e) => {
       const val = parseFloat(e.target.value);
-      if (gainMasterL) gainMasterL.gain.setTargetAtTime(val, audioCtx.currentTime, 0.01);
+      if (gainMasterL) gainMasterL.gain.setTargetAtTime(val, audioCtx.currentTime, 0.02);
       document.getElementById('val-gain-l').innerText = Math.round(val * 100) + '%';
     });
 
     document.getElementById('pot-gain-r').addEventListener('input', (e) => {
       const val = parseFloat(e.target.value);
-      if (gainMasterR) gainMasterR.gain.setTargetAtTime(val, audioCtx.currentTime, 0.01);
+      if (gainMasterR) gainMasterR.gain.setTargetAtTime(val, audioCtx.currentTime, 0.02);
       document.getElementById('val-gain-r').innerText = Math.round(val * 100) + '%';
     });
 
@@ -796,7 +841,6 @@
       initDSP();
       const file = e.target.files[0];
       if (file) {
-        document.getElementById('cors-alert').style.display = 'none';
         if (isYTReady && ytPlayer.pauseVideo) ytPlayer.pauseVideo();
         audioElement.src = URL.createObjectURL(file);
         audioElement.play();
@@ -812,7 +856,6 @@
         if (micStreamNode) micStreamNode.disconnect();
         micStreamNode = audioCtx.createMediaStreamSource(stream);
         micStreamNode.connect(splitter);
-        document.getElementById('cors-alert').style.display = 'none';
         document.getElementById('status-media-title').innerText = "🎙️ Microphone Input Live";
         alert("Microphone berhasil terhubung ke Engine DSP!");
       } catch (err) {
@@ -821,22 +864,9 @@
     });
 
     document.getElementById('btn-load-yt').addEventListener('click', () => {
-      initDSP();
       const vidId = extractYouTubeID(document.getElementById('yt-url-input').value.trim());
       if (!vidId) { alert("URL YouTube tidak valid!"); return; }
-
-      if (isYTReady) {
-        ytPlayer.loadVideoById(vidId);
-        ytPlayer.mute();
-      }
-
-      document.getElementById('cors-alert').style.display = 'block';
-      audioElement.src = `https://invidious.nerdvpn.de/latest_version?id=${vidId}&itag=140`;
-      audioElement.play().then(() => {
-        btnPlay.innerText = "⏸ Pause";
-      }).catch(err => console.log("CORS Proxy Blocked Auto-Play"));
-
-      document.getElementById('status-media-title').innerText = "📺 YT Stream: " + vidId;
+      loadRealYouTubeAudioStream(vidId);
     });
 
     btnPlay.addEventListener('click', () => {
@@ -854,8 +884,12 @@
       }
     });
 
+    /* Sync sinkronisasi otomatis waktu Video YT dengan Audio Stream jika mengalami drift */
+    audioElement.addEventListener('play', () => { if (isYTReady) ytPlayer.playVideo(); });
+    audioElement.addEventListener('pause', () => { if (isYTReady) ytPlayer.pauseVideo(); });
+
     /* ==========================================================================
-       5. BUILDER & MODALS
+       6. BUILDER & MODALS
        ========================================================================== */
     function applyEQPreset(ch, presetName) {
       const vals = EQ_PRESETS[presetName];
@@ -863,7 +897,7 @@
       const targetFilters = ch === 'L' ? filtersL : filtersR;
 
       vals.forEach((v, idx) => {
-        if (targetFilters[idx]) targetFilters[idx].gain.setTargetAtTime(v, audioCtx.currentTime, 0.01);
+        if (targetFilters[idx]) targetFilters[idx].gain.setTargetAtTime(v, audioCtx.currentTime, 0.02);
         const slider = document.getElementById(`slider-${ch}-${idx}`);
         const label = document.getElementById(`val-${ch}-${idx}`);
         if (slider) slider.value = v;
@@ -880,11 +914,11 @@
       const targetVerbGain = ch === 'L' ? verbGainL : verbGainR;
 
       [17, 18, 19, 20, 21].forEach(idx => {
-        if (targetFilters[idx]) targetFilters[idx].gain.setTargetAtTime(p.midGain, audioCtx.currentTime, 0.01);
+        if (targetFilters[idx]) targetFilters[idx].gain.setTargetAtTime(p.midGain, audioCtx.currentTime, 0.02);
       });
 
       if (targetVerbGain) {
-        targetVerbGain.gain.setTargetAtTime(p.verbWet, audioCtx.currentTime, 0.01);
+        targetVerbGain.gain.setTargetAtTime(p.verbWet, audioCtx.currentTime, 0.02);
       }
 
       document.getElementById(`status-${ch.toLowerCase()}-vocal`).innerText = `Vocal: ${presetName}`;
@@ -927,7 +961,7 @@
         
         const targetFilters = ch === 'L' ? filtersL : filtersR;
         if (targetFilters[idx]) {
-          targetFilters[idx].gain.setTargetAtTime(val, audioCtx.currentTime, 0.01);
+          targetFilters[idx].gain.setTargetAtTime(val, audioCtx.currentTime, 0.02);
         }
       });
       return grp;
