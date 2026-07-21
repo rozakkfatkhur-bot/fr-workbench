@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dual 50-Tone Equalizer & Vocal Effects Processor</title>
+  <style>
+    :root {
+      --bg-color: #121214;
+      --card-bg: #1e1e24;
+      --accent-l: #00d2ff;
+      --accent-r: #ff4757;
+      --text: #e1e1e6;
+      --highlight: #2ed573;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text);
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1, h2, h3 {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    /* Status Display & Player Layout */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 900px) {
+      .dashboard-grid, .eq-grid {
+        grid-template-columns: 1fr !important;
+      }
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+    }
+
+    /* Controls Panel */
+    .controls-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 8px;
+      width: 100%;
+      max-width: 600px;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      background: #141418;
+      border: 1px solid #57606f;
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 6px;
+      outline: none;
+    }
+
+    input[type="text"]:focus {
+      border-color: var(--accent-l);
+    }
+
+    .btn {
+      background: #2f3542;
+      color: #fff;
+      padding: 10px 18px;
+      border: 1px solid #57606f;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.2s;
+    }
+
+    .btn:hover {
+      background: #57606f;
+    }
+
+    .btn-play {
+      background: var(--highlight);
+      border: none;
+      color: #1e272e;
+    }
+
+    .btn-play:hover {
+      background: #26af5f;
+    }
+
+    .btn-yt {
+      background: #ff0000;
+      border: none;
+      color: #fff;
+    }
+
+    .btn-yt:hover {
+      background: #cc0000;
+    }
+
+    select {
+      background: #2f3542;
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid #57606f;
+      outline: none;
+    }
+
+    /* Video Player Frame */
+    .video-container {
+      position: relative;
+      padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+      height: 0;
+      overflow: hidden;
+      border-radius: 8px;
+      background: #000;
+    }
+
+    .video-container iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+
+    /* Active Effects Monitor Panel */
+    .status-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .status-box {
+      background: #141418;
+      border-radius: 8px;
+      padding: 12px;
+      border-left: 4px solid var(--accent-l);
+    }
+
+    .status-box.right {
+      border-left-color: var(--accent-r);
+    }
+
+    .status-title {
+      font-size: 12px;
+      color: #a4b0be;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+    }
+
+    .status-value {
+      font-size: 15px;
+      font-weight: bold;
+      color: #fff;
+    }
+
+    /* Equalizer Grid Layout */
+    .eq-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .channel-card.left { border-top: 4px solid var(--accent-l); }
+    .channel-card.right { border-top: 4px solid var(--accent-r); }
+
+    .sliders-wrapper {
+      display: flex;
+      overflow-x: auto;
+      padding: 15px 5px;
+      gap: 6px;
+      background: #141418;
+      border-radius: 8px;
+    }
+
+    .slider-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 32px;
+    }
+
+    .slider-group span {
+      font-size: 9px;
+      color: #a4b0be;
+      margin-top: 5px;
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+      height: 45px;
+      text-align: center;
+    }
+
+    .slider-group input[type="range"] {
+      -webkit-appearance: slider-vertical;
+      width: 16px;
+      height: 180px;
+      background: #2f3542;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .val-label {
+      font-size: 10px;
+      margin-bottom: 5px;
+      color: var(--accent-l);
+    }
+
+    .right .val-label {
+      color: var(--accent-r);
+    }
+
+    .preset-section {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .notice-bar {
+      background: rgba(255, 165, 0, 0.15);
+      border: 1px solid orange;
+      color: #ffbe76;
+      padding: 10px 15px;
+      border-radius: 8px;
+      font-size: 12px;
+      margin-bottom: 15px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Dual 50-Tone EQ & Vocal Processor</h1>
+
+  <div class="notice-bar">
+    ℹ️ <strong>Catatan Teknis Web Audio:</strong> Video YouTube diputar secara visual melalui API Player. Untuk pemprosesan filter Web Audio API 50-Band secara penuh, gunakan tombol <strong>"Pilih File Audio"</strong> (MP3/WAV/FLAC).
+  </div>
+
+  <!-- Main Player & Link Control -->
+  <div class="card controls-container">
+    <div class="input-group">
+      <input type="text" id="yt-url-input" placeholder="Tempel URL Video YouTube di sini (contoh: https://www.youtube.com/watch?v=...)">
+      <button class="btn btn-yt" id="btn-load-yt">▶ Muat Video</button>
+    </div>
+
+    <div style="display: flex; gap: 10px; align-items: center;">
+      <label class="btn">
+        📁 Pilih File Audio
+        <input type="file" id="audio-file" accept="audio/*" style="display:none;">
+      </label>
+      <button class="btn btn-play" id="btn-play">▶ Play / Pause</button>
+    </div>
+    <audio id="audio-element" controls style="display:none;"></audio>
+  </div>
+
+  <!-- Dashboard Section: Video Display & Effect Monitors -->
+  <div class="dashboard-grid">
+    <!-- YouTube Video Display Panel -->
+    <div class="card">
+      <h3>Pemutar Video YouTube</h3>
+      <div class="video-container">
+        <div id="yt-player"></div>
+      </div>
+    </div>
+
+    <!-- Live Status Monitor -->
+    <div class="card status-panel">
+      <h3>Monitor Efek Active Status</h3>
+      
+      <div class="status-box">
+        <div class="status-title">Judul Media Aktif</div>
+        <div class="status-value" id="status-media-title">Belum ada media dimuat</div>
+      </div>
+
+      <div class="status-box">
+        <div class="status-title">Channel Left (L) Status</div>
+        <div class="status-value" id="status-l-eq">EQ: Flat</div>
+        <div class="status-value" id="status-l-vocal" style="font-size:13px; color:var(--accent-l); margin-top:2px;">Vocal: Normal / Bypass</div>
+      </div>
+
+      <div class="status-box right">
+        <div class="status-title">Channel Right (R) Status</div>
+        <div class="status-value" id="status-r-eq">EQ: Flat</div>
+        <div class="status-value" id="status-r-vocal" style="font-size:13px; color:var(--accent-r); margin-top:2px;">Vocal: Normal / Bypass</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Equalizer Section -->
+  <div class="eq-grid">
+    <!-- LEFT CHANNEL -->
+    <div class="channel-card left">
+      <h2>Channel LEFT (L)</h2>
+      <div class="preset-section">
+        <label>EQ Preset:</label>
+        <select id="preset-eq-l"></select>
+      </div>
+      <div class="preset-section">
+        <label>Efek Vokal:</label>
+        <select id="preset-vocal-l"></select>
+      </div>
+      <div class="sliders-wrapper" id="container-eq-l"></div>
+    </div>
+
+    <!-- RIGHT CHANNEL -->
+    <div class="channel-card right">
+      <h2>Channel RIGHT (R)</h2>
+      <div class="preset-section">
+        <label>EQ Preset:</label>
+        <select id="preset-eq-r"></select>
+      </div>
+      <div class="preset-section">
+        <label>Efek Vokal:</label>
+        <select id="preset-vocal-r"></select>
+      </div>
+      <div class="sliders-wrapper" id="container-eq-r"></div>
+    </div>
+  </div>
+
+  <!-- YouTube IFrame API Script -->
+  <script src="https://www.youtube.com/iframe_api"></script>
+
+  <script>
+    // 50 Logarithmic Frequency Bands (20Hz - 20kHz)
+    const FREQUENCIES = [
+      20, 25, 31.5, 40, 50, 63, 80, 100, 125, 160,
+      200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600,
+      2000, 2500, 3150, 4000, 5000, 6300, 8000, 10000, 11200, 12500,
+      13500, 14000, 14500, 15000, 15500, 16000, 16500, 17000, 17500, 18000,
+      18200, 18500, 18700, 19000, 19200, 19500, 19700, 19800, 19900, 20000
+    ];
+
+    const EQ_PRESETS = {
+      "Flat": Array(50).fill(0),
+      "Sub-Bass Deep & Soft (Empuk Dalam)": FREQUENCIES.map(f => {
+        if (f <= 40) return 12;
+        if (f <= 80) return 9;
+        if (f <= 160) return 3;
+        if (f <= 500) return -2;
+        if (f <= 3000) return -4;
+        if (f <= 10000) return 1;
+        return 0;
+      }),
+      "Bass Boost Heavy": FREQUENCIES.map(f => (f <= 125 ? 10 : f <= 315 ? 5 : 0)),
+      "Clarity & Sparkle": FREQUENCIES.map(f => (f < 200 ? -3 : f > 4000 ? 8 : 2)),
+      "Acoustic Live": FREQUENCIES.map(f => (f < 100 ? -2 : f <= 1000 ? 3 : f <= 8000 ? 5 : 2)),
+      "Club Power": FREQUENCIES.map(f => (f <= 100 ? 8 : f <= 500 ? 3 : f >= 4000 ? 6 : 0))
+    };
+
+    const VOCAL_PRESETS = {
+      "1. Normal / Bypass": { gainMid: 0, delay: 0 },
+      "2. Vocal Clarity & Air": { gainMid: 4, delay: 0 },
+      "3. Warm Tube Vocal": { gainMid: 3, delay: 0 },
+      "4. Stage Live Echo": { gainMid: 2, delay: 0.15 },
+      "5. Studio Reverb Feel": { gainMid: 3, delay: 0.08 },
+      "6. Deep Male Vocal": { gainMid: 2, delay: 0 },
+      "7. Bright Female Vocal": { gainMid: 5, delay: 0 },
+      "8. Karaoke Duet Spatial": { gainMid: 1, delay: 0.22 },
+      "9. Telephone / Radio Effect": { gainMid: 8, delay: 0 },
+      "10. Ambient Vocal Choir": { gainMid: 2, delay: 0.35 }
+    };
+
+    // Global Audio Context & Nodes
+    let audioCtx;
+    let sourceNode;
+    let splitter, merger;
+    let filtersL = [], filtersR = [];
+    let vocalDelayL, vocalDelayGainL;
+    let vocalDelayR, vocalDelayGainR;
+
+    // YouTube Player Variable
+    let ytPlayer;
+    let isYTReady = false;
+
+    // DOM Elements
+    const audioElement = document.getElementById('audio-element');
+    const btnPlay = document.getElementById('btn-play');
+    const audioFileInput = document.getElementById('audio-file');
+    const ytUrlInput = document.getElementById('yt-url-input');
+    const btnLoadYt = document.getElementById('btn-load-yt');
+
+    // Status Panel Elements
+    const statusMediaTitle = document.getElementById('status-media-title');
+    const statusLEq = document.getElementById('status-l-eq');
+    const statusLVocal = document.getElementById('status-l-vocal');
+    const statusREq = document.getElementById('status-r-eq');
+    const statusRVocal = document.getElementById('status-r-vocal');
+
+    // Init YouTube API
+    function onYouTubeIframeAPIReady() {
+      ytPlayer = new YT.Player('yt-player', {
+        height: '100%',
+        width: '100%',
+        videoId: 'dQw4w9WgXcQ', // Default Video
+        events: {
+          'onReady': () => { isYTReady = true; },
+          'onStateChange': onPlayerStateChange
+        }
+      });
+    }
+
+    function onPlayerStateChange(event) {
+      if (event.data == YT.PlayerState.PLAYING) {
+        btnPlay.innerText = "⏸ Pause";
+        if (ytPlayer.getVideoData()) {
+          statusMediaTitle.innerText = "📺 YT: " + ytPlayer.getVideoData().title;
+        }
+      } else if (event.data == YT.PlayerState.PAUSED) {
+        btnPlay.innerText = "▶ Play";
+      }
+    }
+
+    // Extract YouTube ID from URL
+    function extractYouTubeID(url) {
+      const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+      const match = url.match(regExp);
+      return (match && match[2].length === 11) ? match[2] : null;
+    }
+
+    // Build Sliders and Dropdowns
+    function buildUI() {
+      const containerL = document.getElementById('container-eq-l');
+      const containerR = document.getElementById('container-eq-r');
+      
+      FREQUENCIES.forEach((freq, idx) => {
+        containerL.appendChild(createSliderGroup('L', idx, freq));
+        containerR.appendChild(createSliderGroup('R', idx, freq));
+      });
+
+      populateSelect('preset-eq-l', Object.keys(EQ_PRESETS));
+      populateSelect('preset-eq-r', Object.keys(EQ_PRESETS));
+      populateSelect('preset-vocal-l', Object.keys(VOCAL_PRESETS));
+      populateSelect('preset-vocal-r', Object.keys(VOCAL_PRESETS));
+    }
+
+    function createSliderGroup(ch, idx, freq) {
+      const group = document.createElement('div');
+      group.className = 'slider-group';
+
+      const labelVal = document.createElement('div');
+      labelVal.className = 'val-label';
+      labelVal.id = `val-${ch}-${idx}`;
+      labelVal.innerText = '0';
+
+      const input = document.createElement('input');
+      input.type = 'range';
+      input.min = -12;
+      input.max = 12;
+      input.step = 0.5;
+      input.value = 0;
+      input.id = `slider-${ch}-${idx}`;
+
+      input.addEventListener('input', (e) => {
+        const val = parseFloat(e.target.value);
+        labelVal.innerText = val > 0 ? `+${val}` : val;
+        if (ch === 'L' && filtersL[idx]) filtersL[idx].gain.value = val;
+        if (ch === 'R' && filtersR[idx]) filtersR[idx].gain.value = val;
+      });
+
+      const labelFreq = document.createElement('span');
+      labelFreq.innerText = freq >= 1000 ? `${(freq/1000).toFixed(1)}k` : `${freq}Hz`;
+
+      group.appendChild(labelVal);
+      group.appendChild(input);
+      group.appendChild(labelFreq);
+      return group;
+    }
+
+    function populateSelect(id, options) {
+      const sel = document.getElementById(id);
+      options.forEach(opt => {
+        const el = document.createElement('option');
+        el.value = opt;
+        el.innerText = opt;
+        sel.appendChild(el);
+      });
+    }
+
+    // Web Audio Engine Setup
+    function initAudio() {
+      if (audioCtx) return;
+
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new AudioContext();
+
+      sourceNode = audioCtx.createMediaElementSource(audioElement);
+      
+      splitter = audioCtx.createChannelSplitter(2);
+      merger = audioCtx.createChannelMerger(2);
+
+      sourceNode.connect(splitter);
+
+      let lastNodeL = setupEQChain(0, filtersL);
+      let lastNodeR = setupEQChain(1, filtersR);
+
+      vocalDelayL = audioCtx.createDelay();
+      vocalDelayGainL = audioCtx.createGain();
+      vocalDelayL.delayTime.value = 0;
+      vocalDelayGainL.gain.value = 0;
+
+      vocalDelayR = audioCtx.createDelay();
+      vocalDelayGainR = audioCtx.createGain();
+      vocalDelayR.delayTime.value = 0;
+      vocalDelayGainR.gain.value = 0;
+
+      lastNodeL.connect(vocalDelayL);
+      vocalDelayL.connect(vocalDelayGainL);
+      vocalDelayGainL.connect(lastNodeL);
+
+      lastNodeR.connect(vocalDelayR);
+      vocalDelayR.connect(vocalDelayGainR);
+      vocalDelayGainR.connect(lastNodeR);
+
+      lastNodeL.connect(merger, 0, 0);
+      lastNodeR.connect(merger, 0, 1);
+
+      merger.connect(audioCtx.destination);
+    }
+
+    function setupEQChain(channelIndex, filterArray) {
+      let prevNode = splitter;
+
+      FREQUENCIES.forEach((freq, idx) => {
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = 'peaking';
+        filter.frequency.value = freq;
+        filter.Q.value = 4.3;
+        filter.gain.value = 0;
+
+        filterArray.push(filter);
+
+        if (idx === 0) {
+          prevNode.connect(filter, channelIndex, 0);
+        } else {
+          prevNode.connect(filter);
+        }
+        prevNode = filter;
+      });
+
+      return prevNode;
+    }
+
+    // Apply Presets & Update Status Panel
+    function applyEQPreset(ch, presetName) {
+      const presetValues = EQ_PRESETS[presetName];
+      if (!presetValues) return;
+
+      const filters = ch === 'L' ? filtersL : filtersR;
+      presetValues.forEach((val, idx) => {
+        if (filters[idx]) filters[idx].gain.value = val;
+        
+        const slider = document.getElementById(`slider-${ch}-${idx}`);
+        const label = document.getElementById(`val-${ch}-${idx}`);
+        if (slider) slider.value = val;
+        if (label) label.innerText = val > 0 ? `+${val}` : val;
+      });
+
+      if (ch === 'L') statusLEq.innerText = `EQ: ${presetName}`;
+      else statusREq.innerText = `EQ: ${presetName}`;
+    }
+
+    function applyVocalPreset(ch, presetName) {
+      const p = VOCAL_PRESETS[presetName];
+      if (!p) return;
+
+      const filters = ch === 'L' ? filtersL : filtersR;
+      const delayNode = ch === 'L' ? vocalDelayL : vocalDelayR;
+      const delayGain = ch === 'L' ? vocalDelayGainL : vocalDelayGainR;
+
+      if (filters.length > 0) {
+        [17, 18, 19, 20].forEach(i => {
+          if (filters[i]) filters[i].gain.value = p.gainMid;
+        });
+      }
+
+      if (delayNode && delayGain) {
+        if (p.delay > 0) {
+          delayNode.delayTime.value = p.delay;
+          delayGain.gain.value = 0.4;
+        } else {
+          delayGain.gain.value = 0;
+        }
+      }
+
+      if (ch === 'L') statusLVocal.innerText = `Vocal: ${presetName}`;
+      else statusRVocal.innerText = `Vocal: ${presetName}`;
+    }
+
+    // Event Listeners
+    btnLoadYt.addEventListener('click', () => {
+      const url = ytUrlInput.value.trim();
+      const videoId = extractYouTubeID(url);
+
+      if (videoId && isYTReady) {
+        ytPlayer.loadVideoById(videoId);
+        // Pause local audio jika ada yang jalan
+        if (!audioElement.paused) audioElement.pause();
+      } else {
+        alert("URL YouTube tidak valid. Pastikan format URL sesuai.");
+      }
+    });
+
+    audioFileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        // Pause YT player jika sedang jalan
+        if (isYTReady && ytPlayer.getPlayerState() === YT.PlayerState.PLAYING) {
+          ytPlayer.pauseVideo();
+        }
+        audioElement.src = URL.createObjectURL(file);
+        statusMediaTitle.innerText = "📁 File: " + file.name;
+      }
+    });
+
+    btnPlay.addEventListener('click', () => {
+      initAudio();
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+
+      // Priority control: YouTube Player or Local Audio
+      if (isYTReady && ytPlayer.getPlayerState() === YT.PlayerState.PLAYING) {
+        ytPlayer.pauseVideo();
+        btnPlay.innerText = "▶ Play";
+      } else if (isYTReady && ytPlayer.getVideoData().video_id && audioElement.paused && !audioElement.src) {
+        ytPlayer.playVideo();
+        btnPlay.innerText = "⏸ Pause";
+      } else if (audioElement.src) {
+        if (audioElement.paused) {
+          audioElement.play();
+          btnPlay.innerText = "⏸ Pause";
+        } else {
+          audioElement.pause();
+          btnPlay.innerText = "▶ Play";
+        }
+      }
+    });
+
+    document.getElementById('preset-eq-l').addEventListener('change', (e) => applyEQPreset('L', e.target.value));
+    document.getElementById('preset-eq-r').addEventListener('change', (e) => applyEQPreset('R', e.target.value));
+    document.getElementById('preset-vocal-l').addEventListener('change', (e) => applyVocalPreset('L', e.target.value));
+    document.getElementById('preset-vocal-r').addEventListener('change', (e) => applyVocalPreset('R', e.target.value));
+
+    // Initialize Page Controls
+    buildUI();
+  </script>
+</body>
+</html>
