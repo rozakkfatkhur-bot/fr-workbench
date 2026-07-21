@@ -187,14 +187,14 @@
   <div class="container">
     <div class="announcement-bar">
       <div class="announcement-text" id="announcement-content">
-        ℹ️ <strong>Pengumuman:</strong> Aktifkan "Full EQ Stream Proxy" untuk mengontrol EQ & Reverb pada YouTube Video!
+        ℹ️ <strong>Pengumuman:</strong> Sistem Multi-Proxy Aktif! EQ 50-Band & Reverb Vokal bekerja 100% Nyata!
       </div>
     </div>
 
     <!-- Main Controls -->
     <div class="card controls-grid">
       <div class="input-yt-wrapper">
-        <input type="text" id="yt-url-input" placeholder="Tempel URL Video YouTube (Durasi 2+ Jam Stabil)...">
+        <input type="text" id="yt-url-input" placeholder="Tempel URL Video YouTube...">
         <button class="btn btn-yt" id="btn-load-yt">▶ Muat Video</button>
       </div>
 
@@ -214,7 +214,6 @@
         <button class="btn btn-play" id="btn-play">▶ Play / Pause</button>
       </div>
       
-      <!-- Hidden Audio Element connected to Audio Context -->
       <audio id="audio-element" style="display:none;" crossorigin="anonymous"></audio>
     </div>
 
@@ -281,7 +280,7 @@
       </div>
       <div id="secret-content" style="display:none;">
         <h4 style="color:var(--accent-violet-bright);">✨ Ultra-Harmonics Engine Unlocked</h4>
-        <p style="font-size:13px; color:#e1e1e6; margin-top:8px;">Sub-Harmonic Synthesizer & Convolver Reverb DSP Matrix active.</p>
+        <p style="font-size:13px; color:#e1e1e6; margin-top:8px;">Sub-Harmonic Synthesizer & DSP Matrix Active.</p>
       </div>
     </div>
   </div>
@@ -307,6 +306,7 @@
 
   <script src="https://www.youtube.com/iframe_api"></script>
   <script>
+    // 50 Logarithmic Band Frequencies (20Hz - 20kHz)
     const FREQUENCIES = [
       20, 25, 31.5, 40, 50, 63, 80, 100, 125, 160,
       200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600,
@@ -323,13 +323,21 @@
       "Acoustic Live": FREQUENCIES.map(f => f < 100 ? -2 : f <= 1000 ? 3 : f <= 8000 ? 5 : 2)
     };
 
+    // Full Range Vocal DSP Presets
     const VOCAL_PRESETS = {
-      "1. Normal / Bypass": { gainMid: 0, reverb: 0.0 },
-      "2. Vocal Clarity & Air": { gainMid: 5, reverb: 0.1 },
-      "3. True Studio Reverb": { gainMid: 3, reverb: 0.6 },
-      "4. Stage Live Echo": { gainMid: 2, reverb: 0.8 },
-      "5. Radio/Telephone Effect": { gainMid: 8, reverb: 0.0 }
+      "1. Normal / Bypass": { curve: FREQUENCIES.map(() => 0), reverb: 0.0 },
+      "2. Vocal Clarity & Air": { curve: FREQUENCIES.map(f => f < 150 ? -4 : f >= 1000 && f <= 4000 ? 5 : f > 6000 ? 7 : 0), reverb: 0.2 },
+      "3. True Studio Reverb": { curve: FREQUENCIES.map(f => f < 100 ? -3 : f <= 2500 ? 3 : 1), reverb: 1.5 },
+      "4. Stage Live Echo": { curve: FREQUENCIES.map(f => f <= 500 ? 1 : f <= 3000 ? 4 : 2), reverb: 2.5 },
+      "5. Radio/Telephone Effect": { curve: FREQUENCIES.map(f => (f < 400 || f > 3500) ? -12 : 8), reverb: 0.0 }
     };
+
+    // Multi-Proxy List
+    const PROXY_SERVERS = [
+      (id) => `https://invidious.nerdvpn.de/latest_version?id=${id}&itag=140`,
+      (id) => `https://inv.tux.pro/latest_version?id=${id}&itag=140`,
+      (id) => `https://invidious.drgns.space/latest_version?id=${id}&itag=140`
+    ];
 
     let audioCtx, sourceNode, splitter, merger;
     let filtersL = [], filtersR = [];
@@ -370,8 +378,8 @@
       let lastL = setupEQChain(0, filtersL);
       let lastR = setupEQChain(1, filtersR);
 
-      // Convolution Reverb DSP Node
-      const impulseBuffer = createImpulseResponse(audioCtx, 2.5, 2.0);
+      // Convolution Reverb Engine Setup
+      const impulseBuffer = createImpulseResponse(audioCtx, 3.0, 2.0);
       
       convolverL = audioCtx.createConvolver();
       convolverL.buffer = impulseBuffer;
@@ -427,7 +435,6 @@
       return prevNode;
     }
 
-    // FIXED 1: Dropdown Preset EQ Handler
     function applyEQPreset(ch, presetName) {
       const vals = EQ_PRESETS[presetName];
       if (!vals) return;
@@ -445,7 +452,6 @@
       else document.getElementById('status-r-eq').innerText = `EQ: ${presetName}`;
     }
 
-    // FIXED 2: Dropdown Vocal Preset & Convolver Reverb Handler
     function applyVocalPreset(ch, presetName) {
       const p = VOCAL_PRESETS[presetName];
       if (!p) return;
@@ -453,14 +459,14 @@
       const filters = ch === 'L' ? filtersL : filtersR;
       const convolverGain = ch === 'L' ? convolverGainL : convolverGainR;
 
-      // Adjust Midrange Vocal Gain (around 1kHz)
-      if (filters.length > 0) {
-        [17, 18, 19, 20].forEach(i => {
-          if (filters[i]) filters[i].gain.value = p.gainMid;
-        });
-      }
+      p.curve.forEach((v, idx) => {
+        if (filters[idx]) filters[idx].gain.value = v;
+        const slider = document.getElementById(`slider-${ch}-${idx}`);
+        const label = document.getElementById(`val-${ch}-${idx}`);
+        if (slider) slider.value = v;
+        if (label) label.innerText = v > 0 ? `+${v}` : v;
+      });
 
-      // Adjust True Reverb Level
       if (convolverGain) {
         convolverGain.gain.value = p.reverb;
       }
@@ -469,20 +475,45 @@
       else document.getElementById('status-r-vocal').innerText = `Vocal: ${presetName}`;
     }
 
-    // FIXED 3: Simultaneous Video Playback + Proxy Audio Syncing
-    document.getElementById('btn-load-yt').addEventListener('click', () => {
+    async function loadProxyAudioWithFallback(vidId) {
+      for (let i = 0; i < PROXY_SERVERS.length; i++) {
+        const url = PROXY_SERVERS[i](vidId);
+        try {
+          audioElement.src = url;
+          await audioElement.play();
+          return true;
+        } catch (e) {
+          console.warn(`Proxy ${i + 1} gagal, mencoba proxy lain...`);
+        }
+      }
+      return false;
+    }
+
+    document.getElementById('btn-load-yt').addEventListener('click', async () => {
       const vidId = extractYouTubeID(ytUrlInput.value.trim());
       if (!vidId) { alert("URL YouTube tidak valid!"); return; }
 
+      initAudioEngine();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+
       if (proxyToggle.checked) {
-        // Load iframe muted for video visual, and audio stream to Audio Context for EQ
         if (isYTReady) {
           ytPlayer.loadVideoById(vidId);
-          ytPlayer.mute(); // Mute IFrame sound to avoid double audio
+          ytPlayer.mute();
         }
-        audioElement.src = `https://invidious.nerdvpn.de/latest_version?id=${vidId}&itag=140`;
-        audioElement.play();
-        document.getElementById('status-media-title').innerText = "📺 YT Video + Audio Proxy Stream (EQ Active)";
+        
+        document.getElementById('status-media-title').innerText = "⏳ Memuat Audio Proxy...";
+        const success = await loadProxyAudioWithFallback(vidId);
+
+        if (success) {
+          document.getElementById('status-media-title').innerText = "📺 YT Video + Proxy Audio (EQ & Reverb Active)";
+          btnPlay.innerText = "⏸ Pause";
+        } else {
+          alert("Gagal memuat proxy audio. Beralih ke pemutar IFrame standar.");
+          ytPlayer.unMute();
+          ytPlayer.playVideo();
+          document.getElementById('status-media-title').innerText = "📺 YT Direct IFrame (No-EQ Fallback)";
+        }
       } else {
         if (isYTReady) {
           ytPlayer.unMute();
@@ -495,8 +526,13 @@
     document.getElementById('audio-file').addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (file) {
+        initAudioEngine();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
         if (isYTReady && ytPlayer.getPlayerState) ytPlayer.pauseVideo();
         audioElement.src = URL.createObjectURL(file);
+        audioElement.play();
+        btnPlay.innerText = "⏸ Pause";
         document.getElementById('status-media-title').innerText = "📁 File Lokal: " + file.name;
       }
     });
@@ -518,7 +554,7 @@
       }
     });
 
-    // FIXED 4: Admin Panel Save Announcement
+    // Admin Panel Logic
     document.getElementById('btn-admin-login').addEventListener('click', () => {
       const u = document.getElementById('admin-username').value.trim();
       const e = document.getElementById('admin-email').value.trim();
@@ -557,13 +593,11 @@
       populateSelect('preset-vocal-l', Object.keys(VOCAL_PRESETS));
       populateSelect('preset-vocal-r', Object.keys(VOCAL_PRESETS));
 
-      // Connect Event Listeners to Presets
       document.getElementById('preset-eq-l').addEventListener('change', (e) => applyEQPreset('L', e.target.value));
       document.getElementById('preset-eq-r').addEventListener('change', (e) => applyEQPreset('R', e.target.value));
       document.getElementById('preset-vocal-l').addEventListener('change', (e) => applyVocalPreset('L', e.target.value));
       document.getElementById('preset-vocal-r').addEventListener('change', (e) => applyVocalPreset('R', e.target.value));
 
-      // Restore LocalStorage Announcement
       const savedAnn = localStorage.getItem('fr_announcement_text');
       if (savedAnn) document.getElementById('announcement-content').innerHTML = savedAnn;
     }
