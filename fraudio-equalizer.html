@@ -102,21 +102,23 @@
       gap: 10px;
     }
 
-    /* Container Iklan Non-Intrusif */
+    /* Container Iklan Dinamis & Visual Preview */
     .ad-banner-container {
-      background: rgba(255, 255, 255, 0.02);
-      border: 1px dashed var(--border-dark);
+      background: linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.9));
+      border: 1px solid var(--purple-glow);
       border-radius: 12px;
-      padding: 12px;
-      margin: 18px 0;
+      padding: 15px;
+      margin: 20px 0;
       text-align: center;
-      min-height: 80px;
+      min-height: 90px;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
+      box-shadow: inset 0 0 15px rgba(108, 92, 231, 0.15);
     }
-    .ad-label { font-size: 9px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px; }
+    .ad-label { font-size: 9px; color: var(--gold-vip); text-transform: uppercase; margin-bottom: 6px; letter-spacing: 1px; font-weight: 800; }
+    .ad-content { font-size: 13px; font-weight: 700; color: var(--text-light); }
 
     .controls-grid { display: flex; gap: 15px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
     .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 25px; }
@@ -281,6 +283,16 @@
     }
     .user-profile { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
     .user-avatar { width: 32px; height: 32px; border-radius: 50%; }
+
+    .admin-badge {
+      background: #ef4444;
+      color: #fff;
+      font-size: 9px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 800;
+      margin-left: 6px;
+    }
   </style>
 </head>
 <body>
@@ -292,7 +304,7 @@
     </div>
     <div class="nav-actions">
       <button class="btn btn-buy" onclick="openModal('modal-qris')">💳 Beli VIP (Rp 5.000 / 2.5 Mgg)</button>
-      <button class="btn btn-key" onclick="openModal('modal-key')">🔑 Aktivasi Kode VIP</button>
+      <button class="btn btn-key" onclick="openModal('modal-key')">🔑 Halaman & Diskusi VIP</button>
       <button class="btn btn-action" id="btn-secret-modal">🔒 Secret Page</button>
       <button class="btn btn-action" id="btn-admin-modal">👤 Admin Panel</button>
     </div>
@@ -309,6 +321,16 @@
         <small id="vip-timer" style="color: var(--gold-vip); font-size: 11px; display: none; margin-top:2px;"></small>
       </div>
       <small style="color: var(--text-muted);">Aktivasi VIP untuk 50-Band Precision L/R Engine</small>
+    </div>
+
+    <!-- Announcement Bar (Hanya Admin yang bisa update) -->
+    <div class="card" id="announcement-card" style="display:none; border-color: var(--gold-vip);">
+      <h4 style="color:var(--gold-vip); display:flex; align-items:center; gap:8px;">
+        📢 Pengumuman Resmi Admin VIP
+      </h4>
+      <p id="announcement-text" style="font-size:12px; color:var(--text-light); margin-top:6px;">
+        Selamat datang di Sistem Audio DSP Pro. Gunakan forum keluhan di modal VIP untuk berdiskusi langsung dengan developer.
+      </p>
     </div>
 
     <!-- Main Controls Panel -->
@@ -330,11 +352,11 @@
       <audio id="audio-element" crossorigin="anonymous"></audio>
     </div>
 
-    <!-- Non-Intrusive Ad Banner Container Top -->
+    <!-- Slot Iklan Banner Atas (Visual Real Ad Stream) -->
     <div class="ad-banner-container">
-      <div class="ad-label">Sponsor / Advertisement</div>
-      <div id="ad-space-1">
-        <span style="color: var(--text-muted); font-size: 11px;">[ Slot Iklan Banner - Hasil Dikirim ke DANA: 08895884306 ]</span>
+      <div class="ad-label">📢 Dynamic Ad Network (Monetization Slot #1)</div>
+      <div class="ad-content" id="ad-space-1">
+        🚀 Boost Audio Performance — Dapatkan Sound System Hardware Terbaik & Diskon Komponen DSP Up To 40%!
       </div>
     </div>
 
@@ -409,59 +431,59 @@
       </div>
     </div>
 
-    <!-- Bottom Ad Banner Container -->
+    <!-- Slot Iklan Banner Bawah (Visual Real Ad Stream) -->
     <div class="ad-banner-container">
-      <div class="ad-label">Sponsor / Advertisement</div>
-      <div id="ad-space-2">
-        <span style="color: var(--text-muted); font-size: 11px;">[ Slot Iklan Banner Pendapatan DANA - 08895884306 ]</span>
+      <div class="ad-label">💰 Revenue Stream Ad Network (Monetization Slot #2)</div>
+      <div class="ad-content" id="ad-space-2">
+        🔥 FR Audio Cloud DSP Server — Solusi Audio Digital Tanpa Latensi Untuk Sound System Anda!
       </div>
     </div>
 
   </div>
 
-  <!-- MODAL 1: QRIS DANA & AUTO POLL -->
+  <!-- MODAL 1: QRIS DANA AUTOMATION -->
   <div class="modal-overlay" id="modal-qris">
     <div class="modal-content" style="text-align: center;">
       <button class="modal-close" onclick="closeModal('modal-qris')">✕</button>
       <h3 style="font-size: 18px; margin-bottom: 6px;">Aktivasi VIP Cloud DSP (Rp 5.000)</h3>
       <p style="font-size:12px; color:var(--text-muted);">
         Masa Aktif: <strong style="color:var(--gold-vip)">2,5 Minggu (17,5 Hari)</strong><br>
-        Transfer DANA ke: <strong style="color:var(--accent-green)">08895884306</strong>
+        Metode: Pembayaran Instan QRIS / DANA Gateway
       </p>
 
       <div class="qris-box">
-        <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=DANA-08895884306-5000" alt="QRIS DANA" class="qris-image">
-        <p style="font-size:11px; color:#000; margin-top:8px; font-weight:bold;">Scan QRIS atau Transfer DANA Rp 5.000</p>
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=DANA-SECURE-GATEWAY-5000" alt="QRIS DANA" class="qris-image">
+        <p style="font-size:11px; color:#000; margin-top:8px; font-weight:bold;">Scan QRIS Untuk Melakukan Pembayaran</p>
       </div>
 
       <div id="poll-status" style="font-size:11px; color:var(--purple-glow); margin:12px 0;">
-        <i class="fa-solid fa-spinner fa-spin"></i> Menunggu pembayaran & auto-polling pemicu...
+        <i class="fa-solid fa-spinner fa-spin"></i> Menunggu verifikasi pembayaran otomatis...
       </div>
 
       <button class="btn btn-key" onclick="closeModal('modal-qris'); openModal('modal-key');" style="width:100%; justify-content:center;">
-        Punya Kode Aktivasi Manual?
+        Masuk Halaman VIP / Punya Kode Aktivasi?
       </button>
     </div>
   </div>
 
-  <!-- MODAL 2: INPUT KUNCI VIP & FORUM VIP GOOGLE AUTH -->
+  <!-- MODAL 2: HALAMAN KHUSUS VIP & GOOGLE AUTH / ADMIN PANEL BOARD -->
   <div class="modal-overlay" id="modal-key">
     <div class="modal-content">
       <button class="modal-close" onclick="closeModal('modal-key')">✕</button>
-      <h3 style="font-size: 18px;">🔑 Aktivasi Kode VIP & Pusat Keluhan</h3>
+      <h3 style="font-size: 18px;">👑 Halaman Khusus Pengguna VIP</h3>
 
       <div style="margin: 15px 0;">
-        <input type="text" id="input-vip-key" placeholder="Masukkan Kode VIP (Contoh: VIP-FR-9821-2026)">
+        <input type="text" id="input-vip-key" placeholder="Masukkan Kode VIP (Opsional jika bukan Admin)">
         <button class="btn btn-key" id="btn-submit-key" style="width: 100%; margin-top:10px; justify-content: center;">
-          ⚡ Buka Akses VIP 50-Band DSP
+          ⚡ Buka Akses Kode Manual
         </button>
       </div>
 
       <hr style="border-color: var(--border-dark); margin: 20px 0;">
 
       <!-- Forum VIP & Akun Google -->
-      <h4>💬 Forum & Keluhan Khusus Pengguna VIP</h4>
-      <p style="font-size:11px; color:var(--text-muted); margin-top:4px;">Masuk akun Google untuk mengirimkan umpan balik atau laporan masalah.</p>
+      <h4>💬 Forum VIP & Masuk Akun Google</h4>
+      <p style="font-size:11px; color:var(--text-muted); margin-top:4px;">Login dengan Google untuk berkomunikasi langsung dengan pengembang.</p>
 
       <div id="google-auth-container" style="margin-top: 12px;">
         <div id="g_id_onload"
@@ -471,16 +493,26 @@
         <div class="g_id_signin" data-type="standard"></div>
       </div>
 
+      <!-- Control Khusus Jika Login Sebagai Admin (rozakkfatkhur@gmail.com) -->
+      <div id="admin-broadcast-section" style="display:none; margin-top:15px; background: rgba(245, 158, 11, 0.1); padding: 12px; border-radius: 8px; border: 1px solid var(--gold-vip);">
+        <h5 style="color:var(--gold-vip); font-size:12px; font-weight:800;">⚡ FITUR SUPER ADMIN DIAKTIFKAN</h5>
+        <input type="text" id="input-broadcast-msg" placeholder="Tulis pengumuman resmi ke seluruh pengguna..." style="margin-top:8px;">
+        <button class="btn btn-buy" id="btn-send-broadcast" style="margin-top:8px; width:100%; justify-content:center;">📢 Kirim Pengumuman VIP</button>
+      </div>
+
       <div id="vip-comment-section" style="display:none; margin-top:15px;">
         <div class="user-profile">
           <img id="user-avatar-img" src="" alt="User" class="user-avatar">
-          <span id="user-display-name" style="font-size:12px; font-weight:bold;"></span>
+          <div>
+            <span id="user-display-name" style="font-size:12px; font-weight:bold;"></span>
+            <span id="admin-tag-indicator" class="admin-badge" style="display:none;">SUPER ADMIN</span>
+          </div>
         </div>
-        <textarea id="vip-comment-input" rows="3" placeholder="Tuliskan keluhan atau masukan Anda..."></textarea>
-        <button class="btn btn-buy" id="btn-send-comment" style="margin-top:8px; width:100%; justify-content:center;">Kirim Keluhan VIP</button>
+        <textarea id="vip-comment-input" rows="3" placeholder="Tuliskan keluhan, saran, atau balasan Anda..."></textarea>
+        <button class="btn btn-buy" id="btn-send-comment" style="margin-top:8px; width:100%; justify-content:center;">Kirim Pesan</button>
       </div>
 
-      <div class="comment-box" id="comments-list" style="max-height:150px; overflow-y:auto; margin-top:10px;">
+      <div class="comment-box" id="comments-list" style="max-height:180px; overflow-y:auto; margin-top:10px;">
         <p style="font-size:10px; color:var(--text-muted);">Belum ada keluhan dikirim.</p>
       </div>
     </div>
@@ -504,7 +536,7 @@
     </div>
   </div>
 
-  <!-- MODAL 4: ADMIN PANEL -->
+  <!-- MODAL 4: ADMIN PANEL MANUAL -->
   <div class="modal-overlay" id="modal-admin">
     <div class="modal-content">
       <button class="modal-close" onclick="closeModal('modal-admin')">✕</button>
@@ -539,8 +571,8 @@
     ];
 
     const VALID_VIP_KEYS = ["VIP-FR-9821-2026", "VIP-FARO-5K", "VIP-SOUND-SYSTEM"];
-    // Batas waktu VIP: 2.5 minggu = 17.5 hari = 1.512.000.000 ms
-    const VIP_DURATION_MS = 17.5 * 24 * 60 * 60 * 1000;
+    const ADMIN_EMAIL = "rozakkfatkhur@gmail.com";
+    const VIP_DURATION_MS = 17.5 * 24 * 60 * 60 * 1000; // 2,5 Minggu untuk user biasa
 
     const VOCAL_PRESETS = {
       "Clean / Bypass": { verbWet: 0.0 },
@@ -550,6 +582,7 @@
     };
 
     let isVIP = false;
+    let isPermanentAdmin = false;
     let currentFrequencies = FREQ_FREE;
     let cloudServerApi = "https://fr-audio-cloud.onrender.com/api/stream-yt?url=";
     let autoPollInterval = null;
@@ -567,6 +600,19 @@
     const btnPlay = document.getElementById('btn-play');
     const canvas = document.getElementById('spectrum-canvas');
     const canvasCtx = canvas.getContext('2d');
+
+    /* Rotasi Iklan Otomatis untuk Monetisasi */
+    const ADS_LIST_1 = [
+      "🚀 Boost Audio Performance — Dapatkan Sound System Hardware Terbaik & Diskon Up To 40%!",
+      "🎧 Hadirkan Suara Konser Di Rumah Anda Dengan Speaker Professional Tasso Series!",
+      "⚡ Nikmati Streaming Audio Tanpa Latensi Dengan Server Cloud DSP VIP!"
+    ];
+
+    let adIndex = 0;
+    setInterval(() => {
+      adIndex = (adIndex + 1) % ADS_LIST_1.length;
+      document.getElementById('ad-space-1').innerText = ADS_LIST_1[adIndex];
+    }, 8000);
 
     /* ==========================================================================
        2. DSP ENGINE INITIALIZATION & REBUILD
@@ -743,16 +789,22 @@
     }
 
     /* ==========================================================================
-       5. VIP SYSTEM, EXPIRATION & AUTO POLL
+       5. VIP SYSTEM, EXPIRATION & AUTO ADMIN EVALUATOR
        ========================================================================== */
     function checkVIPStatus() {
+      const adminAuth = localStorage.getItem('FR_ADMIN_PERMANENT');
+      if (adminAuth === "TRUE") {
+        enableVIPMode(null, true);
+        return;
+      }
+
       const savedKey = localStorage.getItem('FR_VIP_KEY');
       const expiryTime = localStorage.getItem('FR_VIP_EXPIRY');
 
       if (savedKey && VALID_VIP_KEYS.includes(savedKey) && expiryTime) {
         const now = new Date().getTime();
         if (now < parseInt(expiryTime)) {
-          enableVIPMode(parseInt(expiryTime));
+          enableVIPMode(parseInt(expiryTime), false);
         } else {
           alert("⌛ Masa aktif VIP Anda (2,5 Minggu) telah berakhir. Mengembalikan ke mode Free Tier.");
           localStorage.removeItem('FR_VIP_KEY');
@@ -764,16 +816,23 @@
       }
     }
 
-    function enableVIPMode(expiryTimestamp) {
+    function enableVIPMode(expiryTimestamp, isPermanent = false) {
       isVIP = true;
       currentFrequencies = FREQ_VIP;
       document.getElementById('vip-badge').style.display = 'inline-block';
-      document.getElementById('status-text').innerHTML = 'Status Engine: <strong style="color:var(--gold-vip);">VIP ACTIVE (50-Band Precision L/R DSP)</strong>';
-
-      const expiryDate = new Date(expiryTimestamp);
+      
       const timerElem = document.getElementById('vip-timer');
       timerElem.style.display = 'block';
-      timerElem.innerText = `Aktif hingga: ${expiryDate.toLocaleDateString('id-ID')} ${expiryDate.toLocaleTimeString('id-ID')}`;
+
+      if (isPermanent) {
+        isPermanentAdmin = true;
+        document.getElementById('status-text').innerHTML = 'Status Engine: <strong style="color:var(--gold-vip);">PERMANENT VIP & SUPER ADMIN ACCESS</strong>';
+        timerElem.innerText = "Status: Masa Aktif VIP Selamanya (Developer Account)";
+      } else {
+        document.getElementById('status-text').innerHTML = 'Status Engine: <strong style="color:var(--gold-vip);">VIP ACTIVE (50-Band Precision L/R DSP)</strong>';
+        const expiryDate = new Date(expiryTimestamp);
+        timerElem.innerText = `Aktif hingga: ${expiryDate.toLocaleDateString('id-ID')} ${expiryDate.toLocaleTimeString('id-ID')}`;
+      }
 
       renderSliders();
       if (isDSPInit) rebuildFilters();
@@ -781,6 +840,7 @@
 
     function disableVIPMode() {
       isVIP = false;
+      isPermanentAdmin = false;
       currentFrequencies = FREQ_FREE;
       document.getElementById('vip-badge').style.display = 'none';
       document.getElementById('status-text').innerHTML = 'Status Engine: <strong style="color:var(--text-muted);">FREE TIER (10-Band Standard DSP)</strong>';
@@ -794,7 +854,7 @@
       autoPollInterval = setInterval(() => {
         const statusElem = document.getElementById('poll-status');
         if (statusElem) {
-          statusElem.innerHTML = `<i class="fa-solid fa-sync fa-spin"></i> Memeriksa pemicu otomatis DANA (08895884306)...`;
+          statusElem.innerHTML = `<i class="fa-solid fa-sync fa-spin"></i> Memeriksa status transaksi gateway otomatis...`;
         }
       }, 3000);
     }
@@ -869,7 +929,7 @@
     }
 
     /* ==========================================================================
-       7. GOOGLE AUTH & VIP COMMENT SYSTEM
+       7. GOOGLE AUTH & AUTOMATIC ADMIN DETECTION SYSTEM
        ========================================================================== */
     function handleGoogleSignIn(response) {
       const payload = parseJwt(response.credential);
@@ -878,6 +938,17 @@
 
       document.getElementById('user-avatar-img').src = payload.picture;
       document.getElementById('user-display-name').innerText = payload.name;
+
+      // Deteksi Otomatis Jika Email yang Masuk adalah Admin Utama
+      if (payload.email === ADMIN_EMAIL) {
+        localStorage.setItem('FR_ADMIN_PERMANENT', 'TRUE');
+        enableVIPMode(null, true);
+
+        document.getElementById('admin-tag-indicator').style.display = 'inline-block';
+        document.getElementById('admin-broadcast-section').style.display = 'block';
+
+        alert("👑 Selamat Datang Developer! Akun " + ADMIN_EMAIL + " Terdeteksi. Akses VIP Selamanya & Fitur Super Admin Diaktifkan.");
+      }
     }
 
     function parseJwt(token) {
@@ -889,6 +960,19 @@
       return JSON.parse(jsonPayload);
     }
 
+    /* Kirim Pengumuman (Fitur Admin) */
+    document.getElementById('btn-send-broadcast').addEventListener('click', () => {
+      const msg = document.getElementById('input-broadcast-msg').value.trim();
+      if (!msg) return;
+
+      document.getElementById('announcement-card').style.display = 'block';
+      document.getElementById('announcement-text').innerText = msg;
+      document.getElementById('input-broadcast-msg').value = '';
+
+      alert("📢 Pengumuman Resmi Berhasil Dipublikasikan ke Semua Pengguna!");
+    });
+
+    /* Kirim Pesan / Balasan */
     document.getElementById('btn-send-comment').addEventListener('click', () => {
       const txt = document.getElementById('vip-comment-input').value.trim();
       if (!txt) return;
@@ -898,11 +982,15 @@
 
       const msg = document.createElement('div');
       msg.style.cssText = 'padding:6px 0; border-bottom:1px solid var(--border-dark); font-size:11px;';
-      msg.innerHTML = `<strong>${userName}:</strong> ${txt}`;
+      
+      if (isPermanentAdmin) {
+        msg.innerHTML = `<strong style="color:var(--gold-vip);">[ADMIN] ${userName}:</strong> ${txt}`;
+      } else {
+        msg.innerHTML = `<strong>${userName}:</strong> ${txt}`;
+      }
 
       list.appendChild(msg);
       document.getElementById('vip-comment-input').value = '';
-      alert("Keluhan / Umpan balik Anda telah berhasil dikirim ke Admin!");
     });
 
     /* ==========================================================================
@@ -915,7 +1003,7 @@
         localStorage.setItem('FR_VIP_KEY', key);
         localStorage.setItem('FR_VIP_EXPIRY', expiryTimestamp.toString());
 
-        enableVIPMode(expiryTimestamp);
+        enableVIPMode(expiryTimestamp, false);
         closeModal('modal-key');
         alert("🎉 VIP Unlocked! Berhasil mengaktifkan 50-Band Precision DSP (Masa Aktif 2,5 Minggu).");
       } else {
@@ -936,7 +1024,9 @@
     document.getElementById('btn-admin-login').addEventListener('click', () => {
       const u = document.getElementById('admin-username').value.trim();
       const e = document.getElementById('admin-email').value.trim();
-      if (u === "admin fr audio" && e === "rozakkfatkhur@gmail.com") {
+      if (u === "admin fr audio" && e === ADMIN_EMAIL) {
+        localStorage.setItem('FR_ADMIN_PERMANENT', 'TRUE');
+        enableVIPMode(null, true);
         document.getElementById('admin-login-form').style.display = 'none';
         document.getElementById('admin-dashboard').style.display = 'block';
       } else { alert("Credential Admin Salah!"); }
