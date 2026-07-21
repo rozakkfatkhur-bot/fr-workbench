@@ -1,1057 +1,645 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FR AUDIO PRO — Ultimate 50-Band EQ & Vocal Processor</title>
-  <style>
-    /* ==========================================================================
-       1. GLOBAL VARIABLES & THEME CONFIGURATION
-       ========================================================================== */
-    :root {
-      --bg-dark: #0c0a12;
-      --bg-darker: #060509;
-      --card-bg: #161224;
-      --card-inner: #1e1832;
-      --accent-violet: #8b5cf6;
-      --accent-violet-bright: #a78bfa;
-      --accent-violet-dark: #6d28d9;
-      --accent-right: #ec4899;
-      --accent-right-bright: #f472b6;
-      --accent-green: #10b981;
-      --accent-red: #ef4444;
-      --text-white: #ffffff;
-      --text-muted: #a7a3b8;
-      --border-color: rgba(139, 92, 246, 0.25);
-      --border-color-hover: rgba(167, 139, 250, 0.5);
-      --shadow-primary: 0 10px 30px rgba(0, 0, 0, 0.5);
-      --shadow-glow: 0 0 20px rgba(139, 92, 246, 0.4);
-      --font-main: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      --font-mono: 'Courier New', Courier, monospace;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FR AUDIO - Luxe DSP Processor</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-light: #f4f5f9;
+            --panel-white: #ffffff;
+            --purple-primary: #6c5ce7;
+            --purple-glow: #a29bfe;
+            --purple-light: #f3f0ff;
+            --text-dark: #2d3436;
+            --text-muted: #b2bec3;
+            --border-color: #e2e8f0;
+            --red-alert: #ff7675;
+        }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      user-select: none;
-    }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
 
-    body {
-      font-family: var(--font-main);
-      background-color: var(--bg-dark);
-      color: var(--text-white);
-      line-height: 1.5;
-      padding-bottom: 60px;
-      overflow-x: hidden;
-    }
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            padding: 24px;
+            max-width: 1280px;
+            margin: 0 auto;
+        }
 
-    .container {
-      max-width: 1600px;
-      margin: 0 auto;
-      padding: 20px;
-    }
+        /* Header UI */
+        .header {
+            background: var(--panel-white);
+            border-radius: 16px;
+            padding: 20px 24px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 20px rgba(108, 92, 231, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
 
-    header {
-      text-align: center;
-      padding: 30px 20px;
-      background: linear-gradient(180deg, #18122B 0%, var(--bg-dark) 100%);
-      border-bottom: 1px solid var(--border-color);
-      margin-bottom: 25px;
-      position: relative;
-    }
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
 
-    .brand-subtitle {
-      font-size: 11px;
-      letter-spacing: 4px;
-      color: var(--accent-violet-bright);
-      text-transform: uppercase;
-      font-weight: 700;
-      margin-bottom: 4px;
-    }
+        .brand i {
+            font-size: 24px;
+            color: var(--purple-primary);
+        }
 
-    .brand-title {
-      font-size: 32px;
-      font-weight: 900;
-      color: #ffffff;
-      margin: 5px 0;
-      letter-spacing: 1px;
-      text-shadow: var(--shadow-glow);
-    }
+        .brand h1 {
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
 
-    .brand-tagline {
-      font-size: 13px;
-      color: var(--text-muted);
-      font-style: italic;
-    }
+        .brand h1 span {
+            color: var(--purple-primary);
+        }
 
-    .header-actions {
-      position: absolute;
-      right: 20px;
-      top: 30px;
-      display: flex;
-      gap: 12px;
-    }
+        /* Audio Source Loader */
+        .audio-source-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--bg-light);
+            padding: 8px 16px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
 
-    @media (max-width: 768px) {
-      .header-actions {
-        position: static;
-        justify-content: center;
-        margin-top: 20px;
-      }
-    }
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
 
-    .announcement-bar {
-      background: linear-gradient(90deg, rgba(139, 92, 246, 0.15) 0%, rgba(236, 72, 153, 0.15) 100%);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 14px 22px;
-      margin-bottom: 25px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 15px;
-    }
+        .btn-upload {
+            border: 1px solid var(--purple-glow);
+            color: var(--purple-primary);
+            background-color: var(--panel-white);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
 
-    .announcement-text {
-      font-size: 13px;
-      color: #f1f0f5;
-    }
+        .btn-upload:hover {
+            background-color: var(--purple-primary);
+            color: white;
+        }
 
-    .btn {
-      background: #231b38;
-      color: #ffffff;
-      padding: 10px 18px;
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-      font-size: 13px;
-      transition: all 0.25s ease;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      outline: none;
-    }
+        .file-input-wrapper input[type=file] {
+            font-size: 100px;
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
 
-    .btn:hover {
-      background: var(--accent-violet-dark);
-      border-color: var(--accent-violet-bright);
-      transform: translateY(-1px);
-    }
+        audio {
+            height: 36px;
+            outline: none;
+        }
 
-    .btn-violet { background: var(--accent-violet); border: none; }
-    .btn-violet:hover { background: var(--accent-violet-dark); box-shadow: 0 0 15px rgba(139, 92, 246, 0.5); }
-    .btn-yt { background: #ff0000; border: none; }
-    .btn-yt:hover { background: #cc0000; box-shadow: 0 0 15px rgba(255, 0, 0, 0.4); }
-    .btn-play { background: var(--accent-green); border: none; }
-    .btn-play:hover { background: #059669; box-shadow: 0 0 15px rgba(16, 185, 129, 0.4); }
+        /* RTA Canvas Display */
+        .display-card {
+            background: var(--panel-white);
+            border-radius: 16px;
+            padding: 16px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+            margin-bottom: 20px;
+        }
 
-    input[type="text"], input[type="password"], input[type="email"], textarea {
-      background: var(--card-inner);
-      border: 1px solid var(--border-color);
-      color: #ffffff;
-      padding: 11px 16px;
-      border-radius: 8px;
-      outline: none;
-      font-size: 13px;
-      width: 100%;
-      transition: border-color 0.2s ease;
-    }
+        .canvas-container {
+            background: #fafafa;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+        }
 
-    input[type="text"]:focus, input[type="password"]:focus, input[type="email"]:focus, textarea:focus {
-      border-color: var(--accent-violet-bright);
-    }
+        canvas {
+            width: 100%;
+            height: 200px;
+            display: block;
+        }
 
-    select {
-      background: var(--card-inner);
-      color: #ffffff;
-      padding: 9px 14px;
-      border-radius: 8px;
-      border: 1px solid var(--border-color);
-      outline: none;
-      font-size: 13px;
-      cursor: pointer;
-    }
+        /* Matrix Section Layout */
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
 
-    .card {
-      background: var(--card-bg);
-      border-radius: 16px;
-      padding: 22px;
-      border: 1px solid var(--border-color);
-      box-shadow: var(--shadow-primary);
-    }
+        @media (max-width: 900px) {
+            .grid-layout { grid-template-columns: 1fr; }
+        }
 
-    .card h3, .card h2 {
-      font-size: 16px;
-      font-weight: 700;
-      margin-bottom: 16px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+        .panel-card {
+            background: var(--panel-white);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+        }
 
-    .controls-grid {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 15px;
-      align-items: center;
-      margin-bottom: 25px;
-    }
+        .panel-header {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
 
-    @media (max-width: 1024px) {
-      .controls-grid { grid-template-columns: 1fr; }
-    }
+        .panel-header i { color: var(--purple-primary); }
 
-    .input-yt-wrapper {
-      display: flex;
-      gap: 10px;
-    }
+        /* Graphic EQ Sliders (10 Band) */
+        .eq-sliders-container {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 8px;
+            height: 220px;
+            align-items: center;
+        }
 
-    .dashboard-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 25px;
-      margin-bottom: 25px;
-    }
+        .eq-band {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100%;
+            justify-content: space-between;
+        }
 
-    @media (max-width: 900px) {
-      .dashboard-grid, .eq-grid { grid-template-columns: 1fr !important; }
-    }
+        .eq-band span.val {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--purple-primary);
+        }
 
-    .video-container {
-      position: relative;
-      padding-bottom: 56.25%;
-      height: 0;
-      overflow: hidden;
-      border-radius: 12px;
-      background: #000000;
-      border: 1px solid var(--border-color);
-    }
+        .eq-band span.freq {
+            font-size: 10px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
 
-    .video-container iframe {
-      position: absolute;
-      top: 0; left: 0; width: 100%; height: 100%; border: 0;
-    }
+        .slider-wrapper {
+            height: 150px;
+            display: flex;
+            align-items: center;
+        }
 
-    .visualizer-card { margin-bottom: 25px; }
+        /* Vertical Slider Styling */
+        input[type="range"].v-slider {
+            -webkit-appearance: none;
+            writing-mode: bt-lr; /* Firefox Support */
+            transform: rotate(-90deg);
+            width: 140px;
+            height: 6px;
+            background: #edf2f7;
+            border-radius: 3px;
+            outline: none;
+        }
 
-    canvas#spectrum-canvas {
-      width: 100%;
-      height: 180px;
-      background: var(--bg-darker);
-      border-radius: 12px;
-      border: 1px solid var(--border-color);
-      display: block;
-    }
+        input[type="range"].v-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--purple-primary);
+            cursor: pointer;
+            box-shadow: 0 0 8px rgba(108, 92, 231, 0.4);
+        }
 
-    .status-panel {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
+        /* Right Control Stack */
+        .controls-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
 
-    .status-box {
-      background: var(--card-inner);
-      border-radius: 10px;
-      padding: 16px;
-      border-left: 4px solid var(--accent-violet);
-    }
+        .control-group {
+            margin-bottom: 14px;
+        }
 
-    .status-box.right { border-left-color: var(--accent-right); }
+        .control-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-dark);
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
 
-    .status-title {
-      font-size: 11px;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      font-weight: 600;
-      letter-spacing: 0.5px;
-    }
+        .control-label span.val { color: var(--purple-primary); }
 
-    .status-value {
-      font-size: 14px;
-      font-weight: 700;
-      color: #ffffff;
-      margin-top: 4px;
-    }
+        input[type="range"].h-slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #edf2f7;
+            outline: none;
+        }
 
-    .mode-switch {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: var(--card-inner);
-      padding: 8px 14px;
-      border-radius: 8px;
-      border: 1px solid var(--border-color);
-    }
+        input[type="range"].h-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--purple-primary);
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(108, 92, 231, 0.4);
+        }
 
-    .switch {
-      position: relative;
-      display: inline-block;
-      width: 42px;
-      height: 22px;
-    }
+        .toggle-btn {
+            width: 100%;
+            background: var(--purple-light);
+            color: var(--purple-primary);
+            border: 1px solid var(--purple-glow);
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
 
-    .switch input { opacity: 0; width: 0; height: 0; }
+        .toggle-btn.active {
+            background: var(--purple-primary);
+            color: #ffffff;
+        }
 
-    .slider {
-      position: absolute;
-      cursor: pointer;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background-color: #332d48;
-      transition: .4s;
-      border-radius: 20px;
-    }
-
-    .slider:before {
-      position: absolute;
-      content: "";
-      height: 16px; width: 16px; left: 3px; bottom: 3px;
-      background-color: white;
-      transition: .4s;
-      border-radius: 50%;
-    }
-
-    input:checked + .slider { background-color: var(--accent-violet); }
-    input:checked + .slider:before { transform: translateX(20px); }
-
-    /* EQUALIZER & POTENSIO STYLES */
-    .eq-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 25px;
-    }
-
-    .channel-card.left { border-top: 4px solid var(--accent-violet); }
-    .channel-card.right { border-top: 4px solid var(--accent-right); }
-
-    .channel-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 15px;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-
-    /* Output Potentiometer Box */
-    .gain-pot-control {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      background: var(--card-inner);
-      padding: 8px 16px;
-      border-radius: 10px;
-      border: 1px solid var(--border-color);
-    }
-
-    .gain-pot-control label {
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--accent-violet-bright);
-    }
-
-    .right .gain-pot-control label {
-      color: var(--accent-right-bright);
-    }
-
-    .gain-pot-control input[type="range"] {
-      width: 100px;
-      cursor: pointer;
-    }
-
-    .gain-val {
-      font-family: var(--font-mono);
-      font-size: 12px;
-      font-weight: bold;
-      width: 45px;
-    }
-
-    .sliders-wrapper {
-      display: flex;
-      overflow-x: auto;
-      padding: 20px 12px;
-      gap: 8px;
-      background: var(--card-inner);
-      border-radius: 12px;
-      border: 1px solid var(--border-color);
-    }
-
-    .sliders-wrapper::-webkit-scrollbar { height: 8px; }
-    .sliders-wrapper::-webkit-scrollbar-track { background: var(--bg-dark); border-radius: 10px; }
-    .sliders-wrapper::-webkit-scrollbar-thumb { background: var(--accent-violet-dark); border-radius: 10px; }
-
-    .slider-group {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-width: 34px;
-    }
-
-    .slider-group span {
-      font-size: 9px;
-      color: var(--text-muted);
-      margin-top: 8px;
-      writing-mode: vertical-rl;
-      transform: rotate(180deg);
-      height: 48px;
-      text-align: center;
-      font-family: var(--font-mono);
-    }
-
-    .slider-group input[type="range"] {
-      -webkit-appearance: slider-vertical;
-      width: 16px;
-      height: 180px;
-      background: #120e1f;
-      outline: none;
-      cursor: pointer;
-      border-radius: 4px;
-    }
-
-    .val-label {
-      font-size: 10px;
-      margin-bottom: 6px;
-      font-weight: 700;
-      color: var(--accent-violet-bright);
-      font-family: var(--font-mono);
-    }
-
-    .right .val-label { color: var(--accent-right-bright); }
-
-    .preset-section {
-      display: flex;
-      gap: 15px;
-      align-items: center;
-      margin-bottom: 18px;
-      flex-wrap: wrap;
-    }
-
-    .preset-section label {
-      font-size: 12px;
-      color: var(--text-muted);
-      font-weight: 600;
-    }
-
-    .modal-overlay {
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(12, 10, 18, 0.88);
-      backdrop-filter: blur(10px);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 9999;
-      padding: 20px;
-    }
-
-    .modal-content {
-      background: var(--card-bg);
-      border: 1px solid var(--accent-violet);
-      border-radius: 18px;
-      width: 100%;
-      max-width: 520px;
-      padding: 28px;
-      position: relative;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.8);
-    }
-
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 22px;
-    }
-
-    .modal-close {
-      background: transparent;
-      border: none;
-      color: var(--text-muted);
-      font-size: 22px;
-      cursor: pointer;
-    }
-
-    .modal-close:hover { color: #ffffff; }
-  </style>
+    </style>
 </head>
 <body>
 
-  <header>
-    <div class="brand-subtitle">FARO TRIUMPHANTLY PRESENTS</div>
-    <div class="brand-title">FR AUDIO PRO</div>
-    <div class="brand-tagline">"The Violet and White Essence of Sound"</div>
-    <div class="header-actions">
-      <button class="btn btn-violet" id="btn-secret-modal">🔒 Secret Page</button>
-      <button class="btn" id="btn-admin-modal">👤 Admin Panel</button>
-    </div>
-  </header>
-
-  <div class="container">
-    <div class="announcement-bar">
-      <div class="announcement-text" id="announcement-content">
-        ℹ️ <strong>Pengumuman:</strong> Gunakan File Audio Lokal atau Stream Proxy YouTube untuk pemrosesan Real-Time 50-Band EQ & Vocal Effects!
-      </div>
+    <!-- Header UI -->
+    <div class="header">
+        <div class="brand">
+            <i class="fa-solid fa-sliders"></i>
+            <h1>FR <span>AUDIO</span> MATRIX DSP</h1>
+        </div>
+        <div class="audio-source-box">
+            <div class="file-input-wrapper">
+                <button class="btn-upload"><i class="fa-solid fa-folder-open"></i> Pilih Lagu (MP3/WAV)</button>
+                <input type="file" id="audioFile" accept="audio/*">
+            </div>
+            <audio id="audioPlayer" controls></audio>
+        </div>
     </div>
 
-    <!-- Main Controls Panel -->
-    <div class="card controls-grid">
-      <div class="input-yt-wrapper">
-        <input type="text" id="yt-url-input" placeholder="Tempel URL Video YouTube...">
-        <button class="btn btn-yt" id="btn-load-yt">▶ Muat Video</button>
-      </div>
-
-      <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-        <div class="mode-switch" title="Aktifkan agar EQ & Reverb dapat mengubah suara YouTube!">
-          <span style="font-size:12px; font-weight:600;">Full EQ Stream Proxy:</span>
-          <label class="switch">
-            <input type="checkbox" id="yt-proxy-toggle" checked>
-            <span class="slider"></span>
-          </label>
+    <!-- RTA Canvas Display -->
+    <div class="display-card">
+        <div class="canvas-container">
+            <canvas id="rtaCanvas"></canvas>
         </div>
-
-        <label class="btn btn-violet">
-          📁 File Audio Lokal
-          <input type="file" id="audio-file" accept="audio/*" style="display:none;">
-        </label>
-        <button class="btn btn-play" id="btn-play">▶ Play / Pause</button>
-      </div>
-      
-      <audio id="audio-element" crossorigin="anonymous"></audio>
     </div>
 
-    <!-- Spectrum Visualizer -->
-    <div class="card visualizer-card">
-      <h3>📈 Real-Time Spectrum Analyzer (L+R Output)</h3>
-      <canvas id="spectrum-canvas"></canvas>
-    </div>
-
-    <div class="dashboard-grid">
-      <div class="card">
-        <h3>📺 Pemutar Video Visual</h3>
-        <div class="video-container" id="player-wrapper">
-          <div id="yt-player"></div>
-        </div>
-      </div>
-
-      <div class="card status-panel">
-        <h3>📊 Monitor Efek & Status Real-Time</h3>
-        <div class="status-box">
-          <div class="status-title">Judul / Sumber Media</div>
-          <div class="status-value" id="status-media-title">Belum ada media dimuat</div>
-        </div>
-        <div class="status-box">
-          <div class="status-title">Channel Left (L)</div>
-          <div class="status-value" id="status-l-eq">EQ: Flat</div>
-          <div class="status-value" id="status-l-vocal" style="font-size:13px; color:var(--accent-violet-bright); margin-top:2px;">Vocal: Normal / Bypass</div>
-        </div>
-        <div class="status-box right">
-          <div class="status-title">Channel Right (R)</div>
-          <div class="status-value" id="status-r-eq">EQ: Flat</div>
-          <div class="status-value" id="status-r-vocal" style="font-size:13px; color:var(--accent-right-bright); margin-top:2px;">Vocal: Normal / Bypass</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Dual-Channel 50-Band Equalizer System -->
-    <div class="eq-grid">
-      <!-- Left Channel Card -->
-      <div class="card channel-card left">
-        <div class="channel-header">
-          <h2>🎚️ Channel LEFT (L)</h2>
-          <!-- Potensio Output Master L -->
-          <div class="gain-pot-control">
-            <label>🎛️ Output Gain L:</label>
-            <input type="range" id="pot-gain-l" min="0" max="2" step="0.05" value="1">
-            <span class="gain-val" id="val-gain-l">100%</span>
-          </div>
-        </div>
-        <div class="preset-section">
-          <label>EQ Preset:</label><select id="preset-eq-l"></select>
-          <label>Efek Vokal/Reverb:</label><select id="preset-vocal-l"></select>
-          <button class="btn" id="btn-reset-l" style="padding: 4px 10px; font-size:11px;">Reset Flat</button>
-        </div>
-        <div class="sliders-wrapper" id="container-eq-l"></div>
-      </div>
-
-      <!-- Right Channel Card -->
-      <div class="card channel-card right">
-        <div class="channel-header">
-          <h2>🎚️ Channel RIGHT (R)</h2>
-          <!-- Potensio Output Master R -->
-          <div class="gain-pot-control">
-            <label>🎛️ Output Gain R:</label>
-            <input type="range" id="pot-gain-r" min="0" max="2" step="0.05" value="1">
-            <span class="gain-val" id="val-gain-r">100%</span>
-          </div>
-        </div>
-        <div class="preset-section">
-          <label>EQ Preset:</label><select id="preset-eq-r"></select>
-          <label>Efek Vokal/Reverb:</label><select id="preset-vocal-r"></select>
-          <button class="btn" id="btn-reset-r" style="padding: 4px 10px; font-size:11px;">Reset Flat</button>
-        </div>
-        <div class="sliders-wrapper" id="container-eq-r"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal Secret -->
-  <div class="modal-overlay" id="modal-secret">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3>🔒 Halaman Rahasia FR AUDIO</h3>
-        <button class="modal-close" onclick="closeModal('modal-secret')">✕</button>
-      </div>
-      <div id="secret-login-form">
-        <input type="password" id="secret-passcode" placeholder="Masukkan kode akses rahasia...">
-        <button class="btn btn-violet" id="btn-unlock-secret" style="width:100%; margin-top:14px;">Buka Akses DSP Matrix</button>
-      </div>
-      <div id="secret-content" style="display:none;">
-        <h4 style="color:var(--accent-violet-bright);">✨ Ultra-Harmonics Engine Unlocked</h4>
-        <p style="font-size:13px; color:#e1e1e6; margin-top:10px; line-height:1.6;">
-          Mode DSP Tingkat Lanjut Aktif. Algoritma Sub-Harmonic Synthesizer & Stereo Convolver Matrix berjalan secara optimal.
-        </p>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal Admin -->
-  <div class="modal-overlay" id="modal-admin">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3>👤 Admin Panel Control</h3>
-        <button class="modal-close" onclick="closeModal('modal-admin')">✕</button>
-      </div>
-      <div id="admin-login-form">
-        <input type="text" id="admin-username" placeholder="Username Admin" style="margin-bottom:10px;">
-        <input type="email" id="admin-email" placeholder="Email Admin" style="margin-bottom:14px;">
-        <button class="btn btn-violet" id="btn-admin-login" style="width:100%;">Login Administrator</button>
-      </div>
-      <div id="admin-dashboard" style="display:none;">
-        <label style="font-size:12px; color:var(--text-muted);">Ubah Teks Pengumuman Bar:</label>
-        <textarea id="admin-announcement-input" style="width:100%; height:90px; margin-top:8px; outline:none;"></textarea>
-        <button class="btn btn-violet" id="btn-save-announcement" style="width:100%; margin-top:14px;">💾 Simpan Pengumuman</button>
-      </div>
-    </div>
-  </div>
-
-  <script src="https://www.youtube.com/iframe_api"></script>
-
-  <script>
-    /* ==========================================================================
-       1. FREQUENCIES & PRESETS DATA
-       ========================================================================== */
-    const FREQUENCIES = [
-      20, 25, 31.5, 40, 50, 63, 80, 100, 125, 160,
-      200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600,
-      2000, 2500, 3150, 4000, 5000, 6300, 8000, 10000, 11200, 12500,
-      13500, 14000, 14500, 15000, 15500, 16000, 16500, 17000, 17500, 18000,
-      18200, 18500, 18700, 19000, 19200, 19500, 19700, 19800, 19900, 20000
-    ];
-
-    const EQ_PRESETS = {
-      "Flat": Array(50).fill(0),
-      "Sub-Bass Deep & Soft": FREQUENCIES.map(f => f <= 40 ? 12 : f <= 80 ? 9 : f <= 160 ? 4 : f <= 500 ? -2 : 0),
-      "Bass Boost Heavy": FREQUENCIES.map(f => f <= 125 ? 10 : f <= 315 ? 5 : 0),
-      "Clarity & Sparkle": FREQUENCIES.map(f => f < 200 ? -3 : f > 4000 ? 8 : 2),
-      "Acoustic Live": FREQUENCIES.map(f => f < 100 ? -2 : f <= 1000 ? 3 : f <= 8000 ? 5 : 2),
-      "Vocal Presence Boost": FREQUENCIES.map(f => f >= 800 && f <= 3500 ? 7 : f < 200 ? -4 : 0),
-      "Club / Dance High Power": FREQUENCIES.map(f => f <= 100 ? 9 : f >= 8000 ? 7 : -1)
-    };
-
-    const VOCAL_PRESETS = {
-      "1. Normal / Bypass": { gainMid: 0, reverb: 0.0 },
-      "2. Vocal Clarity & Air": { gainMid: 5, reverb: 0.15 },
-      "3. True Studio Reverb": { gainMid: 3, reverb: 0.4 },
-      "4. Stage Live Echo": { gainMid: 2, reverb: 0.7 },
-      "5. Radio/Telephone Effect": { gainMid: 8, reverb: 0.0 }
-    };
-
-    /* ==========================================================================
-       2. GLOBAL STATE VARIABLES
-       ========================================================================== */
-    let audioCtx, sourceNode, splitter, merger, analyserNode;
-    let filtersL = [], filtersR = [];
-    let gainMasterL, gainMasterR; // Potensio Output Master Gain Node
-    let convolverL, convolverR, convolverGainL, convolverGainR;
-    let ytPlayer, isYTReady = false;
-    let isAudioEngineInit = false;
-
-    const audioElement = document.getElementById('audio-element');
-    const btnPlay = document.getElementById('btn-play');
-    const ytUrlInput = document.getElementById('yt-url-input');
-    const proxyToggle = document.getElementById('yt-proxy-toggle');
-    const canvas = document.getElementById('spectrum-canvas');
-    const canvasCtx = canvas.getContext('2d');
-
-    /* ==========================================================================
-       3. YOUTUBE IFRAME API
-       ========================================================================== */
-    function onYouTubeIframeAPIReady() {
-      ytPlayer = new YT.Player('yt-player', {
-        height: '100%', width: '100%', videoId: 'dQw4w9WgXcQ',
-        playerVars: { 'autoplay': 0, 'controls': 1 },
-        events: { 'onReady': () => { isYTReady = true; } }
-      });
-    }
-
-    function extractYouTubeID(url) {
-      if (!url) return null;
-      const regExp = /^.*(?:youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
-      const match = url.match(regExp);
-      return (match && match[1].length === 11) ? match[1] : null;
-    }
-
-    /* ==========================================================================
-       4. AUDIO DSP ENGINE INITIALIZATION
-       ========================================================================== */
-    function initAudioEngine() {
-      if (isAudioEngineInit) {
-        if (audioCtx && audioCtx.state === 'suspended') {
-          audioCtx.resume();
-        }
-        return;
-      }
-
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      audioCtx = new AudioContext();
-
-      // Create Element Source & Master Nodes
-      sourceNode = audioCtx.createMediaElementSource(audioElement);
-      splitter = audioCtx.createChannelSplitter(2);
-      merger = audioCtx.createChannelMerger(2);
-      analyserNode = audioCtx.createAnalyser();
-      analyserNode.fftSize = 256;
-
-      // Master Output Gain Nodes (Potensio L & R)
-      gainMasterL = audioCtx.createGain();
-      gainMasterR = audioCtx.createGain();
-      gainMasterL.gain.value = parseFloat(document.getElementById('pot-gain-l').value);
-      gainMasterR.gain.value = parseFloat(document.getElementById('pot-gain-r').value);
-
-      sourceNode.connect(splitter);
-
-      // Build 50-Band EQ Chain for Left & Right
-      let lastL = setupEQChain(0, filtersL);
-      let lastR = setupEQChain(1, filtersR);
-
-      // Setup Normalized Reverb Impulse Buffer
-      const impulseBuffer = createImpulseResponse(audioCtx, 2.0, 2.0);
-      
-      convolverL = audioCtx.createConvolver();
-      convolverL.buffer = impulseBuffer;
-      convolverGainL = audioCtx.createGain();
-      convolverGainL.gain.value = 0;
-
-      convolverR = audioCtx.createConvolver();
-      convolverR.buffer = impulseBuffer;
-      convolverGainR = audioCtx.createGain();
-      convolverGainR.gain.value = 0;
-
-      // Routing Channel L: EQ -> Split (Dry + Wet Convolver) -> Gain Output Master L -> Merger (Ch 0)
-      lastL.connect(convolverL);
-      convolverL.connect(convolverGainL);
-      convolverGainL.connect(gainMasterL);
-      lastL.connect(gainMasterL);
-      gainMasterL.connect(merger, 0, 0);
-
-      // Routing Channel R: EQ -> Split (Dry + Wet Convolver) -> Gain Output Master R -> Merger (Ch 1)
-      lastR.connect(convolverR);
-      convolverR.connect(convolverGainR);
-      convolverGainR.connect(gainMasterR);
-      lastR.connect(gainMasterR);
-      gainMasterR.connect(merger, 0, 1);
-
-      // Output merger to Spectrum Analyser & Speaker
-      merger.connect(analyserNode);
-      analyserNode.connect(audioCtx.destination);
-
-      isAudioEngineInit = true;
-      startVisualizer();
-    }
-
-    // Normalisasi Buffer Reverb (Mencegah suara pecah/terdistorsi)
-    function createImpulseResponse(ctx, duration, decay) {
-      const sampleRate = ctx.sampleRate;
-      const length = sampleRate * duration;
-      const impulse = ctx.createBuffer(2, length, sampleRate);
-
-      for (let channel = 0; channel < 2; channel++) {
-        const data = impulse.getChannelData(channel);
-        for (let i = 0; i < length; i++) {
-          data[i] = ((Math.random() * 2 - 1) * Math.pow(1 - i / length, decay)) * 0.15;
-        }
-      }
-      return impulse;
-    }
-
-    function setupEQChain(chIdx, filterArr) {
-      let prevNode = audioCtx.createGain();
-      splitter.connect(prevNode, chIdx);
-
-      FREQUENCIES.forEach((freq, idx) => {
-        const filter = audioCtx.createBiquadFilter();
-        filter.type = 'peaking';
-        filter.frequency.value = freq;
-        filter.Q.value = 4.3;
-        filter.gain.value = 0;
-        filterArr.push(filter);
-
-        prevNode.connect(filter);
-        prevNode = filter;
-      });
-      return prevNode;
-    }
-
-    /* ==========================================================================
-       5. REAL-TIME SPECTRUM VISUALIZER
-       ========================================================================== */
-    function startVisualizer() {
-      const bufferLength = analyserNode.frequencyBinCount;
-      const dataArray = new Uint8Array(bufferLength);
-
-      function draw() {
-        requestAnimationFrame(draw);
-        analyserNode.getByteFrequencyData(dataArray);
-
-        canvasCtx.fillStyle = '#060509';
-        canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
-
-        const barWidth = (canvas.width / bufferLength) * 2.2;
-        let barHeight;
-        let x = 0;
-
-        for (let i = 0; i < bufferLength; i++) {
-          barHeight = (dataArray[i] / 255) * canvas.height;
-
-          const gradient = canvasCtx.createLinearGradient(0, canvas.height, 0, 0);
-          gradient.addColorStop(0, '#8b5cf6');
-          gradient.addColorStop(0.5, '#a78bfa');
-          gradient.addColorStop(1, '#ec4899');
-
-          canvasCtx.fillStyle = gradient;
-          canvasCtx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
-
-          x += barWidth + 1;
-        }
-      }
-
-      function resizeCanvas() {
-        canvas.width = canvas.parentElement.clientWidth;
-        canvas.height = 180;
-      }
-      window.addEventListener('resize', resizeCanvas);
-      resizeCanvas();
-
-      draw();
-    }
-
-    /* ==========================================================================
-       6. PRESET & CONTROL HANDLERS
-       ========================================================================== */
-    function applyEQPreset(ch, presetName) {
-      const vals = EQ_PRESETS[presetName];
-      if (!vals) return;
-      const filters = ch === 'L' ? filtersL : filtersR;
-
-      vals.forEach((v, idx) => {
-        if (filters[idx]) filters[idx].gain.value = v;
-        const slider = document.getElementById(`slider-${ch}-${idx}`);
-        const label = document.getElementById(`val-${ch}-${idx}`);
-        if (slider) slider.value = v;
-        if (label) label.innerText = v > 0 ? `+${v}` : v;
-      });
-
-      document.getElementById(`status-${ch.toLowerCase()}-eq`).innerText = `EQ: ${presetName}`;
-    }
-
-    function applyVocalPreset(ch, presetName) {
-      const p = VOCAL_PRESETS[presetName];
-      if (!p) return;
-
-      const filters = ch === 'L' ? filtersL : filtersR;
-      const convolverGain = ch === 'L' ? convolverGainL : convolverGainR;
-
-      if (filters.length > 0) {
-        [17, 18, 19, 20, 21].forEach(i => {
-          if (filters[i]) filters[i].gain.value = p.gainMid;
-        });
-      }
-
-      if (convolverGain) {
-        convolverGain.gain.value = p.reverb;
-      }
-
-      document.getElementById(`status-${ch.toLowerCase()}-vocal`).innerText = `Vocal: ${presetName}`;
-    }
-
-    function resetFlat(ch) {
-      applyEQPreset(ch, 'Flat');
-    }
-
-    /* ==========================================================================
-       7. EVENT LISTENERS & MEDIA CONTROLS
-       ========================================================================== */
-    document.getElementById('btn-load-yt').addEventListener('click', () => {
-      initAudioEngine();
-
-      const vidId = extractYouTubeID(ytUrlInput.value.trim());
-      if (!vidId) { alert("URL YouTube tidak valid!"); return; }
-
-      if (proxyToggle.checked) {
-        if (isYTReady) {
-          ytPlayer.loadVideoById(vidId);
-          ytPlayer.mute();
-        }
-        audioElement.src = `https://invidious.nerdvpn.de/latest_version?id=${vidId}&itag=140`;
-        audioElement.play().then(() => {
-          btnPlay.innerText = "⏸ Pause";
-        }).catch(err => console.log("Autoplay Trigger:", err));
+    <!-- Main DSP Processing Controls Grid -->
+    <div class="grid-layout">
         
-        document.getElementById('status-media-title').innerText = "📺 YT Proxy Stream (EQ, Reverb & Volume Active)";
-      } else {
-        if (isYTReady) {
-          audioElement.pause();
-          ytPlayer.unMute();
-          ytPlayer.loadVideoById(vidId);
-          document.getElementById('status-media-title').innerText = "📺 YT Direct IFrame (Bypass EQ)";
+        <!-- Graphic Equalizer (10 Band Real-Time Processing) -->
+        <div class="panel-card">
+            <div class="panel-header">
+                <span>10-BAND GRAPHIC EQUALIZER</span>
+                <button class="toggle-btn" id="eqBypassBtn" style="width: auto; padding: 4px 12px;">EQ ENABLED</button>
+            </div>
+            
+            <div class="eq-sliders-container" id="eqContainer">
+                <!-- JS akan me-render 10 Band slider di sini -->
+            </div>
+        </div>
+
+        <!-- Master Crossover, Gain & Limiter Stack -->
+        <div class="controls-stack">
+            
+            <!-- Crossover Filters -->
+            <div class="panel-card">
+                <div class="panel-header">
+                    <span>ACTIVE CROSSOVER (24dB/Oct)</span>
+                    <i class="fa-solid fa-filter"></i>
+                </div>
+                
+                <div class="control-group">
+                    <div class="control-label">
+                        <span>HPF (Sub Cut Cutoff)</span>
+                        <span class="val" id="hpfVal">20 Hz</span>
+                    </div>
+                    <input type="range" class="h-slider" id="hpfFreq" min="20" max="200" value="20">
+                </div>
+
+                <div class="control-group">
+                    <div class="control-label"><span>LPF (High Cut Cutoff)</span><span class="val" id="lpfVal">20000 Hz</span></div>
+                    <input type="range" class="h-slider" id="lpfFreq" min="2000" max="20000" value="20000">
+                </div>
+            </div>
+
+            <!-- Master & Dynamic Control -->
+            <div class="panel-card">
+                <div class="panel-header">
+                    <span>MASTER GAIN & LIMITER</span>
+                    <i class="fa-solid fa-gauge-high"></i>
+                </div>
+
+                <div class="control-group">
+                    <div class="control-label"><span>Master Level Gain</span><span class="val" id="masterGainVal">0 dB</span></div>
+                    <input type="range" class="h-slider" id="masterGain" min="-20" max="10" value="0" step="0.5">
+                </div>
+
+                <div class="control-group">
+                    <div class="control-label"><span>Limiter Threshold</span><span class="val" id="limiterVal">-3 dB</span></div>
+                    <input type="range" class="h-slider" id="limiterThresh" min="-24" max="0" value="-3">
+                </div>
+
+                <button class="toggle-btn active" id="limiterToggle">
+                    <i class="fa-solid fa-shield-halved"></i> PEAK LIMITER ACTIVE
+                </button>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Web Audio API Core Processing Script -->
+    <script>
+        // Frequency Bands Preset untuk Graphic EQ
+        const FREQUENCIES = [31, 63, 125, 250, 500, 1000, 2000, 4000, 8000, 16000];
+        
+        // Node Elements
+        const audioPlayer = document.getElementById('audioPlayer');
+        const audioFileInput = document.getElementById('audioFile');
+        const eqContainer = document.getElementById('eqContainer');
+        const canvas = document.getElementById('rtaCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Web Audio API Global Variables
+        let audioCtx;
+        let sourceNode;
+        let eqFilters = [];
+        let hpfFilter;
+        let lpfFilter;
+        let masterGainNode;
+        let limiterNode;
+        let analyserNode;
+        let isEqBypassed = false;
+        let isLimiterActive = true;
+
+        // 1. Inisialisasi Tampilan 10-Band EQ Sliders UI
+        function createEQSliders() {
+            eqContainer.innerHTML = '';
+            FREQUENCIES.forEach((freq, index) => {
+                const bandEl = document.createElement('div');
+                bandEl.className = 'eq-band';
+                
+                const freqLabel = freq >= 1000 ? (freq / 1000) + 'k' : freq;
+
+                bandEl.innerHTML = `
+                    <span class="val" id="eqVal-${index}">0dB</span>
+                    <div class="slider-wrapper">
+                        <input type="range" class="v-slider eq-slider" data-index="${index}" min="-12" max="12" value="0" step="0.5">
+                    </div>
+                    <span class="freq">${freqLabel}Hz</span>
+                `;
+                eqContainer.appendChild(bandEl);
+            });
         }
-      }
-    });
+        createEQSliders();
 
-    document.getElementById('audio-file').addEventListener('change', (e) => {
-      initAudioEngine();
+        // 2. Membangun Audio Graph Context & Digital Filters
+        function initAudioContext() {
+            if (audioCtx) return; // Mencegah re-initialization
 
-      const file = e.target.files[0];
-      if (file) {
-        if (isYTReady && ytPlayer.pauseVideo) ytPlayer.pauseVideo();
-        audioElement.src = URL.createObjectURL(file);
-        audioElement.play();
-        btnPlay.innerText = "⏸ Pause";
-        document.getElementById('status-media-title').innerText = "📁 File Lokal: " + file.name;
-      }
-    });
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            audioCtx = new AudioContext();
 
-    btnPlay.addEventListener('click', () => {
-      initAudioEngine();
+            // Source Audio
+            sourceNode = audioCtx.createMediaElementSource(audioPlayer);
 
-      if (audioElement.src) {
-        if (audioElement.paused) {
-          audioElement.play();
-          if (isYTReady && proxyToggle.checked) ytPlayer.playVideo();
-          btnPlay.innerText = "⏸ Pause";
-        } else {
-          audioElement.pause();
-          if (isYTReady) ytPlayer.pauseVideo();
-          btnPlay.innerText = "▶ Play";
+            // Create 10-Band EQ Filters (Peaking Filter Nodes)
+            eqFilters = FREQUENCIES.map(freq => {
+                const filter = audioCtx.createBiquadFilter();
+                filter.type = 'peaking';
+                filter.frequency.value = freq;
+                filter.Q.value = 1.4; // Q-Factor Audio Standard
+                filter.gain.value = 0;
+                return filter;
+            });
+
+            // Create Active Crossover Filters (High-Pass & Low-Pass)
+            hpfFilter = audioCtx.createBiquadFilter();
+            hpfFilter.type = 'highpass';
+            hpfFilter.frequency.value = 20;
+
+            lpfFilter = audioCtx.createBiquadFilter();
+            lpfFilter.type = 'lowpass';
+            lpfFilter.frequency.value = 20000;
+
+            // Create Master Gain Node
+            masterGainNode = audioCtx.createGain();
+
+            // Create Compressor/Limiter Node
+            limiterNode = audioCtx.createDynamicsCompressor();
+            limiterNode.threshold.value = -3;
+            limiterNode.knee.value = 0; // Hard Limiting
+            limiterNode.ratio.value = 20; // High compression ratio
+            limiterNode.attack.value = 0.003; // Fast attack
+            limiterNode.release.value = 0.1;
+
+            // Create Analyser Node untuk Visualizer RTA
+            analyserNode = audioCtx.createAnalyser();
+            analyserNode.fftSize = 256;
+
+            // --- MENUANGKAN AUDIO ROUTING (CONNECTING NODES) ---
+            // Source -> HPF -> LPF -> EQ1 -> EQ2... -> EQ10 -> Gain -> Limiter -> Analyser -> Output
+            let lastNode = sourceNode;
+
+            lastNode.connect(hpfFilter);
+            lastNode = hpfFilter;
+
+            lastNode.connect(lpfFilter);
+            lastNode = lpfFilter;
+
+            eqFilters.forEach(filter => {
+                lastNode.connect(filter);
+                lastNode = filter;
+            });
+
+            lastNode.connect(masterGainNode);
+            lastNode = masterGainNode;
+
+            lastNode.connect(limiterNode);
+            lastNode = limiterNode;
+
+            lastNode.connect(analyserNode);
+            analyserNode.connect(audioCtx.destination);
+
+            // Render RTA Visualizer
+            drawRTA();
         }
-      }
-    });
 
-    // Event Listener Potensio Master Volume Output Gain L & R
-    document.getElementById('pot-gain-l').addEventListener('input', (e) => {
-      const val = parseFloat(e.target.value);
-      if (gainMasterL) gainMasterL.gain.value = val;
-      document.getElementById('val-gain-l').innerText = Math.round(val * 100) + '%';
-    });
+        // 3. Event Handling Input File Audio
+        audioFileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const fileURL = URL.createObjectURL(file);
+                audioPlayer.src = fileURL;
+                audioPlayer.play();
+            }
+        });
 
-    document.getElementById('pot-gain-r').addEventListener('input', (e) => {
-      const val = parseFloat(e.target.value);
-      if (gainMasterR) gainMasterR.gain.value = val;
-      document.getElementById('val-gain-r').innerText = Math.round(val * 100) + '%';
-    });
+        // Autoplay handler saat Audio diklik play
+        audioPlayer.addEventListener('play', () => {
+            initAudioContext();
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        });
 
-    document.getElementById('btn-reset-l').onclick = () => resetFlat('L');
-    document.getElementById('btn-reset-r').onclick = () => resetFlat('R');
+        // 4. Real-time Parameters Updating Logic
 
-    /* ==========================================================================
-       8. MODAL & UI BUILDERS
-       ========================================================================== */
-    document.getElementById('btn-admin-login').addEventListener('click', () => {
-      const u = document.getElementById('admin-username').value.trim();
-      const e = document.getElementById('admin-email').value.trim();
+        // EQ Sliders Event
+        document.querySelectorAll('.eq-slider').forEach(slider => {
+            slider.addEventListener('input', (e) => {
+                const index = e.target.dataset.index;
+                const val = parseFloat(e.target.value);
+                document.getElementById(`eqVal-${index}`).innerText = (val > 0 ? '+' : '') + val + 'dB';
+                
+                if (eqFilters[index] && !isEqBypassed) {
+                    eqFilters[index].gain.value = val;
+                }
+            });
+        });
 
-      if (u === "admin fr audio" && e === "rozakkfatkhur@gmail.com") {
-        document.getElementById('admin-login-form').style.display = 'none';
-        document.getElementById('admin-dashboard').style.display = 'block';
-        document.getElementById('admin-announcement-input').value = document.getElementById('announcement-content').innerText;
-      } else {
-        alert("Username/Email Admin Salah!");
-      }
-    });
+        // EQ Bypass Toggle
+        const eqBypassBtn = document.getElementById('eqBypassBtn');
+        eqBypassBtn.addEventListener('click', () => {
+            isEqBypassed = !isEqBypassed;
+            eqBypassBtn.innerText = isEqBypassed ? 'EQ BYPASSED' : 'EQ ENABLED';
+            eqBypassBtn.style.color = isEqBypassed ? '#ff7675' : 'var(--purple-primary)';
 
-    document.getElementById('btn-save-announcement').addEventListener('click', () => {
-      const newAnn = document.getElementById('admin-announcement-input').value.trim();
-      if (newAnn) {
-        const formatted = `📢 <strong>Pengumuman Admin:</strong> ${newAnn}`;
-        document.getElementById('announcement-content').innerHTML = formatted;
-        localStorage.setItem('fr_announcement_text', formatted);
-        alert("Pengumuman Berhasil Diperbarui!");
-        closeModal('modal-admin');
-      }
-    });
+            eqFilters.forEach((filter, idx) => {
+                const sliderVal = parseFloat(document.querySelectorAll('.eq-slider')[idx].value);
+                filter.gain.value = isEqBypassed ? 0 : sliderVal;
+            });
+        });
 
-    document.getElementById('btn-unlock-secret').onclick = () => {
-      if(document.getElementById('secret-passcode').value === "124578faro") {
-        document.getElementById('secret-login-form').style.display = 'none';
-        document.getElementById('secret-content').style.display = 'block';
-      } else {
-        alert("Passcode Salah!");
-      }
-    };
+        // High Pass Filter Event
+        document.getElementById('hpfFreq').addEventListener('input', (e) => {
+            const val = e.target.value;
+            document.getElementById('hpfVal').innerText = val + ' Hz';
+            if (hpfFilter) hpfFilter.frequency.value = val;
+        });
 
-    function buildUI() {
-      const cL = document.getElementById('container-eq-l');
-      const cR = document.getElementById('container-eq-r');
-      
-      FREQUENCIES.forEach((freq, idx) => {
-        cL.appendChild(createSliderGroup('L', idx, freq));
-        cR.appendChild(createSliderGroup('R', idx, freq));
-      });
+        // Low Pass Filter Event
+        document.getElementById('lpfFreq').addEventListener('input', (e) => {
+            const val = e.target.value;
+            document.getElementById('lpfVal').innerText = val + ' Hz';
+            if (lpfFilter) lpfFilter.frequency.value = val;
+        });
 
-      populateSelect('preset-eq-l', Object.keys(EQ_PRESETS));
-      populateSelect('preset-eq-r', Object.keys(EQ_PRESETS));
-      populateSelect('preset-vocal-l', Object.keys(VOCAL_PRESETS));
-      populateSelect('preset-vocal-r', Object.keys(VOCAL_PRESETS));
+        // Master Gain Event
+        document.getElementById('masterGain').addEventListener('input', (e) => {
+            const dB = parseFloat(e.target.value);
+            document.getElementById('masterGainVal').innerText = (dB > 0 ? '+' : '') + dB + ' dB';
+            if (masterGainNode) {
+                // Konversi Desibel ke Linear Gain Level
+                masterGainNode.gain.value = Math.pow(10, dB / 20);
+            }
+        });
 
-      document.getElementById('preset-eq-l').addEventListener('change', (e) => applyEQPreset('L', e.target.value));
-      document.getElementById('preset-eq-r').addEventListener('change', (e) => applyEQPreset('R', e.target.value));
-      document.getElementById('preset-vocal-l').addEventListener('change', (e) => applyVocalPreset('L', e.target.value));
-      document.getElementById('preset-vocal-r').addEventListener('change', (e) => applyVocalPreset('R', e.target.value));
+        // Limiter Threshold Event
+        document.getElementById('limiterThresh').addEventListener('input', (e) => {
+            const val = e.target.value;
+            document.getElementById('limiterVal').innerText = val + ' dB';
+            if (limiterNode) limiterNode.threshold.value = val;
+        });
 
-      const savedAnn = localStorage.getItem('fr_announcement_text');
-      if (savedAnn) document.getElementById('announcement-content').innerHTML = savedAnn;
-    }
+        // Limiter Toggle Event
+        const limiterToggle = document.getElementById('limiterToggle');
+        limiterToggle.addEventListener('click', () => {
+            isLimiterActive = !isLimiterActive;
+            limiterToggle.classList.toggle('active', isLimiterActive);
+            limiterToggle.innerHTML = isLimiterActive ? 
+                '<i class="fa-solid fa-shield-halved"></i> PEAK LIMITER ACTIVE' : 
+                '<i class="fa-solid fa-shield-cat"></i> LIMITER BYPASSED';
+            
+            if (limiterNode) {
+                limiterNode.ratio.value = isLimiterActive ? 20 : 1;
+            }
+        });
 
-    function createSliderGroup(ch, idx, freq) {
-      const grp = document.createElement('div');
-      grp.className = 'slider-group';
-      grp.innerHTML = `
-        <div class="val-label" id="val-${ch}-${idx}">0</div>
-        <input type="range" min="-12" max="12" step="0.5" value="0" id="slider-${ch}-${idx}">
-        <span>${freq >= 1000 ? (freq/1000).toFixed(1)+'k' : freq+'Hz'}</span>
-      `;
-      grp.querySelector('input').addEventListener('input', (e) => {
-        const val = parseFloat(e.target.value);
-        document.getElementById(`val-${ch}-${idx}`).innerText = val > 0 ? `+${val}` : val;
-        if (ch === 'L' && filtersL[idx]) filtersL[idx].gain.value = val;
-        if (ch === 'R' && filtersR[idx]) filtersR[idx].gain.value = val;
-      });
-      return grp;
-    }
+        // 5. Canvas RTA (Real-Time Analyzer) Rendering Loop
+        function drawRTA() {
+            requestAnimationFrame(drawRTA);
 
-    function populateSelect(id, opts) {
-      const sel = document.getElementById(id);
-      opts.forEach(o => { sel.innerHTML += `<option value="${o}">${o}</option>`; });
-    }
+            canvas.width = canvas.clientWidth;
+            canvas.height = canvas.clientHeight;
+            const width = canvas.width;
+            const height = canvas.height;
 
-    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+            ctx.clearRect(0, 0, width, height);
 
-    document.getElementById('btn-secret-modal').onclick = () => openModal('modal-secret');
-    document.getElementById('btn-admin-modal').onclick = () => openModal('modal-admin');
+            // Draw Background Minimalist Grid Lines
+            ctx.strokeStyle = '#f0f2f5';
+            ctx.lineWidth = 1;
+            for(let x = 0; x < width; x += 40) {
+                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, height); ctx.stroke();
+            }
+            for(let y = 0; y < height; y += 30) {
+                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y); ctx.stroke();
+            }
 
-    // Run Initial Builder
-    buildUI();
-  </script>
+            if (!analyserNode) return;
+
+            const bufferLength = analyserNode.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+            analyserNode.getByteFrequencyData(dataArray);
+
+            // Render Purple Bar Visualizer
+            const barWidth = (width / bufferLength) * 1.8;
+            let x = 0;
+
+            for (let i = 0; i < bufferLength; i++) {
+                const barHeight = (dataArray[i] / 255) * height;
+
+                // Gradient Fill Ungu
+                const gradient = ctx.createLinearGradient(0, height, 0, 0);
+                gradient.addColorStop(0, '#6c5ce7');
+                gradient.addColorStop(1, '#a29bfe');
+
+                ctx.fillStyle = gradient;
+                ctx.fillRect(x, height - barHeight, barWidth, barHeight);
+
+                x += barWidth + 2;
+            }
+        }
+
+        // Init blank grid canvas
+        drawRTA();
+    </script>
 </body>
 </html>
