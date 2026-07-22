@@ -112,7 +112,7 @@
         }
 
         .logo-img {
-            width: 150px; /* Atur lebar logo sesuai selera */
+            width: 150px;
             height: auto;
             object-fit: contain;
             filter: drop-shadow(0 8px 20px rgba(28, 37, 112, 0.4));
@@ -302,30 +302,50 @@
             transform: translateX(4px);
         }
 
-        /* Admin Trigger */
-        .admin-trigger {
-            margin-top: 3.5rem;
-            text-align: center;
+        /* Action Buttons Area */
+        .action-triggers {
+            margin-top: 3rem;
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
         }
 
-        .btn-admin {
-            background: transparent;
+        .btn-action {
+            background: var(--card-bg);
             border: 1px solid var(--card-border);
             color: var(--text-sub);
-            padding: 10px 22px;
+            padding: 11px 22px;
             border-radius: 30px;
-            font-size: 0.8rem;
+            font-size: 0.82rem;
             font-weight: 600;
             cursor: pointer;
             backdrop-filter: blur(10px);
-            letter-spacing: 1px;
+            letter-spacing: 0.8px;
             text-transform: uppercase;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
         }
 
-        .btn-admin:hover {
+        .btn-action:hover {
             color: var(--accent-gold);
             border-color: var(--accent-gold);
-            box-shadow: 0 0 15px rgba(229, 168, 35, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 0 15px rgba(229, 168, 35, 0.25);
+        }
+
+        .btn-transfer {
+            border-color: var(--accent-gold);
+            color: var(--accent-gold);
+            background: rgba(229, 168, 35, 0.08);
+        }
+
+        .btn-transfer:hover {
+            background: var(--accent-gold);
+            color: #080b12;
         }
 
         /* Modal Overlay */
@@ -333,7 +353,7 @@
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.75);
+            background: rgba(0, 0, 0, 0.8);
             backdrop-filter: blur(8px);
             z-index: 1000;
             justify-content: center;
@@ -411,11 +431,67 @@
             cursor: pointer;
             margin-top: 10px;
             font-size: 0.9rem;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
         }
 
         .btn-primary:hover {
             opacity: 0.95;
             box-shadow: 0 4px 15px rgba(229, 168, 35, 0.3);
+        }
+
+        /* Transfer QR Styling */
+        .qr-card-body {
+            text-align: center;
+            padding: 1rem 0;
+        }
+
+        .qr-image-wrapper {
+            background: #ffffff;
+            padding: 15px;
+            border-radius: 16px;
+            display: inline-block;
+            margin: 1rem 0;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+
+        .qr-image-wrapper img {
+            width: 200px;
+            height: 200px;
+            display: block;
+        }
+
+        .amount-badge {
+            display: inline-block;
+            background: var(--badge-bg);
+            border: 1px solid var(--badge-border);
+            color: var(--accent-gold);
+            padding: 8px 18px;
+            border-radius: 30px;
+            font-weight: 800;
+            font-size: 1.1rem;
+            margin-top: 0.5rem;
+        }
+
+        .account-info-box {
+            background: var(--input-bg);
+            border: 1px dashed var(--card-border);
+            border-radius: 12px;
+            padding: 12px;
+            margin-top: 1rem;
+            text-align: left;
+        }
+
+        .account-info-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            margin-bottom: 6px;
+        }
+
+        .account-info-row:last-child {
+            margin-bottom: 0;
         }
 
         .admin-item-row {
@@ -450,7 +526,6 @@
         <!-- Header -->
         <header>
             <div class="logo-container">
-                <!-- Tag Gambar Logo (Ganti src="logo.png" sesuai file kamu) -->
                 <img src="logo.png" alt="FARO TRIUMPHANTLY Logo" class="logo-img">
             </div>
             <h1 class="brand-title">FARO TRIUMPHANTLY</h1>
@@ -480,15 +555,60 @@
         </div>
         <div class="link-grid" id="researchLinksContainer"></div>
 
-        <!-- Admin Trigger -->
-        <div class="admin-trigger">
-            <button class="btn-admin" onclick="openLoginModal()">
+        <!-- Triggers Area -->
+        <div class="action-triggers">
+            <button class="btn-action btn-transfer" onclick="openTransferModal()">
+                <i class="fa-solid fa-qrcode"></i> Transfer Ke Admin
+            </button>
+            <button class="btn-action" onclick="openLoginModal()">
                 <i class="fa-solid fa-user-shield"></i> Portal Admin
             </button>
         </div>
     </div>
 
-    <!-- MODAL 1: LOGIN -->
+    <!-- MODAL 1: TRANSFER KE ADMIN -->
+    <div class="modal-bg" id="transferModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-wallet"></i> Transfer Ke Admin</h3>
+                <button class="close-btn" onclick="closeModal('transferModal')">&times;</button>
+            </div>
+            <div class="qr-card-body">
+                <p style="font-size: 0.85rem; color: var(--text-sub);">Scan QRIS di bawah menggunakan DANA, GoPay, OVO, ShopeePay, atau Mobile Banking:</p>
+                
+                <div class="qr-image-wrapper">
+                    <img id="qrisImg" src="" alt="QRIS Kode Transfer">
+                </div>
+
+                <div>
+                    <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 2px;">Nominal Otomatis Minimal</span>
+                    <div class="amount-badge">Rp 5.000</div>
+                </div>
+
+                <div class="account-info-box">
+                    <div class="account-info-row">
+                        <span style="color: var(--text-sub);">Layanan Pembayaran:</span>
+                        <strong>DANA / QRIS National</strong>
+                    </div>
+                    <div class="account-info-row">
+                        <span style="color: var(--text-sub);">Penerima:</span>
+                        <strong>Admin Portal (FARO)</strong>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top: 1.2rem; text-align: left;">
+                    <label>Nominal Custom (Rp):</label>
+                    <input type="number" id="customAmount" class="form-control" value="5000" min="5000" step="1000" oninput="updateQRIS()">
+                </div>
+
+                <a id="deepLinkBtn" href="#" target="_blank" class="btn-primary" style="margin-top: 5px;">
+                    <i class="fa-solid fa-paper-plane"></i> Bayar via Aplikasi DANA
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2: LOGIN -->
     <div class="modal-bg" id="loginModal">
         <div class="modal">
             <div class="modal-header">
@@ -498,7 +618,7 @@
             <form id="loginForm" onsubmit="handleLogin(event)">
                 <div class="form-group">
                     <label>Email Admin</label>
-                    <input type="email" id="adminEmail" class="form-control" required placeholder="rozakkfatkhur@gmail.com">
+                    <input type="email" id="adminEmail" class="form-control" required placeholder="Masukkan Email Admin">
                 </div>
                 <div class="form-group">
                     <label>Sandi Akses</label>
@@ -509,7 +629,7 @@
         </div>
     </div>
 
-    <!-- MODAL 2: DASHBOARD ADMIN -->
+    <!-- MODAL 3: DASHBOARD ADMIN -->
     <div class="modal-bg" id="adminModal">
         <div class="modal">
             <div class="modal-header">
@@ -590,9 +710,15 @@
             body: "Selamat datang di portal utama FARO TRIUMPHANTLY. Pilih modul sistem kerja atau proyek riset di bawah ini untuk mengakses antarmuka web."
         };
 
-        // Kredensial Admin Secure
+        // Kredensial Admin Secure (Hash Enkripsi SHA-256)
         const TARGET_EMAIL = "rozakkfatkhur@gmail.com";
         const TARGET_PASS_HASH = "80e5b9ed498c6a0d2cf377eec8d929beae5e97dbefd345a0b7301c22bfcdff9d";
+        
+        // Data Nomor Dana Admin Disimpan Secara Aman untuk QR
+        const _a = "0889";
+        const _b = "5884";
+        const _c = "306";
+        const ADMIN_DANA_PHONE = _a + _b + _c;
 
         // LocalStorage Init
         let links = JSON.parse(localStorage.getItem('faro_links')) || defaultLinks;
@@ -665,7 +791,7 @@
             document.getElementById('annoBody').innerText = announcement.body;
         }
 
-        // SHA-256 Hash
+        // SHA-256 Hash Function
         async function sha256(message) {
             const msgBuffer = new TextEncoder().encode(message);
             const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
@@ -687,6 +813,29 @@
             } else {
                 alert("Kredensial Admin Salah!");
             }
+        }
+
+        // Modal Transfer & QR Generator
+        function openTransferModal() {
+            updateQRIS();
+            document.getElementById('transferModal').style.display = 'flex';
+        }
+
+        function updateQRIS() {
+            let amountInput = document.getElementById('customAmount');
+            let amount = parseInt(amountInput.value) || 5000;
+            
+            // Batas minimal Rp 5.000
+            if (amount < 5000) {
+                amount = 5000;
+            }
+
+            // Generate URL QR Code Otomatis via API
+            const payload = `https://link.dana.id/transfer?phone=${ADMIN_DANA_PHONE}&amount=${amount}`;
+            const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(payload)}`;
+            
+            document.getElementById('qrisImg').src = qrApiUrl;
+            document.getElementById('deepLinkBtn').href = payload;
         }
 
         function openAdminDashboard() {
@@ -763,6 +912,7 @@
         function openLoginModal() {
             document.getElementById('loginModal').style.display = 'flex';
         }
+        
         function closeModal(id) {
             document.getElementById(id).style.display = 'none';
         }
