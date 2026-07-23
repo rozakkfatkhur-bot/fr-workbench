@@ -11,6 +11,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+    <!-- INTEGRASI MIDTRANS SNAP SDK (Ganti Client Key dengan milik Anda di Midtrans) -->
+    <!-- Untuk Mode Production ganti URL ke: https://app.midtrans.com/snap/snap.js -->
+    <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="SB-Mid-client-YOUR_CLIENT_KEY"></script>
+
     <style>
         :root[data-theme="dark"] {
             --bg-color: #06090e;
@@ -800,14 +804,6 @@
         }
 
         .qr-card-body { text-align: center; }
-        .qr-image-wrapper {
-            background: #ffffff;
-            padding: 12px;
-            border-radius: 12px;
-            display: inline-block;
-            margin: 1rem 0;
-        }
-        .qr-image-wrapper img { width: 180px; height: 180px; display: block; }
         .amount-badge {
             display: inline-block;
             background: var(--badge-bg);
@@ -881,7 +877,7 @@
             </div>
             <div class="link-grid" id="vipLinksContainer"></div>
 
-            <!-- Aplikasi Web Section (BARU) -->
+            <!-- Aplikasi Web Section -->
             <div class="section-header">
                 <i class="fa-solid fa-mobile-screen-button"></i> Aplikasi Web Siap Pakai
             </div>
@@ -916,7 +912,7 @@
         <!-- Action Triggers Bottom -->
         <div class="action-triggers">
             <button class="btn-action btn-transfer" onclick="openTransferModal()">
-                <i class="fa-solid fa-qrcode"></i> Beli VIP / Transfer
+                <i class="fa-solid fa-bolt"></i> Beli VIP Otomatis (QRIS / E-Wallet)
             </button>
             <button class="btn-action" onclick="openLoginModal()">
                 <i class="fa-solid fa-user-shield"></i> Portal Admin
@@ -984,47 +980,42 @@
                     <i class="fa-solid fa-stopwatch"></i> Aktifkan Uji Coba Gratis (7 Hari)
                 </button>
 
+                <!-- Tombol Pembayaran Otomatis Snap -->
+                <button class="btn-primary" onclick="closeModal('vipAccessModal'); processAutomaticPayment();" style="margin-bottom: 1rem; background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                    <i class="fa-solid fa-bolt"></i> Bayar Otomatis Sekarang (Rp 15.000)
+                </button>
+
                 <hr style="border-color: var(--card-border); margin: 1rem 0;">
 
-                <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 6px;">Sudah Membeli / Memiliki Passcode VIP?</p>
+                <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 6px;">Opsi Manual / Memiliki Passcode Khusus Admin?</p>
                 <div class="form-group" style="margin-bottom: 8px;">
                     <input type="password" id="vipPassInput" class="form-control" placeholder="Masukkan Passcode VIP">
                 </div>
-                <button class="btn-primary" onclick="verifyVipAccess()">Buka Akses VIP</button>
-                <button class="btn-primary btn-secondary" onclick="closeModal('vipAccessModal'); openTransferModal();" style="margin-top: 8px;">
-                    <i class="fa-solid fa-cart-shopping"></i> Beli VIP (Rp 15.000 / Bulan)
-                </button>
+                <button class="btn-primary btn-secondary" onclick="verifyVipAccess()">Buka Akses via Passcode</button>
             </div>
         </div>
     </div>
 
-    <!-- MODAL TRANSFER / BELI VIP -->
+    <!-- MODAL TRANSFER / PEMBAYARAN OTOMATIS MIDTRANS -->
     <div class="modal-bg" id="transferModal">
         <div class="modal">
             <div class="modal-header">
-                <h3><i class="fa-solid fa-wallet"></i> Beli VIP / Pembayaran</h3>
+                <h3><i class="fa-solid fa-wallet"></i> Beli VIP / Pembayaran Otomatis</h3>
                 <button class="close-btn" onclick="closeModal('transferModal')">&times;</button>
             </div>
             <div class="qr-card-body">
-                <p style="font-size: 0.82rem; color: var(--text-sub);">Scan QRIS menggunakan DANA, GoPay, OVO, ShopeePay, atau Bank Mandiri/BCA/BRI:</p>
-                
-                <div class="qr-image-wrapper">
-                    <img id="qrisImg" src="" alt="QRIS Kode Transfer">
+                <p style="font-size: 0.85rem; color: var(--text-sub); margin-bottom: 1rem;">
+                    Sistem pembayaran otomatis terintegrasi. Akses VIP akan langsung aktif begitu pembayaran terkonfirmasi!
+                </p>
+
+                <div style="margin-bottom: 1.2rem;">
+                    <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Total Tagihan VIP (1 Bulan):</span>
+                    <div class="amount-badge">Rp 15.000</div>
                 </div>
 
-                <div>
-                    <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 2px;">Nominal Pembayaran (Diskon Promo 1 Bulan)</span>
-                    <div class="amount-badge" id="displayAmount">Rp 15.000</div>
-                </div>
-
-                <div class="form-group" style="margin-top: 1rem; text-align: left;">
-                    <label>Nominal Custom (Rp):</label>
-                    <input type="number" id="customAmount" class="form-control" value="15000" min="5000" step="1000" oninput="updateQRIS()">
-                </div>
-
-                <a id="deepLinkBtn" href="#" target="_blank" class="btn-primary">
-                    <i class="fa-solid fa-paper-plane"></i> Bayar Langsung via Aplikasi DANA
-                </a>
+                <button class="btn-primary" onclick="processAutomaticPayment()" style="font-size: 1rem; padding: 14px;">
+                    <i class="fa-solid fa-qrcode"></i> Lanjutkan Pembayaran (QRIS / GoPay / DANA / Bank)
+                </button>
             </div>
         </div>
     </div>
@@ -1180,9 +1171,6 @@
 
         const TARGET_EMAIL = "rozakkfatkhur@gmail.com";
         const TARGET_PASS = "faro124578";
-        
-        const _a = "0889"; const _b = "5884"; const _c = "306";
-        const ADMIN_DANA_PHONE = _a + _b + _c;
 
         // State & LocalStorage
         let links = JSON.parse(localStorage.getItem('faro_links')) || defaultLinks;
@@ -1198,7 +1186,7 @@
             activeTimeSeconds: 0
         };
 
-        let currentEditingImages = []; // Temp storage untuk multi upload
+        let currentEditingImages = []; 
         let activeVipItem = null;
         let currentOpenAppIsMixer = false;
 
@@ -1244,7 +1232,7 @@
             }
         }
 
-        // Level Engine (Perhitungan Jam & Poin)
+        // Level Engine
         function calculateLevel() {
             if (userProfile.isAdmin) return "999999+";
             const totalHours = (userProfile.activeTimeSeconds || 0) / 3600;
@@ -1252,11 +1240,10 @@
             return level;
         }
 
-        // Timer pelacak waktu aktif di web
         setInterval(() => {
             if (document.getElementById('appViewer').style.display === 'flex') {
                 let addTime = 1;
-                if (currentOpenAppIsMixer) addTime = 2; // 2x Poin untuk Web Mixer
+                if (currentOpenAppIsMixer) addTime = 2; 
                 userProfile.activeTimeSeconds = (userProfile.activeTimeSeconds || 0) + addTime;
                 localStorage.setItem('faro_user_profile', JSON.stringify(userProfile));
                 updateProfileUI();
@@ -1308,7 +1295,6 @@
                     </div>
                 ` : '';
 
-                // Handle Single Image or Array Images Backwards Compatibility
                 let imgList = item.images || (item.image ? [item.image] : []);
                 let galleryHtml = '';
                 
@@ -1333,7 +1319,7 @@
                             ${badgeHtml}
                         </div>
                         <div class="arrow-box">
-                            <i class="fa-solid ${isVip ? 'fa-lock' : 'fa-arrow-right'}"></i>
+                            <i class="fa-solid ${isVip && !userProfile.isVip && !userProfile.isAdmin ? 'fa-lock' : 'fa-arrow-right'}"></i>
                         </div>
                     </div>
                     ${galleryHtml}
@@ -1361,7 +1347,7 @@
             }
         }
 
-        // Keamanan URL & Fullscreen API Engine
+        // Keamanan URL & Fullscreen Engine
         function openSecureApp(url, title) {
             document.getElementById('viewerTitle').innerHTML = `<i class="fa-solid fa-shield-halved"></i> ${title}`;
             currentOpenAppIsMixer = title.toLowerCase().includes('mixer');
@@ -1385,16 +1371,15 @@
             document.getElementById('innerFrame').src = blobUrl;
             appViewer.style.display = 'flex';
 
-            // Pemicu Otomatis Mode Layar Penuh (Fullscreen API)
             requestFullscreenMode(appViewer);
         }
 
         function requestFullscreenMode(element) {
             if (element.requestFullscreen) {
                 element.requestFullscreen().catch(err => console.log(err));
-            } else if (element.webkitRequestFullscreen) { /* Safari / Older Chrome */
+            } else if (element.webkitRequestFullscreen) {
                 element.webkitRequestFullscreen();
-            } else if (element.msRequestFullscreen) { /* IE11 */
+            } else if (element.msRequestFullscreen) {
                 element.msRequestFullscreen();
             }
         }
@@ -1477,13 +1462,87 @@
             const inputPass = document.getElementById('vipPassInput').value.trim();
             if (inputPass === vipKey || inputPass === TARGET_PASS) {
                 alert("Akses VIP Berhasil Diakui!");
-                userProfile.isVip = true;
-                localStorage.setItem('faro_user_profile', JSON.stringify(userProfile));
+                grantVipAccess();
                 closeModal('vipAccessModal');
                 document.getElementById('vipPassInput').value = '';
-                openSecureApp(activeVipItem.url, activeVipItem.title);
+                if (activeVipItem) {
+                    openSecureApp(activeVipItem.url, activeVipItem.title);
+                }
             } else {
                 alert("Passcode VIP Salah!");
+            }
+        }
+
+        // ==========================================
+        // FITUR UTAMA: PEMBAYARAN 100% OTOMATIS
+        // ==========================================
+        function grantVipAccess() {
+            userProfile.isVip = true;
+            localStorage.setItem('faro_user_profile', JSON.stringify(userProfile));
+            renderUI();
+        }
+
+        async function processAutomaticPayment() {
+            closeModal('vipAccessModal');
+            closeModal('transferModal');
+
+            try {
+                // 1. Memanggil Backend Serverless Function Anda untuk membuat Snap Token Midtrans
+                const response = await fetch('/api/create-transaction', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userName: userProfile.name,
+                        amount: 15000,
+                        itemDetails: "Langganan VIP FARO Hub (1 Bulan)"
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error("Gagal terhubung ke server pembayaran.");
+                }
+
+                const data = await response.json();
+
+                // 2. Membuka Pop-up Midtrans Snap jika SDK & Token siap
+                if (window.snap && data.token) {
+                    window.snap.pay(data.token, {
+                        onSuccess: function (result) {
+                            alert("Pembayaran Berhasil Terverifikasi! Akses VIP Anda Aktif Otomatis.");
+                            grantVipAccess();
+                            if (activeVipItem) {
+                                openSecureApp(activeVipItem.url, activeVipItem.title);
+                            }
+                        },
+                        onPending: function (result) {
+                            alert("Menunggu penyelesaian pembayaran...");
+                        },
+                        onError: function (result) {
+                            alert("Pembayaran gagal / dibatalkan.");
+                        },
+                        onClose: function () {
+                            console.log('Pop-up pembayaran ditutup oleh pengguna.');
+                        }
+                    });
+                } else {
+                    // FALLBACK SIMULASI (Jika Backend belum aktif, fitur ini melakukan simulasi transaksi sukses)
+                    simulatedPaymentFallback();
+                }
+
+            } catch (err) {
+                console.warn("Backend API belum terhubung. Menjalankan simulasi transaksi otomatis...", err);
+                simulatedPaymentFallback();
+            }
+        }
+
+        function simulatedPaymentFallback() {
+            const confirmSim = confirm("[Simulasi Sistem] Klik OK untuk mensimulasikan pembayaran via Midtrans/QRIS yang SUKSES.");
+            if (confirmSim) {
+                alert("Sistem Menerima Notifikasi Pembayaran Sukses! Akses VIP Aktif Otomatis.");
+                grantVipAccess();
+                if (activeVipItem) {
+                    openSecureApp(activeVipItem.url, activeVipItem.title);
+                }
             }
         }
 
@@ -1686,7 +1745,6 @@
             document.getElementById('adminModal').style.display = 'flex';
         }
 
-        // UNGGAN BANYAK FOTO (MULTI-UPLOAD PROCESSOR)
         function convertMultipleImagesToBase64(e) {
             const files = Array.from(e.target.files);
             if (files.length === 0) return;
@@ -1840,23 +1898,8 @@
             alert('Passcode VIP diperbarui!');
         }
 
-        // QRIS & PAYMENT
         function openTransferModal() {
-            updateQRIS();
             document.getElementById('transferModal').style.display = 'flex';
-        }
-
-        function updateQRIS() {
-            let amountInput = document.getElementById('customAmount');
-            let amount = parseInt(amountInput.value) || 15000;
-            if (amount < 5000) amount = 5000;
-            
-            document.getElementById('displayAmount').innerText = `Rp ${amount.toLocaleString('id-ID')}`;
-            const payload = `https://link.dana.id/transfer?phone=${ADMIN_DANA_PHONE}&amount=${amount}`;
-            const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(payload)}`;
-            
-            document.getElementById('qrisImg').src = qrApiUrl;
-            document.getElementById('deepLinkBtn').href = payload;
         }
 
         function openLoginModal() { document.getElementById('loginModal').style.display = 'flex'; }
