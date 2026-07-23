@@ -329,22 +329,47 @@
             line-height: 1.4;
         }
 
-        .preview-img-container {
+        /* CAROUSEL / MULTI IMAGE PREVIEW IN CARD */
+        .preview-gallery-container {
             width: 100%;
-            max-height: 180px;
-            border-radius: 10px;
-            overflow: hidden;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            padding-bottom: 6px;
             margin-top: 4px;
-            border: 1px solid var(--card-border);
         }
 
-        .preview-img {
+        .preview-gallery-container::-webkit-scrollbar {
+            height: 4px;
+        }
+
+        .preview-gallery-container::-webkit-scrollbar-thumb {
+            background: var(--card-border);
+            border-radius: 4px;
+        }
+
+        .gallery-item {
+            flex: 0 0 100%;
+            max-height: 200px;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid var(--card-border);
+            scroll-snap-align: start;
+        }
+
+        .gallery-item.multi {
+            flex: 0 0 85%;
+        }
+
+        .gallery-item img {
             width: 100%;
             height: 100%;
             object-fit: cover;
             display: block;
         }
 
+        /* BADGES */
         .badge-rd {
             background: var(--badge-bg);
             color: var(--accent-gold);
@@ -360,6 +385,17 @@
         .badge-vip {
             background: linear-gradient(135deg, #E5A823, #c28b13);
             color: #000;
+            font-size: 0.65rem;
+            padding: 3px 9px;
+            border-radius: 20px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .badge-app {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: #fff;
             font-size: 0.65rem;
             padding: 3px 9px;
             border-radius: 20px;
@@ -471,7 +507,7 @@
             border: 1px solid var(--card-border);
             border-radius: 20px;
             width: 100%;
-            max-width: 500px;
+            max-width: 520px;
             padding: 1.8rem;
             box-shadow: 0 25px 50px rgba(0,0,0,0.5);
             max-height: 90vh;
@@ -556,6 +592,46 @@
             gap: 10px;
             margin-bottom: 12px;
             font-weight: 600;
+        }
+
+        /* ADMIN MULTI IMAGE PREVIEW MANAGER */
+        .admin-image-preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .admin-img-thumb {
+            position: relative;
+            width: 100%;
+            height: 70px;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid var(--card-border);
+        }
+
+        .admin-img-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .admin-img-thumb .btn-del-img {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            background: rgba(239, 68, 68, 0.85);
+            color: #fff;
+            border: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            font-size: 0.65rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         /* KOMENTAR SYSTEM */
@@ -780,6 +856,12 @@
             </div>
             <div class="link-grid" id="vipLinksContainer"></div>
 
+            <!-- Aplikasi Web Section (BARU) -->
+            <div class="section-header">
+                <i class="fa-solid fa-mobile-screen-button"></i> Aplikasi Web Siap Pakai
+            </div>
+            <div class="link-grid" id="appLinksContainer"></div>
+
             <!-- Main Web Section -->
             <div class="section-header">
                 <i class="fa-solid fa-server"></i> Web Sistem Utama
@@ -986,15 +1068,19 @@
                 <label>Deskripsi Ringkas</label>
                 <input type="text" id="newDesc" class="form-control" placeholder="Deskripsi modul">
             </div>
+            
+            <!-- MULTI UPLOAD IMAGES FEATURE -->
             <div class="form-group">
-                <label>Unggah Gambar Preview / Banner</label>
-                <input type="file" id="newImgFile" class="form-control" accept="image/*" onchange="convertImageToBase64()">
-                <input type="hidden" id="newImgData">
+                <label>Unggah Gambar Preview / Banner (Bisa Lebih Dari 1 Foto)</label>
+                <input type="file" id="newImgFile" class="form-control" accept="image/*" multiple onchange="convertMultipleImagesToBase64(event)">
+                <div class="admin-image-preview-grid" id="adminImgPreviewGrid"></div>
             </div>
+
             <div class="form-group">
                 <label>Kategori Akses</label>
                 <select id="newCategory" class="form-control">
                     <option value="vip">VIP / Premium (Terproteksi)</option>
+                    <option value="app">Aplikasi Web / Web App (Siap Pakai)</option>
                     <option value="main">Web Utama / Siap Pakai</option>
                     <option value="research">Riset & Uji Coba (R&D)</option>
                 </select>
@@ -1029,7 +1115,15 @@
                 url: "https://fr-workbench.vercel.app/mixer-x78-series.html",
                 desc: "Antarmuka Kontrol Mixer Audio Digital Series X78 (Promo Diskon Rp 15.000 / Bln)",
                 category: "vip",
-                image: "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=600&auto=format&fit=crop&q=60"
+                images: ["https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=600&auto=format&fit=crop&q=60"]
+            },
+            {
+                id: 4,
+                title: "FARO Audio Controller App",
+                url: "https://fr-workbench.vercel.app",
+                desc: "Aplikasi Web Pro-Audio terintegrasi untuk kontrol cepat dari smartphone/PC.",
+                category: "app",
+                images: []
             },
             {
                 id: 2,
@@ -1037,7 +1131,7 @@
                 url: "https://fr-workbench.vercel.app/fr-audio-management.html",
                 desc: "Sistem Kontrol Crossover & Manajemen Frekuensi Digital",
                 category: "main",
-                image: ""
+                images: []
             },
             {
                 id: 3,
@@ -1045,7 +1139,7 @@
                 url: "https://fr-workbench.vercel.app",
                 desc: "Pengujian Algoritma FIR/IIR Loudspeaker Management System (Riset)",
                 category: "research",
-                image: ""
+                images: []
             }
         ];
 
@@ -1074,8 +1168,8 @@
             activeTimeSeconds: 0
         };
 
+        let currentEditingImages = []; // Temp storage untuk multi upload
         let activeVipItem = null;
-        let sessionStartTime = Date.now();
         let currentOpenAppIsMixer = false;
 
         // Mode Terang & Gelap
@@ -1124,7 +1218,6 @@
         function calculateLevel() {
             if (userProfile.isAdmin) return "999999+";
             const totalHours = (userProfile.activeTimeSeconds || 0) / 3600;
-            // 1 level per minggu (168 jam), Mixer memberi 2x lipat
             const level = Math.floor(totalHours / 168) + 1;
             return level;
         }
@@ -1155,10 +1248,12 @@
         // Render UI Utama
         function renderUI() {
             const vipContainer = document.getElementById('vipLinksContainer');
+            const appContainer = document.getElementById('appLinksContainer');
             const mainContainer = document.getElementById('mainLinksContainer');
             const researchContainer = document.getElementById('researchLinksContainer');
             
             vipContainer.innerHTML = '';
+            appContainer.innerHTML = '';
             mainContainer.innerHTML = '';
             researchContainer.innerHTML = '';
 
@@ -1169,9 +1264,11 @@
 
                 const isResearch = item.category === 'research';
                 const isVip = item.category === 'vip';
+                const isApp = item.category === 'app';
 
                 let badgeHtml = '';
                 if (isVip) badgeHtml = '<span class="badge-vip"><i class="fa-solid fa-crown"></i> VIP</span>';
+                else if (isApp) badgeHtml = '<span class="badge-app"><i class="fa-solid fa-mobile-screen"></i> Web App</span>';
                 else if (isResearch) badgeHtml = '<span class="badge-rd">Riset</span>';
 
                 let priceTagHtml = isVip ? `
@@ -1181,11 +1278,23 @@
                     </div>
                 ` : '';
 
-                let imageHtml = item.image ? `
-                    <div class="preview-img-container">
-                        <img src="${item.image}" alt="Preview" class="preview-img">
-                    </div>
-                ` : '';
+                // Handle Single Image or Array Images Backwards Compatibility
+                let imgList = item.images || (item.image ? [item.image] : []);
+                let galleryHtml = '';
+                
+                if (imgList.length > 0) {
+                    let itemsHtml = imgList.map(imgSrc => `
+                        <div class="gallery-item ${imgList.length > 1 ? 'multi' : ''}">
+                            <img src="${imgSrc}" alt="Preview">
+                        </div>
+                    `).join('');
+
+                    galleryHtml = `
+                        <div class="preview-gallery-container" onclick="event.stopPropagation()">
+                            ${itemsHtml}
+                        </div>
+                    `;
+                }
 
                 card.innerHTML = `
                     <div class="link-header-row">
@@ -1197,12 +1306,13 @@
                             <i class="fa-solid ${isVip ? 'fa-lock' : 'fa-arrow-right'}"></i>
                         </div>
                     </div>
-                    ${imageHtml}
+                    ${galleryHtml}
                     <div class="link-desc">${item.desc}</div>
                     ${priceTagHtml}
                 `;
 
                 if (isVip) vipContainer.appendChild(card);
+                else if (isApp) appContainer.appendChild(card);
                 else if (isResearch) researchContainer.appendChild(card);
                 else mainContainer.appendChild(card);
             });
@@ -1226,7 +1336,6 @@
             document.getElementById('viewerTitle').innerHTML = `<i class="fa-solid fa-shield-halved"></i> ${title}`;
             currentOpenAppIsMixer = title.toLowerCase().includes('mixer');
 
-            // Proteksi URL dengan Blob Object
             const htmlContent = `
                 <!DOCTYPE html>
                 <html>
@@ -1344,8 +1453,6 @@
             container.innerHTML = '';
 
             const parentComments = comments.filter(c => !c.parentId);
-            
-            // Pinned di atas
             parentComments.sort((a, b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0));
 
             parentComments.forEach(c => {
@@ -1392,7 +1499,6 @@
                 <div class="replies-container" id="replies-${c.id}"></div>
             `;
 
-            // Render Balasan
             const replies = comments.filter(r => r.parentId === c.id);
             const repliesContainer = card.querySelector(`#replies-${c.id}`);
             replies.forEach(r => {
@@ -1505,20 +1611,47 @@
             document.getElementById('editAnnoTitle').value = announcement.title;
             document.getElementById('editAnnoBody').value = announcement.body;
             document.getElementById('editVipKey').value = vipKey;
+            resetAdminLinkForm();
             renderAdminLinkList();
             document.getElementById('adminModal').style.display = 'flex';
         }
 
-        function convertImageToBase64() {
-            const fileInput = document.getElementById('newImgFile');
-            const file = fileInput.files[0];
-            if (file) {
+        // UNGGAN BANYAK FOTO (MULTI-UPLOAD PROCESSOR)
+        function convertMultipleImagesToBase64(e) {
+            const files = Array.from(e.target.files);
+            if (files.length === 0) return;
+
+            let loadedCount = 0;
+            files.forEach(file => {
                 const reader = new FileReader();
-                reader.onload = function (e) {
-                    document.getElementById('newImgData').value = e.target.result;
+                reader.onload = function (evt) {
+                    currentEditingImages.push(evt.target.result);
+                    loadedCount++;
+                    if (loadedCount === files.length) {
+                        renderAdminImgPreviews();
+                    }
                 };
                 reader.readAsDataURL(file);
-            }
+            });
+        }
+
+        function renderAdminImgPreviews() {
+            const grid = document.getElementById('adminImgPreviewGrid');
+            grid.innerHTML = '';
+            currentEditingImages.forEach((imgData, idx) => {
+                const thumb = document.createElement('div');
+                thumb.className = 'admin-img-thumb';
+                thumb.innerHTML = `
+                    <img src="${imgData}" alt="Thumb">
+                    <button class="btn-del-img" onclick="removeEditingImg(${idx})">&times;</button>
+                `;
+                grid.appendChild(thumb);
+            });
+        }
+
+        function removeEditingImg(index) {
+            currentEditingImages.splice(index, 1);
+            renderAdminImgPreviews();
         }
 
         function editLink(id) {
@@ -1529,7 +1662,9 @@
                 document.getElementById('newUrl').value = item.url;
                 document.getElementById('newDesc').value = item.desc;
                 document.getElementById('newCategory').value = item.category;
-                document.getElementById('newImgData').value = item.image || '';
+                
+                currentEditingImages = item.images ? [...item.images] : (item.image ? [item.image] : []);
+                renderAdminImgPreviews();
                 
                 document.getElementById('adminFormTitle').innerText = "Edit Modul Link";
                 document.getElementById('btnSaveLink').innerText = "Simpan Perubahan Link";
@@ -1542,7 +1677,6 @@
             const url = document.getElementById('newUrl').value.trim();
             const desc = document.getElementById('newDesc').value.trim();
             const category = document.getElementById('newCategory').value;
-            const image = document.getElementById('newImgData').value;
 
             if(!title || !url) {
                 alert('Nama dan URL wajib diisi!');
@@ -1550,20 +1684,25 @@
             }
 
             if (id) {
-                // Update
                 const index = links.findIndex(l => l.id == id);
                 if (index !== -1) {
-                    links[index] = { ...links[index], title, url, desc, category, image: image || links[index].image };
+                    links[index] = { 
+                        ...links[index], 
+                        title, 
+                        url, 
+                        desc, 
+                        category, 
+                        images: [...currentEditingImages] 
+                    };
                 }
             } else {
-                // Tambah
                 const newObj = {
                     id: Date.now(),
                     title,
                     url,
                     desc: desc || "Tidak ada deskripsi",
                     category,
-                    image: image || ""
+                    images: [...currentEditingImages]
                 };
                 links.push(newObj);
             }
@@ -1578,7 +1717,8 @@
             document.getElementById('newUrl').value = '';
             document.getElementById('newDesc').value = '';
             document.getElementById('newImgFile').value = '';
-            document.getElementById('newImgData').value = '';
+            currentEditingImages = [];
+            renderAdminImgPreviews();
             document.getElementById('adminFormTitle').innerText = "Tambah Modul Link Baru";
             document.getElementById('btnSaveLink').innerText = "+ Tambahkan Link";
         }
@@ -1602,9 +1742,10 @@
             links.forEach(l => {
                 const row = document.createElement('div');
                 row.className = 'admin-item-row';
+                const imgCount = (l.images ? l.images.length : (l.image ? 1 : 0));
                 row.innerHTML = `
                     <div>
-                        <strong>${l.title}</strong> (${l.category.toUpperCase()})
+                        <strong>${l.title}</strong> (${l.category.toUpperCase()}) - <em>${imgCount} Foto</em>
                     </div>
                     <div>
                         <button class="comment-action-btn" onclick="editLink(${l.id})" style="display:inline; margin-right:8px;"><i class="fa-solid fa-pen"></i></button>
