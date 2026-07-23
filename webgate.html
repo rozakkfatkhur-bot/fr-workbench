@@ -756,6 +756,31 @@
             gap: 8px;
         }
 
+        .viewer-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-fullscreen-viewer {
+            background: rgba(229, 168, 35, 0.15);
+            border: 1px solid var(--card-border);
+            color: var(--accent-gold);
+            padding: 5px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.78rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-fullscreen-viewer:hover {
+            background: var(--accent-gold);
+            color: #06090e;
+        }
+
         .btn-close-viewer {
             background: rgba(239, 68, 68, 0.2);
             border: 1px solid rgba(239, 68, 68, 0.4);
@@ -1099,9 +1124,14 @@
             <div class="viewer-title" id="viewerTitle">
                 <i class="fa-solid fa-shield-halved"></i> FARO Secure Engine
             </div>
-            <button class="btn-close-viewer" onclick="closeAppViewer()">
-                <i class="fa-solid fa-xmark"></i> Tutup Web
-            </button>
+            <div class="viewer-controls">
+                <button class="btn-fullscreen-viewer" onclick="toggleFullscreen()">
+                    <i class="fa-solid fa-expand" id="fullscreenIcon"></i> Layar Penuh
+                </button>
+                <button class="btn-close-viewer" onclick="closeAppViewer()">
+                    <i class="fa-solid fa-xmark"></i> Tutup Web
+                </button>
+            </div>
         </div>
         <iframe id="innerFrame" class="viewer-frame" src="about:blank"></iframe>
     </div>
@@ -1331,7 +1361,7 @@
             }
         }
 
-        // Keamanan URL: Blob URL Masking Engine
+        // Keamanan URL & Fullscreen API Engine
         function openSecureApp(url, title) {
             document.getElementById('viewerTitle').innerHTML = `<i class="fa-solid fa-shield-halved"></i> ${title}`;
             currentOpenAppIsMixer = title.toLowerCase().includes('mixer');
@@ -1340,23 +1370,63 @@
                 <!DOCTYPE html>
                 <html>
                 <head>
-                    <style>html, body { margin:0; padding:0; height:100%; overflow:hidden; }</style>
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <style>html, body { margin:0; padding:0; height:100%; overflow:hidden; background:#000; }</style>
                 </head>
                 <body>
-                    <iframe src="${url}" style="width:100%; height:100%; border:none;"></iframe>
+                    <iframe src="${url}" style="width:100%; height:100%; border:none;" allowfullscreen></iframe>
                 </body>
                 </html>
             `;
             const blob = new Blob([htmlContent], { type: 'text/html' });
             const blobUrl = URL.createObjectURL(blob);
 
+            const appViewer = document.getElementById('appViewer');
             document.getElementById('innerFrame').src = blobUrl;
-            document.getElementById('appViewer').style.display = 'flex';
+            appViewer.style.display = 'flex';
+
+            // Pemicu Otomatis Mode Layar Penuh (Fullscreen API)
+            requestFullscreenMode(appViewer);
+        }
+
+        function requestFullscreenMode(element) {
+            if (element.requestFullscreen) {
+                element.requestFullscreen().catch(err => console.log(err));
+            } else if (element.webkitRequestFullscreen) { /* Safari / Older Chrome */
+                element.webkitRequestFullscreen();
+            } else if (element.msRequestFullscreen) { /* IE11 */
+                element.msRequestFullscreen();
+            }
+        }
+
+        function toggleFullscreen() {
+            const viewer = document.getElementById('appViewer');
+            const icon = document.getElementById('fullscreenIcon');
+
+            if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                requestFullscreenMode(viewer);
+                icon.className = 'fa-solid fa-compress';
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                }
+                icon.className = 'fa-solid fa-expand';
+            }
         }
 
         function closeAppViewer() {
+            if (document.fullscreenElement || document.webkitFullscreenElement) {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen().catch(err => console.log(err));
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                }
+            }
             document.getElementById('innerFrame').src = 'about:blank';
             document.getElementById('appViewer').style.display = 'none';
+            document.getElementById('fullscreenIcon').className = 'fa-solid fa-expand';
             currentOpenAppIsMixer = false;
         }
 
