@@ -35,7 +35,6 @@
             min-height: 100vh;
         }
 
-        /* Header Rack Panel */
         header {
             background: linear-gradient(180deg, #242938 0%, #171a24 100%);
             border: 2px solid var(--panel-border);
@@ -71,7 +70,6 @@
             align-items: center;
         }
 
-        /* Buttons & Utility UI */
         .btn {
             background: #252a3a;
             color: var(--text-main);
@@ -106,10 +104,9 @@
             color: #000 !important;
         }
 
-        /* Grid Layout */
         .main-grid {
             display: grid;
-            grid-template-columns: 320px 1fr;
+            grid-template-columns: 360px 1fr;
             gap: 15px;
         }
 
@@ -141,7 +138,6 @@
             align-items: center;
         }
 
-        /* Input Controls */
         .input-selector-group {
             display: flex;
             flex-direction: column;
@@ -160,7 +156,7 @@
             text-transform: uppercase;
         }
 
-        select, input[type="file"] {
+        select, input[type="file"], input[type="text"] {
             background: #12141d;
             border: 1px solid var(--panel-border);
             color: var(--text-main);
@@ -169,6 +165,92 @@
             outline: none;
             width: 100%;
             font-size: 0.85rem;
+        }
+
+        /* Video Screen & Display Deck */
+        .media-display-container {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            background: #000;
+            border: 1px solid var(--panel-border);
+            border-radius: 6px;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #video-player, #yt-iframe {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .display-placeholder {
+            color: var(--text-dim);
+            font-size: 0.8rem;
+            text-align: center;
+            padding: 10px;
+        }
+
+        /* Transport Controller Deck */
+        .transport-deck {
+            background: #12141d;
+            border: 1px solid var(--panel-border);
+            border-radius: 6px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .transport-buttons {
+            display: flex;
+            justify-content: space-between;
+            gap: 5px;
+        }
+
+        .btn-transport {
+            flex: 1;
+            padding: 6px;
+            font-size: 0.75rem;
+            background: #1e2333;
+            border: 1px solid var(--panel-border);
+            color: var(--text-main);
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .btn-transport:hover {
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
+
+        .playlist-box {
+            max-height: 120px;
+            overflow-y: auto;
+            background: #0a0b10;
+            border: 1px solid var(--panel-border);
+            border-radius: 4px;
+            padding: 5px;
+        }
+
+        .playlist-item {
+            font-size: 0.75rem;
+            padding: 4px 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            cursor: pointer;
+            color: var(--text-dim);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .playlist-item:hover, .playlist-item.active {
+            color: var(--accent-green);
+            background: rgba(0, 255, 136, 0.1);
         }
 
         /* Visualizer Canvas RTA */
@@ -223,7 +305,6 @@
         .channel-header.ch-l { color: var(--accent-green); }
         .channel-header.ch-r { color: var(--accent-blue); }
 
-        /* DSP Sliders & Toggles */
         .dsp-module {
             background: #1a1d29;
             padding: 8px;
@@ -262,7 +343,6 @@
             cursor: pointer;
         }
 
-        /* VU Meters & Limiter GR LED */
         .meter-group {
             display: flex;
             gap: 10px;
@@ -338,14 +418,54 @@
                 <div class="control-group">
                     <label>Audio Source Input</label>
                     <select id="audio-source-select">
+                        <option value="media">Media Player (MP3 / Video File / YouTube)</option>
                         <option value="testtone">Test Tone Generator</option>
-                        <option value="file">Audio File Player</option>
                         <option value="mic">Live Input (Mic / System Capture)</option>
                     </select>
                 </div>
 
+                <!-- Display Deck Screen -->
+                <div class="media-display-container">
+                    <video id="video-player" style="display: none;" playsinline></video>
+                    <iframe id="yt-iframe" style="display: none;" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                    <div id="display-placeholder" class="display-placeholder">
+                        <span>MEDIA DISPLAY MONITOR<br><small style="color:var(--text-dim)">Upload MP3/MP4 atau Paste Link YouTube</small></span>
+                    </div>
+                </div>
+
+                <!-- Media Controls Deck -->
+                <div id="source-media-group" class="control-group">
+                    <label>Upload Audio / Video MP4</label>
+                    <input type="file" id="media-file-input" accept="audio/*,video/*" multiple>
+
+                    <label style="margin-top: 6px;">YouTube Video Link</label>
+                    <div style="display: flex; gap: 5px;">
+                        <input type="text" id="yt-url-input" placeholder="https://www.youtube.com/watch?v=...">
+                        <button id="btn-load-yt" class="btn" style="padding: 0 10px;">LOAD</button>
+                    </div>
+
+                    <!-- Transport Control Deck -->
+                    <div class="transport-deck" style="margin-top: 8px;">
+                        <div class="transport-buttons">
+                            <button id="btn-prev" class="btn-transport">⏮ PREV</button>
+                            <button id="btn-play" class="btn-transport">▶ PLAY</button>
+                            <button id="btn-pause" class="btn-transport">⏸ PAUSE</button>
+                            <button id="btn-next" class="btn-transport">NEXT ⏭</button>
+                        </div>
+                        <div class="slider-row">
+                            <label style="font-size: 0.65rem;">PITCH/SPEED</label>
+                            <input type="range" id="playback-speed" min="0.5" max="1.5" step="0.05" value="1.0">
+                            <span id="speed-val">1.0x</span>
+                        </div>
+                        <!-- Playlist Rack -->
+                        <div class="playlist-box" id="playlist-rack">
+                            <div class="playlist-item">Daftar putar kosong...</div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Test Tone Settings -->
-                <div id="source-testtone-group" class="control-group">
+                <div id="source-testtone-group" class="control-group" style="display: none;">
                     <label>Tone Type</label>
                     <select id="tone-type-select">
                         <option value="sine">Sine Wave 1kHz</option>
@@ -354,28 +474,13 @@
                     </select>
                 </div>
 
-                <!-- File Player Settings -->
-                <div id="source-file-group" class="control-group" style="display: none;">
-                    <label>Select Audio File</label>
-                    <input type="file" id="audio-file-input" accept="audio/*">
-                    <audio id="html5-audio-player" controls style="width: 100%; margin-top: 5px; display:none;"></audio>
-                </div>
-
                 <!-- Mic Capture Settings -->
                 <div id="source-mic-group" class="control-group" style="display: none;">
                     <button id="btn-mic-start" class="btn">Capture Device Input</button>
                 </div>
             </div>
 
-            <div class="panel-title" style="margin-top: 15px;">Global Signal Matrix</div>
-            <div class="control-group">
-                <label>Routing Mode</label>
-                <select id="routing-mode">
-                    <option value="stereo">Discrete Dual Stereo (Ch L / Ch R)</option>
-                    <option value="sum-mono">Sum Mono Matrix (L+R Blend)</option>
-                    <option value="swap">Channel Swap (Ch L <-> Ch R)</option>
-                </select>
-            </div>
+            <div class="panel-title" style="margin-top: 10px;">Global Signal Matrix</div>
             <div class="control-group">
                 <label>Master Output Gain</label>
                 <div class="slider-row">
@@ -389,7 +494,7 @@
         <div class="panel">
             <div class="panel-title">
                 <span>Real-Time Frequency Analyzer (RTA)</span>
-                <span style="font-size: 0.7rem; color: var(--accent-green);">64-Bit DSP Floating Point</span>
+                <span style="font-size: 0.7rem; color: var(--accent-green);">64-Bit DSP Floating Point Engine</span>
             </div>
 
             <!-- Canvas Spectrum Analyzer -->
@@ -534,26 +639,29 @@
         </div>
     </div>
 
-    <!-- Web Audio API Core Engine -->
+    <!-- Web Audio API Core Engine & Media Controller -->
     <script>
         let audioCtx;
-        let isEngineRunning = false;
         let isEmergencyMute = false;
 
         // Routing Nodes
         let sourceNode = null;
+        let mediaElementSource = null;
         let channelSplitter;
         let channelMerger;
         let masterGainNode;
 
-        // Channel L Nodes
+        // Channel DSP Nodes
         let hpfL, lpfL, peqL, limiterL, gainL, analyserL;
-        // Channel R Nodes
         let hpfR, lpfR, peqR, limiterR, gainR, analyserR;
 
-        // Generators / Inputs
+        // Oscillators & Generators
         let toneOsc = null;
         let noiseNode = null;
+
+        // Media Playlist Array State
+        let playlist = [];
+        let currentTrackIndex = -1;
 
         // State Bypasses
         const bypassState = {
@@ -561,19 +669,17 @@
             r: { hpf: false, lpf: false, peq: false, limiter: false, mute: false }
         };
 
-        // Initialize Audio Engine
         function initEngine() {
             if (audioCtx) return;
 
             const AudioContext = window.AudioContext || window.webkitAudioContext;
             audioCtx = new AudioContext();
 
-            // Core Nodes Setup
             channelSplitter = audioCtx.createChannelSplitter(2);
             channelMerger = audioCtx.createChannelMerger(2);
             masterGainNode = audioCtx.createGain();
 
-            // Setup Channel L DSP Chain
+            // DSP Left
             hpfL = audioCtx.createBiquadFilter(); hpfL.type = 'highpass'; hpfL.frequency.value = 30;
             lpfL = audioCtx.createBiquadFilter(); lpfL.type = 'lowpass'; lpfL.frequency.value = 18000;
             peqL = audioCtx.createBiquadFilter(); peqL.type = 'peaking'; peqL.frequency.value = 1000; peqL.gain.value = 0; peqL.Q.value = 1.4;
@@ -581,7 +687,6 @@
             gainL = audioCtx.createGain();
             analyserL = audioCtx.createAnalyser(); analyserL.fftSize = 1024;
 
-            // Connect L Chain
             channelSplitter.connect(hpfL, 0);
             hpfL.connect(lpfL);
             lpfL.connect(peqL);
@@ -590,7 +695,7 @@
             gainL.connect(analyserL);
             analyserL.connect(channelMerger, 0, 0);
 
-            // Setup Channel R DSP Chain
+            // DSP Right
             hpfR = audioCtx.createBiquadFilter(); hpfR.type = 'highpass'; hpfR.frequency.value = 30;
             lpfR = audioCtx.createBiquadFilter(); lpfR.type = 'lowpass'; lpfR.frequency.value = 18000;
             peqR = audioCtx.createBiquadFilter(); peqR.type = 'peaking'; peqR.frequency.value = 1000; peqR.gain.value = 0; peqR.Q.value = 1.4;
@@ -598,7 +703,6 @@
             gainR = audioCtx.createGain();
             analyserR = audioCtx.createAnalyser(); analyserR.fftSize = 1024;
 
-            // Connect R Chain
             channelSplitter.connect(hpfR, 1);
             hpfR.connect(lpfR);
             lpfR.connect(peqR);
@@ -607,22 +711,22 @@
             gainR.connect(analyserR);
             analyserR.connect(channelMerger, 0, 1);
 
-            // Output Merge
             channelMerger.connect(masterGainNode);
             masterGainNode.connect(audioCtx.destination);
 
-            switchSourceInput('testtone');
+            // Connect HTML5 Media Element to Audio Context
+            const videoEl = document.getElementById('video-player');
+            mediaElementSource = audioCtx.createMediaElementSource(videoEl);
+            mediaElementSource.connect(channelSplitter);
+
+            switchSourceInput('media');
             requestAnimationFrame(renderRTAAndMeters);
         }
 
-        // Switch Input Matrix Source
         function switchSourceInput(type) {
             if (!audioCtx) return;
 
-            // Stop current source
-            if (sourceNode) {
-                try { sourceNode.disconnect(); } catch(e){}
-            }
+            if (sourceNode) { try { sourceNode.disconnect(); } catch(e){} }
             if (toneOsc) { try { toneOsc.stop(); toneOsc.disconnect(); } catch(e){} toneOsc = null; }
             if (noiseNode) { try { noiseNode.stop(); noiseNode.disconnect(); } catch(e){} noiseNode = null; }
 
@@ -635,7 +739,6 @@
                     toneOsc.connect(channelSplitter);
                     toneOsc.start();
                 } else {
-                    // White / Pink Noise Generator Algorithm
                     const bufferSize = audioCtx.sampleRate * 2;
                     const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
                     const output = noiseBuffer.getChannelData(0);
@@ -657,34 +760,77 @@
                             output[i] = white * 0.2;
                         }
                     }
-
                     noiseNode = audioCtx.createBufferSource();
                     noiseNode.buffer = noiseBuffer;
                     noiseNode.loop = true;
                     noiseNode.connect(channelSplitter);
                     noiseNode.start();
                 }
-            } else if (type === 'file') {
-                const audioEl = document.getElementById('html5-audio-player');
-                if (!audioEl.src) return;
-                sourceNode = audioCtx.createMediaElementSource(audioEl);
-                sourceNode.connect(channelSplitter);
-                audioEl.play();
             }
         }
 
-        // GUI Event Binding & Real-Time Sync
+        // Playlist & Media Processing Logic
+        function playTrack(index) {
+            if (index < 0 || index >= playlist.length) return;
+            currentTrackIndex = index;
+            const track = playlist[index];
+
+            const videoEl = document.getElementById('video-player');
+            const ytIframe = document.getElementById('yt-iframe');
+            const placeholder = document.getElementById('display-placeholder');
+
+            updatePlaylistUI();
+
+            if (track.type === 'file') {
+                ytIframe.style.display = 'none';
+                ytIframe.src = '';
+                placeholder.style.display = 'none';
+                videoEl.style.display = 'block';
+
+                videoEl.src = track.url;
+                videoEl.playbackRate = parseFloat(document.getElementById('playback-speed').value);
+                if (audioCtx) audioCtx.resume();
+                videoEl.play();
+            } else if (track.type === 'youtube') {
+                videoEl.pause();
+                videoEl.style.display = 'none';
+                placeholder.style.display = 'none';
+                ytIframe.style.display = 'block';
+
+                ytIframe.src = `https://www.youtube.com/embed/${track.ytId}?autoplay=1&enablejsapi=1`;
+            }
+        }
+
+        function updatePlaylistUI() {
+            const rack = document.getElementById('playlist-rack');
+            if (playlist.length === 0) {
+                rack.innerHTML = '<div class="playlist-item">Daftar putar kosong...</div>';
+                return;
+            }
+            rack.innerHTML = '';
+            playlist.forEach((item, idx) => {
+                const div = document.createElement('div');
+                div.className = `playlist-item ${idx === currentTrackIndex ? 'active' : ''}`;
+                div.innerText = `${idx + 1}. [${item.type.toUpperCase()}] ${item.title}`;
+                div.onclick = () => playTrack(idx);
+                rack.appendChild(div);
+            });
+        }
+
+        function extractYouTubeID(url) {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : null;
+        }
+
+        // UI Binding & Operations
         document.addEventListener('DOMContentLoaded', () => {
 
-            // Power Engine Button
             document.getElementById('btn-power').addEventListener('click', () => {
                 initEngine();
-                if (audioCtx.state === 'suspended') {
-                    audioCtx.resume();
-                }
+                if (audioCtx.state === 'suspended') audioCtx.resume();
             });
 
-            // Emergency Panic Button
             document.getElementById('btn-panic').addEventListener('click', function() {
                 isEmergencyMute = !isEmergencyMute;
                 this.classList.toggle('active', isEmergencyMute);
@@ -693,31 +839,88 @@
                 }
             });
 
-            // Source Selector UI Toggle
             document.getElementById('audio-source-select').addEventListener('change', (e) => {
                 const val = e.target.value;
+                document.getElementById('source-media-group').style.display = val === 'media' ? 'flex' : 'none';
                 document.getElementById('source-testtone-group').style.display = val === 'testtone' ? 'flex' : 'none';
-                document.getElementById('source-file-group').style.display = val === 'file' ? 'flex' : 'none';
                 document.getElementById('source-mic-group').style.display = val === 'mic' ? 'flex' : 'none';
-                
-                const playerEl = document.getElementById('html5-audio-player');
-                if (val === 'file') playerEl.style.display = 'block';
-                else playerEl.style.display = 'none';
-
                 switchSourceInput(val);
             });
 
             document.getElementById('tone-type-select').addEventListener('change', () => switchSourceInput('testtone'));
 
-            // File Upload Input
-            document.getElementById('audio-file-input').addEventListener('change', (e) => {
-                const file = e.target.files[0];
-                if (file) {
-                    const url = URL.createObjectURL(file);
-                    const player = document.getElementById('html5-audio-player');
-                    player.src = url;
-                    switchSourceInput('file');
+            // File Loader (MP3 / MP4 Video)
+            document.getElementById('media-file-input').addEventListener('change', (e) => {
+                if (!audioCtx) initEngine();
+                const files = Array.from(e.target.files);
+                files.forEach(file => {
+                    playlist.push({
+                        type: 'file',
+                        title: file.name,
+                        url: URL.createObjectURL(file)
+                    });
+                });
+                if (currentTrackIndex === -1 && playlist.length > 0) {
+                    playTrack(0);
+                } else {
+                    updatePlaylistUI();
                 }
+            });
+
+            // YouTube Loader
+            document.getElementById('btn-load-yt').addEventListener('click', () => {
+                if (!audioCtx) initEngine();
+                const urlInput = document.getElementById('yt-url-input');
+                const ytId = extractYouTubeID(urlInput.value);
+                if (ytId) {
+                    playlist.push({
+                        type: 'youtube',
+                        title: `YouTube Video (${ytId})`,
+                        ytId: ytId
+                    });
+                    urlInput.value = '';
+                    if (currentTrackIndex === -1 && playlist.length > 0) {
+                        playTrack(playlist.length - 1);
+                    } else {
+                        updatePlaylistUI();
+                    }
+                } else {
+                    alert('URL YouTube tidak valid! Masukkan format link yang sesuai.');
+                }
+            });
+
+            // Transport Deck Events
+            document.getElementById('btn-play').addEventListener('click', () => {
+                if (!audioCtx) initEngine();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const videoEl = document.getElementById('video-player');
+                if (currentTrackIndex !== -1 && playlist[currentTrackIndex].type === 'file') {
+                    videoEl.play();
+                }
+            });
+
+            document.getElementById('btn-pause').addEventListener('click', () => {
+                const videoEl = document.getElementById('video-player');
+                videoEl.pause();
+            });
+
+            document.getElementById('btn-next').addEventListener('click', () => {
+                if (playlist.length > 0) playTrack((currentTrackIndex + 1) % playlist.length);
+            });
+
+            document.getElementById('btn-prev').addEventListener('click', () => {
+                if (playlist.length > 0) playTrack((currentTrackIndex - 1 + playlist.length) % playlist.length);
+            });
+
+            document.getElementById('playback-speed').addEventListener('input', (e) => {
+                const speed = parseFloat(e.target.value);
+                document.getElementById('speed-val').innerText = speed.toFixed(2) + 'x';
+                const videoEl = document.getElementById('video-player');
+                videoEl.playbackRate = speed;
+            });
+
+            document.getElementById('video-player').addEventListener('ended', () => {
+                if (playlist.length > 0) playTrack((currentTrackIndex + 1) % playlist.length);
             });
 
             // Mic Capture Input
@@ -728,11 +931,11 @@
                     sourceNode = audioCtx.createMediaStreamSource(stream);
                     sourceNode.connect(channelSplitter);
                 } catch (err) {
-                    alert('Gagal mengakses input mikrofon / audio perangkat: ' + err.message);
+                    alert('Gagal mengakses mikrofon: ' + err.message);
                 }
             });
 
-            // Master Gain
+            // Master Gain Control
             document.getElementById('master-gain').addEventListener('input', (e) => {
                 const val = e.target.value / 100;
                 document.getElementById('master-gain-val').innerText = (20 * Math.log10(val || 0.0001)).toFixed(1) + " dB";
@@ -741,21 +944,20 @@
                 }
             });
 
-            // Channel Left Controls
+            // DSP Sliders Controls Left/Right
             bindSlider('hpf-freq-l', 'hpf-freq-l-val', ' Hz', (v) => hpfL.frequency.value = v);
             bindSlider('lpf-freq-l', 'lpf-freq-l-val', ' Hz', (v) => lpfL.frequency.value = v);
             bindSlider('peq-freq-l', 'peq-freq-l-val', ' Hz', (v) => peqL.frequency.value = v);
             bindSlider('peq-gain-l', 'peq-gain-l-val', ' dB', (v) => peqL.gain.value = v);
             bindSlider('limiter-thresh-l', 'limiter-thresh-l-val', ' dB', (v) => limiterL.threshold.value = v);
 
-            // Channel Right Controls
             bindSlider('hpf-freq-r', 'hpf-freq-r-val', ' Hz', (v) => hpfR.frequency.value = v);
             bindSlider('lpf-freq-r', 'lpf-freq-r-val', ' Hz', (v) => lpfR.frequency.value = v);
             bindSlider('peq-freq-r', 'peq-freq-r-val', ' Hz', (v) => peqR.frequency.value = v);
             bindSlider('peq-gain-r', 'peq-gain-r-val', ' dB', (v) => peqR.gain.value = v);
             bindSlider('limiter-thresh-r', 'limiter-thresh-r-val', ' dB', (v) => limiterR.threshold.value = v);
 
-            // Mute Buttons
+            // Channel Mute Toggles
             document.getElementById('mute-l').addEventListener('click', function() {
                 bypassState.l.mute = !bypassState.l.mute;
                 this.classList.toggle('btn-active', bypassState.l.mute);
@@ -778,7 +980,6 @@
             });
         }
 
-        // Toggle Dual Matrix Filters
         function toggleDualMatrix(btn, ch, module) {
             bypassState[ch][module] = !bypassState[ch][module];
             btn.classList.toggle('active', !bypassState[ch][module]);
@@ -792,7 +993,7 @@
             }
         }
 
-        // Canvas Spectrum RTA & VU Meter Animation Loop
+        // RTA Spectrum & Meter Renderer Loop
         function renderRTAAndMeters() {
             const canvas = document.getElementById('rta-canvas');
             const ctx = canvas.getContext('2d');
@@ -809,11 +1010,9 @@
                 analyserL.getByteFrequencyData(dataArrayL);
                 analyserR.getByteFrequencyData(dataArrayR);
 
-                // Render Background
                 ctx.fillStyle = '#0a0b10';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                // Draw Spectrum Bars
                 const barWidth = (canvas.width / bufferLength) * 2.5;
                 let x = 0;
 
@@ -821,18 +1020,15 @@
                     const barHeightL = (dataArrayL[i] / 255) * canvas.height;
                     const barHeightR = (dataArrayR[i] / 255) * canvas.height;
 
-                    // Channel L Spectrum (Green overlay)
                     ctx.fillStyle = 'rgba(0, 255, 136, 0.6)';
                     ctx.fillRect(x, canvas.height - barHeightL, barWidth, barHeightL);
 
-                    // Channel R Spectrum (Blue overlay)
                     ctx.fillStyle = 'rgba(0, 217, 255, 0.5)';
                     ctx.fillRect(x, canvas.height - barHeightR, barWidth, barHeightR);
 
                     x += barWidth + 1;
                 }
 
-                // Render VU Level Meters
                 let sumL = 0, sumR = 0;
                 for (let i = 0; i < bufferLength; i++) {
                     sumL += dataArrayL[i];
@@ -844,7 +1040,6 @@
                 document.getElementById('vu-meter-l').style.width = vuL + '%';
                 document.getElementById('vu-meter-r').style.width = vuR + '%';
 
-                // Gain Reduction Simulation Meter
                 const grL = Math.max(0, (limiterL.reduction || 0) * -3);
                 const grR = Math.max(0, (limiterR.reduction || 0) * -3);
                 document.getElementById('gr-meter-l').style.width = Math.min(100, grL * 10) + '%';
