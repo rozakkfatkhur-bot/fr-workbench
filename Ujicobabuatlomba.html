@@ -167,7 +167,6 @@
             font-size: 0.85rem;
         }
 
-        /* Video Screen & Display Deck */
         .media-display-container {
             position: relative;
             width: 100%;
@@ -194,7 +193,6 @@
             padding: 10px;
         }
 
-        /* Transport Controller Deck */
         .transport-deck {
             background: #12141d;
             border: 1px solid var(--panel-border);
@@ -253,7 +251,6 @@
             background: rgba(0, 255, 136, 0.1);
         }
 
-        /* Visualizer Canvas RTA */
         .visualizer-container {
             position: relative;
             width: 100%;
@@ -269,7 +266,6 @@
             height: 100%;
         }
 
-        /* Channel DSP Processing Rack */
         .channels-container {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -343,19 +339,41 @@
             cursor: pointer;
         }
 
-        .meter-group {
+        /* Module Specific VU Meter System */
+        .module-vu-wrapper {
             display: flex;
-            gap: 10px;
-            margin-top: 5px;
+            flex-direction: column;
+            gap: 3px;
+            margin-top: 4px;
+            padding: 4px;
+            background: #0d0f17;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
+
+        .vu-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .vu-label {
+            font-size: 0.6rem;
+            font-weight: bold;
+            width: 10px;
+            font-family: monospace;
+        }
+
+        .vu-label.l { color: var(--accent-green); }
+        .vu-label.r { color: var(--accent-blue); }
 
         .meter-bar-container {
             flex: 1;
-            height: 10px;
-            background: #0a0b10;
-            border-radius: 3px;
+            height: 6px;
+            background: #050608;
+            border-radius: 2px;
             overflow: hidden;
-            border: 1px solid var(--panel-border);
+            border: 1px solid #1f2433;
             position: relative;
         }
 
@@ -363,14 +381,14 @@
             height: 100%;
             width: 0%;
             background: linear-gradient(90deg, var(--accent-green) 60%, var(--accent-yellow) 85%, var(--accent-red) 100%);
-            transition: width 0.05s ease;
+            transition: width 0.04s ease;
         }
 
         .gr-bar-fill {
             height: 100%;
             width: 0%;
             background: var(--accent-red);
-            transition: width 0.05s ease;
+            transition: width 0.04s ease;
         }
 
         .matrix-toggle-group {
@@ -420,7 +438,7 @@
                     <select id="audio-source-select">
                         <option value="media">Media Player (MP3 / Video File / YouTube)</option>
                         <option value="testtone">Test Tone Generator</option>
-                        <option value="mic">Live Input (Mic / System Capture)</option>
+                        <option value="mic">Live Input (Mic / Tab Capture)</option>
                     </select>
                 </div>
 
@@ -474,9 +492,10 @@
                     </select>
                 </div>
 
-                <!-- Mic Capture Settings -->
-                <div id="source-mic-group" class="control-group" style="display: none;">
-                    <button id="btn-mic-start" class="btn">Capture Device Input</button>
+                <!-- Mic & Tab Capture Settings -->
+                <div id="source-mic-group" class="control-group" style="display: none; gap: 8px;">
+                    <button id="btn-mic-start" class="btn">🎙️ Capture Mic Input</button>
+                    <button id="btn-tab-capture" class="btn" style="border-color: var(--accent-blue); color: var(--accent-blue);">🔗 Capture Audio Tab YouTube / System</button>
                 </div>
             </div>
 
@@ -527,6 +546,9 @@
                             <input type="range" id="hpf-freq-l" min="20" max="1000" value="30">
                             <span id="hpf-freq-l-val">30 Hz</span>
                         </div>
+                        <div class="module-vu-wrapper">
+                            <div class="vu-row"><span class="vu-label l">L</span><div class="meter-bar-container"><div id="hpf-vu-l" class="meter-bar-fill"></div></div></div>
+                        </div>
                     </div>
 
                     <!-- LPF Cut -->
@@ -535,6 +557,9 @@
                         <div class="slider-row">
                             <input type="range" id="lpf-freq-l" min="1000" max="20000" value="18000">
                             <span id="lpf-freq-l-val">18000 Hz</span>
+                        </div>
+                        <div class="module-vu-wrapper">
+                            <div class="vu-row"><span class="vu-label l">L</span><div class="meter-bar-container"><div id="lpf-vu-l" class="meter-bar-fill"></div></div></div>
                         </div>
                     </div>
 
@@ -549,6 +574,9 @@
                             <input type="range" id="peq-gain-l" min="-15" max="15" value="0">
                             <span id="peq-gain-l-val">0 dB</span>
                         </div>
+                        <div class="module-vu-wrapper">
+                            <div class="vu-row"><span class="vu-label l">L</span><div class="meter-bar-container"><div id="peq-vu-l" class="meter-bar-fill"></div></div></div>
+                        </div>
                     </div>
 
                     <!-- Peak Limiter -->
@@ -558,14 +586,17 @@
                             <input type="range" id="limiter-thresh-l" min="-30" max="0" value="-3">
                             <span id="limiter-thresh-l-val">-3 dB</span>
                         </div>
+                        <div class="module-vu-wrapper">
+                            <div class="vu-row"><span class="vu-label l">L</span><div class="meter-bar-container"><div id="limiter-vu-l" class="meter-bar-fill"></div></div></div>
+                        </div>
                     </div>
 
-                    <!-- VU & GR Meter -->
+                    <!-- VU & GR Master Meter Left -->
                     <div class="dsp-module">
-                        <div class="dsp-module-title"><span>OUTPUT VU / GAIN REDUCTION</span></div>
-                        <div class="meter-group">
-                            <div class="meter-bar-container"><div id="vu-meter-l" class="meter-bar-fill"></div></div>
-                            <div class="meter-bar-container"><div id="gr-meter-l" class="gr-bar-fill"></div></div>
+                        <div class="dsp-module-title"><span>OUTPUT MASTER VU / GAIN REDUCTION</span></div>
+                        <div class="module-vu-wrapper">
+                            <div class="vu-row"><span class="vu-label l">VU</span><div class="meter-bar-container"><div id="vu-meter-l" class="meter-bar-fill"></div></div></div>
+                            <div class="vu-row"><span class="vu-label l" style="color:var(--accent-red)">GR</span><div class="meter-bar-container"><div id="gr-meter-l" class="gr-bar-fill"></div></div></div>
                         </div>
                     </div>
                 </div>
@@ -592,6 +623,9 @@
                             <input type="range" id="hpf-freq-r" min="20" max="1000" value="30">
                             <span id="hpf-freq-r-val">30 Hz</span>
                         </div>
+                        <div class="module-vu-wrapper">
+                            <div class="vu-row"><span class="vu-label r">R</span><div class="meter-bar-container"><div id="hpf-vu-r" class="meter-bar-fill"></div></div></div>
+                        </div>
                     </div>
 
                     <!-- LPF Cut -->
@@ -600,6 +634,9 @@
                         <div class="slider-row">
                             <input type="range" id="lpf-freq-r" min="1000" max="20000" value="18000">
                             <span id="lpf-freq-r-val">18000 Hz</span>
+                        </div>
+                        <div class="module-vu-wrapper">
+                            <div class="vu-row"><span class="vu-label r">R</span><div class="meter-bar-container"><div id="lpf-vu-r" class="meter-bar-fill"></div></div></div>
                         </div>
                     </div>
 
@@ -614,6 +651,9 @@
                             <input type="range" id="peq-gain-r" min="-15" max="15" value="0">
                             <span id="peq-gain-r-val">0 dB</span>
                         </div>
+                        <div class="module-vu-wrapper">
+                            <div class="vu-row"><span class="vu-label r">R</span><div class="meter-bar-container"><div id="peq-vu-r" class="meter-bar-fill"></div></div></div>
+                        </div>
                     </div>
 
                     <!-- Peak Limiter -->
@@ -623,14 +663,17 @@
                             <input type="range" id="limiter-thresh-r" min="-30" max="0" value="-3">
                             <span id="limiter-thresh-r-val">-3 dB</span>
                         </div>
+                        <div class="module-vu-wrapper">
+                            <div class="vu-row"><span class="vu-label r">R</span><div class="meter-bar-container"><div id="limiter-vu-r" class="meter-bar-fill"></div></div></div>
+                        </div>
                     </div>
 
-                    <!-- VU & GR Meter -->
+                    <!-- VU & GR Master Meter Right -->
                     <div class="dsp-module">
-                        <div class="dsp-module-title"><span>OUTPUT VU / GAIN REDUCTION</span></div>
-                        <div class="meter-group">
-                            <div class="meter-bar-container"><div id="vu-meter-r" class="meter-bar-fill"></div></div>
-                            <div class="meter-bar-container"><div id="gr-meter-r" class="gr-bar-fill"></div></div>
+                        <div class="dsp-module-title"><span>OUTPUT MASTER VU / GAIN REDUCTION</span></div>
+                        <div class="module-vu-wrapper">
+                            <div class="vu-row"><span class="vu-label r">VU</span><div class="meter-bar-container"><div id="vu-meter-r" class="meter-bar-fill"></div></div></div>
+                            <div class="vu-row"><span class="vu-label r" style="color:var(--accent-red)">GR</span><div class="meter-bar-container"><div id="gr-meter-r" class="gr-bar-fill"></div></div></div>
                         </div>
                     </div>
                 </div>
@@ -651,9 +694,13 @@
         let channelMerger;
         let masterGainNode;
 
-        // Channel DSP Nodes
+        // Channel DSP Nodes & Analysers for Each Module
         let hpfL, lpfL, peqL, limiterL, gainL, analyserL;
         let hpfR, lpfR, peqR, limiterR, gainR, analyserR;
+
+        // Module Analyser Nodes (Left & Right)
+        let hpfAnaL, lpfAnaL, peqAnaL, limiterAnaL;
+        let hpfAnaR, lpfAnaR, peqAnaR, limiterAnaR;
 
         // Oscillators & Generators
         let toneOsc = null;
@@ -679,7 +726,18 @@
             channelMerger = audioCtx.createChannelMerger(2);
             masterGainNode = audioCtx.createGain();
 
-            // DSP Left
+            // Helper function to build analyser
+            const createAna = () => {
+                const a = audioCtx.createAnalyser();
+                a.fftSize = 256;
+                return a;
+            };
+
+            // Module Analysers Initializations
+            hpfAnaL = createAna(); lpfAnaL = createAna(); peqAnaL = createAna(); limiterAnaL = createAna();
+            hpfAnaR = createAna(); lpfAnaR = createAna(); peqAnaR = createAna(); limiterAnaR = createAna();
+
+            // --- DSP LEFT ---
             hpfL = audioCtx.createBiquadFilter(); hpfL.type = 'highpass'; hpfL.frequency.value = 30;
             lpfL = audioCtx.createBiquadFilter(); lpfL.type = 'lowpass'; lpfL.frequency.value = 18000;
             peqL = audioCtx.createBiquadFilter(); peqL.type = 'peaking'; peqL.frequency.value = 1000; peqL.gain.value = 0; peqL.Q.value = 1.4;
@@ -688,14 +746,18 @@
             analyserL = audioCtx.createAnalyser(); analyserL.fftSize = 1024;
 
             channelSplitter.connect(hpfL, 0);
+            hpfL.connect(hpfAnaL);
             hpfL.connect(lpfL);
+            lpfL.connect(lpfAnaL);
             lpfL.connect(peqL);
+            peqL.connect(peqAnaL);
             peqL.connect(limiterL);
+            limiterL.connect(limiterAnaL);
             limiterL.connect(gainL);
             gainL.connect(analyserL);
             analyserL.connect(channelMerger, 0, 0);
 
-            // DSP Right
+            // --- DSP RIGHT ---
             hpfR = audioCtx.createBiquadFilter(); hpfR.type = 'highpass'; hpfR.frequency.value = 30;
             lpfR = audioCtx.createBiquadFilter(); lpfR.type = 'lowpass'; lpfR.frequency.value = 18000;
             peqR = audioCtx.createBiquadFilter(); peqR.type = 'peaking'; peqR.frequency.value = 1000; peqR.gain.value = 0; peqR.Q.value = 1.4;
@@ -704,9 +766,13 @@
             analyserR = audioCtx.createAnalyser(); analyserR.fftSize = 1024;
 
             channelSplitter.connect(hpfR, 1);
+            hpfR.connect(hpfAnaR);
             hpfR.connect(lpfR);
+            lpfR.connect(lpfAnaR);
             lpfR.connect(peqR);
+            peqR.connect(peqAnaR);
             peqR.connect(limiterR);
+            limiterR.connect(limiterAnaR);
             limiterR.connect(gainR);
             gainR.connect(analyserR);
             analyserR.connect(channelMerger, 0, 1);
@@ -714,7 +780,7 @@
             channelMerger.connect(masterGainNode);
             masterGainNode.connect(audioCtx.destination);
 
-            // Connect HTML5 Media Element to Audio Context
+            // Connect HTML5 Media Element
             const videoEl = document.getElementById('video-player');
             mediaElementSource = audioCtx.createMediaElementSource(videoEl);
             mediaElementSource.connect(channelSplitter);
@@ -766,6 +832,38 @@
                     noiseNode.connect(channelSplitter);
                     noiseNode.start();
                 }
+            }
+        }
+
+        async function captureTabAudio() {
+            if (!audioCtx) initEngine();
+            try {
+                const stream = await navigator.mediaDevices.getDisplayMedia({
+                    video: true,
+                    audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+                });
+
+                if (stream.getAudioTracks().length === 0) {
+                    alert("Kamu belum memilih/mengcentang 'Share tab audio'!");
+                    stream.getTracks().forEach(t => t.stop());
+                    return;
+                }
+
+                if (sourceNode) sourceNode.disconnect();
+                sourceNode = audioCtx.createMediaStreamSource(stream);
+                sourceNode.connect(channelSplitter);
+
+                const videoEl = document.getElementById('video-player');
+                const placeholder = document.getElementById('display-placeholder');
+                const ytIframe = document.getElementById('yt-iframe');
+                
+                ytIframe.style.display = 'none';
+                placeholder.style.display = 'none';
+                videoEl.style.display = 'block';
+                videoEl.srcObject = stream;
+                videoEl.play();
+            } catch (err) {
+                alert("Gagal menghubungkan Audio Tab: " + err.message);
             }
         }
 
@@ -923,7 +1021,7 @@
                 if (playlist.length > 0) playTrack((currentTrackIndex + 1) % playlist.length);
             });
 
-            // Mic Capture Input
+            // Mic & Tab Captures
             document.getElementById('btn-mic-start').addEventListener('click', async () => {
                 if (!audioCtx) initEngine();
                 try {
@@ -934,6 +1032,8 @@
                     alert('Gagal mengakses mikrofon: ' + err.message);
                 }
             });
+
+            document.getElementById('btn-tab-capture').addEventListener('click', () => captureTabAudio());
 
             // Master Gain Control
             document.getElementById('master-gain').addEventListener('input', (e) => {
@@ -993,6 +1093,16 @@
             }
         }
 
+        // Calculate Level from Analyser Node for Module VU Meters
+        function calcModuleLevel(analyser) {
+            if (!analyser) return 0;
+            const data = new Uint8Array(analyser.frequencyBinCount);
+            analyser.getByteFrequencyData(data);
+            let sum = 0;
+            for (let i = 0; i < data.length; i++) sum += data[i];
+            return (sum / data.length) / 255 * 100;
+        }
+
         // RTA Spectrum & Meter Renderer Loop
         function renderRTAAndMeters() {
             const canvas = document.getElementById('rta-canvas');
@@ -1029,6 +1139,17 @@
                     x += barWidth + 1;
                 }
 
+                // Render Per-Module VU Meters (L & R)
+                document.getElementById('hpf-vu-l').style.width = calcModuleLevel(hpfAnaL) + '%';
+                document.getElementById('hpf-vu-r').style.width = calcModuleLevel(hpfAnaR) + '%';
+                document.getElementById('lpf-vu-l').style.width = calcModuleLevel(lpfAnaL) + '%';
+                document.getElementById('lpf-vu-r').style.width = calcModuleLevel(lpfAnaR) + '%';
+                document.getElementById('peq-vu-l').style.width = calcModuleLevel(peqAnaL) + '%';
+                document.getElementById('peq-vu-r').style.width = calcModuleLevel(peqAnaR) + '%';
+                document.getElementById('limiter-vu-l').style.width = calcModuleLevel(limiterAnaL) + '%';
+                document.getElementById('limiter-vu-r').style.width = calcModuleLevel(limiterAnaR) + '%';
+
+                // Master Output VU & GR Meters
                 let sumL = 0, sumR = 0;
                 for (let i = 0; i < bufferLength; i++) {
                     sumL += dataArrayL[i];
