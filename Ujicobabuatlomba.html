@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FR AUDIO DLMS Processing Matrix v300++ OMEGA PRO</title>
+    <style>
+        :root {
+            --bg-dark: #0f111a;
+            --panel-bg: #1a1d29;
+            --panel-border: #2a2f45;
+            --accent-green: #00ff88;
+            --accent-blue: #00d9ff;
+            --accent-yellow: #ffb700;
+            --accent-red: #ff3366;
+            --text-main: #e2e8f0;
+            --text-dim: #8a94a6;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            min-height: 100vh;
+        }
+
+        /* Header Rack Panel */
+        header {
+            background: linear-gradient(180deg, #242938 0%, #171a24 100%);
+            border: 2px solid var(--panel-border);
+            border-radius: 8px;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+
+        .brand-title h1 {
+            font-size: 1.4rem;
+            color: #fff;
+            letter-spacing: 1.5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand-title h1 span {
+            color: var(--accent-blue);
+            font-size: 0.8rem;
+            background: rgba(0, 217, 255, 0.1);
+            padding: 2px 8px;
+            border-radius: 4px;
+            border: 1px solid var(--accent-blue);
+        }
+
+        .master-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        /* Buttons & Utility UI */
+        .btn {
+            background: #252a3a;
+            color: var(--text-main);
+            border: 1px solid var(--panel-border);
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+        }
+
+        .btn:hover {
+            background: #32384e;
+            border-color: var(--accent-blue);
+        }
+
+        .btn-panic {
+            background: rgba(255, 51, 102, 0.2);
+            color: var(--accent-red);
+            border-color: var(--accent-red);
+        }
+
+        .btn-panic:hover, .btn-panic.active {
+            background: var(--accent-red);
+            color: #fff;
+            box-shadow: 0 0 15px rgba(255, 51, 102, 0.5);
+        }
+
+        .btn-active {
+            background: var(--accent-green) !important;
+            color: #000 !important;
+        }
+
+        /* Grid Layout */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .panel-title {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--accent-blue);
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Input Controls */
+        .input-selector-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        label {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+        }
+
+        select, input[type="file"] {
+            background: #12141d;
+            border: 1px solid var(--panel-border);
+            color: var(--text-main);
+            padding: 8px;
+            border-radius: 4px;
+            outline: none;
+            width: 100%;
+            font-size: 0.85rem;
+        }
+
+        /* Visualizer Canvas RTA */
+        .visualizer-container {
+            position: relative;
+            width: 100%;
+            height: 220px;
+            background: #0a0b10;
+            border: 1px solid var(--panel-border);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Channel DSP Processing Rack */
+        .channels-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .channels-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .channel-card {
+            background: #141722;
+            border: 1px solid var(--panel-border);
+            border-radius: 6px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .channel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--panel-border);
+        }
+
+        .channel-header.ch-l { color: var(--accent-green); }
+        .channel-header.ch-r { color: var(--accent-blue); }
+
+        /* DSP Sliders & Toggles */
+        .dsp-module {
+            background: #1a1d29;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid rgba(255,255,255,0.03);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .dsp-module-title {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .slider-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .slider-row span {
+            font-size: 0.75rem;
+            width: 55px;
+            color: var(--accent-yellow);
+            font-family: monospace;
+            text-align: right;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            accent-color: var(--accent-blue);
+            cursor: pointer;
+        }
+
+        /* VU Meters & Limiter GR LED */
+        .meter-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 5px;
+        }
+
+        .meter-bar-container {
+            flex: 1;
+            height: 10px;
+            background: #0a0b10;
+            border-radius: 3px;
+            overflow: hidden;
+            border: 1px solid var(--panel-border);
+            position: relative;
+        }
+
+        .meter-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--accent-green) 60%, var(--accent-yellow) 85%, var(--accent-red) 100%);
+            transition: width 0.05s ease;
+        }
+
+        .gr-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: var(--accent-red);
+            transition: width 0.05s ease;
+        }
+
+        .matrix-toggle-group {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        .matrix-btn {
+            font-size: 0.65rem;
+            padding: 3px 6px;
+            border-radius: 3px;
+            border: 1px solid var(--panel-border);
+            background: #10121a;
+            color: var(--text-dim);
+            cursor: pointer;
+        }
+
+        .matrix-btn.active {
+            background: var(--accent-blue);
+            color: #000;
+            border-color: var(--accent-blue);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header System Rack -->
+    <header>
+        <div class="brand-title">
+            <h1>FR AUDIO <span>DLMS MATRIX v300++ OMEGA PRO</span></h1>
+        </div>
+        <div class="master-controls">
+            <button id="btn-power" class="btn btn-active">ENGINE ONLINE</button>
+            <button id="btn-panic" class="btn btn-panic">EMERGENCY MUTE</button>
+        </div>
+    </header>
+
+    <div class="main-grid">
+        <!-- Sidebar Controls & Input Selection -->
+        <div class="panel">
+            <div class="panel-title">System Source Matrix</div>
+            
+            <div class="input-selector-group">
+                <div class="control-group">
+                    <label>Audio Source Input</label>
+                    <select id="audio-source-select">
+                        <option value="testtone">Test Tone Generator</option>
+                        <option value="file">Audio File Player</option>
+                        <option value="mic">Live Input (Mic / System Capture)</option>
+                    </select>
+                </div>
+
+                <!-- Test Tone Settings -->
+                <div id="source-testtone-group" class="control-group">
+                    <label>Tone Type</label>
+                    <select id="tone-type-select">
+                        <option value="sine">Sine Wave 1kHz</option>
+                        <option value="pink">Pink Noise (Acoustic Test)</option>
+                        <option value="white">White Noise</option>
+                    </select>
+                </div>
+
+                <!-- File Player Settings -->
+                <div id="source-file-group" class="control-group" style="display: none;">
+                    <label>Select Audio File</label>
+                    <input type="file" id="audio-file-input" accept="audio/*">
+                    <audio id="html5-audio-player" controls style="width: 100%; margin-top: 5px; display:none;"></audio>
+                </div>
+
+                <!-- Mic Capture Settings -->
+                <div id="source-mic-group" class="control-group" style="display: none;">
+                    <button id="btn-mic-start" class="btn">Capture Device Input</button>
+                </div>
+            </div>
+
+            <div class="panel-title" style="margin-top: 15px;">Global Signal Matrix</div>
+            <div class="control-group">
+                <label>Routing Mode</label>
+                <select id="routing-mode">
+                    <option value="stereo">Discrete Dual Stereo (Ch L / Ch R)</option>
+                    <option value="sum-mono">Sum Mono Matrix (L+R Blend)</option>
+                    <option value="swap">Channel Swap (Ch L <-> Ch R)</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>Master Output Gain</label>
+                <div class="slider-row">
+                    <input type="range" id="master-gain" min="0" max="150" value="100">
+                    <span id="master-gain-val">0.0 dB</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main DSP Section -->
+        <div class="panel">
+            <div class="panel-title">
+                <span>Real-Time Frequency Analyzer (RTA)</span>
+                <span style="font-size: 0.7rem; color: var(--accent-green);">64-Bit DSP Floating Point</span>
+            </div>
+
+            <!-- Canvas Spectrum Analyzer -->
+            <div class="visualizer-container">
+                <canvas id="rta-canvas"></canvas>
+            </div>
+
+            <!-- Processing Channels -->
+            <div class="channels-container">
+                
+                <!-- CHANNEL LEFT (CH1) -->
+                <div class="channel-card">
+                    <div class="channel-header ch-l">
+                        <span>CHANNEL L (LEFT)</span>
+                        <button class="btn" id="mute-l" style="padding: 2px 8px; font-size: 0.7rem;">MUTE</button>
+                    </div>
+
+                    <!-- Matrix Bypass Controls -->
+                    <div class="matrix-toggle-group">
+                        <button class="matrix-btn active" onclick="toggleDualMatrix(this, 'l', 'hpf')">HPF</button>
+                        <button class="matrix-btn active" onclick="toggleDualMatrix(this, 'l', 'lpf')">LPF</button>
+                        <button class="matrix-btn active" onclick="toggleDualMatrix(this, 'l', 'peq')">PEQ</button>
+                        <button class="matrix-btn active" onclick="toggleDualMatrix(this, 'l', 'limiter')">LIMITER</button>
+                    </div>
+
+                    <!-- HPF Cut -->
+                    <div class="dsp-module">
+                        <div class="dsp-module-title"><span>HIGH PASS FILTER (HPF)</span></div>
+                        <div class="slider-row">
+                            <input type="range" id="hpf-freq-l" min="20" max="1000" value="30">
+                            <span id="hpf-freq-l-val">30 Hz</span>
+                        </div>
+                    </div>
+
+                    <!-- LPF Cut -->
+                    <div class="dsp-module">
+                        <div class="dsp-module-title"><span>LOW PASS FILTER (LPF)</span></div>
+                        <div class="slider-row">
+                            <input type="range" id="lpf-freq-l" min="1000" max="20000" value="18000">
+                            <span id="lpf-freq-l-val">18000 Hz</span>
+                        </div>
+                    </div>
+
+                    <!-- PEQ Bell -->
+                    <div class="dsp-module">
+                        <div class="dsp-module-title"><span>PEQ BOOST/CUT (FREQ / GAIN)</span></div>
+                        <div class="slider-row">
+                            <input type="range" id="peq-freq-l" min="40" max="15000" value="1000">
+                            <span id="peq-freq-l-val">1000 Hz</span>
+                        </div>
+                        <div class="slider-row">
+                            <input type="range" id="peq-gain-l" min="-15" max="15" value="0">
+                            <span id="peq-gain-l-val">0 dB</span>
+                        </div>
+                    </div>
+
+                    <!-- Peak Limiter -->
+                    <div class="dsp-module">
+                        <div class="dsp-module-title"><span>LIMITER THRESHOLD</span></div>
+                        <div class="slider-row">
+                            <input type="range" id="limiter-thresh-l" min="-30" max="0" value="-3">
+                            <span id="limiter-thresh-l-val">-3 dB</span>
+                        </div>
+                    </div>
+
+                    <!-- VU & GR Meter -->
+                    <div class="dsp-module">
+                        <div class="dsp-module-title"><span>OUTPUT VU / GAIN REDUCTION</span></div>
+                        <div class="meter-group">
+                            <div class="meter-bar-container"><div id="vu-meter-l" class="meter-bar-fill"></div></div>
+                            <div class="meter-bar-container"><div id="gr-meter-l" class="gr-bar-fill"></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CHANNEL RIGHT (CH2) -->
+                <div class="channel-card">
+                    <div class="channel-header ch-r">
+                        <span>CHANNEL R (RIGHT)</span>
+                        <button class="btn" id="mute-r" style="padding: 2px 8px; font-size: 0.7rem;">MUTE</button>
+                    </div>
+
+                    <!-- Matrix Bypass Controls -->
+                    <div class="matrix-toggle-group">
+                        <button class="matrix-btn active" onclick="toggleDualMatrix(this, 'r', 'hpf')">HPF</button>
+                        <button class="matrix-btn active" onclick="toggleDualMatrix(this, 'r', 'lpf')">LPF</button>
+                        <button class="matrix-btn active" onclick="toggleDualMatrix(this, 'r', 'peq')">PEQ</button>
+                        <button class="matrix-btn active" onclick="toggleDualMatrix(this, 'r', 'limiter')">LIMITER</button>
+                    </div>
+
+                    <!-- HPF Cut -->
+                    <div class="dsp-module">
+                        <div class="dsp-module-title"><span>HIGH PASS FILTER (HPF)</span></div>
+                        <div class="slider-row">
+                            <input type="range" id="hpf-freq-r" min="20" max="1000" value="30">
+                            <span id="hpf-freq-r-val">30 Hz</span>
+                        </div>
+                    </div>
+
+                    <!-- LPF Cut -->
+                    <div class="dsp-module">
+                        <div class="dsp-module-title"><span>LOW PASS FILTER (LPF)</span></div>
+                        <div class="slider-row">
+                            <input type="range" id="lpf-freq-r" min="1000" max="20000" value="18000">
+                            <span id="lpf-freq-r-val">18000 Hz</span>
+                        </div>
+                    </div>
+
+                    <!-- PEQ Bell -->
+                    <div class="dsp-module">
+                        <div class="dsp-module-title"><span>PEQ BOOST/CUT (FREQ / GAIN)</span></div>
+                        <div class="slider-row">
+                            <input type="range" id="peq-freq-r" min="40" max="15000" value="1000">
+                            <span id="peq-freq-r-val">1000 Hz</span>
+                        </div>
+                        <div class="slider-row">
+                            <input type="range" id="peq-gain-r" min="-15" max="15" value="0">
+                            <span id="peq-gain-r-val">0 dB</span>
+                        </div>
+                    </div>
+
+                    <!-- Peak Limiter -->
+                    <div class="dsp-module">
+                        <div class="dsp-module-title"><span>LIMITER THRESHOLD</span></div>
+                        <div class="slider-row">
+                            <input type="range" id="limiter-thresh-r" min="-30" max="0" value="-3">
+                            <span id="limiter-thresh-r-val">-3 dB</span>
+                        </div>
+                    </div>
+
+                    <!-- VU & GR Meter -->
+                    <div class="dsp-module">
+                        <div class="dsp-module-title"><span>OUTPUT VU / GAIN REDUCTION</span></div>
+                        <div class="meter-group">
+                            <div class="meter-bar-container"><div id="vu-meter-r" class="meter-bar-fill"></div></div>
+                            <div class="meter-bar-container"><div id="gr-meter-r" class="gr-bar-fill"></div></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Web Audio API Core Engine -->
+    <script>
+        let audioCtx;
+        let isEngineRunning = false;
+        let isEmergencyMute = false;
+
+        // Routing Nodes
+        let sourceNode = null;
+        let channelSplitter;
+        let channelMerger;
+        let masterGainNode;
+
+        // Channel L Nodes
+        let hpfL, lpfL, peqL, limiterL, gainL, analyserL;
+        // Channel R Nodes
+        let hpfR, lpfR, peqR, limiterR, gainR, analyserR;
+
+        // Generators / Inputs
+        let toneOsc = null;
+        let noiseNode = null;
+
+        // State Bypasses
+        const bypassState = {
+            l: { hpf: false, lpf: false, peq: false, limiter: false, mute: false },
+            r: { hpf: false, lpf: false, peq: false, limiter: false, mute: false }
+        };
+
+        // Initialize Audio Engine
+        function initEngine() {
+            if (audioCtx) return;
+
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            audioCtx = new AudioContext();
+
+            // Core Nodes Setup
+            channelSplitter = audioCtx.createChannelSplitter(2);
+            channelMerger = audioCtx.createChannelMerger(2);
+            masterGainNode = audioCtx.createGain();
+
+            // Setup Channel L DSP Chain
+            hpfL = audioCtx.createBiquadFilter(); hpfL.type = 'highpass'; hpfL.frequency.value = 30;
+            lpfL = audioCtx.createBiquadFilter(); lpfL.type = 'lowpass'; lpfL.frequency.value = 18000;
+            peqL = audioCtx.createBiquadFilter(); peqL.type = 'peaking'; peqL.frequency.value = 1000; peqL.gain.value = 0; peqL.Q.value = 1.4;
+            limiterL = audioCtx.createDynamicsCompressor(); limiterL.threshold.value = -3; limiterL.knee.value = 0; limiterL.ratio.value = 20; limiterL.attack.value = 0.003; limiterL.release.value = 0.1;
+            gainL = audioCtx.createGain();
+            analyserL = audioCtx.createAnalyser(); analyserL.fftSize = 1024;
+
+            // Connect L Chain
+            channelSplitter.connect(hpfL, 0);
+            hpfL.connect(lpfL);
+            lpfL.connect(peqL);
+            peqL.connect(limiterL);
+            limiterL.connect(gainL);
+            gainL.connect(analyserL);
+            analyserL.connect(channelMerger, 0, 0);
+
+            // Setup Channel R DSP Chain
+            hpfR = audioCtx.createBiquadFilter(); hpfR.type = 'highpass'; hpfR.frequency.value = 30;
+            lpfR = audioCtx.createBiquadFilter(); lpfR.type = 'lowpass'; lpfR.frequency.value = 18000;
+            peqR = audioCtx.createBiquadFilter(); peqR.type = 'peaking'; peqR.frequency.value = 1000; peqR.gain.value = 0; peqR.Q.value = 1.4;
+            limiterR = audioCtx.createDynamicsCompressor(); limiterR.threshold.value = -3; limiterR.knee.value = 0; limiterR.ratio.value = 20; limiterR.attack.value = 0.003; limiterR.release.value = 0.1;
+            gainR = audioCtx.createGain();
+            analyserR = audioCtx.createAnalyser(); analyserR.fftSize = 1024;
+
+            // Connect R Chain
+            channelSplitter.connect(hpfR, 1);
+            hpfR.connect(lpfR);
+            lpfR.connect(peqR);
+            peqR.connect(limiterR);
+            limiterR.connect(gainR);
+            gainR.connect(analyserR);
+            analyserR.connect(channelMerger, 0, 1);
+
+            // Output Merge
+            channelMerger.connect(masterGainNode);
+            masterGainNode.connect(audioCtx.destination);
+
+            switchSourceInput('testtone');
+            requestAnimationFrame(renderRTAAndMeters);
+        }
+
+        // Switch Input Matrix Source
+        function switchSourceInput(type) {
+            if (!audioCtx) return;
+
+            // Stop current source
+            if (sourceNode) {
+                try { sourceNode.disconnect(); } catch(e){}
+            }
+            if (toneOsc) { try { toneOsc.stop(); toneOsc.disconnect(); } catch(e){} toneOsc = null; }
+            if (noiseNode) { try { noiseNode.stop(); noiseNode.disconnect(); } catch(e){} noiseNode = null; }
+
+            if (type === 'testtone') {
+                const toneType = document.getElementById('tone-type-select').value;
+                if (toneType === 'sine') {
+                    toneOsc = audioCtx.createOscillator();
+                    toneOsc.type = 'sine';
+                    toneOsc.frequency.value = 1000;
+                    toneOsc.connect(channelSplitter);
+                    toneOsc.start();
+                } else {
+                    // White / Pink Noise Generator Algorithm
+                    const bufferSize = audioCtx.sampleRate * 2;
+                    const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                    const output = noiseBuffer.getChannelData(0);
+
+                    let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+                    for (let i = 0; i < bufferSize; i++) {
+                        const white = Math.random() * 2 - 1;
+                        if (toneType === 'pink') {
+                            b0 = 0.99886 * b0 + white * 0.0555179;
+                            b1 = 0.99332 * b1 + white * 0.0750759;
+                            b2 = 0.96900 * b2 + white * 0.1538520;
+                            b3 = 0.86650 * b3 + white * 0.3104856;
+                            b4 = 0.55000 * b4 + white * 0.5329522;
+                            b5 = -0.7616 * b5 - white * 0.0168980;
+                            output[i] = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362;
+                            output[i] *= 0.11;
+                            b6 = white * 0.115926;
+                        } else {
+                            output[i] = white * 0.2;
+                        }
+                    }
+
+                    noiseNode = audioCtx.createBufferSource();
+                    noiseNode.buffer = noiseBuffer;
+                    noiseNode.loop = true;
+                    noiseNode.connect(channelSplitter);
+                    noiseNode.start();
+                }
+            } else if (type === 'file') {
+                const audioEl = document.getElementById('html5-audio-player');
+                if (!audioEl.src) return;
+                sourceNode = audioCtx.createMediaElementSource(audioEl);
+                sourceNode.connect(channelSplitter);
+                audioEl.play();
+            }
+        }
+
+        // GUI Event Binding & Real-Time Sync
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // Power Engine Button
+            document.getElementById('btn-power').addEventListener('click', () => {
+                initEngine();
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+            });
+
+            // Emergency Panic Button
+            document.getElementById('btn-panic').addEventListener('click', function() {
+                isEmergencyMute = !isEmergencyMute;
+                this.classList.toggle('active', isEmergencyMute);
+                if (masterGainNode) {
+                    masterGainNode.gain.setTargetAtTime(isEmergencyMute ? 0 : (document.getElementById('master-gain').value / 100), audioCtx.currentTime, 0.01);
+                }
+            });
+
+            // Source Selector UI Toggle
+            document.getElementById('audio-source-select').addEventListener('change', (e) => {
+                const val = e.target.value;
+                document.getElementById('source-testtone-group').style.display = val === 'testtone' ? 'flex' : 'none';
+                document.getElementById('source-file-group').style.display = val === 'file' ? 'flex' : 'none';
+                document.getElementById('source-mic-group').style.display = val === 'mic' ? 'flex' : 'none';
+                
+                const playerEl = document.getElementById('html5-audio-player');
+                if (val === 'file') playerEl.style.display = 'block';
+                else playerEl.style.display = 'none';
+
+                switchSourceInput(val);
+            });
+
+            document.getElementById('tone-type-select').addEventListener('change', () => switchSourceInput('testtone'));
+
+            // File Upload Input
+            document.getElementById('audio-file-input').addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const url = URL.createObjectURL(file);
+                    const player = document.getElementById('html5-audio-player');
+                    player.src = url;
+                    switchSourceInput('file');
+                }
+            });
+
+            // Mic Capture Input
+            document.getElementById('btn-mic-start').addEventListener('click', async () => {
+                if (!audioCtx) initEngine();
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+                    sourceNode = audioCtx.createMediaStreamSource(stream);
+                    sourceNode.connect(channelSplitter);
+                } catch (err) {
+                    alert('Gagal mengakses input mikrofon / audio perangkat: ' + err.message);
+                }
+            });
+
+            // Master Gain
+            document.getElementById('master-gain').addEventListener('input', (e) => {
+                const val = e.target.value / 100;
+                document.getElementById('master-gain-val').innerText = (20 * Math.log10(val || 0.0001)).toFixed(1) + " dB";
+                if (masterGainNode && !isEmergencyMute) {
+                    masterGainNode.gain.setTargetAtTime(val, audioCtx.currentTime, 0.01);
+                }
+            });
+
+            // Channel Left Controls
+            bindSlider('hpf-freq-l', 'hpf-freq-l-val', ' Hz', (v) => hpfL.frequency.value = v);
+            bindSlider('lpf-freq-l', 'lpf-freq-l-val', ' Hz', (v) => lpfL.frequency.value = v);
+            bindSlider('peq-freq-l', 'peq-freq-l-val', ' Hz', (v) => peqL.frequency.value = v);
+            bindSlider('peq-gain-l', 'peq-gain-l-val', ' dB', (v) => peqL.gain.value = v);
+            bindSlider('limiter-thresh-l', 'limiter-thresh-l-val', ' dB', (v) => limiterL.threshold.value = v);
+
+            // Channel Right Controls
+            bindSlider('hpf-freq-r', 'hpf-freq-r-val', ' Hz', (v) => hpfR.frequency.value = v);
+            bindSlider('lpf-freq-r', 'lpf-freq-r-val', ' Hz', (v) => lpfR.frequency.value = v);
+            bindSlider('peq-freq-r', 'peq-freq-r-val', ' Hz', (v) => peqR.frequency.value = v);
+            bindSlider('peq-gain-r', 'peq-gain-r-val', ' dB', (v) => peqR.gain.value = v);
+            bindSlider('limiter-thresh-r', 'limiter-thresh-r-val', ' dB', (v) => limiterR.threshold.value = v);
+
+            // Mute Buttons
+            document.getElementById('mute-l').addEventListener('click', function() {
+                bypassState.l.mute = !bypassState.l.mute;
+                this.classList.toggle('btn-active', bypassState.l.mute);
+                gainL.gain.setTargetAtTime(bypassState.l.mute ? 0 : 1, audioCtx.currentTime, 0.01);
+            });
+
+            document.getElementById('mute-r').addEventListener('click', function() {
+                bypassState.r.mute = !bypassState.r.mute;
+                this.classList.toggle('btn-active', bypassState.r.mute);
+                gainR.gain.setTargetAtTime(bypassState.r.mute ? 0 : 1, audioCtx.currentTime, 0.01);
+            });
+        });
+
+        function bindSlider(sliderId, valId, unit, callback) {
+            const slider = document.getElementById(sliderId);
+            slider.addEventListener('input', (e) => {
+                const val = e.target.value;
+                document.getElementById(valId).innerText = val + unit;
+                if (audioCtx) callback(val);
+            });
+        }
+
+        // Toggle Dual Matrix Filters
+        function toggleDualMatrix(btn, ch, module) {
+            bypassState[ch][module] = !bypassState[ch][module];
+            btn.classList.toggle('active', !bypassState[ch][module]);
+
+            const targetNode = ch === 'l' ? 
+                (module === 'hpf' ? hpfL : module === 'lpf' ? lpfL : peqL) :
+                (module === 'hpf' ? hpfR : module === 'lpf' ? lpfR : peqR);
+
+            if (targetNode && module !== 'limiter') {
+                targetNode.gain.value = bypassState[ch][module] ? -100 : (module === 'peq' ? document.getElementById(`peq-gain-${ch}`).value : 0);
+            }
+        }
+
+        // Canvas Spectrum RTA & VU Meter Animation Loop
+        function renderRTAAndMeters() {
+            const canvas = document.getElementById('rta-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.clientWidth;
+            canvas.height = canvas.clientHeight;
+
+            const bufferLength = analyserL.frequencyBinCount;
+            const dataArrayL = new Uint8Array(bufferLength);
+            const dataArrayR = new Uint8Array(bufferLength);
+
+            function draw() {
+                requestAnimationFrame(draw);
+
+                analyserL.getByteFrequencyData(dataArrayL);
+                analyserR.getByteFrequencyData(dataArrayR);
+
+                // Render Background
+                ctx.fillStyle = '#0a0b10';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Draw Spectrum Bars
+                const barWidth = (canvas.width / bufferLength) * 2.5;
+                let x = 0;
+
+                for (let i = 0; i < bufferLength; i++) {
+                    const barHeightL = (dataArrayL[i] / 255) * canvas.height;
+                    const barHeightR = (dataArrayR[i] / 255) * canvas.height;
+
+                    // Channel L Spectrum (Green overlay)
+                    ctx.fillStyle = 'rgba(0, 255, 136, 0.6)';
+                    ctx.fillRect(x, canvas.height - barHeightL, barWidth, barHeightL);
+
+                    // Channel R Spectrum (Blue overlay)
+                    ctx.fillStyle = 'rgba(0, 217, 255, 0.5)';
+                    ctx.fillRect(x, canvas.height - barHeightR, barWidth, barHeightR);
+
+                    x += barWidth + 1;
+                }
+
+                // Render VU Level Meters
+                let sumL = 0, sumR = 0;
+                for (let i = 0; i < bufferLength; i++) {
+                    sumL += dataArrayL[i];
+                    sumR += dataArrayR[i];
+                }
+                const vuL = (sumL / bufferLength) / 255 * 100;
+                const vuR = (sumR / bufferLength) / 255 * 100;
+
+                document.getElementById('vu-meter-l').style.width = vuL + '%';
+                document.getElementById('vu-meter-r').style.width = vuR + '%';
+
+                // Gain Reduction Simulation Meter
+                const grL = Math.max(0, (limiterL.reduction || 0) * -3);
+                const grR = Math.max(0, (limiterR.reduction || 0) * -3);
+                document.getElementById('gr-meter-l').style.width = Math.min(100, grL * 10) + '%';
+                document.getElementById('gr-meter-r').style.width = Math.min(100, grR * 10) + '%';
+            }
+
+            draw();
+        }
+    </script>
+</body>
+</html>
