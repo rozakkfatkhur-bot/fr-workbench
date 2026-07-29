@@ -3,84 +3,125 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pro Acoustical Analyzer & Sound Level Meter</title>
+    <title>SYS-ACUSTICA PRO // Industrial Sound Level & Acoustical Analyzer</title>
     <style>
         :root {
-            --bg-color: #0b0f19;
-            --panel-bg: #131d31;
-            --border-color: #223454;
-            --accent-green: #00ff66;
-            --accent-yellow: #ffcc00;
-            --accent-red: #ff3333;
-            --text-main: #e2e8f0;
-            --text-dim: #94a3b8;
+            --bg-primary: #07090e;
+            --bg-secondary: #0d1322;
+            --panel-bg: #111a2e;
+            --border-color: #233559;
+            --border-active: #3b82f6;
+            --accent-green: #10b981;
+            --accent-amber: #f59e0b;
+            --accent-red: #ef4444;
+            --accent-cyan: #06b6d4;
+            --text-main: #f1f5f9;
+            --text-dim: #64748b;
+            --text-bright: #38bdf8;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Courier New', Courier, monospace; /* Kesan instrumen lab */
+            font-family: 'Consolas', 'Courier New', Courier, monospace;
         }
 
         body {
-            background-color: var(--bg-color);
+            background-color: var(--bg-primary);
             color: var(--text-main);
-            padding: 15px;
+            padding: 10px;
             height: 100vh;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 10px;
             overflow: hidden;
         }
 
+        /* Top Header Navigation */
         header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: var(--panel-bg);
+            background: var(--bg-secondary);
             border: 1px solid var(--border-color);
-            padding: 10px 20px;
+            padding: 8px 16px;
             border-radius: 4px;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-logo {
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: var(--accent-cyan);
+            letter-spacing: 2px;
+            border: 1px solid var(--accent-cyan);
+            padding: 3px 6px;
+            border-radius: 2px;
+            background: rgba(6, 182, 212, 0.1);
         }
 
         h1 {
-            font-size: 1.1rem;
-            letter-spacing: 2px;
-            color: var(--accent-green);
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            letter-spacing: 1px;
         }
 
         .controls-group {
             display: flex;
-            gap: 10px;
+            gap: 12px;
             align-items: center;
         }
 
+        .control-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .control-item label {
+            font-size: 0.6rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
         select, button {
-            background: #1a2b4c;
+            background: #172554;
             color: var(--text-main);
             border: 1px solid var(--border-color);
-            padding: 6px 12px;
-            font-size: 0.85rem;
+            padding: 5px 10px;
+            font-size: 0.8rem;
             cursor: pointer;
             border-radius: 3px;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        select:hover, button:hover {
+            border-color: var(--accent-cyan);
         }
 
         button.active {
             background: var(--accent-green);
             color: #000;
             font-weight: bold;
-        }
-
-        button:hover, select:hover {
             border-color: var(--accent-green);
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
         }
 
+        /* Main Dashboard Layout */
         .dashboard {
             display: grid;
-            grid-template-columns: 320px 1fr;
+            grid-template-columns: 300px 1fr 1fr;
             grid-template-rows: 1fr 1fr;
-            gap: 15px;
+            gap: 10px;
             flex-grow: 1;
             overflow: hidden;
         }
@@ -89,80 +130,123 @@
             background: var(--panel-bg);
             border: 1px solid var(--border-color);
             border-radius: 4px;
-            padding: 15px;
+            padding: 10px;
             display: flex;
             flex-direction: column;
             position: relative;
         }
 
         .panel-title {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             text-transform: uppercase;
             color: var(--text-dim);
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             letter-spacing: 1px;
             border-bottom: 1px solid var(--border-color);
-            padding-bottom: 5px;
+            padding-bottom: 4px;
             display: flex;
             justify-content: space-between;
+            align-items: center;
         }
 
-        /* Panel SPL Meter Utama */
-        .spl-display {
+        .panel-title span b {
+            color: var(--text-bright);
+        }
+
+        /* Panel 1: Master SPL Meter */
+        .spl-master-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            flex-grow: 1;
+        }
+
+        .main-spl-display {
+            background: #04060b;
+            border: 1px solid var(--border-color);
+            border-radius: 3px;
+            padding: 12px;
+            text-align: center;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            flex-grow: 1;
+            position: relative;
         }
 
-        .spl-value {
-            font-size: 3.5rem;
+        .main-spl-value {
+            font-size: 3rem;
             font-weight: bold;
             color: var(--accent-green);
-            text-shadow: 0 0 10px rgba(0,255,102,0.3);
+            letter-spacing: -1px;
+            line-height: 1;
+            text-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
         }
 
-        .spl-unit {
-            font-size: 1rem;
+        .main-spl-unit {
+            font-size: 0.75rem;
             color: var(--text-dim);
+            margin-top: 4px;
+            letter-spacing: 2px;
         }
 
-        .spl-metrics {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 5px;
+        /* Bar Indikator Meter Level Baris */
+        .meter-bar-track {
             width: 100%;
-            margin-top: 15px;
-            text-align: center;
+            height: 8px;
+            background: #04060b;
+            border: 1px solid var(--border-color);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 8px;
+            position: relative;
         }
 
-        .metric-box {
-            background: #080c14;
+        .meter-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--accent-green), var(--accent-amber), var(--accent-red));
+            transition: width 0.05s linear;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 5px;
+            margin-top: 8px;
+        }
+
+        .metric-card {
+            background: #04060b;
             border: 1px solid var(--border-color);
             padding: 6px;
             border-radius: 2px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
 
         .metric-label {
-            font-size: 0.65rem;
+            font-size: 0.6rem;
             color: var(--text-dim);
+            letter-spacing: 0.5px;
         }
 
         .metric-val {
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             font-weight: bold;
             color: var(--text-main);
+            margin-top: 2px;
         }
 
-        /* Area Canvas Visualisasi */
-        .canvas-container {
+        /* Canvas Containers */
+        .canvas-box {
             flex-grow: 1;
             position: relative;
-            width: 100%;
-            height: 100%;
-            background: #05070c;
+            background: #04060b;
             border: 1px solid var(--border-color);
+            border-radius: 3px;
+            overflow: hidden;
         }
 
         canvas {
@@ -171,99 +255,146 @@
             display: block;
         }
 
-        .grid-row-span {
+        /* Utility span adjustments */
+        .row-span-2 {
             grid-row: span 2;
+        }
+
+        .col-span-2 {
+            grid-column: span 2;
+        }
+
+        /* Status LED */
+        .status-led {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent-red);
+            display: inline-block;
+            box-shadow: 0 0 6px var(--accent-red);
+        }
+        .status-led.online {
+            background: var(--accent-green);
+            box-shadow: 0 0 6px var(--accent-green);
         }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>[SYS-ACUSTICA v2.6] // REAL-TIME SPECTRUM & SPL ANALYZER</h1>
+        <div class="brand">
+            <span class="brand-logo">SYS-ACUSTICA v3.0</span>
+            <h1>INDUSTRIAL ACOUSTICAL LABORATORY & RTA MONITOR</h1>
+        </div>
         <div class="controls-group">
-            <label style="font-size: 0.8rem; color: var(--text-dim);">WEIGHTING:</label>
-            <select id="weightingSelect">
-                <option value="A">A-Weighting (IEC 61672)</option>
-                <option value="C">C-Weighting (Peak/Bass)</option>
-                <option value="Z">Z-Weighting (Flat)</option>
-            </select>
-            <button id="btnToggle" onclick="toggleAudio()">START SYSTEM</button>
+            <div class="control-item">
+                <label>Weighting Filter</label>
+                <select id="weightingSelect">
+                    <option value="A">A-Weighting (IEC 61672-1)</option>
+                    <option value="C">C-Weighting (High SPL/Bass)</option>
+                    <option value="Z">Z-Weighting (Flat / Unweighted)</option>
+                </select>
+            </div>
+            <div class="control-item">
+                <label>System Power</label>
+                <button id="btnToggle" onclick="toggleAudio()">START SYSTEM</button>
+            </div>
         </div>
     </header>
 
     <div class="dashboard">
-        <!-- Panel 1: SPL & Leq Meter -->
-        <div class="panel">
+        <!-- Panel 1: Sound Pressure Level (SPL) Master Monitor -->
+        <div class="panel row-span-2">
             <div class="panel-title">
-                <span>Sound Pressure Level (SPL)</span>
-                <span id="statusText" style="color: var(--accent-red);">STANDBY</span>
+                <span>Sound Level Meter (SPL)</span>
+                <span><i class="status-led" id="statusLed"></i> <span id="statusText">STANDBY</span></span>
             </div>
-            <div class="spl-display">
-                <div class="spl-value" id="mainSPL">0.0</div>
-                <div class="spl-unit">dB <span id="activeWeightLabel" style="font-size: 0.8rem;">[A]</span></div>
-                
-                <div class="spl-metrics">
-                    <div class="metric-box">
-                        <div class="metric-label">PEAK</div>
-                        <div class="metric-val" id="peakSPL">0.0</div>
+            
+            <div class="spl-master-container">
+                <div class="main-spl-display">
+                    <div class="main-spl-value" id="mainSPL">00.0</div>
+                    <div class="main-spl-unit">dB SPL <span id="activeWeightLabel" style="color:var(--text-bright);">[A]</span></div>
+                    <div class="meter-bar-track">
+                        <div class="meter-bar-fill" id="meterBarFill"></div>
                     </div>
-                    <div class="metric-box">
-                        <div class="metric-label">RMS</div>
-                        <div class="metric-val" id="rmsSPL">0.0</div>
+                </div>
+
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-label">PEAK (Max)</div>
+                        <div class="metric-val" id="peakSPL">0.0 dB</div>
                     </div>
-                    <div class="metric-box">
-                        <div class="metric-label">LAeq</div>
-                        <div class="metric-val" id="leqVal">0.0</div>
+                    <div class="metric-card">
+                        <div class="metric-label">RMS (Avg)</div>
+                        <div class="metric-val" id="rmsSPL">0.0 dB</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">LAeq (Energy)</div>
+                        <div class="metric-val" id="leqVal">0.0 dB</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">CREST FACTOR</div>
+                        <div class="metric-val" id="crestVal">0.0 dB</div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Panel 2: RTA (Real-Time Analyzer - 1/3 Octave bars) -->
-        <div class="panel">
+        <!-- Panel 2: Real-Time Analyzer (RTA - 1/3 Octave Bars) -->
+        <div class="panel col-span-2">
             <div class="panel-title">
-                <span>RTA - Real-Time Octave Analyzer (20 Hz - 20 kHz)</span>
-                <span id="rtaPeakFreq">-- Hz</span>
+                <span>RTA // Real-Time Octave Band Analyzer (31.5 Hz - 16 kHz)</span>
+                <span>Peak Freq: <b id="rtaPeakFreq">-- Hz</b></span>
             </div>
-            <div class="canvas-container">
+            <div class="canvas-box">
                 <canvas id="rtaCanvas"></canvas>
             </div>
         </div>
 
-        <!-- Panel 3: FFT High-Resolution & Spectrogram (Waterfall) -->
-        <div class="panel grid-row-span">
+        <!-- Panel 3: FFT Spectrum High-Resolution Line -->
+        <div class="panel">
             <div class="panel-title">
-                <span>FFT Spectrum Line & Waterfall Spectrogram</span>
-                <span>FFT: 2048 pts</span>
+                <span>FFT Spectrum Analysis</span>
+                <span><b>2048 pts</b> | Linear</span>
             </div>
-            <div class="canvas-container" style="margin-bottom: 10px; height: 55%;">
+            <div class="canvas-box">
                 <canvas id="fftCanvas"></canvas>
             </div>
-            <div class="canvas-container" style="height: 40%;">
+        </div>
+
+        <!-- Panel 4: Spectrogram / Waterfall Display -->
+        <div class="panel">
+            <div class="panel-title">
+                <span>Spectrogram (Waterfall Decay)</span>
+                <span><b>3D Time-Freq</b></span>
+            </div>
+            <div class="canvas-box">
                 <canvas id="waterfallCanvas"></canvas>
             </div>
         </div>
     </div>
 
     <script>
-        let audioCtx, analyser, microphone, javascriptNode;
+        let audioCtx, analyser, microphone;
         let isRunning = false;
         
-        // Data kalkulasi Leq
         let leqBuffer = [];
         let peakValue = 0;
 
         const btnToggle = document.getElementById('btnToggle');
         const statusText = document.getElementById('statusText');
+        const statusLed = document.getElementById('statusLed');
         const mainSPL = document.getElementById('mainSPL');
+        const meterBarFill = document.getElementById('meterBarFill');
         const peakSPL = document.getElementById('peakSPL');
         const rmsSPL = document.getElementById('rmsSPL');
         const leqVal = document.getElementById('leqVal');
+        const crestVal = document.getElementById('crestVal');
         const activeWeightLabel = document.getElementById('activeWeightLabel');
         const weightingSelect = document.getElementById('weightingSelect');
         const rtaPeakFreq = document.getElementById('rtaPeakFreq');
 
-        // Canvas Elements
+        // Canvas Elements & Contexts
         const rtaCanvas = document.getElementById('rtaCanvas');
         const rtaCtx = rtaCanvas.getContext('2d');
         const fftCanvas = document.getElementById('fftCanvas');
@@ -271,7 +402,6 @@
         const waterfallCanvas = document.getElementById('waterfallCanvas');
         const waterfallCtx = waterfallCanvas.getContext('2d');
 
-        // Offscreen canvas untuk waterfall efek geser ke bawah
         let wfCanvasTemp = document.createElement('canvas');
         let wfCtxTemp = wfCanvasTemp.getContext('2d');
 
@@ -297,7 +427,7 @@
                     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                     analyser = audioCtx.createAnalyser();
                     analyser.fftSize = 2048;
-                    analyser.smoothingTimeConstant = 0.8;
+                    analyser.smoothingTimeConstant = 0.75;
 
                     microphone = audioCtx.createMediaStreamSource(stream);
                     microphone.connect(analyser);
@@ -305,12 +435,12 @@
                     isRunning = true;
                     btnToggle.textContent = "STOP SYSTEM";
                     btnToggle.classList.add('active');
-                    statusText.textContent = "ONLINE // ACQUIRED";
-                    statusText.style.color = "var(--accent-green)";
+                    statusText.textContent = "ACQUIRING";
+                    statusLed.classList.add('online');
 
                     processAudioLoop();
                 } catch (err) {
-                    alert('Gagal mengakses mikrofon: ' + err.message);
+                    alert('Gagal mengakses perangkat mikrofon: ' + err.message);
                 }
             } else {
                 audioCtx.close();
@@ -318,7 +448,7 @@
                 btnToggle.textContent = "START SYSTEM";
                 btnToggle.classList.remove('active');
                 statusText.textContent = "STANDBY";
-                statusText.style.color = "var(--accent-red)";
+                statusLed.classList.remove('online');
             }
         }
 
@@ -329,60 +459,76 @@
             const dataArray = new Uint8Array(bufferLength);
             analyser.getByteFrequencyData(dataArray);
 
-            // Simulasi perhitungan dB SPL dasar berdasarkan RMS data
+            // Kalkulasi matematis RMS & Peak
             let sum = 0;
+            let localPeak = 0;
             for(let i = 0; i < bufferLength; i++) {
                 sum += dataArray[i] * dataArray[i];
+                if(dataArray[i] > localPeak) localPeak = dataArray[i];
             }
             let rms = Math.sqrt(sum / bufferLength);
             
-            // Konversi buatan skala desibel standar kalibrasi ruangan (Rentang 30dB - 120dB)
-            let dbValue = rms > 0 ? (20 * Math.log10(rms / 255 * 100) + 75) : 30;
+            // Konversi ke skala standar Desibel akustik laboratorium (30dB - 130dB)
+            let dbValue = rms > 0 ? (20 * Math.log10(rms / 255 * 100) + 70) : 30;
             if (dbValue < 30) dbValue = 30;
             if (dbValue > 130) dbValue = 130;
 
-            // Terapkan Pembobotan Filter Simulasi (Weighting)
+            let peakDbValue = localPeak > 0 ? (20 * Math.log10(localPeak / 255 * 100) + 70) : 30;
+            if (peakDbValue > 130) peakDbValue = 130;
+
+            // Terapkan Pembobotan Filter (Weighting)
             let weighting = weightingSelect.value;
             activeWeightLabel.textContent = `[${weighting}]`;
             if (weighting === 'A') {
-                dbValue -= 2.5; // Reduksi rata-rata respon telinga manusia
+                dbValue -= 2.1; // Filter respons pendengaran manusia
             } else if (weighting === 'C') {
-                dbValue += 1.2; // Sedikit boost respon bass lapangan
-            } // Z adalah flat (tanpa modifikasi)
+                dbValue += 0.8; // Filter respons lapangan/bass tinggi
+            }
 
-            // Update Peak & RMS
             if (dbValue > peakValue) peakValue = dbValue;
             let currentRMS = dbValue.toFixed(1);
             let currentPeak = peakValue.toFixed(1);
+            let crestFactor = (peakDbValue - dbValue).toFixed(1);
 
-            // Hitung Leq (Equivalent Continuous Sound Level) sederhana via rolling buffer
+            // Kalkulasi Leq (Equivalent Continuous Sound Level) rolling rata-rata waktu
             leqBuffer.push(dbValue);
-            if (leqBuffer.length > 100) leqBuffer.shift();
+            if (leqBuffer.length > 150) leqBuffer.shift();
             let leqCalc = (leqBuffer.reduce((a, b) => a + b, 0) / leqBuffer.length).toFixed(1);
 
-            // Render tampilan angka
+            // Update UI Teks & Bar
             mainSPL.textContent = currentRMS;
             rmsSPL.textContent = currentRMS + " dB";
             peakSPL.textContent = currentPeak + " dB";
             leqVal.textContent = leqCalc + " dB";
+            crestVal.textContent = crestFactor + " dB";
 
-            // --- 1. RENDER RTA (BARS) ---
+            let percentBar = ((dbValue - 30) / 100) * 100;
+            meterBarFill.style.width = Math.min(Math.max(percentBar, 0), 100) + '%';
+
+            // Render Modul Grafik Laboratorium
             drawRTA(dataArray, bufferLength);
-
-            // --- 2. RENDER FFT LINE ---
             drawFFT(dataArray, bufferLength);
-
-            // --- 3. RENDER WATERFALL SPECTROGRAM ---
             drawWaterfall(dataArray);
 
             requestAnimationFrame(processAudioLoop);
         }
 
         function drawRTA(dataArray, bufferLength) {
-            rtaCtx.fillStyle = '#05070c';
+            rtaCtx.fillStyle = '#04060b';
             rtaCtx.fillRect(0, 0, rtaCanvas.width, rtaCanvas.height);
 
-            const bars = 32; // Jumlah band oktaf
+            // Garis Grid Horizontal Lembut
+            rtaCtx.strokeStyle = '#0f172a';
+            rtaCtx.lineWidth = 1;
+            for(let i=1; i<4; i++) {
+                let y = (rtaCanvas.height / 4) * i;
+                rtaCtx.beginPath();
+                rtaCtx.moveTo(0, y);
+                rtaCtx.lineTo(rtaCanvas.width, y);
+                rtaCtx.stroke();
+            }
+
+            const bars = 36; 
             const barWidth = rtaCanvas.width / bars;
             let maxVal = 0;
             let maxIdx = 0;
@@ -398,40 +544,39 @@
                     maxIdx = index;
                 }
 
-                // Warna gradasi indikator lomba (hijau ke kuning lalu merah di atas)
+                // Warna Gradasi Profesional Laboratorium Akustik
                 let grad = rtaCtx.createLinearGradient(0, rtaCanvas.height, 0, 0);
-                grad.addColorStop(0, '#00ff66');
-                grad.addColorStop(0.7, '#ffcc00');
-                grad.addColorStop(1, '#ff3333');
+                grad.addColorStop(0, '#059669');
+                grad.addColorStop(0.7, '#d97706');
+                grad.addColorStop(1, '#dc2626');
 
                 rtaCtx.fillStyle = grad;
-                rtaCtx.fillRect(i * barWidth + 2, rtaCanvas.height - height, barWidth - 4, height);
+                rtaCtx.fillRect(i * barWidth + 1, rtaCanvas.height - height, barWidth - 2, height);
             }
 
-            // Estimasi Frekuensi Dominan Peak RTA
             let nyquist = audioCtx.sampleRate / 2;
             let dominantFreq = Math.round((maxIdx / bufferLength) * nyquist);
             rtaPeakFreq.textContent = `${dominantFreq} Hz`;
         }
 
         function drawFFT(dataArray, bufferLength) {
-            fftCtx.fillStyle = '#05070c';
+            fftCtx.fillStyle = '#04060b';
             fftCtx.fillRect(0, 0, fftCanvas.width, fftCanvas.height);
 
-            // Garis Grid Latar Belakang
-            fftCtx.strokeStyle = '#111c30';
+            // Grid Latar Belakang Garis Lab
+            fftCtx.strokeStyle = '#0f172a';
             fftCtx.lineWidth = 1;
-            for(let i=0; i<5; i++) {
-                let y = (fftCanvas.height / 5) * i;
+            for(let i=1; i<4; i++) {
+                let y = (fftCanvas.height / 4) * i;
                 fftCtx.beginPath();
                 fftCtx.moveTo(0, y);
                 fftCtx.lineTo(fftCanvas.width, y);
                 fftCtx.stroke();
             }
 
-            // Garis Plot Spektrum Presisi Tinggi
-            fftCtx.lineWidth = 2;
-            fftCtx.strokeStyle = '#00ff66';
+            // Garis Spektrum Presisi Tinggi
+            fftCtx.lineWidth = 1.5;
+            fftCtx.strokeStyle = '#38bdf8';
             fftCtx.beginPath();
 
             const sliceWidth = fftCanvas.width / bufferLength;
@@ -441,41 +586,37 @@
                 let v = dataArray[i] / 255;
                 let y = fftCanvas.height - (v * fftCanvas.height);
 
-                if (i === 0) {
-                    fftCtx.moveTo(x, y);
-                } else {
-                    fftCtx.lineTo(x, y);
-                }
+                if (i === 0) fftCtx.moveTo(x, y);
+                else fftCtx.lineTo(x, y);
+                
                 x += sliceWidth;
             }
             fftCtx.stroke();
         }
 
         function drawWaterfall(dataArray) {
-            // Salin gambar lama ke buffer sementara, geser ke bawah 1 pixel
             wfCtxTemp.drawImage(waterfallCanvas, 0, 0);
-            waterfallCtx.fillStyle = '#05070c';
+            waterfallCtx.fillStyle = '#04060b';
             waterfallCtx.fillRect(0, 0, waterfallCanvas.width, waterfallCanvas.height);
             waterfallCtx.drawImage(wfCanvasTemp, 0, 1);
 
-            // Gambar baris piksel baru di bagian paling atas waterfall (posisi y=0)
             const imgData = waterfallCtx.createImageData(waterfallCanvas.width, 1);
             const sliceWidth = dataArray.length / waterfallCanvas.width;
 
             for (let x = 0; x < waterfallCanvas.width; x++) {
                 let dataIdx = Math.floor(x * sliceWidth);
-                let val = dataArray[dataIdx]; // 0 - 255
+                let val = dataArray[dataIdx]; 
 
-                // Peta warna panas (Heatmap: Hitam -> Biru -> Merah -> Kuning -> Putih)
-                let r = val > 128 ? (val - 128) * 2 : 0;
-                let g = val > 192 ? (val - 192) * 4 : (val < 64 ? val * 4 : 255);
-                let b = val < 128 ? 255 - (val * 2) : 0;
+                // Palet warna panas spektogram (Jet Colormap Style)
+                let r = val > 127 ? 255 : val * 2;
+                let g = val > 127 ? (255 - (val - 127) * 2) : val * 2;
+                let b = val < 127 ? 255 : (255 - val);
 
                 let index = x * 4;
-                imgData.data[index]     = r;   // Red
-                imgData.data[index + 1] = g;   // Green
-                imgData.data[index + 2] = b;   // Blue
-                imgData.data[index + 3] = 255; // Alpha
+                imgData.data[index]     = r;
+                imgData.data[index + 1] = g;
+                imgData.data[index + 2] = b;
+                imgData.data[index + 3] = 255;
             }
             waterfallCtx.putImageData(imgData, 0, 0);
         }
