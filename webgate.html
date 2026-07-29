@@ -859,7 +859,7 @@
                 </div>
                 <div class="announcement-content">
                     <h3 id="annoTitle">Info Server & Portal VIP</h3>
-                    <p id="annoBody">Selamat datang di portal FARO TRIUMPHANTLY. Modul Mixer X78 kini masuk status VIP dengan promo diskon Rp15.000/bulan (Harga Normal Rp 20.000) dan Uji Coba Gratis 7 Hari!</p>
+                    <p id="annoBody">Memuat pengumuman...</p>
                 </div>
             </div>
 
@@ -1074,7 +1074,7 @@
                 <label>Isi Pengumuman</label>
                 <textarea id="editAnnoBody" class="form-control" rows="2"></textarea>
             </div>
-            <button class="btn-primary" onclick="saveAnnouncement()" style="margin-bottom: 1.2rem;">Perbarui Pengumuman</button>
+            <button class="btn-primary" onclick="saveAnnouncement()" style="margin-bottom: 1.2rem;">Perbarui Pengumuman ke Firebase</button>
 
             <div class="form-group">
                 <label>Passcode VIP Publik</label>
@@ -1114,10 +1114,10 @@
                     <option value="research">Riset & Uji Coba (R&D)</option>
                 </select>
             </div>
-            <button class="btn-primary" id="btnSaveLink" onclick="saveLink()" style="margin-bottom: 1.5rem;">+ Tambahkan Link</button>
+            <button class="btn-primary" id="btnSaveLink" onclick="saveLink()" style="margin-bottom: 1.5rem;">+ Simpan Link ke Firebase</button>
 
-            <h4 style="font-size: 0.95rem; margin-bottom: 10px;">Daftar Modul Link Aktif</h4>
-            <div id="adminLinkList"></div>
+            <h4 style="font-size: 0.95rem; margin-bottom: 10px;">Daftar Modul Link Aktif (Firebase)</h4>
+            <div id="adminLinkList">Memuat data dari Firebase...</div>
         </div>
     </div>
 
@@ -1139,7 +1139,7 @@
     <!-- FIREBASE SDK & CORE ENGINE SCRIPT -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-        import { getDatabase, ref, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+        import { getDatabase, ref, push, onValue, set, update, remove, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
         // Konfigurasi Firebase dari console.firebase.google.com Anda
         const firebaseConfig = {
@@ -1153,46 +1153,41 @@
         };
 
         const app = initializeApp(firebaseConfig);
-        // Teruskan URL eksplisit agar langsung mengarah ke cluster Singapore (asia-southeast1)
         const db = getDatabase(app, "https://faro-hub-default-rtdb.asia-southeast1.firebasedatabase.app/");
 
-        // Data Default Local
-        const defaultLinks = [
-            {
-                id: 1,
+        // Data Default Awal (Akan diunggah ke Firebase jika database masih kosong)
+        const initialDefaultLinks = {
+            "link_1": {
                 title: "Mixer X78 Series",
                 url: "https://fr-workbench.vercel.app/mixer-x78-series.html",
                 desc: "Antarmuka Kontrol Mixer Audio Digital Series X78 (Promo Diskon Rp 15.000 / Bln)",
                 category: "vip",
                 images: ["https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=600&auto=format&fit=crop&q=60"]
             },
-            {
-                id: 4,
+            "link_2": {
                 title: "FARO Audio Controller App",
                 url: "https://fr-workbench.vercel.app",
                 desc: "Aplikasi Web Pro-Audio terintegrasi untuk kontrol cepat dari smartphone/PC.",
                 category: "app",
                 images: []
             },
-            {
-                id: 2,
+            "link_3": {
                 title: "FR Audio Management",
                 url: "https://fr-workbench.vercel.app/fr-audio-management.html",
                 desc: "Sistem Kontrol Crossover & Manajemen Frekuensi Digital",
                 category: "main",
                 images: []
             },
-            {
-                id: 3,
+            "link_4": {
                 title: "DLMS 4-Way DSP Core Engine",
                 url: "https://fr-workbench.vercel.app",
                 desc: "Pengujian Algoritma FIR/IIR Loudspeaker Management System (Riset)",
                 category: "research",
                 images: []
             }
-        ];
+        };
 
-        const defaultAnnouncement = {
+        const initialDefaultAnno = {
             title: "Info Server & Portal VIP",
             body: "Selamat datang di portal FARO TRIUMPHANTLY. Modul Mixer X78 kini masuk status VIP dengan diskon promo Rp15.000/bln dan Uji Coba Gratis 7 Hari!"
         };
@@ -1200,10 +1195,10 @@
         const TARGET_EMAIL = "rozakkfatkhur@gmail.com";
         const TARGET_PASS = "faro124578";
 
-        let links = JSON.parse(localStorage.getItem('faro_links')) || defaultLinks;
-        let announcement = JSON.parse(localStorage.getItem('faro_anno')) || defaultAnnouncement;
+        let rawLinksData = {}; 
+        let announcement = initialDefaultAnno;
         let vipKey = localStorage.getItem('faro_vip_key') || "faro123";
-        let rawCommentsData = {}; // Menyimpan data komentar real-time dari Firebase
+        let rawCommentsData = {}; 
         
         let userProfile = JSON.parse(localStorage.getItem('faro_user_profile')) || {
             name: "Tamu User",
@@ -1218,7 +1213,42 @@
         let activeVipItem = null;
         let currentOpenAppIsMixer = false;
 
-        // --- SISTEM REAL-TIME FIREBASE UNTUK KOMENTAR ---
+        // --- SINKRONISASI REAL-TIME FIREBASE: LINKS & PENGUMUMAN ---
+        const linksRef = ref(db, "links");
+        const annoRef = ref(db, "announcement");
+
+        // Inisialisasi awal database Firebase jika belum ada data
+        get(linksRef).then(snapshot => {
+            if (!snapshot.exists()) {
+                set(linksRef, initialDefaultLinks);
+            }
+        });
+
+        get(annoRef).then(snapshot => {
+            if (!snapshot.exists()) {
+                set(annoRef, initialDefaultAnno);
+            }
+        });
+
+        // Listener Real-time Modul Link
+        onValue(linksRef, (snapshot) => {
+            rawLinksData = snapshot.val() || {};
+            renderUI();
+            if (document.getElementById('adminModal').style.display === 'flex') {
+                renderAdminLinkList();
+            }
+        });
+
+        // Listener Real-time Pengumuman
+        onValue(annoRef, (snapshot) => {
+            if (snapshot.exists()) {
+                announcement = snapshot.val();
+                document.getElementById('annoTitle').innerText = announcement.title || "";
+                document.getElementById('annoBody').innerText = announcement.body || "";
+            }
+        });
+
+        // --- SINKRONISASI REAL-TIME FIREBASE: KOMENTAR ---
         const commentsRef = ref(db, "comments");
         onValue(commentsRef, (snapshot) => {
             rawCommentsData = snapshot.val() || {};
@@ -1272,9 +1302,8 @@
         };
 
         window.deleteComment = function(id) {
-            if (confirm("Hapus komentar ini beserta alasannya dari Firebase?")) {
+            if (confirm("Hapus komentar ini beserta balasan-balasannya dari database?")) {
                 remove(ref(db, `comments/${id}`));
-                // Hapus balasan jika ada
                 Object.keys(rawCommentsData).forEach(key => {
                     if (rawCommentsData[key].parentId === id) {
                         remove(ref(db, `comments/${key}`));
@@ -1294,7 +1323,6 @@
                 return;
             }
 
-            // Pisahkan komentar utama dan balasan
             const parentComments = commentKeys
                 .map(key => ({ id: key, ...rawCommentsData[key] }))
                 .filter(c => !c.parentId);
@@ -1345,7 +1373,6 @@
                 <div class="replies-container" id="replies-${c.id}"></div>
             `;
 
-            // Cari balasan
             const replies = Object.keys(rawCommentsData)
                 .map(key => ({ id: key, ...rawCommentsData[key] }))
                 .filter(r => r.parentId === c.id);
@@ -1443,7 +1470,10 @@
             mainContainer.innerHTML = '';
             researchContainer.innerHTML = '';
 
-            links.forEach(item => {
+            const linkKeys = Object.keys(rawLinksData);
+
+            linkKeys.forEach(key => {
+                const item = { id: key, ...rawLinksData[key] };
                 const card = document.createElement('div');
                 card.className = `link-card ${item.category === 'vip' ? 'vip-card' : ''}`;
                 card.onclick = () => handleCardClick(item);
@@ -1502,8 +1532,8 @@
                 else mainContainer.appendChild(card);
             });
 
-            document.getElementById('annoTitle').innerText = announcement.title;
-            document.getElementById('annoBody').innerText = announcement.body;
+            document.getElementById('annoTitle').innerText = announcement.title || "";
+            document.getElementById('annoBody').innerText = announcement.body || "";
             updateProfileUI();
         };
 
@@ -1739,8 +1769,8 @@
         };
 
         function openAdminDashboard() {
-            document.getElementById('editAnnoTitle').value = announcement.title;
-            document.getElementById('editAnnoBody').value = announcement.body;
+            document.getElementById('editAnnoTitle').value = announcement.title || "";
+            document.getElementById('editAnnoBody').value = announcement.body || "";
             document.getElementById('editVipKey').value = vipKey;
             resetAdminLinkForm();
             renderAdminLinkList();
@@ -1784,10 +1814,10 @@
             renderAdminImgPreviews();
         };
 
-        window.editLink = function(id) {
-            const item = links.find(l => l.id === id);
+        window.editLink = function(key) {
+            const item = rawLinksData[key];
             if (item) {
-                document.getElementById('editLinkId').value = item.id;
+                document.getElementById('editLinkId').value = key;
                 document.getElementById('newTitle').value = item.title;
                 document.getElementById('newUrl').value = item.url;
                 document.getElementById('newDesc').value = item.desc;
@@ -1796,13 +1826,13 @@
                 currentEditingImages = item.images ? [...item.images] : (item.image ? [item.image] : []);
                 renderAdminImgPreviews();
                 
-                document.getElementById('adminFormTitle').innerText = "Edit Modul Link";
-                document.getElementById('btnSaveLink').innerText = "Simpan Perubahan Link";
+                document.getElementById('adminFormTitle').innerText = "Edit Modul Link (Firebase)";
+                document.getElementById('btnSaveLink').innerText = "Simpan Perubahan ke Firebase";
             }
         };
 
         window.saveLink = function() {
-            const id = document.getElementById('editLinkId').value;
+            const key = document.getElementById('editLinkId').value;
             const title = document.getElementById('newTitle').value.trim();
             const url = document.getElementById('newUrl').value.trim();
             const desc = document.getElementById('newDesc').value.trim();
@@ -1813,32 +1843,29 @@
                 return;
             }
 
-            if (id) {
-                const index = links.findIndex(l => l.id == id);
-                if (index !== -1) {
-                    links[index] = { 
-                        ...links[index], 
-                        title, 
-                        url, 
-                        desc, 
-                        category, 
-                        images: [...currentEditingImages] 
-                    };
-                }
-            } else {
-                const newObj = {
-                    id: Date.now(),
-                    title,
-                    url,
-                    desc: desc || "Tidak ada deskripsi",
-                    category,
-                    images: [...currentEditingImages]
-                };
-                links.push(newObj);
-            }
+            const payload = {
+                title,
+                url,
+                desc: desc || "Tidak ada deskripsi",
+                category,
+                images: [...currentEditingImages]
+            };
 
-            saveAndRefresh();
-            resetAdminLinkForm();
+            if (key) {
+                update(ref(db, `links/${key}`), payload).then(() => {
+                    alert('Modul link berhasil diperbarui di Firebase!');
+                    resetAdminLinkForm();
+                }).catch(err => {
+                    alert('Gagal memperbarui ke Firebase: ' + err.message);
+                });
+            } else {
+                push(linksRef, payload).then(() => {
+                    alert('Modul link baru berhasil ditambahkan ke Firebase!');
+                    resetAdminLinkForm();
+                }).catch(err => {
+                    alert('Gagal menambahkan ke Firebase: ' + err.message);
+                });
+            }
         };
 
         function resetAdminLinkForm() {
@@ -1850,36 +1877,41 @@
             currentEditingImages = [];
             renderAdminImgPreviews();
             document.getElementById('adminFormTitle').innerText = "Tambah Modul Link Baru";
-            document.getElementById('btnSaveLink').innerText = "+ Tambahkan Link";
+            document.getElementById('btnSaveLink').innerText = "+ Simpan Link ke Firebase";
         }
 
-        window.deleteLink = function(id) {
-            if(confirm('Hapus link/modul ini?')) {
-                links = links.filter(l => l.id !== id);
-                saveAndRefresh();
+        window.deleteLink = function(key) {
+            if(confirm('Hapus link/modul ini dari Firebase database?')) {
+                remove(ref(db, `links/${key}`)).then(() => {
+                    alert('Modul link terhapus!');
+                }).catch(err => {
+                    alert('Gagal menghapus dari Firebase: ' + err.message);
+                });
             }
         };
-
-        function saveAndRefresh() {
-            localStorage.setItem('faro_links', JSON.stringify(links));
-            renderUI();
-            renderAdminLinkList();
-        }
 
         function renderAdminLinkList() {
             const container = document.getElementById('adminLinkList');
             container.innerHTML = '';
-            links.forEach(l => {
+            const linkKeys = Object.keys(rawLinksData);
+
+            if (linkKeys.length === 0) {
+                container.innerHTML = '<p style="font-size:0.8rem; color:var(--text-muted);">Belum ada modul link di Firebase.</p>';
+                return;
+            }
+
+            linkKeys.forEach(key => {
+                const l = rawLinksData[key];
                 const row = document.createElement('div');
                 row.className = 'admin-item-row';
                 const imgCount = (l.images ? l.images.length : (l.image ? 1 : 0));
                 row.innerHTML = `
                     <div>
-                        <strong>${l.title}</strong> (${l.category.toUpperCase()}) - <em>${imgCount} Foto</em>
+                        <strong>${escapeHtml(l.title)}</strong> (${(l.category || '').toUpperCase()}) - <em>${imgCount} Foto</em>
                     </div>
                     <div>
-                        <button class="comment-action-btn" onclick="editLink(${l.id})" style="display:inline; margin-right:8px;"><i class="fa-solid fa-pen"></i></button>
-                        <button class="comment-action-btn" onclick="deleteLink(${l.id})" style="display:inline; color:#ef4444;"><i class="fa-solid fa-trash"></i></button>
+                        <button class="comment-action-btn" onclick="editLink('${key}')" style="display:inline; margin-right:8px;"><i class="fa-solid fa-pen"></i></button>
+                        <button class="comment-action-btn" onclick="deleteLink('${key}')" style="display:inline; color:#ef4444;"><i class="fa-solid fa-trash"></i></button>
                     </div>
                 `;
                 container.appendChild(row);
@@ -1887,11 +1919,16 @@
         }
 
         window.saveAnnouncement = function() {
-            announcement.title = document.getElementById('editAnnoTitle').value;
-            announcement.body = document.getElementById('editAnnoBody').value;
-            localStorage.setItem('faro_anno', JSON.stringify(announcement));
-            renderUI();
-            alert('Pengumuman diperbarui!');
+            const newAnno = {
+                title: document.getElementById('editAnnoTitle').value.trim(),
+                body: document.getElementById('editAnnoBody').value.trim()
+            };
+            
+            set(annoRef, newAnno).then(() => {
+                alert('Pengumuman berhasil diperbarui di Firebase!');
+            }).catch(err => {
+                alert('Gagal memperbarui pengumuman: ' + err.message);
+            });
         };
 
         window.saveVipKey = function() {
@@ -1906,7 +1943,6 @@
 
         // Inisialisasi awal
         initTheme();
-        renderUI();
     </script>
 </body>
 </html>
