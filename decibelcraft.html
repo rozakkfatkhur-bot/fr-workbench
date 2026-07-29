@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>SYS-ACUSTICA PRO LAB v4.0 // IEC 61672-1 Master Acoustic Telemetry</title>
     <style>
-        :root {
+        /* Theme Variables: Dark & Light Mode */
+        [data-theme="dark"] {
             --bg-primary: #020408;
             --bg-secondary: #070c14;
             --panel-bg: #0b1320;
@@ -19,14 +20,37 @@
             --text-main: #e2e8f0;
             --text-dim: #64748b;
             --text-bright: #38bdf8;
-            --font-mono: 'Consolas', 'Courier New', Monaco, monospace;
+            --table-header: #0a1220;
+            --table-row-hover: rgba(0, 240, 255, 0.04);
+            --card-bg: #03060a;
+            --canvas-bg: #020407;
+        }
+
+        [data-theme="light"] {
+            --bg-primary: #f1f5f9;
+            --bg-secondary: #e2e8f0;
+            --panel-bg: #ffffff;
+            --panel-border: #cbd5e1;
+            --border-glow: #0284c7;
+            --accent-green: #16a34a;
+            --accent-amber: #d97706;
+            --accent-red: #dc2626;
+            --accent-cyan: #0284c7;
+            --accent-purple: #7c3aed;
+            --text-main: #1e293b;
+            --text-dim: #64748b;
+            --text-bright: #0369a1;
+            --table-header: #f8fafc;
+            --table-row-hover: rgba(2, 132, 199, 0.06);
+            --card-bg: #f8fafc;
+            --canvas-bg: #f8fafc;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: var(--font-mono);
+            font-family: 'Consolas', 'Courier New', Monaco, monospace;
             -webkit-tap-highlight-color: transparent;
         }
 
@@ -39,6 +63,7 @@
             flex-direction: column;
             gap: 6px;
             overflow-x: hidden;
+            transition: background 0.3s, color 0.3s;
         }
 
         /* Top Header Navigation */
@@ -97,7 +122,7 @@
         }
 
         select, button {
-            background: #0f192c;
+            background: var(--panel-bg);
             color: var(--text-main);
             border: 1px solid var(--panel-border);
             padding: 4px 8px;
@@ -123,7 +148,7 @@
         /* Main App Grid - Split 50/50 Desktop & Fluid Mobile */
         .dashboard-container {
             display: grid;
-            grid-template-columns: 1fr 1fr; /* 50% Telemetry Table Matrix / 50% Visualizer */
+            grid-template-columns: 1fr 1fr;
             gap: 6px;
             flex-grow: 1;
         }
@@ -149,6 +174,7 @@
             flex-direction: column;
             position: relative;
             overflow: hidden;
+            transition: background 0.3s, border 0.3s;
         }
 
         .panel-title {
@@ -177,7 +203,7 @@
         }
 
         .main-spl-card {
-            background: #03060a;
+            background: var(--card-bg);
             border: 1px solid var(--panel-border);
             border-radius: 3px;
             padding: 6px;
@@ -194,7 +220,7 @@
             color: var(--accent-green);
             letter-spacing: -1px;
             line-height: 1;
-            text-shadow: 0 0 8px rgba(0,255,102,0.3);
+            text-shadow: 0 0 8px rgba(0,255,102,0.2);
         }
 
         .main-spl-unit {
@@ -207,7 +233,7 @@
         .meter-bar-track {
             width: 100%;
             height: 5px;
-            background: #03060a;
+            background: var(--card-bg);
             border: 1px solid var(--panel-border);
             border-radius: 2px;
             overflow: hidden;
@@ -229,7 +255,7 @@
         }
 
         .tele-card {
-            background: #03060a;
+            background: var(--card-bg);
             border: 1px solid var(--panel-border);
             padding: 3px 5px;
             border-radius: 2px;
@@ -263,7 +289,6 @@
             padding-right: 2px;
         }
 
-        /* Custom Scrollbar */
         .table-matrix-container::-webkit-scrollbar {
             width: 4px;
         }
@@ -272,13 +297,12 @@
             border-radius: 2px;
         }
 
-        /* Industrial Telemetry Tables Styling */
         .telemetry-table-wrapper {
             width: 100%;
             overflow-x: auto;
             border: 1px solid var(--panel-border);
             border-radius: 3px;
-            background: #03060b;
+            background: var(--card-bg);
         }
 
         table.tele-table {
@@ -290,28 +314,27 @@
         }
 
         table.tele-table th {
-            background: #0a1220;
+            background: var(--table-header);
             color: var(--text-bright);
             padding: 4px 6px;
             border-bottom: 1px solid var(--panel-border);
-            border-right: 1px solid #111e36;
+            border-right: 1px solid var(--panel-border);
             font-weight: 600;
             text-transform: uppercase;
         }
 
         table.tele-table td {
             padding: 3px 6px;
-            border-bottom: 1px solid #0d1729;
-            border-right: 1px solid #0d1729;
+            border-bottom: 1px solid var(--panel-border);
+            border-right: 1px solid var(--panel-border);
             color: var(--text-main);
         }
 
         table.tele-table tr:hover {
-            background: rgba(0, 240, 255, 0.04);
+            background: var(--table-row-hover);
         }
 
         table.tele-table td.num {
-            font-family: var(--font-mono);
             font-weight: bold;
             text-align: right;
             color: var(--accent-cyan);
@@ -325,7 +348,7 @@
         .canvas-box {
             flex-grow: 1;
             position: relative;
-            background: #020407;
+            background: var(--canvas-bg);
             border: 1px solid var(--panel-border);
             border-radius: 3px;
             overflow: hidden;
@@ -338,7 +361,6 @@
             display: block;
         }
 
-        /* Status Indicator LED */
         .status-led {
             width: 6px;
             height: 6px;
@@ -352,7 +374,6 @@
             box-shadow: 0 0 5px var(--accent-green);
         }
 
-        /* Micro Log Footer */
         .micro-log-bar {
             display: flex;
             justify-content: space-between;
@@ -366,10 +387,9 @@
             gap: 4px;
         }
 
-        /* Responsive Breakpoints (Mobile & Tablet) */
         @media (max-width: 1024px) {
             .dashboard-container {
-                grid-template-columns: 1fr; /* Stack Vertical */
+                grid-template-columns: 1fr;
             }
             .table-matrix-container {
                 max-height: 450px;
@@ -380,28 +400,13 @@
         }
 
         @media (max-width: 600px) {
-            body {
-                padding: 4px;
-                gap: 4px;
-            }
-            header {
-                padding: 4px 8px;
-            }
-            .spl-header-grid {
-                grid-template-columns: 110px 1fr;
-            }
-            .main-spl-value {
-                font-size: 1.8rem;
-            }
-            .primary-tele-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            .tele-card .val {
-                font-size: 0.65rem;
-            }
-            .table-matrix-container {
-                max-height: 380px;
-            }
+            body { padding: 4px; gap: 4px; }
+            header { padding: 4px 8px; }
+            .spl-header-grid { grid-template-columns: 110px 1fr; }
+            .main-spl-value { font-size: 1.8rem; }
+            .primary-tele-grid { grid-template-columns: repeat(2, 1fr); }
+            .tele-card .val { font-size: 0.65rem; }
+            .table-matrix-container { max-height: 380px; }
         }
     </style>
 </head>
@@ -411,19 +416,37 @@
     <header>
         <div class="brand">
             <span class="brand-logo">SYS-ACUSTICA v4.0</span>
-            <h1>IEC 61672-1 CLASS-1 ACOUSTIC TELEMETRY MATRIX</h1>
+            <h1 data-i18n="header_title">IEC 61672-1 CLASS-1 ACOUSTIC TELEMETRY MATRIX</h1>
         </div>
         <div class="controls-group">
+            <!-- Theme Mode Switcher -->
             <div class="control-item">
-                <label>Weighting Filter</label>
-                <select id="weightingSelect">
-                    <option value="A">A-Weighting [Human Ear]</option>
-                    <option value="C">C-Weighting [Sub/Low-Freq]</option>
-                    <option value="Z">Z-Weighting [Flat Unweighted]</option>
+                <label data-i18n="lbl_theme">Theme</label>
+                <select id="themeSelect" onchange="toggleTheme(this.value)">
+                    <option value="dark">Dark Mode</option>
+                    <option value="light">Light Mode</option>
+                </select>
+            </div>
+            <!-- Language Switcher -->
+            <div class="control-item">
+                <label data-i18n="lbl_lang">Language</label>
+                <select id="langSelect" onchange="changeLanguage(this.value)">
+                    <option value="en">English</option>
+                    <option value="id" selected>Indonesia</option>
+                    <option value="zh">中文 (Chinese)</option>
+                    <option value="ja">日本語 (Japanese)</option>
                 </select>
             </div>
             <div class="control-item">
-                <label>Time Response</label>
+                <label data-i18n="lbl_weight">Weighting Filter</label>
+                <select id="weightingSelect">
+                    <option value="A">A-Weighting</option>
+                    <option value="C">C-Weighting</option>
+                    <option value="Z">Z-Weighting</option>
+                </select>
+            </div>
+            <div class="control-item">
+                <label data-i18n="lbl_response">Time Response</label>
                 <select id="responseSelect">
                     <option value="FAST">FAST (125 ms)</option>
                     <option value="SLOW">SLOW (1000 ms)</option>
@@ -431,16 +454,16 @@
                 </select>
             </div>
             <div class="control-item">
-                <label>Generator Signal</label>
+                <label data-i18n="lbl_gen">Generator Signal</label>
                 <select id="genSignalSelect" onchange="updateGeneratorSignal()">
                     <option value="OFF">OFF [Mic Input]</option>
-                    <option value="SINE_1K">Sine 1.0 kHz Ref Tone</option>
-                    <option value="PINK_NOISE">Pink Noise Test Stream</option>
-                    <option value="SWEEP_20_20K">Log Sweep (20Hz-20kHz)</option>
+                    <option value="SINE_1K">Sine 1.0 kHz</option>
+                    <option value="PINK_NOISE">Pink Noise</option>
+                    <option value="SWEEP_20_20K">Log Sweep</option>
                 </select>
             </div>
             <div class="control-item">
-                <label>Engine Power</label>
+                <label data-i18n="lbl_engine">Engine Power</label>
                 <button id="btnToggle" onclick="toggleAudio()">START TELEMETRY</button>
             </div>
         </div>
@@ -449,15 +472,14 @@
     <!-- Main App Split Container -->
     <div class="dashboard-container">
 
-        <!-- LEFT SIDE (50%): Ratusan Data Telemetri & Tabel Parameter Akustik -->
+        <!-- LEFT SIDE (50%): Telemetry Tables Matrix -->
         <div class="telemetry-section">
             <div class="panel">
                 <div class="panel-title">
-                    <span>Master Telemetry Processing Unit</span>
-                    <span><i class="status-led" id="statusLed"></i> <span id="statusText">STANDBY</span></span>
+                    <span data-i18n="panel_unit_title">Master Telemetry Processing Unit</span>
+                    <span><i class="status-led" id="statusLed"></i> <span id="statusText" data-i18n="status_standby">STANDBY</span></span>
                 </div>
 
-                <!-- Primary SPL Header Display -->
                 <div class="spl-header-grid">
                     <div class="main-spl-card">
                         <div class="main-spl-value" id="mainSPL">00.0</div>
@@ -467,180 +489,152 @@
                         </div>
                     </div>
                     <div class="primary-tele-grid">
-                        <div class="tele-card"><span class="lbl">PEAK (Max)</span><span class="tele-val val amber" id="peakSPL">0.0 dB</span></div>
-                        <div class="tele-card"><span class="lbl">RMS (Avg)</span><span class="tele-val val green" id="rmsSPL">0.0 dB</span></div>
-                        <div class="tele-card"><span class="lbl">LEQ (Energy)</span><span class="tele-val val cyan" id="leqVal">0.0 dB</span></div>
-                        <div class="tele-card"><span class="lbl">LMAX (Hold)</span><span class="tele-val val" id="lMaxVal">0.0 dB</span></div>
-                        <div class="tele-card"><span class="lbl">LMIN (Floor)</span><span class="tele-val val" id="lMinVal">0.0 dB</span></div>
-                        <div class="tele-card"><span class="lbl">CREST FACTOR</span><span class="tele-val val" id="crestVal">0.0 dB</span></div>
-                        <div class="tele-card"><span class="lbl">DOSE (OSHA)</span><span class="tele-val val cyan" id="doseVal">0.00 %</span></div>
-                        <div class="tele-card"><span class="lbl">TWA (8-Hour)</span><span class="tele-val val" id="twaVal">0.0 dBA</span></div>
+                        <div class="tele-card"><span class="lbl" data-i18n="lbl_peak">PEAK (Max)</span><span class="tele-val val amber" id="peakSPL">0.0 dB</span></div>
+                        <div class="tele-card"><span class="lbl" data-i18n="lbl_rms">RMS (Avg)</span><span class="tele-val val green" id="rmsSPL">0.0 dB</span></div>
+                        <div class="tele-card"><span class="lbl" data-i18n="lbl_leq">LEQ (Energy)</span><span class="tele-val val cyan" id="leqVal">0.0 dB</span></div>
+                        <div class="tele-card"><span class="lbl" data-i18n="lbl_lmax">LMAX (Hold)</span><span class="tele-val val" id="lMaxVal">0.0 dB</span></div>
+                        <div class="tele-card"><span class="lbl" data-i18n="lbl_lmin">LMIN (Floor)</span><span class="tele-val val" id="lMinVal">0.0 dB</span></div>
+                        <div class="tele-card"><span class="lbl" data-i18n="lbl_crest">CREST FACTOR</span><span class="tele-val val" id="crestVal">0.0 dB</span></div>
+                        <div class="tele-card"><span class="lbl" data-i18n="lbl_dose">DOSE (OSHA)</span><span class="tele-val val cyan" id="doseVal">0.00 %</span></div>
+                        <div class="tele-card"><span class="lbl" data-i18n="lbl_twa">TWA (8-Hour)</span><span class="tele-val val" id="twaVal">0.0 dBA</span></div>
                     </div>
                 </div>
 
-                <!-- Table Matrix Scrollable Area (Hundreds of Data Cells) -->
                 <div class="table-matrix-container">
                     
-                    <!-- Table 1: 1/1 Octave Band Real-time Telemetry -->
+                    <!-- Table 1 -->
                     <div class="telemetry-table-wrapper">
                         <table class="tele-table">
                             <thead>
                                 <tr>
-                                    <th>Band (Hz)</th>
-                                    <th>31.5</th>
-                                    <th>63</th>
-                                    <th>125</th>
-                                    <th>250</th>
-                                    <th>500</th>
-                                    <th>1k</th>
-                                    <th>2k</th>
-                                    <th>4k</th>
-                                    <th>8k</th>
-                                    <th>16k</th>
+                                    <th data-i18n="th_band">Band (Hz)</th>
+                                    <th>31.5</th><th>63</th><th>125</th><th>250</th><th>500</th><th>1k</th><th>2k</th><th>4k</th><th>8k</th><th>16k</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td><b>SPL (dB)</b></td>
-                                    <td class="num" id="oct31">0.0</td>
-                                    <td class="num" id="oct63">0.0</td>
-                                    <td class="num" id="oct125">0.0</td>
-                                    <td class="num" id="oct250">0.0</td>
-                                    <td class="num" id="oct500">0.0</td>
-                                    <td class="num" id="oct1k">0.0</td>
-                                    <td class="num" id="oct2k">0.0</td>
-                                    <td class="num" id="oct4k">0.0</td>
-                                    <td class="num" id="oct8k">0.0</td>
-                                    <td class="num" id="oct16k">0.0</td>
+                                    <td><b data-i18n="tbl_spl_db">SPL (dB)</b></td>
+                                    <td class="num" id="oct31">0.0</td><td class="num" id="oct63">0.0</td><td class="num" id="oct125">0.0</td><td class="num" id="oct250">0.0</td><td class="num" id="oct500">0.0</td><td class="num" id="oct1k">0.0</td><td class="num" id="oct2k">0.0</td><td class="num" id="oct4k">0.0</td><td class="num" id="oct8k">0.0</td><td class="num" id="oct16k">0.0</td>
                                 </tr>
                                 <tr>
-                                    <td><b>Peak Hold</b></td>
-                                    <td class="num warn" id="octPk31">0.0</td>
-                                    <td class="num warn" id="octPk63">0.0</td>
-                                    <td class="num warn" id="octPk125">0.0</td>
-                                    <td class="num warn" id="octPk250">0.0</td>
-                                    <td class="num warn" id="octPk500">0.0</td>
-                                    <td class="num warn" id="octPk1k">0.0</td>
-                                    <td class="num warn" id="octPk2k">0.0</td>
-                                    <td class="num warn" id="octPk4k">0.0</td>
-                                    <td class="num warn" id="octPk8k">0.0</td>
-                                    <td class="num warn" id="octPk16k">0.0</td>
+                                    <td><b data-i18n="tbl_peak_hold">Peak Hold</b></td>
+                                    <td class="num warn" id="octPk31">0.0</td><td class="num warn" id="octPk63">0.0</td><td class="num warn" id="octPk125">0.0</td><td class="num warn" id="octPk250">0.0</td><td class="num warn" id="octPk500">0.0</td><td class="num warn" id="octPk1k">0.0</td><td class="num warn" id="octPk2k">0.0</td><td class="num warn" id="octPk4k">0.0</td><td class="num warn" id="octPk8k">0.0</td><td class="num warn" id="octPk16k">0.0</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
 
-                    <!-- Table 2: Acoustic Room Physics & Speech Intelligibility Metrics -->
+                    <!-- Table 2 -->
                     <div class="telemetry-table-wrapper">
                         <table class="tele-table">
                             <thead>
                                 <tr>
-                                    <th>Parameter Acoustic Index</th>
-                                    <th>Value</th>
-                                    <th>Target Reference</th>
-                                    <th>Status / Rating</th>
+                                    <th data-i18n="th_param">Parameter Acoustic Index</th>
+                                    <th data-i18n="th_val">Value</th>
+                                    <th data-i18n="th_target">Target Reference</th>
+                                    <th data-i18n="th_status">Status / Rating</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td>RT60 Estimated (Reverberation Time)</td>
+                                    <td data-i18n="ac_rt60">RT60 Estimated (Reverberation Time)</td>
                                     <td class="num" id="rt60Val">0.45 s</td>
                                     <td>0.30 - 0.60 s</td>
-                                    <td class="good">OPTIMAL STUDIO</td>
+                                    <td class="good" data-i18n="rt_optimal">OPTIMAL STUDIO</td>
                                 </tr>
                                 <tr>
-                                    <td>STI (Speech Intelligibility Index)</td>
+                                    <td data-i18n="ac_sti">STI (Speech Intelligibility Index)</td>
                                     <td class="num" id="stiVal">0.82</td>
                                     <td>0.75 - 1.00</td>
-                                    <td class="good">EXCELLENT</td>
+                                    <td class="good" data-i18n="rt_excel">EXCELLENT</td>
                                 </tr>
                                 <tr>
-                                    <td>NC Rating (Noise Criterion Curve)</td>
+                                    <td data-i18n="ac_nc">NC Rating (Noise Criterion Curve)</td>
                                     <td class="num" id="ncVal">NC-32</td>
                                     <td>NC-25 - NC-35</td>
-                                    <td class="good">PASSED Class-1</td>
+                                    <td class="good" data-i18n="rt_passed">PASSED Class-1</td>
                                 </tr>
                                 <tr>
-                                    <td>C80 Clarity (Music / Acoustics)</td>
+                                    <td data-i18n="ac_c80">C80 Clarity (Music / Acoustics)</td>
                                     <td class="num" id="c80Val">+3.2 dB</td>
                                     <td>> +1.0 dB</td>
-                                    <td class="good">HIGH DEFINITION</td>
+                                    <td class="good" data-i18n="rt_highdef">HIGH DEFINITION</td>
                                 </tr>
                                 <tr>
-                                    <td>D50 Definition (Speech Intelligibility)</td>
+                                    <td data-i18n="ac_d50">D50 Definition (Speech Intelligibility)</td>
                                     <td class="num" id="d50Val">68.4 %</td>
                                     <td>> 50.0 %</td>
-                                    <td class="good">CLEAR</td>
+                                    <td class="good" data-i18n="rt_clear">CLEAR</td>
                                 </tr>
                                 <tr>
-                                    <td>ISO 226 Loudness Level (L)</td>
+                                    <td data-i18n="ac_phon">ISO 226 Loudness Level (L)</td>
                                     <td class="num" id="phonVal">74.2 Phon</td>
                                     <td>Equal Loudness Ref</td>
-                                    <td class="good">NOMINAL</td>
+                                    <td class="good" data-i18n="rt_nominal">NOMINAL</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
 
-                    <!-- Table 3: Statistical Sound Percentiles (L1 - L99) & Exposure -->
+                    <!-- Table 3 -->
                     <div class="telemetry-table-wrapper">
                         <table class="tele-table">
                             <thead>
                                 <tr>
-                                    <th>Statistical Metric</th>
-                                    <th>Value (dB)</th>
-                                    <th>Operational Definition</th>
+                                    <th data-i18n="th_stat_metric">Statistical Metric</th>
+                                    <th data-i18n="th_val_db">Value (dB)</th>
+                                    <th data-i18n="th_op_def">Operational Definition</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr><td>L1.0 (Peak Impulse Events)</td><td class="num" id="l1Val">0.0</td><td>Exceeded 1% of acquisition window</td></tr>
-                                <tr><td>L10.0 (Intermittent Peak Level)</td><td class="num" id="l10Val">0.0</td><td>Exceeded 10% of acquisition window</td></tr>
-                                <tr><td>L50.0 (Median Acoustic Level)</td><td class="num" id="l50Val">0.0</td><td>Exceeded 50% median energy distribution</td></tr>
-                                <tr><td>L90.0 (Ambient Background Noise)</td><td class="num" id="l90Val">0.0</td><td>Background acoustic floor level</td></tr>
-                                <tr><td>L99.0 (Absolute Noise Floor)</td><td class="num" id="l99Val">0.0</td><td>Minimum ambient boundary level</td></tr>
+                                <tr><td data-i18n="st_l1">L1.0 (Peak Impulse Events)</td><td class="num" id="l1Val">0.0</td><td data-i18n="st_l1_desc">Exceeded 1% of window</td></tr>
+                                <tr><td data-i18n="st_l10">L10.0 (Intermittent Peak Level)</td><td class="num" id="l10Val">0.0</td><td data-i18n="st_l10_desc">Exceeded 10% of window</td></tr>
+                                <tr><td data-i18n="st_l50">L50.0 (Median Acoustic Level)</td><td class="num" id="l50Val">0.0</td><td data-i18n="st_l50_desc">Median energy distribution</td></tr>
+                                <tr><td data-i18n="st_l90">L90.0 (Ambient Background Noise)</td><td class="num" id="l90Val">0.0</td><td data-i18n="st_l90_desc">Background acoustic floor</td></tr>
+                                <tr><td data-i18n="st_l99">L99.0 (Absolute Noise Floor)</td><td class="num" id="l99Val">0.0</td><td data-i18n="st_l99_desc">Minimum ambient boundary</td></tr>
                             </tbody>
                         </table>
                     </div>
 
-                    <!-- Table 4: Harmonic Distortion Decomposition (H1 - H8) & DSP Quality -->
+                    <!-- Table 4 -->
                     <div class="telemetry-table-wrapper">
                         <table class="tele-table">
                             <thead>
                                 <tr>
-                                    <th>Harmonic Component</th>
-                                    <th>Order</th>
-                                    <th>Magnitude (dB)</th>
-                                    <th>THD Relative (%)</th>
+                                    <th data-i18n="th_harm_comp">Harmonic Component</th>
+                                    <th data-i18n="th_order">Order</th>
+                                    <th data-i18n="th_mag">Magnitude (dB)</th>
+                                    <th data-i18n="th_thd_rel">THD Relative (%)</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr><td>H1 Fundamental</td><td>1st</td><td class="num" id="h1Mag">-2.4 dB</td><td class="num">100.0 %</td></tr>
-                                <tr><td>H2 Harmonic Distortion</td><td>2nd</td><td class="num" id="h2Mag">-48.2 dB</td><td class="num" id="h2Thd">0.12 %</td></tr>
-                                <tr><td>H3 Harmonic Distortion</td><td>3rd</td><td class="num" id="h3Mag">-52.1 dB</td><td class="num" id="h3Thd">0.08 %</td></tr>
-                                <tr><td>H4 Harmonic Distortion</td><td>4th</td><td class="num" id="h4Mag">-61.0 dB</td><td class="num" id="h4Thd">0.03 %</td></tr>
-                                <tr><td>H5 Harmonic Distortion</td><td>5th</td><td class="num" id="h5Mag">-68.4 dB</td><td class="num" id="h5Thd">0.01 %</td></tr>
-                                <tr><td><b>THD+N Overall</b></td><td><b>Total</b></td><td class="num warn" id="thdTotalDb">-42.8 dB</td><td class="num warn" id="thdTotalPct">0.24 %</td></tr>
+                                <tr><td data-i18n="h_fund">H1 Fundamental</td><td>1st</td><td class="num" id="h1Mag">-2.4 dB</td><td class="num">100.0 %</td></tr>
+                                <tr><td data-i18n="h_dist2">H2 Harmonic Distortion</td><td>2nd</td><td class="num" id="h2Mag">-48.2 dB</td><td class="num" id="h2Thd">0.12 %</td></tr>
+                                <tr><td data-i18n="h_dist3">H3 Harmonic Distortion</td><td>3rd</td><td class="num" id="h3Mag">-52.1 dB</td><td class="num" id="h3Thd">0.08 %</td></tr>
+                                <tr><td data-i18n="h_dist4">H4 Harmonic Distortion</td><td>4th</td><td class="num" id="h4Mag">-61.0 dB</td><td class="num" id="h4Thd">0.03 %</td></tr>
+                                <tr><td data-i18n="h_dist5">H5 Harmonic Distortion</td><td>5th</td><td class="num" id="h5Mag">-68.4 dB</td><td class="num" id="h5Thd">0.01 %</td></tr>
+                                <tr><td><b data-i18n="h_thdn">THD+N Overall</b></td><td><b>Total</b></td><td class="num warn" id="thdTotalDb">-42.8 dB</td><td class="num warn" id="thdTotalPct">0.24 %</td></tr>
                             </tbody>
                         </table>
                     </div>
 
-                    <!-- Table 5: Environmental & Hardware System Telemetry -->
+                    <!-- Table 5 -->
                     <div class="telemetry-table-wrapper">
                         <table class="tele-table">
                             <thead>
                                 <tr>
-                                    <th>System Hardware Variable</th>
-                                    <th>Realtime Status</th>
-                                    <th>Diagnostic Specification</th>
+                                    <th data-i18n="th_sys_var">System Hardware Variable</th>
+                                    <th data-i18n="th_real_status">Realtime Status</th>
+                                    <th data-i18n="th_diag_spec">Diagnostic Specification</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr><td>Sampling Frequency (Fs)</td><td class="num" id="fsVal">48.0 kHz</td><td>24-Bit ADC Audio Pipeline</td></tr>
-                                <tr><td>Nyquist Frequency Cutoff</td><td class="num" id="nyqVal">24.0 kHz</td><td>Anti-Aliasing Active</td></tr>
-                                <tr><td>FFT Resolution Bins</td><td class="num">2048 Points</td><td>23.4 Hz Bin Resolution Width</td></tr>
-                                <tr><td>DSP Latency Buffer</td><td class="num" id="dspLatencyVal">4.2 ms</td><td>Low-Latency Audio Context</td></tr>
-                                <tr><td>Mic Capsule Sensitivity</td><td class="num">-38.0 dBV/Pa</td><td>Nominal Class-1 Electret/MEMS</td></tr>
-                                <tr><td>System Temperature (Est.)</td><td class="num">28.4 °C</td><td>Nominal Acoustic Velocity 348.2 m/s</td></tr>
+                                <tr><td data-i18n="sys_fs">Sampling Frequency (Fs)</td><td class="num" id="fsVal">48.0 kHz</td><td>24-Bit ADC Audio Pipeline</td></tr>
+                                <tr><td data-i18n="sys_nyq">Nyquist Frequency Cutoff</td><td class="num" id="nyqVal">24.0 kHz</td><td>Anti-Aliasing Active</td></tr>
+                                <tr><td data-i18n="sys_fft">FFT Resolution Bins</td><td class="num">2048 Points</td><td>23.4 Hz Bin Resolution Width</td></tr>
+                                <tr><td data-i18n="sys_lat">DSP Latency Buffer</td><td class="num" id="dspLatencyVal">4.2 ms</td><td>Low-Latency Audio Context</td></tr>
+                                <tr><td data-i18n="sys_mic">Mic Capsule Sensitivity</td><td class="num">-38.0 dBV/Pa</td><td>Nominal Class-1 Electret/MEMS</td></tr>
+                                <tr><td data-i18n="sys_temp">System Temperature (Est.)</td><td class="num">28.4 °C</td><td>Nominal Acoustic Velocity 348.2 m/s</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -649,42 +643,37 @@
             </div>
         </div>
 
-        <!-- RIGHT SIDE (50%): Visualizer Graphs (RTA, FFT, Waterfall Spectrogram) -->
+        <!-- RIGHT SIDE (50%): Visualizer Graphs -->
         <div class="visualizer-section">
-            
-            <!-- Panel RTA (1/3 Octave Spectrum) -->
             <div class="panel">
                 <div class="panel-title">
-                    <span>RTA // 1/3 Octave Real-Time Analyzer</span>
-                    <span>Peak Freq: <b id="rtaPeakFreq">-- Hz</b></span>
+                    <span data-i18n="viz_rta_title">RTA // 1/3 Octave Real-Time Analyzer</span>
+                    <span><span data-i18n="lbl_peak_freq">Peak Freq</span>: <b id="rtaPeakFreq">-- Hz</b></span>
                 </div>
                 <div class="canvas-box">
                     <canvas id="rtaCanvas"></canvas>
                 </div>
             </div>
 
-            <!-- Panel FFT High Res Curve -->
             <div class="panel">
                 <div class="panel-title">
-                    <span>FFT Spectral Line Analysis (20Hz - 20kHz)</span>
-                    <span>Bin Peak: <b id="binPeakInfo">#0 (0Hz)</b></span>
+                    <span data-i18n="viz_fft_title">FFT Spectral Line Analysis (20Hz - 20kHz)</span>
+                    <span><span data-i18n="lbl_bin_peak">Bin Peak</span>: <b id="binPeakInfo">#0 (0Hz)</b></span>
                 </div>
                 <div class="canvas-box">
                     <canvas id="fftCanvas"></canvas>
                 </div>
             </div>
 
-            <!-- Panel Spectrogram Waterfall -->
             <div class="panel">
                 <div class="panel-title">
-                    <span>Spectrogram Waterfall (Time-Frequency Resonances)</span>
-                    <span><b>3D Energy Decay Heatmap</b></span>
+                    <span data-i18n="viz_wf_title">Spectrogram Waterfall (Time-Frequency Resonances)</span>
+                    <span><b data-i18n="viz_wf_sub">3D Energy Decay Heatmap</b></span>
                 </div>
                 <div class="canvas-box">
                     <canvas id="waterfallCanvas"></canvas>
                 </div>
             </div>
-
         </div>
 
     </div>
@@ -698,25 +687,362 @@
         <span>BUFFER_SIZE: 2048 SAMPLES</span>
     </div>
 
-    <!-- JavaScript Audio DSP Core & Realtime Engine -->
+    <!-- JavaScript Multi-Language, Theme, & Audio DSP Engine -->
     <script>
+        // Multi-Language Dictionary Matrix
+        const i18n = {
+            en: {
+                header_title: "IEC 61672-1 CLASS-1 ACOUSTIC TELEMETRY MATRIX",
+                lbl_theme: "Theme",
+                lbl_lang: "Language",
+                lbl_weight: "Weighting Filter",
+                lbl_response: "Time Response",
+                lbl_gen: "Generator Signal",
+                lbl_engine: "Engine Power",
+                btn_start: "START TELEMETRY",
+                btn_stop: "STOP TELEMETRY",
+                panel_unit_title: "Master Telemetry Processing Unit",
+                status_standby: "STANDBY",
+                status_online: "ONLINE // DSP ACTIVE",
+                lbl_peak: "PEAK (Max)",
+                lbl_rms: "RMS (Avg)",
+                lbl_leq: "LEQ (Energy)",
+                lbl_lmax: "LMAX (Hold)",
+                lbl_lmin: "LMIN (Floor)",
+                lbl_crest: "CREST FACTOR",
+                lbl_dose: "DOSE (OSHA)",
+                lbl_twa: "TWA (8-Hour)",
+                th_band: "Band (Hz)",
+                tbl_spl_db: "SPL (dB)",
+                tbl_peak_hold: "Peak Hold",
+                th_param: "Parameter Acoustic Index",
+                th_val: "Value",
+                th_target: "Target Reference",
+                th_status: "Status / Rating",
+                rt_optimal: "OPTIMAL STUDIO",
+                rt_excel: "EXCELLENT",
+                rt_passed: "PASSED Class-1",
+                rt_highdef: "HIGH DEFINITION",
+                rt_clear: "CLEAR",
+                rt_nominal: "NOMINAL",
+                th_stat_metric: "Statistical Metric",
+                th_val_db: "Value (dB)",
+                th_op_def: "Operational Definition",
+                st_l1: "L1.0 (Peak Impulse Events)",
+                st_l1_desc: "Exceeded 1% of window",
+                st_l10: "L10.0 (Intermittent Peak Level)",
+                st_l10_desc: "Exceeded 10% of window",
+                st_l50: "L50.0 (Median Acoustic Level)",
+                st_l50_desc: "Median energy distribution",
+                st_l90: "L90.0 (Ambient Background Noise)",
+                st_l90_desc: "Background acoustic floor",
+                st_l99: "L99.0 (Absolute Noise Floor)",
+                st_l99_desc: "Minimum ambient boundary",
+                th_harm_comp: "Harmonic Component",
+                th_order: "Order",
+                th_mag: "Magnitude (dB)",
+                th_thd_rel: "THD Relative (%)",
+                h_fund: "H1 Fundamental",
+                h_dist2: "H2 Harmonic Distortion",
+                h_dist3: "H3 Harmonic Distortion",
+                h_dist4: "H4 Harmonic Distortion",
+                h_dist5: "H5 Harmonic Distortion",
+                h_thdn: "THD+N Overall",
+                th_sys_var: "System Hardware Variable",
+                th_real_status: "Realtime Status",
+                th_diag_spec: "Diagnostic Specification",
+                sys_fs: "Sampling Frequency (Fs)",
+                sys_nyq: "Nyquist Frequency Cutoff",
+                sys_fft: "FFT Resolution Bins",
+                sys_lat: "DSP Latency Buffer",
+                sys_mic: "Mic Capsule Sensitivity",
+                sys_temp: "System Temperature (Est.)",
+                viz_rta_title: "RTA // 1/3 Octave Real-Time Analyzer",
+                lbl_peak_freq: "Peak Freq",
+                viz_fft_title: "FFT Spectral Line Analysis (20Hz - 20kHz)",
+                lbl_bin_peak: "Bin Peak",
+                viz_wf_title: "Spectrogram Waterfall (Time-Frequency Resonances)",
+                viz_wf_sub: "3D Energy Decay Heatmap",
+                ac_rt60: "RT60 Estimated (Reverberation Time)",
+                ac_sti: "STI (Speech Intelligibility Index)",
+                ac_nc: "NC Rating (Noise Criterion Curve)",
+                ac_c80: "C80 Clarity (Music / Acoustics)",
+                ac_d50: "D50 Definition (Speech Intelligibility)",
+                ac_phon: "ISO 226 Loudness Level (L)"
+            },
+            id: {
+                header_title: "IEC 61672-1 CLASS-1 AKUSTIK TELEMETRI MATRIKS",
+                lbl_theme: "Tema Tampilan",
+                lbl_lang: "Bahasa",
+                lbl_weight: "Filter Bobot",
+                lbl_response: "Respon Waktu",
+                lbl_gen: "Sinyal Generator",
+                lbl_engine: "Daya Mesin",
+                btn_start: "MULAI TELEMETRI",
+                btn_stop: "HENTIKAN TELEMETRI",
+                panel_unit_title: "Unit Pemroses Telemetri Utama",
+                status_standby: "SIAP (STANDBY)",
+                status_online: "AKTIF // DSP BERJALAN",
+                lbl_peak: "PUNCAK (Maks)",
+                lbl_rms: "RMS (Rata-rata)",
+                lbl_leq: "LEQ (Energi)",
+                lbl_lmax: "LMAX (Tahan)",
+                lbl_lmin: "LMIN (Dasar)",
+                lbl_crest: "FAKTOR CREST",
+                lbl_dose: "DOSIS (OSHA)",
+                lbl_twa: "TWA (8-Jam)",
+                th_band: "Pita (Hz)",
+                tbl_spl_db: "SPL (dB)",
+                tbl_peak_hold: "Tahan Puncak",
+                th_param: "Indeks Parameter Akustik",
+                th_val: "Nilai",
+                th_target: "Referensi Target",
+                th_status: "Status / Peringkat",
+                rt_optimal: "STUDIO OPTIMAL",
+                rt_excel: "SEMPURNA",
+                rt_passed: "LOLOS Kelas-1",
+                rt_highdef: "DEFINISI TINGGI",
+                rt_clear: "JERNIH",
+                rt_nominal: "NOMINAL",
+                th_stat_metric: "Metrik Statistik",
+                th_val_db: "Nilai (dB)",
+                th_op_def: "Definisi Operasional",
+                st_l1: "L1.0 (Kejadian Impuls Puncak)",
+                st_l1_desc: "Terlampaui 1% dari jendela waktu",
+                st_l10: "L10.0 (Level Puncak Intermiten)",
+                st_l10_desc: "Terlampaui 10% dari jendela waktu",
+                st_l50: "L50.0 (Level Akustik Median)",
+                st_l50_desc: "Distribusi energi median",
+                st_l90: "L90.0 (Kebisingan Latar Belakang)",
+                st_l90_desc: "Lantai kebisingan latar",
+                st_l99: "L99.0 (Lantai Kebisingan Mutlak)",
+                st_l99_desc: "Batas minimum sekitar",
+                th_harm_comp: "Komponen Harmonik",
+                th_order: "Orde",
+                th_mag: "Besaran (dB)",
+                th_thd_rel: "THD Relatif (%)",
+                h_fund: "H1 Fundamental",
+                h_dist2: "H2 Distorsi Harmonik",
+                h_dist3: "H3 Distorsi Harmonik",
+                h_dist4: "H4 Distorsi Harmonik",
+                h_dist5: "H5 Distorsi Harmonik",
+                h_thdn: "THD+N Total",
+                th_sys_var: "Variabel Perangkat Keras",
+                th_real_status: "Status Real-time",
+                th_diag_spec: "Spesifikasi Diagnostik",
+                sys_fs: "Frekuensi Sampling (Fs)",
+                sys_nyq: "Batas Frekuensi Nyquist",
+                sys_fft: "Bin Resolusi FFT",
+                sys_lat: "Buffer Latensi DSP",
+                sys_mic: "Sensitivitas Mikrofon",
+                sys_temp: "Suhu Sistem (Est.)",
+                viz_rta_title: "RTA // Penganalisis Real-Time 1/3 Oktaf",
+                lbl_peak_freq: "Freq Puncak",
+                viz_fft_title: "Analisis Jalur Spektral FFT (20Hz - 20kHz)",
+                lbl_bin_peak: "Bin Puncak",
+                viz_wf_title: "Spektrogram Waterfall (Resonansi Waktu-Frekuensi)",
+                viz_wf_sub: "Peta Panas Peluruhan Energi 3D",
+                ac_rt60: "RT60 Estimasi (Waktu Dengung)",
+                ac_sti: "STI (Indeks Kejelasan Bicara)",
+                ac_nc: "Peringkat NC (Kurva Kriteria Kebisingan)",
+                ac_c80: "Kejelasan C80 (Musik / Akustik)",
+                ac_d50: "Definisi D50 (Kejelasan Bicara)",
+                ac_phon: "Tingkat Kenyaringan ISO 226 (L)"
+            },
+            zh: {
+                header_title: "IEC 61672-1 1类声学遥测矩阵",
+                lbl_theme: "主题模式",
+                lbl_lang: "语言设置",
+                lbl_weight: "计权滤波器",
+                lbl_response: "时间响应",
+                lbl_gen: "测试信号源",
+                lbl_engine: "系统引擎",
+                btn_start: "启动遥测",
+                btn_stop: "停止遥测",
+                panel_unit_title: "主遥测处理单元",
+                status_standby: "待机中",
+                status_online: "在线 // DSP运行中",
+                lbl_peak: "峰值 (最大)",
+                lbl_rms: "有效值 (平均)",
+                lbl_leq: "等效声级 (LEQ)",
+                lbl_lmax: "最大保持",
+                lbl_lmin: "最小底噪",
+                lbl_crest: "crest 因子",
+                lbl_dose: "暴露剂量 (OSHA)",
+                lbl_twa: "时间加权平均 (TWA)",
+                th_band: "频段 (Hz)",
+                tbl_spl_db: "声压级 (dB)",
+                tbl_peak_hold: "峰值保持",
+                th_param: "声学参数指标",
+                th_val: "数值",
+                th_target: "目标参考",
+                th_status: "状态 / 评级",
+                rt_optimal: "录音室最佳",
+                rt_excel: "极佳",
+                rt_passed: "通过1类标准",
+                rt_highdef: "高清音质",
+                rt_clear: "清晰",
+                rt_nominal: "标称",
+                th_stat_metric: "统计指标",
+                th_val_db: "数值 (dB)",
+                th_op_def: "操作定义",
+                st_l1: "L1.0 (脉冲峰值事件)",
+                st_l1_desc: "超过窗口1%",
+                st_l10: "L10.0 (间歇峰值电平)",
+                st_l10_desc: "超过窗口10%",
+                st_l50: "L50.0 (中位声级)",
+                st_l50_desc: "中值能量分布",
+                st_l90: "L90.0 (环境底噪)",
+                st_l90_desc: "背景噪声底线",
+                st_l99: "L99.0 (绝对噪声底噪)",
+                st_l99_desc: "最小环境边界",
+                th_harm_comp: "谐波分量",
+                th_order: "阶数",
+                th_mag: "幅值 (dB)",
+                th_thd_rel: "相对失真 (%)",
+                h_fund: "H1 基波",
+                h_dist2: "H2 二次谐波",
+                h_dist3: "H3 三次谐波",
+                h_dist4: "H4 四次谐波",
+                h_dist5: "H5 五次谐波",
+                h_thdn: "总谐波失真 (THD+N)",
+                th_sys_var: "系统硬件变量",
+                th_real_status: "实时状态",
+                th_diag_spec: "诊断规范",
+                sys_fs: "采样频率 (Fs)",
+                sys_nyq: "奈奎斯特频率截断",
+                sys_fft: "FFT 分辨率点数",
+                sys_lat: "DSP 延迟缓存",
+                sys_mic: "麦克风灵敏度",
+                sys_temp: "系统温度 (估计)",
+                viz_rta_title: "RTA // 1/3倍频程实时分析仪",
+                lbl_peak_freq: "峰值频率",
+                viz_fft_title: "FFT 频谱线分析 (20Hz - 20kHz)",
+                lbl_bin_peak: "谱线峰值",
+                viz_wf_title: "瀑布图谱 (时频共振分析)",
+                viz_wf_sub: "3D能量衰减热力图",
+                ac_rt60: "RT60 估计值 (混响时间)",
+                ac_sti: "STI (语言清晰度指数)",
+                ac_nc: "NC 评价曲线 (噪声标准)",
+                ac_c80: "C80 清晰度 (音乐/声学)",
+                ac_d50: "D50 清晰度 (语音)",
+                ac_phon: "ISO 226 响度级 (L)"
+            },
+            ja: {
+                header_title: "IEC 61672-1 クラス1 音響テレメトリマトリックス",
+                lbl_theme: "テーマモード",
+                lbl_lang: "言語選択",
+                lbl_weight: "重み付けフィルタ",
+                lbl_response: "時間特性",
+                lbl_gen: "テスト信号生成",
+                lbl_engine: "エンジン電力",
+                btn_start: "テレメトリ開始",
+                btn_stop: "テレメトリ停止",
+                panel_unit_title: "マスターテレメトリ処理ユニット",
+                status_standby: "待機中 (STANDBY)",
+                status_online: "オンライン // DSP稼働中",
+                lbl_peak: "ピーク (最大)",
+                lbl_rms: "実効値 (平均)",
+                lbl_leq: "等価騒音レベル (LEQ)",
+                lbl_lmax: "最大ホールド",
+                lbl_lmin: "最小フロア",
+                lbl_crest: "クレストファクタ",
+                lbl_dose: "曝露線量 (OSHA)",
+                lbl_twa: "時間加权平均 (TWA)",
+                th_band: "バンド (Hz)",
+                tbl_spl_db: "音圧レベル (dB)",
+                tbl_peak_hold: "ピークホールド",
+                th_param: "音響パラメータ指標",
+                th_val: "値",
+                th_target: "目標リファレンス",
+                th_status: "ステータス / 評価",
+                rt_optimal: "スタジオ最適",
+                rt_excel: "極めて良好",
+                rt_passed: "クラス1合格",
+                rt_highdef: "高解像度",
+                rt_clear: "クリア",
+                rt_nominal: "公称値",
+                th_stat_metric: "統計メトリクス",
+                th_val_db: "値 (dB)",
+                th_op_def: "運用定義",
+                st_l1: "L1.0 (ピークパルス事象)",
+                st_l1_desc: "ウィンドウの1%を超過",
+                st_l10: "L10.0 (間欠的ピークレベル)",
+                st_l10_desc: "ウィンドウの10%を超過",
+                st_l50: "L50.0 (中央値音圧レベル)",
+                st_l50_desc: "中央値エネルギー分布",
+                st_l90: "L90.0 (背景騒音レベル)",
+                st_l90_desc: "バックグラウンドフロア",
+                st_l99: "L99.0 (絶対雑音フロア)",
+                st_l99_desc: "最小周囲境界",
+                th_harm_comp: "高調波成分",
+                th_order: "次数",
+                th_mag: "大きさ (dB)",
+                th_thd_rel: "全高調波歪率 (%)",
+                h_fund: "H1 基本波",
+                h_dist2: "H2 第2高調波歪み",
+                h_dist3: "H3 第3高調波歪み",
+                h_dist4: "H4 第4高調波歪み",
+                h_dist5: "H5 第5高調波歪み",
+                h_thdn: "THD+N 総合",
+                th_sys_var: "ハードウェア変数",
+                th_real_status: "リアルタイム状態",
+                th_diag_spec: "診断仕様",
+                sys_fs: "サンプリング周波数 (Fs)",
+                sys_nyq: "ナイキスト周波数カットオフ",
+                sys_fft: "FFT解像度ビン",
+                sys_lat: "DSPレイテンシバッファ",
+                sys_mic: "マイクカプセル感度",
+                sys_temp: "システム温度 (推定)",
+                viz_rta_title: "RTA // 1/3オクターブリアルタイムアナライザ",
+                lbl_peak_freq: "ピーク周波数",
+                viz_fft_title: "FFTスペクトル線分析 (20Hz - 20kHz)",
+                lbl_bin_peak: "ビンピーク",
+                viz_wf_title: "スペクトログラムウォーターフォール",
+                viz_wf_sub: "3Dエネルギー減衰ヒートマップ",
+                ac_rt60: "RT60 推定値 (残響時間)",
+                ac_sti: "STI (音声明瞭度指数)",
+                ac_nc: "NC評価曲線 (騒音基準)",
+                ac_c80: "C80 クラリティ (音楽/音響)",
+                ac_d50: "D50 定義 (音声明瞭度)",
+                ac_phon: "ISO 226 ラウドネスレベル (L)"
+            }
+        };
+
+        function changeLanguage(lang) {
+            const strings = i18n[lang] || i18n['id'];
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (strings[key]) {
+                    el.textContent = strings[key];
+                }
+            });
+            // Update button text based on run state
+            if(isRunning) {
+                document.getElementById('btnToggle').textContent = strings['btn_stop'];
+                document.getElementById('statusText').textContent = strings['status_online'].split('//')[0].trim();
+            } else {
+                document.getElementById('btnToggle').textContent = strings['btn_start'];
+                document.getElementById('statusText').textContent = strings['status_standby'];
+            }
+        }
+
+        function toggleTheme(themeName) {
+            document.documentElement.setAttribute('data-theme', themeName);
+        }
+
+        // Core Audio DSP & UI Loop (from previous version)
         let audioCtx, analyser, microphone, oscNode, gainNode;
         let isRunning = false;
-        
-        let leqBuffer = [];
-        let peakValue = 0;
-        let lMinStore = 999;
-        let lMaxStore = 0;
+        let leqBuffer = [], peakValue = 0, lMinStore = 999, lMaxStore = 0;
         let octPeakStore = new Array(10).fill(0);
 
-        // UI DOM Element References
         const btnToggle = document.getElementById('btnToggle');
         const statusText = document.getElementById('statusText');
         const statusLed = document.getElementById('statusLed');
         const sysStateLog = document.getElementById('sysStateLog');
         const mainSPL = document.getElementById('mainSPL');
         const meterBarFill = document.getElementById('meterBarFill');
-        
         const peakSPL = document.getElementById('peakSPL');
         const rmsSPL = document.getElementById('rmsSPL');
         const leqVal = document.getElementById('leqVal');
@@ -725,7 +1051,6 @@
         const crestVal = document.getElementById('crestVal');
         const doseVal = document.getElementById('doseVal');
         const twaVal = document.getElementById('twaVal');
-
         const activeWeightLabel = document.getElementById('activeWeightLabel');
         const weightingSelect = document.getElementById('weightingSelect');
         const responseSelect = document.getElementById('responseSelect');
@@ -733,7 +1058,6 @@
         const rtaPeakFreq = document.getElementById('rtaPeakFreq');
         const binPeakInfo = document.getElementById('binPeakInfo');
 
-        // Canvas Contexts
         const rtaCanvas = document.getElementById('rtaCanvas');
         const rtaCtx = rtaCanvas.getContext('2d');
         const fftCanvas = document.getElementById('fftCanvas');
@@ -757,6 +1081,9 @@
         resizeCanvases();
 
         async function toggleAudio() {
+            const currentLang = document.getElementById('langSelect').value;
+            const strings = i18n[currentLang];
+
             if (!isRunning) {
                 try {
                     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -775,16 +1102,13 @@
                     }
 
                     isRunning = true;
-                    peakValue = 0;
-                    lMinStore = 999;
-                    lMaxStore = 0;
-                    octPeakStore.fill(0);
+                    peakValue = 0; lMinStore = 999; lMaxStore = 0; octPeakStore.fill(0);
 
-                    btnToggle.textContent = "STOP TELEMETRY";
+                    btnToggle.textContent = strings['btn_stop'];
                     btnToggle.classList.add('active');
-                    statusText.textContent = "ONLINE";
+                    statusText.textContent = strings['status_online'].split('//')[0].trim();
                     statusLed.classList.add('online');
-                    sysStateLog.textContent = "ONLINE // DSP PIPELINE ACTIVE";
+                    sysStateLog.textContent = strings['status_online'];
                     sysStateLog.style.color = "var(--accent-green)";
 
                     document.getElementById('fsVal').textContent = (audioCtx.sampleRate / 1000).toFixed(1) + " kHz";
@@ -798,9 +1122,9 @@
             } else {
                 if (audioCtx) audioCtx.close();
                 isRunning = false;
-                btnToggle.textContent = "START TELEMETRY";
+                btnToggle.textContent = strings['btn_start'];
                 btnToggle.classList.remove('active');
-                statusText.textContent = "STANDBY";
+                statusText.textContent = strings['status_standby'];
                 statusLed.classList.remove('online');
                 sysStateLog.textContent = "OFFLINE";
                 sysStateLog.style.color = "var(--accent-red)";
@@ -820,13 +1144,10 @@
                 gainNode.connect(analyser);
                 oscNode.start();
             } else if (type === 'PINK_NOISE' || type === 'SWEEP_20_20K') {
-                // Buffer Synthetic Noise Generator
                 const bufferSize = audioCtx.sampleRate * 2;
                 const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
                 const output = noiseBuffer.getChannelData(0);
-                for (let i = 0; i < bufferSize; i++) {
-                    output[i] = Math.random() * 2 - 1;
-                }
+                for (let i = 0; i < bufferSize; i++) { output[i] = Math.random() * 2 - 1; }
                 const whiteSource = audioCtx.createBufferSource();
                 whiteSource.buffer = noiseBuffer;
                 whiteSource.loop = true;
@@ -836,10 +1157,7 @@
         }
 
         function updateGeneratorSignal() {
-            if (isRunning) {
-                toggleAudio();
-                toggleAudio();
-            }
+            if (isRunning) { toggleAudio(); toggleAudio(); }
         }
 
         function processAudioLoop() {
@@ -849,20 +1167,17 @@
             const dataArray = new Uint8Array(bufferLength);
             analyser.getByteFrequencyData(dataArray);
 
-            let sum = 0;
-            let localPeak = 0;
+            let sum = 0, localPeak = 0;
             for(let i = 0; i < bufferLength; i++) {
                 sum += dataArray[i] * dataArray[i];
                 if(dataArray[i] > localPeak) localPeak = dataArray[i];
             }
             let rms = Math.sqrt(sum / bufferLength);
-            
             let dbValue = rms > 0 ? (20 * Math.log10(rms / 255 * 100) + 72) : 32.0;
             if (dbValue < 30) dbValue = 30;
             if (dbValue > 135) dbValue = 135;
 
             let peakDbValue = localPeak > 0 ? (20 * Math.log10(localPeak / 255 * 100) + 72) : 32.0;
-
             let weighting = weightingSelect.value;
             activeWeightLabel.textContent = `[${weighting}]`;
             if (weighting === 'A') dbValue -= 2.0;
@@ -879,11 +1194,9 @@
             leqBuffer.push(dbValue);
             if (leqBuffer.length > 300) leqBuffer.shift();
             let leqCalc = (leqBuffer.reduce((a, b) => a + b, 0) / leqBuffer.length).toFixed(1);
-
             let twaCalc = (parseFloat(leqCalc) - 3.8).toFixed(1);
             let doseCalc = Math.min((Math.pow(10, (leqCalc - 85) / 10) * 0.15).toFixed(2), 999.9);
 
-            // Update Primary Mini Cards
             mainSPL.textContent = currentRMS;
             rmsSPL.textContent = currentRMS + " dB";
             peakSPL.textContent = currentPeak + " dB";
@@ -897,16 +1210,10 @@
             let percentBar = ((dbValue - 30) / 105) * 100;
             meterBarFill.style.width = Math.min(Math.max(percentBar, 0), 100) + '%';
 
-            // Calculate 1/1 Octave Band Values & Update Telemetry Table 1
             updateOctaveTable(dataArray, bufferLength);
-
-            // Update Statistical Percentiles Table 3
             updatePercentiles(leqBuffer, dbValue);
+            updateAcousticMetrics(dbValue);
 
-            // Update Dynamic Room Acoustic & THD Calculations
-            updateAcousticMetrics(dbValue, leqCalc);
-
-            // Draw Visualizers
             drawRTA(dataArray, bufferLength);
             drawFFT(dataArray, bufferLength);
             drawWaterfall(dataArray);
@@ -922,7 +1229,6 @@
                 let idx = Math.floor(Math.pow(2, i) * (bufferLength / 1024) * 2);
                 let val = dataArray[Math.min(idx, bufferLength - 1)];
                 let bandDb = val > 0 ? (20 * Math.log10(val / 255 * 100) + 65).toFixed(1) : "30.0";
-
                 if (parseFloat(bandDb) > octPeakStore[i]) octPeakStore[i] = parseFloat(bandDb);
 
                 document.getElementById(octIds[i]).textContent = bandDb;
@@ -933,7 +1239,6 @@
         function updatePercentiles(buf, currentDb) {
             let sorted = [...buf].sort((a, b) => b - a);
             let len = sorted.length;
-
             document.getElementById('l1Val').textContent = (sorted[Math.floor(len * 0.01)] || currentDb).toFixed(1);
             document.getElementById('l10Val').textContent = (sorted[Math.floor(len * 0.10)] || currentDb).toFixed(1);
             document.getElementById('l50Val').textContent = (sorted[Math.floor(len * 0.50)] || currentDb).toFixed(1);
@@ -941,8 +1246,7 @@
             document.getElementById('l99Val').textContent = (sorted[Math.floor(len * 0.99)] || currentDb).toFixed(1);
         }
 
-        function updateAcousticMetrics(db, leq) {
-            // Live Simulation Math for Environmental & Acoustic Indicators
+        function updateAcousticMetrics(db) {
             let rt60Est = (0.35 + (db / 300)).toFixed(2);
             let stiEst = Math.max(0.40, Math.min(0.98, (1.0 - (db / 180)))).toFixed(2);
             let phonEst = (parseFloat(db) + 2.4).toFixed(1);
@@ -951,7 +1255,6 @@
             document.getElementById('stiVal').textContent = stiEst;
             document.getElementById('phonVal').textContent = phonEst + " Phon";
 
-            // Harmonic Distortion Values
             let h2Pct = (Math.random() * 0.10 + 0.08).toFixed(2);
             let h3Pct = (Math.random() * 0.05 + 0.04).toFixed(2);
             let totalThd = (parseFloat(h2Pct) + parseFloat(h3Pct) + 0.04).toFixed(2);
@@ -962,22 +1265,17 @@
         }
 
         function drawRTA(dataArray, bufferLength) {
-            rtaCtx.fillStyle = '#020407';
+            rtaCtx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--canvas-bg').trim();
             rtaCtx.fillRect(0, 0, rtaCanvas.width, rtaCanvas.height);
 
-            const bars = 32; 
-            const barWidth = rtaCanvas.width / bars;
+            const bars = 32, barWidth = rtaCanvas.width / bars;
             let maxVal = 0, maxIdx = 0;
 
             for (let i = 0; i < bars; i++) {
                 let index = Math.floor(i * (bufferLength / bars));
                 let value = dataArray[index];
                 let height = (value / 255) * rtaCanvas.height;
-
-                if (value > maxVal) {
-                    maxVal = value;
-                    maxIdx = index;
-                }
+                if (value > maxVal) { maxVal = value; maxIdx = index; }
 
                 let grad = rtaCtx.createLinearGradient(0, rtaCanvas.height, 0, 0);
                 grad.addColorStop(0, '#00ff66');
@@ -987,48 +1285,34 @@
                 rtaCtx.fillStyle = grad;
                 rtaCtx.fillRect(i * barWidth + 1, rtaCanvas.height - height, barWidth - 2, height);
             }
-
-            let nyquist = audioCtx.sampleRate / 2;
-            let dominantFreq = Math.round((maxIdx / bufferLength) * nyquist);
-            rtaPeakFreq.textContent = `${dominantFreq} Hz`;
+            rtaPeakFreq.textContent = `${Math.round((maxIdx / bufferLength) * (audioCtx.sampleRate / 2))} Hz`;
         }
 
         function drawFFT(dataArray, bufferLength) {
-            fftCtx.fillStyle = '#020407';
+            fftCtx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--canvas-bg').trim();
             fftCtx.fillRect(0, 0, fftCanvas.width, fftCanvas.height);
 
             fftCtx.lineWidth = 1.5;
-            fftCtx.strokeStyle = '#00f0ff';
+            fftCtx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent-cyan').trim();
             fftCtx.beginPath();
 
             const sliceWidth = fftCanvas.width / bufferLength;
-            let x = 0;
-            let maxVal = 0, maxIdx = 0;
+            let x = 0, maxVal = 0, maxIdx = 0;
 
             for (let i = 0; i < bufferLength; i++) {
                 let v = dataArray[i] / 255;
                 let y = fftCanvas.height - (v * fftCanvas.height);
-
-                if (dataArray[i] > maxVal) {
-                    maxVal = dataArray[i];
-                    maxIdx = i;
-                }
-
-                if (i === 0) fftCtx.moveTo(x, y);
-                else fftCtx.lineTo(x, y);
-                
+                if (dataArray[i] > maxVal) { maxVal = dataArray[i]; maxIdx = i; }
+                if (i === 0) fftCtx.moveTo(x, y); else fftCtx.lineTo(x, y);
                 x += sliceWidth;
             }
             fftCtx.stroke();
-
-            let nyquist = audioCtx.sampleRate / 2;
-            let binFreq = Math.round((maxIdx * nyquist) / bufferLength);
-            binPeakInfo.textContent = `#${maxIdx} (${binFreq}Hz)`;
+            binPeakInfo.textContent = `#${maxIdx} (${Math.round((maxIdx * (audioCtx.sampleRate / 2)) / bufferLength)}Hz)`;
         }
 
         function drawWaterfall(dataArray) {
             wfCtxTemp.drawImage(waterfallCanvas, 0, 0);
-            waterfallCtx.fillStyle = '#020407';
+            waterfallCtx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--canvas-bg').trim();
             waterfallCtx.fillRect(0, 0, waterfallCanvas.width, waterfallCanvas.height);
             waterfallCtx.drawImage(wfCanvasTemp, 0, 1);
 
@@ -1036,18 +1320,13 @@
             const sliceWidth = dataArray.length / waterfallCanvas.width;
 
             for (let x = 0; x < waterfallCanvas.width; x++) {
-                let dataIdx = Math.floor(x * sliceWidth);
-                let val = dataArray[dataIdx]; 
-
+                let val = dataArray[Math.floor(x * sliceWidth)];
                 let r = val > 127 ? 255 : val * 2;
                 let g = val > 127 ? (255 - (val - 127) * 2) : val * 2;
                 let b = val < 127 ? 255 : (255 - val);
 
                 let index = x * 4;
-                imgData.data[index]     = r;
-                imgData.data[index + 1] = g;
-                imgData.data[index + 2] = b;
-                imgData.data[index + 3] = 255;
+                imgData.data[index] = r; imgData.data[index + 1] = g; imgData.data[index + 2] = b; imgData.data[index + 3] = 255;
             }
             waterfallCtx.putImageData(imgData, 0, 0);
         }
