@@ -822,7 +822,7 @@
         <!-- Top Bar -->
         <div class="top-bar">
             <div class="profile-chip" onclick="openProfileModal()">
-                <img id="topAvatar" src="https://via.placeholder.com/150" alt="Avatar">
+                <img id="topAvatar" src="https://ui-avatars.com/api/?name=User&background=E5A823&color=000" alt="Avatar">
                 <div class="profile-chip-info">
                     <span class="profile-chip-name" id="topName">Tamu</span>
                     <span class="profile-chip-lvl" id="topLvl">Lvl 1</span>
@@ -838,7 +838,7 @@
         <!-- Header -->
         <header>
             <div class="logo-container">
-                <img src="logo.png" alt="FARO Logo" class="logo-img" onerror="this.src='https://via.placeholder.com/130?text=FARO+LOGO'">
+                <img src="logo.png" alt="FARO Logo" class="logo-img" onerror="this.src='https://ui-avatars.com/api/?name=FARO&background=131c38&color=E5A823&size=130'">
             </div>
             <h1 class="brand-title">FARO TRIUMPHANTLY</h1>
             <div class="brand-subtitle">Audio & Engineering System Hub</div>
@@ -952,7 +952,7 @@
             <p style="text-align: center; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 1rem;">Atau atur profil secara manual:</p>
 
             <div style="text-align: center; margin-bottom: 1rem;">
-                <img id="profileAvatarPreview" src="https://via.placeholder.com/150" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-gold); margin-bottom: 8px;">
+                <img id="profileAvatarPreview" src="https://ui-avatars.com/api/?name=User&background=E5A823&color=000" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-gold); margin-bottom: 8px;">
                 <div>
                     <label for="avatarFileInput" class="btn-primary btn-secondary" style="padding: 5px 12px; font-size: 0.75rem; cursor: pointer;">Unggah Foto dari Galeri</label>
                     <input type="file" id="avatarFileInput" accept="image/*" style="display: none;" onchange="handleAvatarUpload(event)">
@@ -1145,7 +1145,7 @@
         const firebaseConfig = {
             apiKey: "AIzaSyCsFxTMAvPsmAjbVInbOwEy8Ibn5ZWpKa8",
             authDomain: "faro-hub.firebaseapp.com",
-            databaseURL: "https://faro-hub-default-rtdb.asia-southeast1.firebasedatabase.app",
+            databaseURL: "https://faro-hub-default-rtdb.asia-southeast1.firebasedatabase.app/",
             projectId: "faro-hub",
             storageBucket: "faro-hub.firebasestorage.app",
             messagingSenderId: "250465697777",
@@ -1153,7 +1153,8 @@
         };
 
         const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
+        // Teruskan URL eksplisit agar langsung mengarah ke cluster Singapore (asia-southeast1)
+        const db = getDatabase(app, "https://faro-hub-default-rtdb.asia-southeast1.firebasedatabase.app/");
 
         // Data Default Local
         const defaultLinks = [
@@ -1207,7 +1208,7 @@
         let userProfile = JSON.parse(localStorage.getItem('faro_user_profile')) || {
             name: "Tamu User",
             age: "",
-            avatar: "https://via.placeholder.com/150?text=User",
+            avatar: "https://ui-avatars.com/api/?name=User&background=E5A823&color=000",
             isVip: false,
             isAdmin: false,
             activeTimeSeconds: 0
@@ -1249,6 +1250,9 @@
 
             push(commentsRef, newComment).then(() => {
                 inputEl.value = '';
+            }).catch(err => {
+                console.error("Gagal mengirim komentar:", err);
+                alert("Gagal terhubung ke database komentar.");
             });
         };
 
@@ -1707,7 +1711,7 @@
             const mockName = prompt("Simulasi Google Login: Masukkan Nama Anda", "Pengguna Google");
             if (mockName) {
                 userProfile.name = mockName;
-                userProfile.avatar = "https://lh3.googleusercontent.com/a/default-user=s96-c";
+                userProfile.avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(mockName)}&background=10b981&color=fff`;
                 localStorage.setItem('faro_user_profile', JSON.stringify(userProfile));
                 updateProfileUI();
                 alert(`Login Google Berhasil sebagai ${mockName}!`);
