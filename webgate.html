@@ -1506,7 +1506,6 @@
         import { getDatabase, ref, push, onValue, set, update, remove, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-        // Konfigurasi Firebase Anda
         const firebaseConfig = {
             apiKey: "AIzaSyCsFxTMAvPsmAjbVInbOwEy8Ibn5ZWpKa8",
             authDomain: "faro-hub.firebaseapp.com",
@@ -1522,7 +1521,6 @@
         const auth = getAuth(app);
         const googleProvider = new GoogleAuthProvider();
 
-        // DEFENISI SYSTEM 20 TINGKATAN LENCANA (BADGES DECK)
         const SYSTEM_BADGES = [
             { id: "b1", level: 1, name: "Pendatang Baru", icon: "🌱", reqType: "points", reqVal: 0, desc: "Lencana awal untuk setiap pengguna yang bergabung.", benefit: "Akses Komunitas Dasar", bgClass: "badge-rd" },
             { id: "b2", level: 2, name: "Pengamat Aktif", icon: "👀", reqType: "points", reqVal: 50, desc: "Sering membaca dan melihat-lihat modul web FARO.", benefit: "Bisa Menyimpan Favorit", bgClass: "badge-rd" },
@@ -1551,15 +1549,11 @@
             body: "Selamat datang di portal FARO TRIUMPHANTLY. Kumpulkan poin dari komentar, balasan, dan pengaduan untuk membuka 20 Lencana termasuk 'Kesayangan Admin' dengan diskon VIP Rp 5.000!"
         };
 
-        const TARGET_EMAIL = "rozakkfatkhur@gmail.com";
-        const TARGET_PASS = "faro124578";
-
         let rawLinksData = {}; 
         let announcement = initialDefaultAnno;
         let vipKey = localStorage.getItem('faro_vip_key') || "faro123";
         let rawCommentsData = {}; 
         let rawComplaintsData = {};
-        let userBadgesData = {};
 
         let userProfile = JSON.parse(localStorage.getItem('faro_user_profile')) || {
             userId: "usr_" + Math.random().toString(36).substr(2, 9),
@@ -1575,19 +1569,14 @@
             ownedBadges: ["b1"]
         };
 
-        let currentEditingImages = []; 
         let activeVipItem = null;
         let currentOpenAppIsMixer = false;
         let newLogoBase64 = null;
-
-        // Temporary Media Attachments
-        let activeMediaAttachments = {
-            main: { mediaUrl: '', mediaType: '' }
-        };
+        let activeMediaAttachments = { main: { mediaUrl: '', mediaType: '' } };
         let complaintPhotosBase64 = [];
+        let adminImgBase64List = [];
         let currentComplaintFilter = 'all';
 
-        // --- REALTIME LISTENERS FIREBASE ---
         const linksRef = ref(db, "links");
         const annoRef = ref(db, "announcement");
         const commentsRef = ref(db, "comments");
@@ -1595,7 +1584,6 @@
         const logoRef = ref(db, "portalLogo");
         const userBadgesRef = ref(db, `user_badges/${userProfile.userId}`);
 
-        // Listener User Badges & Points Realtime
         onValue(userBadgesRef, (snapshot) => {
             if (snapshot.exists()) {
                 const data = snapshot.val();
@@ -1607,37 +1595,27 @@
                 updateProfileUI();
                 renderBadgesTab();
             } else {
-                syncUserDataToFirebase();
+                set(userBadgesRef, {
+                    name: userProfile.name,
+                    points: userProfile.points || 0,
+                    commentCount: userProfile.commentCount || 0,
+                    complaintCount: userProfile.complaintCount || 0,
+                    ownedBadges: userProfile.ownedBadges || ["b1"]
+                });
             }
         });
 
-        function syncUserDataToFirebase() {
-            set(userBadgesRef, {
-                name: userProfile.name,
-                points: userProfile.points || 0,
-                commentCount: userProfile.commentCount || 0,
-                complaintCount: userProfile.complaintCount || 0,
-                ownedBadges: userProfile.ownedBadges || ["b1"]
-            });
-        }
-
-        // Listener Logo Real-time
         onValue(logoRef, (snapshot) => {
             if (snapshot.exists()) {
                 document.getElementById('mainLogoHeader').src = snapshot.val();
             }
         });
 
-        // Listener Modul Link
         onValue(linksRef, (snapshot) => {
             rawLinksData = snapshot.val() || {};
             renderUI();
-            if (document.getElementById('adminModal').style.display === 'flex') {
-                renderAdminLinkList();
-            }
         });
 
-        // Listener Pengumuman
         onValue(annoRef, (snapshot) => {
             if (snapshot.exists()) {
                 announcement = snapshot.val();
@@ -1646,63 +1624,48 @@
             }
         });
 
-        // Listener Komentar Real-time
         onValue(commentsRef, (snapshot) => {
             rawCommentsData = snapshot.val() || {};
             renderComments();
         });
 
-        // Listener Pengaduan Real-time
         onValue(complaintsRef, (snapshot) => {
             rawComplaintsData = snapshot.val() || {};
             renderComplaints();
         });
 
-        // --- MANAJEMEN POIN & LOGIKA KEBERUNTUNGAN LENCANA ---
-        function addActivityPoints(pointsToAdd, activityType) {
+        window.addActivityPoints = function(pointsToAdd, activityType) {
             userProfile.points = (userProfile.points || 0) + pointsToAdd;
             if (activityType === 'comment') userProfile.commentCount = (userProfile.commentCount || 0) + 1;
             if (activityType === 'complaint') userProfile.complaintCount = (userProfile.complaintCount || 0) + 1;
-
-            // Uji Keberuntungan Drop Rate Lencana (Drop Rate Check) saat aktif
-            checkLuckBadgeDrop();
+            
+            if (!userProfile.ownedBadges.includes("b12") && Math.random() * 100 <= 5) {
+                userProfile.ownedBadges.push("b12");
+                alert("🎉 LENCANA LANGKA TERBUKA! Anda mendapatkan Lencana b12 'Anak Emas Portal'!");
+            }
+            if (!userProfile.ownedBadges.includes("b18") && Math.random() * 100 <= 1) {
+                userProfile.ownedBadges.push("b18");
+                alert("👑 LENCANA SANGAT LANGKA TERBUKA! Anda mendapatkan Lencana b18 'Pangeran Komunitas'!");
+            }
 
             localStorage.setItem('faro_user_profile', JSON.stringify(userProfile));
-            syncUserDataToFirebase();
+            set(userBadgesRef, {
+                name: userProfile.name,
+                points: userProfile.points,
+                commentCount: userProfile.commentCount,
+                complaintCount: userProfile.complaintCount,
+                ownedBadges: userProfile.ownedBadges
+            });
             updateProfileUI();
             renderBadgesTab();
-        }
-
-        function checkLuckBadgeDrop() {
-            // Check Lencana b12 (Drop rate 5%)
-            if (!userProfile.ownedBadges.includes("b12")) {
-                const rand = Math.random() * 100;
-                if (rand <= 5) {
-                    userProfile.ownedBadges.push("b12");
-                    alert("🎉 LENCANA LANGKA TERBUKA! Anda mendapatkan Lencana b12 'Anak Emas Portal' dari keberuntungan aktivitas Anda!");
-                }
-            }
-            // Check Lencana b18 (Drop rate 1%)
-            if (!userProfile.ownedBadges.includes("b18")) {
-                const rand2 = Math.random() * 100;
-                if (rand2 <= 1) {
-                    userProfile.ownedBadges.push("b18");
-                    alert("👑 LENCANA SANGAT LANGKA TERBUKA! Anda beruntung mendapatkan Lencana b18 'Pangeran Komunitas'!");
-                }
-            }
-        }
+        };
 
         window.claimOrUnlockBadge = function(badgeId) {
             const badge = SYSTEM_BADGES.find(b => b.id === badgeId);
-            if (!badge) return;
-
-            if (userProfile.ownedBadges.includes(badgeId)) {
-                alert("Anda sudah memiliki lencana ini!");
-                return;
-            }
+            if (!badge || userProfile.ownedBadges.includes(badgeId)) return;
 
             if (badge.reqType === 'admin_only') {
-                alert("Lencana 'Kesayangan Admin' SANGAT SUSAH dan TIDAK BISA DITUKAR DENGAN POIN/VIP! Anda harus aktif berkontribusi, berkomentar, & membantu pengaduan agar Admin memberikan lencana ini secara khusus.");
+                alert("Lencana 'Kesayangan Admin' SANGAT SUSAH dan hanya diberikan langsung oleh Admin.");
                 return;
             }
 
@@ -1714,418 +1677,87 @@
             if (canClaim) {
                 userProfile.ownedBadges.push(badgeId);
                 localStorage.setItem('faro_user_profile', JSON.stringify(userProfile));
-                syncUserDataToFirebase();
-                alert(`Selamat! Anda berhasil membongkar Lencana ${badge.name}! Benefits: ${badge.benefit}`);
+                set(userBadgesRef, {
+                    name: userProfile.name,
+                    points: userProfile.points,
+                    commentCount: userProfile.commentCount,
+                    complaintCount: userProfile.complaintCount,
+                    ownedBadges: userProfile.ownedBadges
+                });
+                alert(`Selamat! Anda berhasil membuka Lencana ${badge.name}!`);
                 updateProfileUI();
                 renderBadgesTab();
             } else {
-                alert(`Syarat belum terpenuhi! Dibutuhkan ${badge.reqVal} ${badge.reqType.toUpperCase()} untuk klaim Lencana ini.`);
+                alert(`Syarat belum terpenuhi! Dibutuhkan ${badge.reqVal} ${badge.reqType.toUpperCase()}.`);
             }
         };
 
-        // --- GOOGLE SIGN-IN REAL (FIREBASE AUTH) ---
         window.loginGoogleReal = function() {
-            signInWithPopup(auth, googleProvider)
-                .then((result) => {
-                    const user = result.user;
-                    userProfile.name = user.displayName || "Pengguna Google";
-                    userProfile.avatar = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(userProfile.name)}&background=10b981&color=fff`;
-                    localStorage.setItem('faro_user_profile', JSON.stringify(userProfile));
-                    syncUserDataToFirebase();
-                    updateProfileUI();
-                    alert(`Login Google Berhasil! Selamat datang, ${userProfile.name}`);
-                    closeModal('profileModal');
-                }).catch((error) => {
-                    console.error("Google Auth Error:", error);
-                    alert("Gagal melakukan Login Google: " + error.message);
-                });
+            signInWithPopup(auth, googleProvider).then((result) => {
+                const user = result.user;
+                userProfile.name = user.displayName || "Pengguna Google";
+                userProfile.avatar = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(userProfile.name)}&background=10b981&color=fff`;
+                localStorage.setItem('faro_user_profile', JSON.stringify(userProfile));
+                updateProfileUI();
+                alert(`Login Google Berhasil, ${userProfile.name}!`);
+            }).catch((err) => alert("Gagal Login Google: " + err.message));
         };
 
-        // --- MANAJEMEN LOGO PORTAL BY ADMIN ---
-        window.handleLogoChange = function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function (evt) {
-                    newLogoBase64 = evt.target.result;
-                };
-                reader.readAsDataURL(file);
+        window.initTheme = function() {
+            const savedTheme = localStorage.getItem('faro_theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        };
+        initTheme();
+
+        window.toggleTheme = function() {
+            const current = document.documentElement.getAttribute('data-theme');
+            const next = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('faro_theme', next);
+        };
+
+        window.switchTab = function(tabName) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+            if (tabName === 'portal') {
+                document.querySelectorAll('.tab-btn')[0].classList.add('active');
+                document.getElementById('tabPortal').classList.add('active');
+            } else if (tabName === 'comments') {
+                document.querySelectorAll('.tab-btn')[1].classList.add('active');
+                document.getElementById('tabComments').classList.add('active');
+            } else if (tabName === 'complaints') {
+                document.querySelectorAll('.tab-btn')[2].classList.add('active');
+                document.getElementById('tabComplaints').classList.add('active');
+            } else if (tabName === 'badges') {
+                document.querySelectorAll('.tab-btn')[3].classList.add('active');
+                document.getElementById('tabBadges').classList.add('active');
+                renderBadgesTab();
             }
         };
 
-        window.saveNewLogo = function() {
-            if (!newLogoBase64) {
-                alert("Pilih foto logo terlebih dahulu!");
-                return;
-            }
-            set(logoRef, newLogoBase64).then(() => {
-                alert("Logo Header Portal berhasil diperbarui untuk seluruh pengguna!");
-                newLogoBase64 = null;
-            }).catch(err => alert("Gagal memperbarui logo: " + err.message));
-        };
-
-        // --- FITUR MEDIA KOMENTAR (FOTO, STICKER, GIF) ---
-        window.handleCommentImageUpload = function(e, key) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(evt) {
-                    activeMediaAttachments[key] = { mediaUrl: evt.target.result, mediaType: 'image' };
-                    renderMediaPreview(key);
-                };
-                reader.readAsDataURL(file);
-            }
-        };
-
-        window.toggleStickerPicker = function(key) {
-            const el = document.getElementById(`stickerPicker-${key}`);
-            if (el) el.style.display = el.style.display === 'none' ? 'flex' : 'none';
-        };
-
-        window.selectSticker = function(url, key) {
-            activeMediaAttachments[key] = { mediaUrl: url, mediaType: 'sticker' };
-            toggleStickerPicker(key);
-            renderMediaPreview(key);
-        };
-
-        window.promptGifUrl = function(key) {
-            const url = prompt("Masukkan URL Gambar GIF:", "https://media.giphy.com/media/...");
-            if (url) {
-                activeMediaAttachments[key] = { mediaUrl: url, mediaType: 'gif' };
-                renderMediaPreview(key);
-            }
-        };
-
-        function renderMediaPreview(key) {
-            const container = document.getElementById(`mediaPreview-${key}`);
-            if (!container) return;
-            const att = activeMediaAttachments[key];
-            if (att && att.mediaUrl) {
-                container.innerHTML = `
-                    <div class="admin-img-thumb" style="width:100px; height:80px;">
-                        <img src="${att.mediaUrl}">
-                        <button class="btn-del-img" onclick="clearMediaAttachment('${key}')">&times;</button>
-                    </div>
-                `;
-            } else {
-                container.innerHTML = '';
-            }
-        }
-
-        window.clearMediaAttachment = function(key) {
-            activeMediaAttachments[key] = { mediaUrl: '', mediaType: '' };
-            renderMediaPreview(key);
-        };
-
-        // --- POSTING KOMENTAR ---
-        window.postComment = function(parentId = null) {
-            const key = parentId ? parentId : 'main';
-            let inputEl = parentId ? document.getElementById(`replyInput-${parentId}`) : document.getElementById('mainCommentInput');
-            let text = inputEl.value.trim();
-            const media = activeMediaAttachments[key] || { mediaUrl: '', mediaType: '' };
-
-            if (!text && !media.mediaUrl) {
-                alert("Komentar atau media tidak boleh kosong!");
-                return;
-            }
-
-            const newComment = {
-                parentId: parentId || null,
-                userName: userProfile.name,
-                userAvatar: userProfile.avatar,
-                isVip: userProfile.isVip,
-                isAdmin: userProfile.isAdmin,
-                badges: userProfile.ownedBadges || ["b1"],
-                level: calculateLevel(),
-                text: text,
-                mediaUrl: media.mediaUrl || '',
-                mediaType: media.mediaType || '',
-                likes: 0,
-                isStarred: false,
-                isPinned: false,
-                timestamp: new Date().toLocaleString('id-ID')
-            };
-
-            push(commentsRef, newComment).then(() => {
-                inputEl.value = '';
-                clearMediaAttachment(key);
-                // Tambahkan 15 Poin untuk setiap komentar/balasan
-                addActivityPoints(15, 'comment');
-            }).catch(err => {
-                alert("Gagal terhubung ke database komentar.");
-            });
-        };
-
-        window.likeComment = function(id) {
-            const currentLikes = (rawCommentsData[id] && rawCommentsData[id].likes) ? rawCommentsData[id].likes : 0;
-            update(ref(db, `comments/${id}`), { likes: currentLikes + 1 });
-            addActivityPoints(2, 'like');
-        };
-
-        window.togglePin = function(id) {
-            const currentStatus = (rawCommentsData[id] && rawCommentsData[id].isPinned) || false;
-            update(ref(db, `comments/${id}`), { isPinned: !currentStatus });
-        };
-
-        window.toggleStar = function(id) {
-            const currentStatus = (rawCommentsData[id] && rawCommentsData[id].isStarred) || false;
-            update(ref(db, `comments/${id}`), { isStarred: !currentStatus });
-        };
-
-        window.deleteComment = function(id) {
-            if (confirm("Hapus komentar ini beserta balasan-balasannya?")) {
-                remove(ref(db, `comments/${id}`));
-            }
-        };
-
-        function renderComments() {
-            const container = document.getElementById('commentContainer');
-            if (!container) return;
-            container.innerHTML = '';
-
-            const commentKeys = Object.keys(rawCommentsData);
-            if (commentKeys.length === 0) {
-                container.innerHTML = '<p style="font-size:0.85rem; color:var(--text-muted); text-align:center;">Belum ada komentar.</p>';
-                return;
-            }
-
-            const parentComments = commentKeys
-                .map(key => ({ id: key, ...rawCommentsData[key] }))
-                .filter(c => !c.parentId);
-
-            parentComments.sort((a, b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0));
-
-            parentComments.forEach(c => {
-                container.appendChild(createCommentCard(c));
-            });
-        }
-
-        function createCommentCard(c) {
-            const card = document.createElement('div');
-            card.className = `comment-card ${c.isPinned ? 'pinned' : ''}`;
-
-            let badgeUserHtml = '';
-            if (c.isAdmin) badgeUserHtml += '<span class="badge-admin">ADMIN</span>';
-            else if (c.isVip) badgeUserHtml += '<span class="badge-vip">VIP</span>';
-
-            // Render Lencana Aktif Pengguna
-            if (c.badges && Array.isArray(c.badges)) {
-                c.badges.forEach(bId => {
-                    const bObj = SYSTEM_BADGES.find(b => b.id === bId);
+        function updateProfileUI() {
+            document.getElementById('topAvatar').src = userProfile.avatar;
+            document.getElementById('topName').innerText = userProfile.name;
+            document.getElementById('profPoints').innerText = `${userProfile.points || 0} Poin`;
+            document.getElementById('profVipStatus').innerText = userProfile.isAdmin ? 'ADMIN' : (userProfile.isVip ? 'VIP' : 'Tidak Aktif');
+            
+            const badgeContainer = document.getElementById('profBadgesDisplay');
+            if (badgeContainer) {
+                badgeContainer.innerHTML = '';
+                (userProfile.ownedBadges || []).forEach(bId => {
+                    const bObj = SYSTEM_BADGES.find(x => x.id === bId);
                     if (bObj) {
-                        badgeUserHtml += `<span class="${bObj.bgClass}">${bObj.icon} ${bObj.name}</span>`;
+                        const span = document.createElement('span');
+                        span.className = 'badge-level';
+                        span.innerText = `${bObj.icon} ${bObj.name}`;
+                        badgeContainer.appendChild(span);
                     }
                 });
             }
-
-            let adminControls = userProfile.isAdmin ? `
-                <button class="comment-action-btn" onclick="togglePin('${c.id}')"><i class="fa-solid fa-thumbtack"></i> ${c.isPinned ? 'Unpin' : 'Sematkan'}</button>
-                <button class="comment-action-btn" onclick="toggleStar('${c.id}')"><i class="fa-${c.isStarred ? 'solid' : 'regular'} fa-star" style="color:var(--accent-gold);"></i> Bintang</button>
-                <button class="comment-action-btn" style="color:#ef4444;" onclick="deleteComment('${c.id}')"><i class="fa-solid fa-trash"></i> Hapus</button>
-            ` : '';
-
-            let mediaHtml = '';
-            if (c.mediaUrl) {
-                mediaHtml = `<div class="comment-media-container"><img src="${escapeHtml(c.mediaUrl)}" alt="Attachment"></div>`;
-            }
-
-            card.innerHTML = `
-                <div class="comment-header">
-                    <div class="comment-user">
-                        <img src="${escapeHtml(c.userAvatar)}" alt="Avatar">
-                        <span class="comment-username">${escapeHtml(c.userName)}</span>
-                        ${badgeUserHtml}
-                        <span class="badge-level">Lvl ${c.level || 1}</span>
-                    </div>
-                    <span style="font-size: 0.7rem; color: var(--text-muted);">${c.timestamp || ''}</span>
-                </div>
-                <div class="comment-text">${c.isStarred ? '⭐ ' : ''}${escapeHtml(c.text)}</div>
-                ${mediaHtml}
-                <div class="comment-actions">
-                    <button class="comment-action-btn" onclick="likeComment('${c.id}')"><i class="fa-regular fa-thumbs-up"></i> ${c.likes || 0}</button>
-                    <button class="comment-action-btn" onclick="toggleReplyBox('${c.id}')"><i class="fa-solid fa-reply"></i> Balas</button>
-                    ${adminControls}
-                </div>
-
-                <div id="replyBox-${c.id}" style="display:none; margin-top:10px;">
-                    <input type="text" id="replyInput-${c.id}" class="form-control" placeholder="Tulis balasan..." style="margin-bottom:6px;">
-                    
-                    <div class="media-toolbar">
-                        <label class="media-btn">
-                            <i class="fa-solid fa-image"></i> Foto
-                            <input type="file" accept="image/*" style="display:none;" onchange="handleCommentImageUpload(event, '${c.id}')">
-                        </label>
-                        <button class="media-btn" onclick="toggleStickerPicker('${c.id}')"><i class="fa-solid fa-face-smile"></i> Stiker</button>
-                    </div>
-
-                    <div class="sticker-picker" id="stickerPicker-${c.id}" style="display:none;">
-                        <img src="https://cdn-icons-png.flaticon.com/512/742/742751.png" class="sticker-item" onclick="selectSticker('https://cdn-icons-png.flaticon.com/512/742/742751.png', '${c.id}')">
-                        <img src="https://cdn-icons-png.flaticon.com/512/742/742752.png" class="sticker-item" onclick="selectSticker('https://cdn-icons-png.flaticon.com/512/742/742752.png', '${c.id}')">
-                    </div>
-
-                    <div id="mediaPreview-${c.id}" class="admin-image-preview-grid" style="margin-top:6px;"></div>
-
-                    <button class="btn-primary" style="padding:6px; font-size:0.75rem; margin-top:8px;" onclick="postComment('${c.id}')">Kirim Balasan</button>
-                </div>
-
-                <div class="replies-container" id="replies-${c.id}"></div>
-            `;
-
-            const replies = Object.keys(rawCommentsData)
-                .map(key => ({ id: key, ...rawCommentsData[key] }))
-                .filter(r => r.parentId === c.id);
-
-            const repliesContainer = card.querySelector(`#replies-${c.id}`);
-            replies.forEach(r => {
-                repliesContainer.appendChild(createCommentCard(r));
-            });
-
-            return card;
         }
+        updateProfileUI();
 
-        // --- SISTEM PENGADUAN & BUG REPORT ---
-        window.handleComplaintPhotosUpload = function(e) {
-            const files = Array.from(e.target.files);
-            if (files.length === 0) return;
-
-            let count = 0;
-            files.forEach(file => {
-                const reader = new FileReader();
-                reader.onload = function(evt) {
-                    complaintPhotosBase64.push(evt.target.result);
-                    count++;
-                    if (count === files.length) {
-                        renderComplaintPhotoPreviews();
-                    }
-                };
-                reader.readAsDataURL(file);
-            });
-        };
-
-        function renderComplaintPhotoPreviews() {
-            const grid = document.getElementById('complaintPhotoPreviewGrid');
-            grid.innerHTML = '';
-            complaintPhotosBase64.forEach((img, idx) => {
-                const thumb = document.createElement('div');
-                thumb.className = 'admin-img-thumb';
-                thumb.innerHTML = `
-                    <img src="${img}">
-                    <button class="btn-del-img" onclick="removeComplaintPhoto(${idx})">&times;</button>
-                `;
-                grid.appendChild(thumb);
-            });
-        }
-
-        window.removeComplaintPhoto = function(idx) {
-            complaintPhotosBase64.splice(idx, 1);
-            renderComplaintPhotoPreviews();
-        };
-
-        window.submitComplaint = function() {
-            const category = document.getElementById('complaintCategory').value;
-            const title = document.getElementById('complaintTitle').value.trim();
-            const desc = document.getElementById('complaintDesc').value.trim();
-
-            if (!title || !desc) {
-                alert("Judul dan deskripsi pengaduan wajib diisi!");
-                return;
-            }
-
-            const payload = {
-                category,
-                title,
-                desc,
-                photos: [...complaintPhotosBase64],
-                userName: userProfile.name,
-                userAvatar: userProfile.avatar,
-                badges: userProfile.ownedBadges || ["b1"],
-                status: 'pending', 
-                timestamp: new Date().toLocaleString('id-ID')
-            };
-
-            push(complaintsRef, payload).then(() => {
-                alert("Pengaduan berhasil dikirim ke Admin!");
-                document.getElementById('complaintTitle').value = '';
-                document.getElementById('complaintDesc').value = '';
-                complaintPhotosBase64 = [];
-                renderComplaintPhotoPreviews();
-                // Tambahkan 30 Poin untuk setiap laporan pengaduan
-                addActivityPoints(30, 'complaint');
-            }).catch(err => alert("Gagal mengirim pengaduan: " + err.message));
-        };
-
-        window.filterComplaints = function(category, btn) {
-            currentComplaintFilter = category;
-            document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-            btn.classList.add('active');
-            renderComplaints();
-        };
-
-        window.updateComplaintStatus = function(id, status) {
-            update(ref(db, `complaints/${id}`), { status: status });
-        };
-
-        function renderComplaints() {
-            const container = document.getElementById('complaintContainer');
-            if (!container) return;
-            container.innerHTML = '';
-
-            const complaintKeys = Object.keys(rawComplaintsData);
-            if (complaintKeys.length === 0) {
-                container.innerHTML = '<p style="font-size:0.85rem; color:var(--text-muted); text-align:center;">Belum ada pengaduan.</p>';
-                return;
-            }
-
-            const filtered = complaintKeys
-                .map(k => ({ id: k, ...rawComplaintsData[k] }))
-                .filter(item => currentComplaintFilter === 'all' || item.category === currentComplaintFilter);
-
-            filtered.forEach(item => {
-                const card = document.createElement('div');
-                card.className = 'complaint-card';
-
-                let statusBadge = '';
-                if (item.status === 'pending') statusBadge = '<span class="badge-status status-pending">Pending</span>';
-                else if (item.status === 'process') statusBadge = '<span class="badge-status status-process">Diproses</span>';
-                else if (item.status === 'resolved') statusBadge = '<span class="badge-status status-resolved">Selesai</span>';
-
-                let photosGallery = '';
-                if (item.photos && item.photos.length > 0) {
-                    let itemsHtml = item.photos.map(p => `
-                        <div class="gallery-item ${item.photos.length > 1 ? 'multi' : ''}" style="height:120px;">
-                            <img src="${p}">
-                        </div>
-                    `).join('');
-                    photosGallery = `<div class="preview-gallery-container">${itemsHtml}</div>`;
-                }
-
-                let adminActions = userProfile.isAdmin ? `
-                    <div style="margin-top:10px; padding-top:8px; border-top:1px solid var(--card-border); font-size:0.75rem;">
-                        <strong>Ubah Status (Admin):</strong>
-                        <button class="comment-action-btn" style="display:inline;" onclick="updateComplaintStatus('${item.id}', 'process')">Set Diproses</button> | 
-                        <button class="comment-action-btn" style="display:inline; color:#22c55e;" onclick="updateComplaintStatus('${item.id}', 'resolved')">Set Selesai</button>
-                    </div>
-                ` : '';
-
-                card.innerHTML = `
-                    <div class="complaint-header">
-                        <div style="display:flex; align-items:center; gap:8px;">
-                            <img src="${escapeHtml(item.userAvatar)}" style="width:24px; height:24px; border-radius:50%;">
-                            <strong style="font-size:0.85rem;">${escapeHtml(item.userName)}</strong>
-                        </div>
-                        ${statusBadge}
-                    </div>
-                    <h4 style="color:var(--accent-gold); font-size:0.95rem; margin-bottom:4px;">[${(item.category||'').toUpperCase()}] ${escapeHtml(item.title)}</h4>
-                    <p style="font-size:0.82rem; color:var(--text-sub); line-height:1.4; margin-bottom:8px;">${escapeHtml(item.desc)}</p>
-                    ${photosGallery}
-                    <div style="font-size:0.7rem; color:var(--text-muted); margin-top:6px;">Dikirim: ${item.timestamp || ''}</div>
-                    ${adminActions}
-                `;
-                container.appendChild(card);
-            });
-        }
-
-        // --- RENDER BADGES TAB INTERFACE ---
         function renderBadgesTab() {
             const container = document.getElementById('badgeListContainer');
             if (!container) return;
@@ -2138,645 +1770,641 @@
 
             SYSTEM_BADGES.forEach(badge => {
                 const isOwned = (userProfile.ownedBadges || []).includes(badge.id);
-                const isKesayangan = badge.id === "b20";
-
                 const card = document.createElement('div');
-                card.className = `badge-card-item ${isOwned ? 'owned' : ''} ${isKesayangan ? 'special' : ''}`;
-
-                let statusBtnText = "Tukar Lencana";
-                let btnDisabled = false;
-
-                if (isOwned) {
-                    statusBtnText = "✓ Dimiliki";
-                    btnDisabled = true;
-                } else if (badge.reqType === 'admin_only') {
-                    statusBtnText = "🔒 Khusus Admin";
-                }
-
+                card.className = `badge-card-item ${isOwned ? 'owned' : ''}`;
                 card.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                    <div style="display:flex; justify-content:space-between;">
                         <div class="badge-icon-box">${badge.icon}</div>
                         <span class="${badge.bgClass}">Lvl ${badge.level}</span>
                     </div>
-                    <div class="badge-card-title">${badge.name} ${isKesayangan ? '❤️' : ''}</div>
+                    <div class="badge-card-title">${badge.name}</div>
                     <div class="badge-card-desc">${badge.desc}</div>
-                    <div class="badge-card-benefit"><i class="fa-solid fa-gift"></i> ${badge.benefit}</div>
-                    <div class="badge-req-tag">Syarat: ${badge.reqVal} ${badge.reqType.toUpperCase()}</div>
-                    <button class="btn-primary ${isOwned ? 'btn-secondary' : ''}" style="margin-top:6px; font-size:0.75rem; padding:6px;" ${btnDisabled ? 'disabled' : ''} onclick="claimOrUnlockBadge('${badge.id}')">
-                        ${statusBtnText}
+                    <div class="badge-card-benefit">🎁 ${badge.benefit}</div>
+                    <button class="btn-primary ${isOwned ? 'btn-secondary' : ''}" style="margin-top:6px; font-size:0.75rem; padding:6px;" ${isOwned ? 'disabled' : ''} onclick="claimOrUnlockBadge('${badge.id}')">
+                        ${isOwned ? '✓ Dimiliki' : 'Klaim Lencana'}
                     </button>
                 `;
                 container.appendChild(card);
             });
         }
 
-        // --- ADMIN GRANT SPECIAL BADGE FUNCTION ---
-        window.grantBadgeByAdmin = function() {
-            const targetUser = document.getElementById('adminGrantUserId').value.trim();
-            const badgeId = document.getElementById('adminGrantBadgeSelect').value;
-
-            if (!targetUser) {
-                alert("Masukkan User Key / ID terlebih dahulu!");
-                return;
-            }
-
-            // Jika target user adalah diri sendiri
-            if (targetUser.toLowerCase() === userProfile.name.toLowerCase() || targetUser === userProfile.userId) {
-                if (!userProfile.ownedBadges.includes(badgeId)) {
-                    userProfile.ownedBadges.push(badgeId);
-                    localStorage.setItem('faro_user_profile', JSON.stringify(userProfile));
-                    syncUserDataToFirebase();
-                    alert(`Lencana berhasil dianugerahkan kepada ${userProfile.name}!`);
-                    updateProfileUI();
-                    renderBadgesTab();
-                } else {
-                    alert("Pengguna sudah memiliki lencana ini.");
-                }
-            } else {
-                // Berikan lencana ke user lain di database Firebase Realtime
-                const targetRef = ref(db, `user_badges/${targetUser}`);
-                get(targetRef).then(snapshot => {
-                    if (snapshot.exists()) {
-                        const data = snapshot.val();
-                        let currentBadges = data.ownedBadges || [];
-                        if (!currentBadges.includes(badgeId)) {
-                            currentBadges.push(badgeId);
-                            update(targetRef, { ownedBadges: currentBadges }).then(() => {
-                                alert(`Lencana berhasil dianugerahkan ke akun ${targetUser}!`);
-                            });
-                        } else {
-                            alert("User tersebut sudah memiliki lencana ini.");
-                        }
-                    } else {
-                        alert("Pengguna tidak ditemukan di database Firebase!");
-                    }
-                });
-            }
-        };
-
-        function escapeHtml(text) {
-            if (!text) return "";
-            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        }
-
-        // --- MANAJEMEN TEMA & NAVIGATION ---
-        window.initTheme = function() {
-            const savedTheme = localStorage.getItem('faro_theme') || 'dark';
-            document.documentElement.setAttribute('data-theme', savedTheme);
-            updateThemeUI(savedTheme);
-        };
-
-        window.toggleTheme = function() {
-            const currentTheme = document.documentElement.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-theme', newTheme);
-            localStorage.setItem('faro_theme', newTheme);
-            updateThemeUI(newTheme);
-        };
-
-        function updateThemeUI(theme) {
-            const icon = document.getElementById('themeIcon');
-            const text = document.getElementById('themeText');
-            if (theme === 'dark') {
-                icon.className = 'fa-solid fa-moon';
-                text.innerText = 'Mode Gelap';
-            } else {
-                icon.className = 'fa-solid fa-sun';
-                text.innerText = 'Mode Terang';
-            }
-        }
-
-        window.switchTab = function(tabName) {
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-
-            if (tabName === 'portal') {
-                document.querySelectorAll('.tab-btn')[0].classList.add('active');
-                document.getElementById('tabPortal').classList.add('active');
-            } else if (tabName === 'comments') {
-                document.querySelectorAll('.tab-btn')[1].classList.add('active');
-                document.getElementById('tabComments').classList.add('active');
-                renderComments();
-            } else if (tabName === 'complaints') {
-                document.querySelectorAll('.tab-btn')[2].classList.add('active');
-                document.getElementById('tabComplaints').classList.add('active');
-                renderComplaints();
-            } else if (tabName === 'badges') {
-                document.querySelectorAll('.tab-btn')[3].classList.add('active');
-                document.getElementById('tabBadges').classList.add('active');
-                renderBadgesTab();
-            }
-        };
-
-        function calculateLevel() {
-            if (userProfile.isAdmin) return "999999+";
-            const totalHours = (userProfile.activeTimeSeconds || 0) / 3600;
-            return Math.floor(totalHours / 168) + 1;
-        }
-
-        setInterval(() => {
-            if (document.getElementById('appViewer').style.display === 'flex') {
-                let addTime = 1;
-                if (currentOpenAppIsMixer) addTime = 2; 
-                userProfile.activeTimeSeconds = (userProfile.activeTimeSeconds || 0) + addTime;
-                // Tambahkan poin aktivitas seiring durasi pemakaian web
-                userProfile.points = (userProfile.points || 0) + 1;
-                localStorage.setItem('faro_user_profile', JSON.stringify(userProfile));
-                updateProfileUI();
-            }
-        }, 1000);
-
-        function updateProfileUI() {
-            document.getElementById('topAvatar').src = userProfile.avatar;
-            document.getElementById('topName').innerText = userProfile.name;
-            document.getElementById('topLvl').innerText = `Lvl ${calculateLevel()}`;
-            
-            document.getElementById('profileAvatarPreview').src = userProfile.avatar;
-            document.getElementById('profName').value = userProfile.name;
-            document.getElementById('profAge').value = userProfile.age || '';
-            document.getElementById('profVipStatus').innerText = userProfile.isAdmin ? 'ADMIN' : (userProfile.isVip ? 'VIP' : 'Tidak Aktif');
-            document.getElementById('profLevel').innerText = `Lvl ${calculateLevel()}`;
-            document.getElementById('profPoints').innerText = `${userProfile.points || 0} Poin`;
-
-            // Display Owned Badges in Profile Modal
-            const badgesContainer = document.getElementById('profBadgesDisplay');
-            if (badgesContainer) {
-                badgesContainer.innerHTML = '';
-                (userProfile.ownedBadges || []).forEach(bId => {
-                    const bObj = SYSTEM_BADGES.find(b => b.id === bId);
-                    if (bObj) {
-                        badgesContainer.innerHTML += `<span class="${bObj.bgClass}">${bObj.icon} ${bObj.name}</span>`;
-                    }
-                });
-            }
-
-            // HITUNG HARGA VIP SESUAI LENCANA DIMILIKI (SPECIAL DISKON LENCANA KESAYANGAN ADMIN = RP 5.000)
-            let vipPrice = 15000;
-            if ((userProfile.ownedBadges || []).includes("b20")) {
-                vipPrice = 5000; // Harga Spesial Lencana Kesayangan Admin
-            } else if ((userProfile.ownedBadges || []).includes("b13")) {
-                vipPrice = 10000;
-            } else if ((userProfile.ownedBadges || []).includes("b8")) {
-                vipPrice = 13000;
-            }
-
-            const payBtnAmount = document.getElementById('vipPayAmountBtn');
-            const modalPayAmount = document.getElementById('modalPayBadgeAmount');
-            if (payBtnAmount) payBtnAmount.innerText = `Rp ${vipPrice.toLocaleString('id-ID')}`;
-            if (modalPayAmount) modalPayAmount.innerText = `Rp ${vipPrice.toLocaleString('id-ID')}`;
-        }
-
-        window.renderUI = function() {
+        // RENDER UI PORTAL UTAMA
+        function renderUI() {
             const vipContainer = document.getElementById('vipLinksContainer');
             const appContainer = document.getElementById('appLinksContainer');
             const mainContainer = document.getElementById('mainLinksContainer');
             const researchContainer = document.getElementById('researchLinksContainer');
-            
-            vipContainer.innerHTML = '';
-            appContainer.innerHTML = '';
-            mainContainer.innerHTML = '';
-            researchContainer.innerHTML = '';
+            const adminList = document.getElementById('adminLinkList');
 
-            const linkKeys = Object.keys(rawLinksData);
+            if (vipContainer) vipContainer.innerHTML = '';
+            if (appContainer) appContainer.innerHTML = '';
+            if (mainContainer) mainContainer.innerHTML = '';
+            if (researchContainer) researchContainer.innerHTML = '';
+            if (adminList) adminList.innerHTML = '';
 
-            linkKeys.forEach(key => {
-                const item = { id: key, ...rawLinksData[key] };
-                const card = document.createElement('div');
-                card.className = `link-card ${item.category === 'vip' ? 'vip-card' : ''}`;
-                card.onclick = () => handleCardClick(item);
+            Object.keys(rawLinksData).forEach(key => {
+                const item = rawLinksData[key];
+                const card = createLinkCard(key, item);
 
-                const isResearch = item.category === 'research';
-                const isVip = item.category === 'vip';
-                const isApp = item.category === 'app';
-
-                let badgeHtml = '';
-                if (isVip) badgeHtml = '<span class="badge-vip"><i class="fa-solid fa-crown"></i> VIP</span>';
-                else if (isApp) badgeHtml = '<span class="badge-app"><i class="fa-solid fa-mobile-screen"></i> Web App</span>';
-                else if (isResearch) badgeHtml = '<span class="badge-rd">Riset</span>';
-
-                let priceTagHtml = isVip ? `
-                    <div class="vip-price-tag">
-                        <span class="price-strike">Rp 20.000</span>
-                        <span>Promo VIP ${(userProfile.ownedBadges || []).includes("b20") ? '<strong style="color:#ff007f;">Rp 5.000 (Kesayangan Admin)</strong>' : 'Rp 15.000 / Bln'}</span>
-                    </div>
-                ` : '';
-
-                let imgList = item.images || (item.image ? [item.image] : []);
-                let galleryHtml = '';
-                
-                if (imgList.length > 0) {
-                    let itemsHtml = imgList.map(imgSrc => `
-                        <div class="gallery-item ${imgList.length > 1 ? 'multi' : ''}">
-                            <img src="${imgSrc}" alt="Preview">
-                        </div>
-                    `).join('');
-
-                    galleryHtml = `
-                        <div class="preview-gallery-container" onclick="event.stopPropagation()">
-                            ${itemsHtml}
-                        </div>
-                    `;
+                if (item.category === 'vip') {
+                    if (vipContainer) vipContainer.appendChild(card);
+                } else if (item.category === 'app') {
+                    if (appContainer) appContainer.appendChild(card);
+                } else if (item.category === 'main') {
+                    if (mainContainer) mainContainer.appendChild(card);
+                } else if (item.category === 'research') {
+                    if (researchContainer) researchContainer.appendChild(card);
                 }
 
-                card.innerHTML = `
-                    <div class="link-header-row">
-                        <div class="link-title-row">
-                            <span class="link-title">${item.title}</span>
-                            ${badgeHtml}
+                if (adminList && userProfile.isAdmin) {
+                    const row = document.createElement('div');
+                    row.className = 'admin-item-row';
+                    row.innerHTML = `
+                        <span><strong>${item.title}</strong> (${item.category})</span>
+                        <div>
+                            <button class="btn-secondary" style="padding:4px 8px; font-size:0.7rem;" onclick="editLinkAdmin('${key}')">Edit</button>
+                            <button class="btn-secondary" style="padding:4px 8px; font-size:0.7rem; color:#ef4444;" onclick="deleteLinkAdmin('${key}')">Hapus</button>
                         </div>
-                        <div class="arrow-box">
-                            <i class="fa-solid ${isVip && !userProfile.isVip && !userProfile.isAdmin ? 'fa-lock' : 'fa-arrow-right'}"></i>
-                        </div>
-                    </div>
-                    ${galleryHtml}
-                    <div class="link-desc">${item.desc}</div>
-                    ${priceTagHtml}
-                `;
-
-                if (isVip) vipContainer.appendChild(card);
-                else if (isApp) appContainer.appendChild(card);
-                else if (isResearch) researchContainer.appendChild(card);
-                else mainContainer.appendChild(card);
+                    `;
+                    adminList.appendChild(row);
+                }
             });
+        }
 
-            document.getElementById('annoTitle').innerText = announcement.title || "";
-            document.getElementById('annoBody').innerText = announcement.body || "";
-            updateProfileUI();
+        function createLinkCard(key, item) {
+            const card = document.createElement('div');
+            card.className = `link-card ${item.category === 'vip' ? 'vip-card' : ''}`;
+            
+            let badgeHtml = '';
+            if (item.category === 'vip') badgeHtml = `<span class="badge-vip"><i class="fa-solid fa-crown"></i> VIP</span>`;
+            else if (item.category === 'app') badgeHtml = `<span class="badge-app"><i class="fa-solid fa-mobile"></i> Web App</span>`;
+            else if (item.category === 'research') badgeHtml = `<span class="badge-rd"><i class="fa-solid fa-flask"></i> R&D Test</span>`;
+            else badgeHtml = `<span class="badge-admin">Utama</span>`;
+
+            let galleryHtml = '';
+            if (item.images && Array.isArray(item.images) && item.images.length > 0) {
+                galleryHtml = `<div class="preview-gallery-container">`;
+                item.images.forEach(img => {
+                    galleryHtml += `<div class="gallery-item ${item.images.length > 1 ? 'multi' : ''}"><img src="${img}" alt="Preview"></div>`;
+                });
+                galleryHtml += `</div>`;
+            }
+
+            let priceHtml = '';
+            if (item.category === 'vip') {
+                let discPrice = "Rp 15.000";
+                if (userProfile.ownedBadges.includes("b20") || userProfile.ownedBadges.includes("b13")) {
+                    discPrice = "Rp 10.000 (Diskon Khusus Lencana)";
+                }
+                priceHtml = `<div class="vip-price-tag"><span class="price-strike">Rp 35.000</span> <i class="fa-solid fa-arrow-right"></i> ${discPrice} / Bulan</div>`;
+            }
+
+            card.innerHTML = `
+                <div class="link-header-row">
+                    <div class="link-title-row">
+                        <span class="link-title">${item.title}</span>
+                        ${badgeHtml}
+                    </div>
+                    <div class="arrow-box"><i class="fa-solid fa-arrow-up-right-from-square"></i></div>
+                </div>
+                <div class="link-desc">${item.desc || ''}</div>
+                ${galleryHtml}
+                ${priceHtml}
+            `;
+
+            card.onclick = () => handleLinkClick(item);
+            return card;
+        }
+
+        window.handleLinkClick = function(item) {
+            if (item.category === 'vip' && !userProfile.isVip && !userProfile.isAdmin) {
+                activeVipItem = item;
+                document.getElementById('vipItemTitle').innerText = item.title;
+                document.getElementById('vipAccessModal').style.display = 'flex';
+            } else {
+                openAppViewer(item.url, item.title);
+            }
         };
 
-        function handleCardClick(item) {
-            if (item.category === 'vip' && !userProfile.isAdmin && !userProfile.isVip) {
-                activeVipItem = item;
-                openVipGateway(item);
-            } else {
-                openSecureApp(item.url, item.title);
-            }
-        }
-
-        function openSecureApp(url, title) {
+        window.openAppViewer = function(url, title) {
             document.getElementById('viewerTitle').innerHTML = `<i class="fa-solid fa-shield-halved"></i> ${title}`;
-            currentOpenAppIsMixer = title.toLowerCase().includes('mixer');
-
-            const htmlContent = `
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <style>html, body { margin:0; padding:0; height:100%; overflow:hidden; background:#000; }</style>
-                </head>
-                <body>
-                    <iframe src="${url}" style="width:100%; height:100%; border:none;" allowfullscreen></iframe>
-                </body>
-                </html>
-            `;
-            const blob = new Blob([htmlContent], { type: 'text/html' });
-            const blobUrl = URL.createObjectURL(blob);
-
-            const appViewer = document.getElementById('appViewer');
-            document.getElementById('innerFrame').src = blobUrl;
-            appViewer.style.display = 'flex';
-        }
+            document.getElementById('innerFrame').src = url;
+            document.getElementById('appViewer').style.display = 'flex';
+        };
 
         window.closeAppViewer = function() {
-            document.getElementById('innerFrame').src = 'about:blank';
             document.getElementById('appViewer').style.display = 'none';
-            currentOpenAppIsMixer = false;
+            document.getElementById('innerFrame').src = 'about:blank';
         };
 
-        function openVipGateway(item) {
-            document.getElementById('vipItemTitle').innerText = item.title;
-            
-            const trialStart = localStorage.getItem(`faro_trial_${item.id}`);
-            const trialBox = document.getElementById('trialStatusBox');
-            const btnTrial = document.getElementById('btnStartTrial');
-
-            if (!trialStart) {
-                trialBox.innerHTML = `
-                    <strong style="color: var(--accent-gold); display: block; margin-bottom: 2px;">Uji Coba Gratis 7 Hari Tersedia</strong>
-                    <span style="font-size: 0.8rem; color: var(--text-sub);">Nikmati akses penuh ke web Mixer ini secara gratis selama 1 minggu pertama!</span>
-                `;
-                btnTrial.style.display = 'block';
-            } else {
-                const now = Date.now();
-                const diffDays = Math.ceil((now - parseInt(trialStart)) / (1000 * 60 * 60 * 24));
-                
-                if (diffDays <= 7) {
-                    closeModal('vipAccessModal');
-                    openSecureApp(item.url, item.title + " (Uji Coba Gratis)");
-                    return;
-                } else {
-                    trialBox.innerHTML = `
-                        <strong style="color: #ef4444; display: block; margin-bottom: 2px;">Masa Uji Coba Gratis Habis</strong>
-                        <span style="font-size: 0.8rem; color: var(--text-sub);">Silakan lakukan pembayaran VIP untuk melanjutkan.</span>
-                    `;
-                    btnTrial.style.display = 'none';
-                }
-            }
-
-            document.getElementById('vipAccessModal').style.display = 'flex';
-        }
-
-        window.activateTrial = function() {
-            if (activeVipItem) {
-                localStorage.setItem(`faro_trial_${activeVipItem.id}`, Date.now().toString());
-                alert("Uji Coba Gratis 7 Hari berhasil diaktifkan!");
-                closeModal('vipAccessModal');
-                openSecureApp(activeVipItem.url, activeVipItem.title + " (Uji Coba Gratis)");
-            }
-        };
-
-        window.verifyVipAccess = function() {
-            const inputPass = document.getElementById('vipPassInput').value.trim();
-            if (inputPass === vipKey || inputPass === TARGET_PASS) {
-                alert("Akses VIP Berhasil Diakui!");
-                grantVipAccess();
-                closeModal('vipAccessModal');
-                document.getElementById('vipPassInput').value = '';
-                if (activeVipItem) {
-                    openSecureApp(activeVipItem.url, activeVipItem.title);
-                }
-            } else {
-                alert("Passcode VIP Salah!");
-            }
-        };
-
-        function grantVipAccess() {
-            userProfile.isVip = true;
-            localStorage.setItem('faro_user_profile', JSON.stringify(userProfile));
-            renderUI();
-        }
-
-        window.processAutomaticPayment = async function() {
-            const payButtons = document.querySelectorAll('.btn-pay-now');
-            
-            payButtons.forEach(btn => {
-                btn.disabled = true;
-                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memproses...';
-            });
-
-            // Tentukan Harga Otomatis Berdasarkan Lencana
-            let finalAmount = 15000;
-            if ((userProfile.ownedBadges || []).includes("b20")) finalAmount = 5000;
-            else if ((userProfile.ownedBadges || []).includes("b13")) finalAmount = 10000;
-            else if ((userProfile.ownedBadges || []).includes("b8")) finalAmount = 13000;
-
-            try {
-                const response = await fetch('/api/create-transaction', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        userName: userProfile.name,
-                        amount: finalAmount,
-                        itemDetails: "Langganan VIP FARO Hub (1 Bulan)"
-                    })
-                });
-
-                if (!response.ok) {
-                    const errData = await response.json().catch(() => ({}));
-                    throw new Error(errData.error || "Gagal membuat transaksi.");
-                }
-
-                const data = await response.json();
-
-                closeModal('vipAccessModal');
-                closeModal('transferModal');
-
-                if (window.snap && typeof window.snap.pay === 'function') {
-                    window.snap.pay(data.token, {
-                        onSuccess: function () {
-                            alert("Pembayaran Berhasil! Akses VIP Anda telah aktif.");
-                            grantVipAccess();
-                            if (activeVipItem) openSecureApp(activeVipItem.url, activeVipItem.title);
-                        },
-                        onPending: function () { alert("Pembayaran menunggu transfer."); },
-                        onError: function () { alert("Pembayaran gagal."); }
-                    });
-                }
-
-            } catch (err) {
-                alert("Terjadi kesalahan: " + err.message);
-            } finally {
-                payButtons.forEach(btn => {
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fa-solid fa-bolt"></i> Bayar Otomatis Sekarang';
-                });
-            }
-        };
-
-        window.toggleReplyBox = function(id) {
-            const el = document.getElementById(`replyBox-${id}`);
-            el.style.display = el.style.display === 'none' ? 'block' : 'none';
-        };
-
+        // MODAL HELPERS
         window.openProfileModal = function() {
-            updateProfileUI();
+            document.getElementById('profName').value = userProfile.name;
+            document.getElementById('profAge').value = userProfile.age || "";
+            document.getElementById('profileAvatarPreview').src = userProfile.avatar;
             document.getElementById('profileModal').style.display = 'flex';
         };
 
-        window.handleAvatarUpload = function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function (event) {
-                    userProfile.avatar = event.target.result;
-                    document.getElementById('profileAvatarPreview').src = event.target.result;
-                };
-                reader.readAsDataURL(file);
+        window.openLoginModal = function() {
+            if (userProfile.isAdmin) {
+                document.getElementById('adminModal').style.display = 'flex';
+            } else {
+                document.getElementById('loginModal').style.display = 'flex';
             }
         };
 
+        window.openTransferModal = function() {
+            document.getElementById('transferModal').style.display = 'flex';
+        };
+
+        window.closeModal = function(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        };
+
         window.saveProfile = function() {
-            userProfile.name = document.getElementById('profName').value.trim() || "Tamu User";
-            userProfile.age = document.getElementById('profAge').value.trim();
+            userProfile.name = document.getElementById('profName').value || "User";
+            userProfile.age = document.getElementById('profAge').value;
             localStorage.setItem('faro_user_profile', JSON.stringify(userProfile));
-            syncUserDataToFirebase();
             updateProfileUI();
             closeModal('profileModal');
             alert("Profil berhasil diperbarui!");
         };
 
-        window.handleLogin = function(e) {
-            e.preventDefault();
-            const email = document.getElementById('adminEmail').value.trim();
-            const pass = document.getElementById('adminPass').value.trim();
+        window.handleAvatarUpload = function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                userProfile.avatar = e.target.result;
+                document.getElementById('profileAvatarPreview').src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        };
 
-            if (email.toLowerCase() === TARGET_EMAIL.toLowerCase() && pass === TARGET_PASS) {
-                userProfile.isAdmin = true;
+        window.handleLogoChange = function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                newLogoBase64 = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        };
+
+        window.saveNewLogo = function() {
+            if (!newLogoBase64) return alert("Pilih gambar logo terlebih dahulu.");
+            set(logoRef, newLogoBase64).then(() => {
+                alert("Logo utama portal berhasil diperbarui!");
+            });
+        };
+
+        window.activateTrial = function() {
+            userProfile.isVip = true;
+            localStorage.setItem('faro_user_profile', JSON.stringify(userProfile));
+            updateProfileUI();
+            closeModal('vipAccessModal');
+            alert("Uji coba VIP 7 Hari berhasil diaktifkan!");
+        };
+
+        window.verifyVipAccess = function() {
+            const code = document.getElementById('vipPassInput').value;
+            if (code === vipKey) {
                 userProfile.isVip = true;
-                userProfile.name = "Admin FARO";
-                if (!userProfile.ownedBadges.includes("b20")) userProfile.ownedBadges.push("b20");
                 localStorage.setItem('faro_user_profile', JSON.stringify(userProfile));
-                syncUserDataToFirebase();
-                
-                closeModal('loginModal');
-                openAdminDashboard();
-                document.getElementById('loginForm').reset();
                 updateProfileUI();
+                closeModal('vipAccessModal');
+                alert("Akses VIP Berhasil Dibuka via Passcode!");
             } else {
-                alert("Kredensial Admin Salah!");
+                alert("Passcode salah!");
             }
         };
 
-        function openAdminDashboard() {
-            document.getElementById('editAnnoTitle').value = announcement.title || "";
-            document.getElementById('editAnnoBody').value = announcement.body || "";
-            document.getElementById('editVipKey').value = vipKey;
-            resetAdminLinkForm();
-            renderAdminLinkList();
-            document.getElementById('adminModal').style.display = 'flex';
+        window.processAutomaticPayment = function() {
+            // Midtrans Snap Simulation or Integration
+            if (window.snap) {
+                window.snap.pay('YOUR_SNAP_TOKEN_HERE', {
+                    onSuccess: function(result){
+                        userProfile.isVip = true;
+                        localStorage.setItem('faro_user_profile', JSON.stringify(userProfile));
+                        updateProfileUI();
+                        closeModal('vipAccessModal');
+                        closeModal('transferModal');
+                        alert("Pembayaran Berhasil! Status VIP Anda Aktif.");
+                    },
+                    onPending: function(result){ alert("Menunggu pembayaran selesai..."); },
+                    onError: function(result){ alert("Pembayaran gagal!"); }
+                });
+            } else {
+                // Simulation fallback if snap script fails
+                userProfile.isVip = true;
+                localStorage.setItem('faro_user_profile', JSON.stringify(userProfile));
+                updateProfileUI();
+                closeModal('vipAccessModal');
+                closeModal('transferModal');
+                alert("Pembayaran Otomatis Simulasi Sukses! Status VIP Anda Aktif.");
+            }
+        };
+
+        window.handleLogin = function(e) {
+            e.preventDefault();
+            const email = document.getElementById('adminEmail').value;
+            const pass = document.getElementById('adminPass').value;
+            if (email === "admin@faro.com" && pass === "faro2026") {
+                userProfile.isAdmin = true;
+                userProfile.isVip = true;
+                localStorage.setItem('faro_user_profile', JSON.stringify(userProfile));
+                updateProfileUI();
+                closeModal('loginModal');
+                document.getElementById('adminModal').style.display = 'flex';
+                alert("Login Admin Berhasil!");
+            } else {
+                alert("Email atau Sandi Admin Salah!");
+            }
+        };
+
+        // KOMUNITAS & KOMENTAR ENGINE
+        window.toggleStickerPicker = function(target) {
+            const picker = document.getElementById(`stickerPicker-${target}`);
+            picker.style.display = picker.style.display === 'none' ? 'flex' : 'none';
+        };
+
+        window.selectSticker = function(url, target) {
+            activeMediaAttachments[target] = { mediaUrl: url, mediaType: 'image' };
+            const preview = document.getElementById(`mediaPreview-${target}`);
+            preview.innerHTML = `<div class="admin-img-thumb"><img src="${url}"><button class="btn-del-img" onclick="clearMedia('${target}')">×</button></div>`;
+            document.getElementById(`stickerPicker-${target}`).style.display = 'none';
+        };
+
+        window.promptGifUrl = function(target) {
+            const url = prompt("Masukkan URL Gambar / GIF:");
+            if (url) {
+                activeMediaAttachments[target] = { mediaUrl: url, mediaType: 'image' };
+                const preview = document.getElementById(`mediaPreview-${target}`);
+                preview.innerHTML = `<div class="admin-img-thumb"><img src="${url}"><button class="btn-del-img" onclick="clearMedia('${target}')">×</button></div>`;
+            }
+        };
+
+        window.handleCommentImageUpload = function(event, target) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                activeMediaAttachments[target] = { mediaUrl: e.target.result, mediaType: 'image' };
+                const preview = document.getElementById(`mediaPreview-${target}`);
+                preview.innerHTML = `<div class="admin-img-thumb"><img src="${e.target.result}"><button class="btn-del-img" onclick="clearMedia('${target}')">×</button></div>`;
+            };
+            reader.readAsDataURL(file);
+        };
+
+        window.clearMedia = function(target) {
+            activeMediaAttachments[target] = { mediaUrl: '', mediaType: '' };
+            document.getElementById(`mediaPreview-${target}`).innerHTML = '';
+        };
+
+        window.postComment = function() {
+            const text = document.getElementById('mainCommentInput').value.trim();
+            const media = activeMediaAttachments['main'];
+            if (!text && !media.mediaUrl) return alert("Komentar tidak boleh kosong.");
+
+            const newCmtRef = push(commentsRef);
+            set(newCmtRef, {
+                userId: userProfile.userId,
+                name: userProfile.name,
+                avatar: userProfile.avatar,
+                isAdmin: userProfile.isAdmin || false,
+                text: text,
+                mediaUrl: media.mediaUrl || '',
+                timestamp: Date.now(),
+                likes: 0,
+                pinned: false,
+                replies: {}
+            }).then(() => {
+                document.getElementById('mainCommentInput').value = '';
+                clearMedia('main');
+                addActivityPoints(15, 'comment');
+                alert("Komentar berhasil dikirim! (+15 Poin)");
+            });
+        };
+
+        function renderComments() {
+            const container = document.getElementById('commentContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const keys = Object.keys(rawCommentsData);
+            if (keys.length === 0) {
+                container.innerHTML = `<p style="color:var(--text-muted); text-align:center;">Belum ada komentar.</p>`;
+                return;
+            }
+
+            keys.forEach(key => {
+                const c = rawCommentsData[key];
+                const card = document.createElement('div');
+                card.className = `comment-card ${c.pinned ? 'pinned' : ''}`;
+                
+                let mediaHtml = c.mediaUrl ? `<div class="comment-media-container"><img src="${c.mediaUrl}"></div>` : '';
+                let badgeAdmin = c.isAdmin ? `<span class="badge-admin">Admin</span>` : '';
+
+                card.innerHTML = `
+                    <div class="comment-header">
+                        <div class="comment-user">
+                            <img src="${c.avatar || 'https://ui-avatars.com/api/?name=User'}">
+                            <span class="comment-username">${c.name}</span>
+                            ${badgeAdmin}
+                        </div>
+                        <span style="font-size:0.7rem; color:var(--text-muted);">${new Date(c.timestamp).toLocaleTimeString()}</span>
+                    </div>
+                    <div class="comment-text">${c.text}</div>
+                    ${mediaHtml}
+                    <div class="comment-actions">
+                        <button class="comment-action-btn" onclick="likeComment('${key}')"><i class="fa-solid fa-thumbs-up"></i> ${c.likes || 0}</button>
+                        <button class="comment-action-btn" onclick="toggleReplyBox('${key}')"><i class="fa-solid fa-reply"></i> Balas</button>
+                        ${userProfile.isAdmin ? `<button class="comment-action-btn" style="color:var(--accent-gold);" onclick="pinComment('${key}', ${!c.pinned})">${c.pinned ? 'Unpin' : 'Pin'}</button>` : ''}
+                    </div>
+                    <div id="replyBox-${key}" style="display:none; margin-top:8px;">
+                        <input type="text" id="replyInput-${key}" class="form-control" placeholder="Tulis balasan...">
+                        <button class="btn-primary" style="margin-top:6px; font-size:0.75rem; padding:6px;" onclick="sendReply('${key}')">Kirim Balasan</button>
+                    </div>
+                    <div class="replies-container" id="repliesList-${key}"></div>
+                `;
+
+                // Render Replies
+                const repliesList = card.querySelector(`#repliesList-${key}`);
+                if (c.replies) {
+                    Object.keys(c.replies).forEach(rKey => {
+                        const r = c.replies[rKey];
+                        const rDiv = document.createElement('div');
+                        rDiv.style.fontSize = '0.8rem';
+                        rDiv.innerHTML = `<strong>${r.name}:</strong> ${r.text}`;
+                        repliesList.appendChild(rDiv);
+                    });
+                }
+
+                container.appendChild(card);
+            });
         }
 
-        window.convertMultipleImagesToBase64 = function(e) {
-            const files = Array.from(e.target.files);
-            if (files.length === 0) return;
+        window.likeComment = function(key) {
+            const c = rawCommentsData[key];
+            const newLikes = (c.likes || 0) + 1;
+            update(ref(db, `comments/${key}`), { likes: newLikes });
+        };
 
-            let loadedCount = 0;
-            files.forEach(file => {
+        window.pinComment = function(key, state) {
+            update(ref(db, `comments/${key}`), { pinned: state });
+        };
+
+        window.toggleReplyBox = function(key) {
+            const box = document.getElementById(`replyBox-${key}`);
+            box.style.display = box.style.display === 'none' ? 'block' : 'none';
+        };
+
+        window.sendReply = function(key) {
+            const input = document.getElementById(`replyInput-${key}`);
+            const text = input.value.trim();
+            if (!text) return;
+
+            const repRef = push(ref(db, `comments/${key}/replies`));
+            set(repRef, {
+                name: userProfile.name,
+                text: text,
+                timestamp: Date.now()
+            }).then(() => {
+                input.value = '';
+                addActivityPoints(10, 'comment');
+                alert("Balasan terkirim! (+10 Poin)");
+            });
+        };
+
+        // PENGADUAN & BUG REPORT ENGINE
+        window.handleComplaintPhotosUpload = function(event) {
+            const files = event.target.files;
+            if (!files) return;
+            complaintPhotosBase64 = [];
+            const previewGrid = document.getElementById('complaintPhotoPreviewGrid');
+            previewGrid.innerHTML = '';
+
+            Array.from(files).forEach(file => {
                 const reader = new FileReader();
-                reader.onload = function (evt) {
-                    currentEditingImages.push(evt.target.result);
-                    loadedCount++;
-                    if (loadedCount === files.length) {
-                        renderAdminImgPreviews();
-                    }
+                reader.onload = function(e) {
+                    complaintPhotosBase64.push(e.target.result);
+                    previewGrid.innerHTML += `<div class="admin-img-thumb"><img src="${e.target.result}"></div>`;
                 };
                 reader.readAsDataURL(file);
             });
         };
 
-        function renderAdminImgPreviews() {
-            const grid = document.getElementById('adminImgPreviewGrid');
-            grid.innerHTML = '';
-            currentEditingImages.forEach((imgData, idx) => {
-                const thumb = document.createElement('div');
-                thumb.className = 'admin-img-thumb';
-                thumb.innerHTML = `
-                    <img src="${imgData}" alt="Thumb">
-                    <button class="btn-del-img" onclick="removeEditingImg(${idx})">&times;</button>
+        window.submitComplaint = function() {
+            const category = document.getElementById('complaintCategory').value;
+            const title = document.getElementById('complaintTitle').value.trim();
+            const desc = document.getElementById('complaintDesc').value.trim();
+
+            if (!title || !desc) return alert("Judul dan deskripsi pengaduan wajib diisi.");
+
+            const newCompRef = push(complaintsRef);
+            set(newCompRef, {
+                userId: userProfile.userId,
+                name: userProfile.name,
+                category: category,
+                title: title,
+                desc: desc,
+                photos: complaintPhotosBase64,
+                status: 'pending',
+                timestamp: Date.now()
+            }).then(() => {
+                document.getElementById('complaintTitle').value = '';
+                document.getElementById('complaintDesc').value = '';
+                document.getElementById('complaintPhotoPreviewGrid').innerHTML = '';
+                complaintPhotosBase64 = [];
+                addActivityPoints(25, 'complaint');
+                alert("Pengaduan berhasil dikirim! Tim admin akan segera meninjau. (+25 Poin)");
+            });
+        };
+
+        window.filterComplaints = function(cat, btn) {
+            currentComplaintFilter = cat;
+            document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            renderComplaints();
+        };
+
+        function renderComplaints() {
+            const container = document.getElementById('complaintContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const keys = Object.keys(rawComplaintsData);
+            let filteredKeys = keys.filter(k => {
+                const item = rawComplaintsData[k];
+                if (currentComplaintFilter === 'all') return true;
+                return item.category === currentComplaintFilter;
+            });
+
+            if (filteredKeys.length === 0) {
+                container.innerHTML = `<p style="color:var(--text-muted); text-align:center;">Tidak ada data pengaduan.</p>`;
+                return;
+            }
+
+            filteredKeys.forEach(key => {
+                const comp = rawComplaintsData[key];
+                const card = document.createElement('div');
+                card.className = 'complaint-card';
+
+                let statusClass = 'status-pending';
+                let statusText = 'Pending';
+                if (comp.status === 'process') { statusClass = 'status-process'; statusText = 'Diproses'; }
+                if (comp.status === 'resolved') { statusClass = 'status-resolved'; statusText = 'Selesai'; }
+
+                let photosHtml = '';
+                if (comp.photos && comp.photos.length > 0) {
+                    photosHtml = `<div class="preview-gallery-container" style="margin-top:8px;">`;
+                    comp.photos.forEach(p => {
+                        photosHtml += `<div class="gallery-item"><img src="${p}"></div>`;
+                    });
+                    photosHtml += `</div>`;
+                }
+
+                card.innerHTML = `
+                    <div class="complaint-header">
+                        <span style="font-size:0.75rem; color:var(--accent-gold); font-weight:700;">[${comp.category.toUpperCase()}] oleh ${comp.name}</span>
+                        <span class="badge-status ${statusClass}">${statusText}</span>
+                    </div>
+                    <div style="font-size:0.9rem; font-weight:700; margin-bottom:4px; color:var(--text-main);">${comp.title}</div>
+                    <div style="font-size:0.82rem; color:var(--text-sub); line-height:1.4;">${comp.desc}</div>
+                    ${photosHtml}
+                    ${userProfile.isAdmin ? `
+                        <div style="margin-top:10px; display:flex; gap:6px;">
+                            <button class="btn-secondary" style="font-size:0.7rem; padding:4px 8px;" onclick="updateComplaintStatus('${key}', 'process')">Proses</button>
+                            <button class="btn-secondary" style="font-size:0.7rem; padding:4px 8px; color:#22c55e;" onclick="updateComplaintStatus('${key}', 'resolved')">Selesai</button>
+                        </div>
+                    ` : ''}
                 `;
-                grid.appendChild(thumb);
+                container.appendChild(card);
             });
         }
 
-        window.removeEditingImg = function(index) {
-            currentEditingImages.splice(index, 1);
-            renderAdminImgPreviews();
+        window.updateComplaintStatus = function(key, status) {
+            update(ref(db, `complaints/${key}`), { status: status });
         };
 
-        window.editLink = function(key) {
-            const item = rawLinksData[key];
-            if (item) {
-                document.getElementById('editLinkId').value = key;
-                document.getElementById('newTitle').value = item.title;
-                document.getElementById('newUrl').value = item.url;
-                document.getElementById('newDesc').value = item.desc;
-                document.getElementById('newCategory').value = item.category;
-                
-                currentEditingImages = item.images ? [...item.images] : (item.image ? [item.image] : []);
-                renderAdminImgPreviews();
-                
-                document.getElementById('adminFormTitle').innerText = "Edit Modul Link (Firebase)";
-                document.getElementById('btnSaveLink').innerText = "Simpan Perubahan ke Firebase";
-            }
+        // ADMIN PANEL LINK MANAGEMENT
+        window.convertMultipleImagesToBase64 = function(event) {
+            const files = event.target.files;
+            if (!files) return;
+            adminImgBase64List = [];
+            const preview = document.getElementById('adminImgPreviewGrid');
+            preview.innerHTML = '';
+
+            Array.from(files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    adminImgBase64List.push(e.target.result);
+                    preview.innerHTML += `<div class="admin-img-thumb"><img src="${e.target.result}"></div>`;
+                };
+                reader.readAsDataURL(file);
+            });
         };
 
         window.saveLink = function() {
-            const key = document.getElementById('editLinkId').value;
+            const id = document.getElementById('editLinkId').value;
             const title = document.getElementById('newTitle').value.trim();
             const url = document.getElementById('newUrl').value.trim();
             const desc = document.getElementById('newDesc').value.trim();
             const category = document.getElementById('newCategory').value;
 
-            if(!title || !url) {
-                alert('Nama dan URL wajib diisi!');
-                return;
-            }
+            if (!title || !url) return alert("Judul dan URL link wajib diisi.");
 
-            const payload = {
-                title,
-                url,
-                desc: desc || "Tidak ada deskripsi",
-                category,
-                images: [...currentEditingImages]
+            const linkData = {
+                title: title,
+                url: url,
+                desc: desc,
+                category: category,
+                images: adminImgBase64List.length > 0 ? adminImgBase64List : []
             };
 
-            if (key) {
-                update(ref(db, `links/${key}`), payload).then(() => {
-                    alert('Modul link berhasil diperbarui!');
-                    resetAdminLinkForm();
+            if (id) {
+                update(ref(db, `links/${id}`), linkData).then(() => {
+                    alert("Modul berhasil diperbarui!");
+                    resetAdminForm();
                 });
             } else {
-                push(linksRef, payload).then(() => {
-                    alert('Modul link baru berhasil ditambahkan!');
-                    resetAdminLinkForm();
+                const newRef = push(linksRef);
+                set(newRef, linkData).then(() => {
+                    alert("Modul baru berhasil disimpan!");
+                    resetAdminForm();
                 });
             }
         };
 
-        function resetAdminLinkForm() {
-            document.getElementById('editLinkId').value = '';
-            document.getElementById('newTitle').value = '';
-            document.getElementById('newUrl').value = '';
-            document.getElementById('newDesc').value = '';
-            document.getElementById('newImgFile').value = '';
-            currentEditingImages = [];
-            renderAdminImgPreviews();
-            document.getElementById('adminFormTitle').innerText = "Tambah Modul Link Baru";
-            document.getElementById('btnSaveLink').innerText = "+ Simpan Link ke Firebase";
-        }
+        window.editLinkAdmin = function(key) {
+            const item = rawLinksData[key];
+            document.getElementById('editLinkId').value = key;
+            document.getElementById('newTitle').value = item.title;
+            document.getElementById('newUrl').value = item.url;
+            document.getElementById('newDesc').value = item.desc || '';
+            document.getElementById('newCategory').value = item.category;
+            adminImgBase64List = item.images || [];
+            
+            const preview = document.getElementById('adminImgPreviewGrid');
+            preview.innerHTML = '';
+            adminImgBase64List.forEach(img => {
+                preview.innerHTML += `<div class="admin-img-thumb"><img src="${img}"></div>`;
+            });
 
-        window.deleteLink = function(key) {
-            if(confirm('Hapus link/modul ini dari Firebase database?')) {
+            document.getElementById('btnSaveLink').innerText = "Perbarui Modul Link";
+        };
+
+        window.deleteLinkAdmin = function(key) {
+            if (confirm("Hapus modul link ini?")) {
                 remove(ref(db, `links/${key}`));
             }
         };
 
-        function renderAdminLinkList() {
-            const container = document.getElementById('adminLinkList');
-            container.innerHTML = '';
-            const linkKeys = Object.keys(rawLinksData);
-
-            if (linkKeys.length === 0) {
-                container.innerHTML = '<p style="font-size:0.8rem; color:var(--text-muted);">Belum ada modul link.</p>';
-                return;
-            }
-
-            linkKeys.forEach(key => {
-                const l = rawLinksData[key];
-                const row = document.createElement('div');
-                row.className = 'admin-item-row';
-                row.innerHTML = `
-                    <div>
-                        <strong>${escapeHtml(l.title)}</strong> (${(l.category || '').toUpperCase()})
-                    </div>
-                    <div>
-                        <button class="comment-action-btn" onclick="editLink('${key}')" style="display:inline; margin-right:8px;"><i class="fa-solid fa-pen"></i></button>
-                        <button class="comment-action-btn" onclick="deleteLink('${key}')" style="display:inline; color:#ef4444;"><i class="fa-solid fa-trash"></i></button>
-                    </div>
-                `;
-                container.appendChild(row);
-            });
+        function resetAdminForm() {
+            document.getElementById('editLinkId').value = '';
+            document.getElementById('newTitle').value = '';
+            document.getElementById('newUrl').value = '';
+            document.getElementById('newDesc').value = '';
+            document.getElementById('adminImgPreviewGrid').innerHTML = '';
+            adminImgBase64List = [];
+            document.getElementById('btnSaveLink').innerText = "+ Simpan Link ke Firebase";
         }
 
         window.saveAnnouncement = function() {
-            const newAnno = {
-                title: document.getElementById('editAnnoTitle').value.trim(),
-                body: document.getElementById('editAnnoBody').value.trim()
-            };
-            set(annoRef, newAnno).then(() => alert('Pengumuman diperbarui!'));
+            const title = document.getElementById('editAnnoTitle').value;
+            const body = document.getElementById('editAnnoBody').value;
+            set(annoRef, { title, body }).then(() => alert("Pengumuman diperbarui!"));
         };
 
         window.saveVipKey = function() {
-            vipKey = document.getElementById('editVipKey').value.trim();
-            localStorage.setItem('faro_vip_key', vipKey);
-            alert('Passcode VIP diperbarui!');
+            const key = document.getElementById('editVipKey').value;
+            if (key) {
+                vipKey = key;
+                localStorage.setItem('faro_vip_key', key);
+                alert("Passcode VIP diperbarui!");
+            }
         };
 
-        window.openTransferModal = function() { document.getElementById('transferModal').style.display = 'flex'; };
-        window.openLoginModal = function() { document.getElementById('loginModal').style.display = 'flex'; };
-        window.closeModal = function(id) { document.getElementById(id).style.display = 'none'; };
+        window.grantBadgeByAdmin = function() {
+            const targetId = document.getElementById('adminGrantUserId').value.trim();
+            const badgeId = document.getElementById('adminGrantBadgeSelect').value;
+            if (!targetId) return alert("Masukkan ID/Username pengguna.");
 
-        initTheme();
+            // Grant directly to user or global user reference if applicable
+            if (targetId === userProfile.userId || targetId.toLowerCase() === userProfile.name.toLowerCase()) {
+                if (!userProfile.ownedBadges.includes(badgeId)) {
+                    userProfile.ownedBadges.push(badgeId);
+                    localStorage.setItem('faro_user_profile', JSON.stringify(userProfile));
+                    updateProfileUI();
+                    renderBadgesTab();
+                    alert(`Lencana berhasil dianugerahkan ke ${userProfile.name}!`);
+                } else {
+                    alert("Pengguna sudah memiliki lencana ini.");
+                }
+            } else {
+                alert("Target pengguna tidak ditemukan di sesi aktif lokal saat ini.");
+            }
+        };
     </script>
 </body>
 </html>
