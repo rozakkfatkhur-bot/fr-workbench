@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pro Sound Level Meter & RTA Analyzer</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background-color: #0f111a;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            background: #1a1d29;
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+            width: 100%;
+            max-width: 600px;
+        }
+        h1 {
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+            color: #00adb5;
+            text-align: center;
+        }
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .card {
+            background: #24283b;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid #33384e;
+        }
+        .card-title {
+            font-size: 0.85rem;
+            color: #9aa5ce;
+            margin-bottom: 5px;
+        }
+        .card-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #ffffff;
+        }
+        .main-display {
+            background: #24283b;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 15px;
+            border: 1px solid #33384e;
+        }
+        .db-main {
+            font-size: 3.2rem;
+            font-weight: bold;
+            color: #00ffcc;
+        }
+        .controls-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .controls-row select, .btn {
+            flex: 1;
+            padding: 12px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            border-radius: 8px;
+            border: none;
+            outline: none;
+        }
+        select {
+            background-color: #24283b;
+            color: white;
+            border: 1px solid #444b6a;
+            cursor: pointer;
+        }
+        .btn {
+            background-color: #00adb5;
+            color: white;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn:hover { background-color: #00818a; }
+        .btn.stop { background-color: #e74c3c; }
+        .btn.stop:hover { background-color: #c0392b; }
+        
+        /* RTA Canvas */
+        .rta-container {
+            background: #13151f;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #33384e;
+        }
+        canvas {
+            width: 100%;
+            height: 120px;
+            display: block;
+        }
+        .status {
+            text-align: center;
+            font-size: 0.95rem;
+            font-weight: 600;
+            padding: 8px;
+            border-radius: 6px;
+            background-color: #24283b;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Pro Sound Level & RTA Meter</h1>
+        
+        <div class="controls-row">
+            <select id="weightingSelect">
+                <option value="A">Weighting: A-Curve (Human Ear)</option>
+                <option value="C">Weighting: C-Curve (Loud/Bass)</option>
+                <option value="Z">Weighting: Z-Curve (Flat / Raw)</option>
+            </select>
+        </div>
+
+        <div class="main-display">
+            <div class="card-title">RMS LEVEL (SPL)</div>
+            <div class="db-main" id="rmsDisplay">-- dB</div>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="card">
+                <div class="card-title">PEAK LEVEL</div>
+                <div class="card-value" id="peakDisplay">--</div>
+            </div>
+            <div class="card">
+                <div class="card-title">Leq (Rata-rata Energi)</div>
+                <div class="card-value" id="leqDisplay">--</div>
+            </div>
+        </div>
+
+        <div class="rta-container">
+            <div class="card-title" style="margin-bottom: 5px;">RTA SPECTRUM ANALYZER (20 Hz - 20 kHz)</div>
+            <canvas id="rtaCanvas"></canvas>
+        </div>
+
+        <div class="status" id="statusText">Status: Siap Mengukur</div>
+
+        <button class="btn" id="toggleBtn" style="margin-top: 15px;" onclick="toggleMeter()">Mulai Pengukuran</button>
+    </div>
+
+    <script>
+        let audioCtx, analyser, microphone, javascriptNode;
+        let isRunning = false;
+        
+        let peakValue = 0;
+        let leqSum = 0;
+        let leqCount = 0;
+
+        const rmsDisplay = document.getElementById('rmsDisplay');
+        const peakDisplay = document.getElementById('peakDisplay');
+        const leqDisplay = document.getElementById('leqDisplay');
+        const statusText = document.getElementById('statusText');
+        const toggleBtn = document.getElementById('toggleBtn');
+        const weightingSelect = document.getElementById('weightingSelect');
+        const canvas = document.getElementById('rtaCanvas');
+        const canvasCtx = canvas.getContext('2d');
+
+        // Atur resolusi canvas agar tajam
+        canvas.width = canvas.offsetWidth;
+        canvas.height = 120;
+
+        function toggleMeter() {
+            if (!isRunning) {
+                startMeter();
+            } else {
+                stopMeter();
+            }
+        }
+
+        async function startMeter() {
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+                
+                analyser = audioCtx.createAnalyser();
+                analyser.fftSize = 256; // Mengatur resolusi bar RTA
+                analyser.smoothingTimeConstant = 0.8;
+
+                microphone = audioCtx.createMediaStreamSource(stream);
+                microphone.connect(analyser);
+
+                javascriptNode = audioCtx.createScriptProcessor(1024, 1, 1);
+                
+                peakValue = 0;
+                leqSum = 0;
+                leqCount = 0;
+
+                javascriptNode.onaudioprocess = () => {
+                    let array = new Uint8Array(analyser.frequencyBinCount);
+                    analyser.getByteFrequencyData(array);
+
+                    // Hitung RMS dasar
+                    let sumSquares = 0;
+                    for (let i = 0; i < array.length; i++) {
+                        sumSquares += array[i] * array[i];
+                    }
+                    let rmsRaw = Math.sqrt(sumSquares / array.length);
+
+                    // Konversi ke dB (dengan kalibrasi offset estimasi web)
+                    let weightingType = weightingSelect.value;
+                    let dbOffset = weightingType === 'C' ? 35 : (weightingType === 'Z' ? 40 : 30);
+                    let currentDb = Math.round(20 * Math.log10(rmsRaw + 1) + dbOffset);
+                    
+                    if (currentDb < 30) currentDb = 30;
+                    if (currentDb > 130) currentDb = 130;
+
+                    // Update Peak
+                    if (currentDb > peakValue) {
+                        peakValue = currentDb;
+                    }
+
+                    // Update Leq (Akumulasi rata-rata energi)
+                    leqSum += currentDb;
+                    leqCount++;
+                    let leqVal = Math.round(leqSum / leqCount);
+
+                    // Render UI Data
+                    rmsDisplay.innerText = currentDb + " dB";
+                    peakDisplay.innerText = peakValue + " dB";
+                    leqDisplay.innerText = leqVal + " dB";
+
+                    // Status Indikator
+                    if (currentDb < 75) {
+                        statusText.innerText = "Status: Normal / Aman";
+                        statusText.style.color = "#2ecc71";
+                    } else if (currentDb < 105) {
+                        statusText.innerText = "Status: Optimal / Keras Bagus";
+                        statusText.style.color = "#f39c12";
+                    } else {
+                        statusText.innerText = "Status: WARNING / POTENSI CLIPPING!";
+                        statusText.style.color = "#e74c3c";
+                    }
+
+                    // Render RTA Spectrum Bar
+                    drawRTA(array);
+                };
+
+                analyser.connect(javascriptNode);
+                javascriptNode.connect(audioCtx.destination);
+
+                isRunning = true;
+                toggleBtn.innerText = "Hentikan Pengukuran";
+                toggleBtn.classList.add("stop");
+
+            } catch (err) {
+                alert('Gagal mengakses mikrofon. Pastikan izin browser diaktifkan.');
+                console.error(err);
+            }
+        }
+
+        function drawRTA(dataArray) {
+            canvasCtx.fillStyle = '#13151f';
+            canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+
+            let barWidth = (canvas.width / dataArray.length) * 2.5;
+            let barHeight;
+            let x = 0;
+
+            for (let i = 0; i < dataArray.length; i++) {
+                barHeight = (dataArray[i] / 255) * canvas.height;
+
+                // Gradien warna bar RTA
+                let gradient = canvasCtx.createLinearGradient(0, canvas.height, 0, 0);
+                gradient.addColorStop(0, '#00adb5');
+                gradient.addColorStop(0.7, '#f39c12');
+                gradient.addColorStop(1, '#e74c3c');
+
+                canvasCtx.fillStyle = gradient;
+                canvasCtx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+
+                x += barWidth + 1;
+            }
+        }
+
+        function stopMeter() {
+            if (audioCtx) audioCtx.close();
+            if (microphone && microphone.mediaStream) {
+                microphone.mediaStream.getTracks().forEach(track => track.stop());
+            }
+            isRunning = false;
+            toggleBtn.innerText = "Mulai Pengukuran";
+            toggleBtn.classList.remove("stop");
+            rmsDisplay.innerText = "-- dB";
+            peakDisplay.innerText = "--";
+            leqDisplay.innerText = "--";
+            statusText.innerText = "Status: Berhenti";
+            statusText.style.color = "#fff";
+            
+            // Bersihkan canvas RTA
+            canvasCtx.fillStyle = '#13151f';
+            canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+    </script>
+</body>
+</html>
