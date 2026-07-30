@@ -449,8 +449,6 @@
             .table-matrix-container { max-height: 380px; }
         }
     </style>
-    <!-- Include html2canvas for exporting report as an image instead of PDF -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
 
@@ -518,13 +516,13 @@
             </div>
             <div class="control-item">
                 <label data-i18n="lbl_export_rep">Export Data</label>
-                <button class="export-btn" onclick="exportTelemetryImage()">EXPORT IMAGE REPORT</button>
+                <button class="export-btn" onclick="exportTelemetryReport()">EXPORT CSV REPORT</button>
             </div>
         </div>
     </header>
 
-    <!-- Main App Split Container (Target for Image Export) -->
-    <div class="dashboard-container" id="exportReportArea">
+    <!-- Main App Split Container -->
+    <div class="dashboard-container">
 
         <!-- LEFT SIDE (50%): Telemetry Tables Matrix -->
         <div class="telemetry-section">
@@ -853,7 +851,7 @@
                 lbl_gen: "Sinyal Generator",
                 lbl_engine: "Daya Mesin",
                 lbl_calib: "Kalibrasi Offset",
-                lbl_export_rep: "Ekspor Gambar",
+                lbl_export_rep: "Ekspor Data",
                 btn_start: "MULAI TELEMETRI",
                 btn_stop: "HENTIKAN TELEMETRI",
                 panel_unit_title: "Unit Pemroses Telemetri Utama",
@@ -935,7 +933,7 @@
                 lbl_gen: "测试信号源",
                 lbl_engine: "系统引擎",
                 lbl_calib: "校准偏移",
-                lbl_export_rep: "导出图片",
+                lbl_export_rep: "导出数据",
                 btn_start: "启动遥测",
                 btn_stop: "停止遥测",
                 panel_unit_title: "主遥测处理单元",
@@ -1017,7 +1015,7 @@
                 lbl_gen: "テスト信号生成",
                 lbl_engine: "エンジン電力",
                 lbl_calib: "校正オフセット",
-                lbl_export_rep: "画像エクスポート",
+                lbl_export_rep: "データエクスポート",
                 btn_start: "テレメトリ開始",
                 btn_stop: "テレメトリ停止",
                 panel_unit_title: "マスターテレメトリ処理ユニット",
@@ -1444,20 +1442,40 @@
             roomCtx.setLineDash([]);
         }
 
-        /* Module: Export Telemetry Report as an Image (PNG) using html2canvas */
-        function exportTelemetryImage() {
-            const reportArea = document.getElementById('exportReportArea');
-            html2canvas(reportArea, {
-                backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--bg-primary').trim(),
-                scale: 2
-            }).then(canvas => {
-                const link = document.createElement('a');
-                link.download = `SYS-ACUSTICA_Report_${Date.now()}.png`;
-                link.href = canvas.toDataURL('image/png');
-                link.click();
-            }).catch(err => {
-                alert('Gagal mengekspor gambar: ' + err.message);
-            });
+        /* Module: Export Telemetry Report (.CSV Format with Timestamp) */
+        function exportTelemetryReport() {
+            const timestamp = new Date().toISOString();
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += `SYS-ACUSTICA PRO LAB v4.0 - TELEMETRY EXPORT REPORT\r\n`;
+            csvContent += `Timestamp: ${timestamp}\r\n\r\n`;
+            
+            csvContent += `PRIMARY PARAMETERS\r\n`;
+            csvContent += `Parameter,Value,Unit\r\n`;
+            csvContent += `Main SPL,${mainSPL.textContent},dB SPL\r\n`;
+            csvContent += `Peak SPL,${peakSPL.textContent},dB\r\n`;
+            csvContent += `RMS SPL,${rmsSPL.textContent},dB\r\n`;
+            csvContent += `LEQ Energy,${leqVal.textContent},dB\r\n`;
+            csvContent += `LMAX Hold,${lMaxVal.textContent},dB\r\n`;
+            csvContent += `LMIN Floor,${lMinVal.textContent},dB\r\n`;
+            csvContent += `OSHA Dose,${doseVal.textContent},%\r\n`;
+            csvContent += `TWA 8-Hour,${twaVal.textContent},dBA\r\n\r\n`;
+
+            csvContent += `OCTAVE BAND MATRIX (Hz)\r\n`;
+            csvContent += `31.5Hz,63Hz,125Hz,250Hz,500Hz,1kHz,2kHz,4kHz,8kHz,16kHz\r\n`;
+            const bands = ['oct31', 'oct63', 'oct125', 'oct250', 'oct500', 'oct1k', 'oct2k', 'oct4k', 'oct8k', 'oct16k'];
+            csvContent += bands.map(id => document.getElementById(id).textContent).join(",") + "\r\n\r\n";
+
+            csvContent += `STATISTICAL METRICS (L1-L99)\r\n`;
+            csvContent += `L1.0,L10.0,L50.0,L90.0,L99.0\r\n`;
+            csvContent += `${document.getElementById('l1Val').textContent},${document.getElementById('l10Val').textContent},${document.getElementById('l50Val').textContent},${document.getElementById('l90Val').textContent},${document.getElementById('l99Val').textContent}\r\n`;
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `Acoustic_Telemetry_Report_${Date.now()}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
         function drawRTA(dataArray, bufferLength) {
@@ -1529,4 +1547,3 @@
     </script>
 </body>
 </html>
-Bukan fitur hasil laporan riset ini tapi malah screenshot 🤣
