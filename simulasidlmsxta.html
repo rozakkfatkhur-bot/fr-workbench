@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulasi Web DLMS XTA - V4</title>
+    <style>
+        :root {
+            --panel-bg: #1e2235;
+            --panel-border: #0f121d;
+            --lcd-bg: #05080f;
+            --lcd-text: #00ff66;
+            --accent-blue: #3b82f6;
+            --accent-btn: #60a5fa;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #111318;
+            color: #f3f4f6;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            font-size: 1.25rem;
+            color: #9ca3af;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        /* Container 3D Panel DLMS */
+        .dlms-rack {
+            background: linear-gradient(135deg, #2b314a 0%, #171a26 100%);
+            border: 4px solid var(--panel-border);
+            border-radius: 8px;
+            padding: 15px;
+            width: 900px;
+            max-width: 100%;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.7), inset 0 2px 3px rgba(255,255,255,0.1);
+            position: relative;
+            box-sizing: border-box;
+        }
+
+        /* Baut Rack di Pojok */
+        .screw {
+            width: 12px;
+            height: 12px;
+            background: radial-gradient(circle, #bbb 30%, #444 70%);
+            border-radius: 50%;
+            position: absolute;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.8);
+        }
+        .screw-tl { top: 8px; left: 8px; }
+        .screw-tr { top: 8px; right: 8px; }
+        .screw-bl { bottom: 8px; left: 8px; }
+        .screw-br { bottom: 8px; right: 8px; }
+
+        .dlms-body {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--panel-bg);
+            border: 2px solid #111;
+            padding: 15px;
+            border-radius: 4px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
+        }
+
+        /* Brand XTA */
+        .brand-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-right: 15px;
+        }
+
+        .xta-logo {
+            font-style: italic;
+            font-weight: bold;
+            font-size: 1.8rem;
+            color: #93c5fd;
+            letter-spacing: 2px;
+        }
+
+        .model-text {
+            font-size: 0.55rem;
+            color: #9ca3af;
+            text-align: center;
+            margin-top: 5px;
+            white-space: nowrap;
+        }
+
+        /* Layar LCD */
+        .lcd-screen {
+            background-color: var(--lcd-bg);
+            border: 2px solid #000;
+            border-radius: 4px;
+            width: 180px;
+            height: 75px;
+            padding: 8px;
+            font-family: 'Courier New', Courier, monospace;
+            color: var(--lcd-text);
+            font-size: 0.75rem;
+            box-shadow: inset 0 0 8px rgba(0, 255, 102, 0.4);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .lcd-header {
+            border-bottom: 1px dashed #005522;
+            padding-bottom: 2px;
+            text-align: center;
+            font-size: 0.65rem;
+        }
+
+        /* Tombol Navigasi */
+        .nav-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 4px;
+            margin: 0 10px;
+        }
+
+        .dlms-btn {
+            background: linear-gradient(to bottom, #60a5fa, #2563eb);
+            border: 1px solid #1d4ed8;
+            color: white;
+            font-size: 0.6rem;
+            font-weight: bold;
+            padding: 5px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            box-shadow: 0 2px 3px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+
+        .dlms-btn:active {
+            transform: translateY(1px);
+            box-shadow: 0 1px 1px rgba(0,0,0,0.3);
+        }
+
+        /* Knob Putar (Encoder) */
+        .encoders {
+            display: flex;
+            gap: 12px;
+            margin: 0 10px;
+        }
+
+        .encoder-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .knob {
+            width: 35px;
+            height: 35px;
+            background: radial-gradient(circle, #4b5563 30%, #1f2937 80%);
+            border: 2px solid #111;
+            border-radius: 50%;
+            position: relative;
+            cursor: pointer;
+            box-shadow: 0 3px 5px rgba(0,0,0,0.5);
+        }
+
+        .knob::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 3px;
+            height: 10px;
+            background-color: #f3f4f6;
+            border-radius: 2px;
+        }
+
+        .knob-label {
+            font-size: 0.55rem;
+            color: #9ca3af;
+            margin-top: 4px;
+            text-align: center;
+        }
+
+        /* LED Meters */
+        .meters-container {
+            display: flex;
+            gap: 15px;
+            background: #11131a;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #000;
+        }
+
+        .meter-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .led-column {
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 2px;
+            height: 70px;
+            background: #000;
+            padding: 2px;
+            border-radius: 2px;
+        }
+
+        .led {
+            width: 8px;
+            height: 4px;
+            background-color: #1a1a1a;
+            border-radius: 1px;
+        }
+
+        /* Warna LED Dinamis */
+        .led.active-green { background-color: #22c55e; box-shadow: 0 0 4px #22c55e; }
+        .led.active-yellow { background-color: #eab308; box-shadow: 0 0 4px #eab308; }
+        .led.active-red { background-color: #ef4444; box-shadow: 0 0 4px #ef4444; }
+
+        .meter-label {
+            font-size: 0.5rem;
+            color: #9ca3af;
+            margin-top: 3px;
+        }
+
+        /* Kontrol Pemutar Musik & Edukasi */
+        .control-panel {
+            margin-top: 20px;
+            background: #1e2235;
+            padding: 15px;
+            border-radius: 8px;
+            width: 900px;
+            max-width: 100%;
+            box-sizing: border-box;
+            border: 1px solid #2d3748;
+        }
+
+        .player-box {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .tutorial-box {
+            background: #111318;
+            padding: 12px;
+            border-radius: 6px;
+            border-left: 4px solid var(--accent-blue);
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+
+        .tutorial-box h3 {
+            margin: 0 0 5px 0;
+            color: #60a5fa;
+            font-size: 0.95rem;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Simulasi Digital Loudspeaker Management System (DLMS) XTA-V4</h1>
+
+    <!-- Rack Panel Utama -->
+    <div class="dlms-rack">
+        <div class="screw screw-tl"></div>
+        <div class="screw screw-tr"></div>
+        <div class="screw screw-bl"></div>
+        <div class="screw screw-br"></div>
+
+        <div class="dlms-body">
+            <!-- Brand -->
+            <div class="brand-section">
+                <div class="xta-logo">XTA</div>
+                <div class="model-text">DP648 AUDIO MANAGEMENT SYSTEM</div>
+            </div>
+
+            <!-- Layar LCD -->
+            <div class="lcd-screen">
+                <div class="lcd-header">[ OUT 2 ]</div>
+                <div id="lcdContent" style="font-size: 0.65rem;">
+                    ROUTING & GAIN<br>
+                    Src: A Gain: 0.0dB
+                </div>
+                <div style="font-size: 0.55rem; color: #3b82f6;">STATUS: READY</div>
+            </div>
+
+            <!-- Tombol Menu -->
+            <div class="nav-buttons">
+                <button class="dlms-btn" onclick="changeMenu('BACK')">&lt; BACK</button>
+                <button class="dlms-btn" onclick="changeMenu('NEXT')">NEXT &gt;</button>
+                <button class="dlms-btn" onclick="changeMenu('MENU')">MENU</button>
+                <button class="dlms-btn" onclick="changeMenu('ENTER')">ENTER</button>
+            </div>
+
+            <!-- Encoders / Knob -->
+            <div class="encoders">
+                <div class="encoder-group">
+                    <div class="knob" title="Putar untuk Frequency / P1"></div>
+                    <span class="knob-label">FREQ / P1</span>
+                </div>
+                <div class="encoder-group">
+                    <div class="knob" title="Putar untuk Q / P2"></div>
+                    <span class="knob-label">Q / P2</span>
+                </div>
+                <div class="encoder-group">
+                    <div class="knob" title="Putar untuk Gain / P3"></div>
+                    <span class="knob-label">GAIN / P3</span>
+                </div>
+            </div>
+
+            <!-- Output VU Meter LED -->
+            <div class="meters-container">
+                <div class="meter-group">
+                    <div class="led-column" id="led-out1">
+                        <!-- 8 LED per kolom -->
+                        <div class="led"></div><div class="led"></div><div class="led"></div><div class="led"></div>
+                        <div class="led"></div><div class="led"></div><div class="led"></div><div class="led"></div>
+                    </div>
+                    <span class="meter-label">1:Sub</span>
+                </div>
+                <div class="meter-group">
+                    <div class="led-column" id="led-out2">
+                        <div class="led"></div><div class="led"></div><div class="led"></div><div class="led"></div>
+                        <div class="led"></div><div class="led"></div><div class="led"></div><div class="led"></div>
+                    </div>
+                    <span class="meter-label">2:Low</span>
+                </div>
+                <div class="meter-group">
+                    <div class="led-column" id="led-out3">
+                        <div class="led"></div><div class="led"></div><div class="led"></div><div class="led"></div>
+                        <div class="led"></div><div class="led"></div><div class="led"></div><div class="led"></div>
+                    </div>
+                    <span class="meter-label">3:Mid</span>
+                </div>
+                <div class="meter-group">
+                    <div class="led-column" id="led-out4">
+                        <div class="led"></div><div class="led"></div><div class="led"></div><div class="led"></div>
+                        <div class="led"></div><div class="led"></div><div class="led"></div><div class="led"></div>
+                    </div>
+                    <span class="meter-label">4:Hi</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel Kontrol File MP3 & Edukasi -->
+    <div class="control-panel">
+        <div class="player-box">
+            <label for="audioFile" style="font-weight: bold; font-size: 0.9rem;">Upload File MP3 (Audio Simulasi):</label>
+            <input type="file" id="audioFile" accept="audio/mp3, audio/*">
+            <audio id="audioElement" controls style="width: 100%; margin-top: 5px;"></audio>
+        </div>
+
+        <div class="tutorial-box">
+            <h3 id="tutorialTitle">Panduan & Tutorial Singkat DLMS</h3>
+            <p id="tutorialText">
+                Selamat datang di simulator DLMS interaktif! Silakan unggah lagu berformat <b>.mp3</b> melalui tombol di atas, lalu klik <b>Play</b>. 
+                Suara musik akan diproses secara langsung oleh sistem digital (simulasi Crossover & Limiter) dan visualisasi VU Meter LED di atas akan merespons alunan musik secara real-time.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Logika Navigasi LCD & Tutorial
+        const menus = [
+            { title: "ROUTING & GAIN", desc: "Mengatur jalur sinyal dari Input (A/B) menuju Output (Sub, Low, Mid, High) beserta pengaturan Gain individual.", ledText: "Src: A Gain: 0.0dB" },
+            { title: "HPF / LPF (CROSSOVER)", desc: "Berfungsi memotong frekuensi suara (High-Pass / Low-Pass Filter) agar speaker bekerja sesuai karakternya (misal Subwoofer hanya menerima frekuensi rendah).", ledText: "HPF: 35Hz | LPF: 120Hz" },
+            { title: "PARAMETRIC EQUALIZER", desc: "Digunakan untuk memotong (cut) atau menaikkan (boost) titik frekuensi tertentu guna meredam resonansi ruangan yang berlebih.", ledText: "Freq: 1.2kHz Q: 2.0" },
+            { title: "LIMITER & DELAY", desc: "Limiter berfungsi melindungi komponen speaker dari sinyal kelebihan beban (overload/distortion), sementara Delay menyelaraskan waktu kedatangan suara.", ledText: "Thr: -3.0dB Rel: 40ms" }
+        ];
+        let currentMenuIdx = 0;
+
+        function changeMenu(action) {
+            if(action === 'NEXT' || action === 'ENTER') {
+                currentMenuIdx = (currentMenuIdx + 1) % menus.length;
+            } else if(action === 'BACK') {
+                currentMenuIdx = (currentMenuIdx - 1 + menus.length) % menus.length;
+            }
+            
+            // Perbarui tampilan LCD
+            document.getElementById('lcdContent').innerHTML = `${menus[currentMenuIdx].title}<br>${menus[currentMenuIdx].ledText}`;
+            // Perbarui teks Tutorial edukasi
+            document.getElementById('tutorialTitle').innerText = `Tutorial: ${menus[currentMenuIdx].title}`;
+            document.getElementById('tutorialText').innerText = menus[currentMenuIdx].desc;
+        }
+
+        // Integrasi Web Audio API & Animasi VU Meter
+        const audioFile = document.getElementById('audioFile');
+        const audioElement = document.getElementById('audioElement');
+        
+        let audioCtx, analyser, sourceNode;
+
+        audioFile.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const objectURL = URL.createObjectURL(file);
+                audioElement.src = objectURL;
+            }
+        });
+
+        audioElement.addEventListener('play', () => {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioCtx.createAnalyser();
+                analyser.fftSize = 64;
+
+                sourceNode = audioCtx.createMediaElementSource(audioElement);
+                sourceNode.connect(analyser);
+                analyser.connect(audioCtx.destination);
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            visualize();
+        });
+
+        const ledCols = [
+            document.querySelectorAll('#led-out1 .led'),
+            document.querySelectorAll('#led-out2 .led'),
+            document.querySelectorAll('#led-out3 .led'),
+            document.querySelectorAll('#led-out4 .led')
+        ];
+
+        function visualize() {
+            if (!analyser) return;
+            const dataArray = new Uint8Array(analyser.frequencyBinCount);
+            
+            function updateMeters() {
+                if (audioElement.paused || audioElement.ended) return;
+                analyser.getByteFrequencyData(dataArray);
+
+                // Simulasi pergerakan LED berdasarkan frekuensi audio yang masuk
+                ledCols.forEach((col, colIdx) => {
+                    const val = dataArray[colIdx * 3] || 0;
+                    const activeCount = Math.floor((val / 255) * col.length);
+
+                    col.forEach((led, ledIdx) => {
+                        led.className = 'led'; // Reset
+                        if (ledIdx < activeCount) {
+                            if (ledIdx < 5) led.classList.add('active-green');
+                            else if (ledIdx < 7) led.classList.add('active-yellow');
+                            else led.classList.add('active-red');
+                        }
+                    });
+                });
+
+                requestAnimationFrame(updateMeters);
+            }
+            updateMeters();
+        }
+    </script>
+</body>
+</html>
