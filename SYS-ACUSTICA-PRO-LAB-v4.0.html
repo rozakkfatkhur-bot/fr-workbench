@@ -449,8 +449,8 @@
             .table-matrix-container { max-height: 380px; }
         }
     </style>
-    <!-- Include html2canvas for exporting report as an image instead of PDF -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- Include SheetJS (xlsx) for exporting structured matrix data into Excel (.xlsx) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 
@@ -518,13 +518,13 @@
             </div>
             <div class="control-item">
                 <label data-i18n="lbl_export_rep">Export Data</label>
-                <button class="export-btn" onclick="exportTelemetryImage()">EXPORT IMAGE REPORT</button>
+                <button class="export-btn" onclick="exportTelemetryReport()">EXPORT EXCEL REPORT</button>
             </div>
         </div>
     </header>
 
-    <!-- Main App Split Container (Target for Image Export) -->
-    <div class="dashboard-container" id="exportReportArea">
+    <!-- Main App Split Container -->
+    <div class="dashboard-container">
 
         <!-- LEFT SIDE (50%): Telemetry Tables Matrix -->
         <div class="telemetry-section">
@@ -771,7 +771,7 @@
                 lbl_gen: "Generator Signal",
                 lbl_engine: "Engine Power",
                 lbl_calib: "Calib Offset",
-                lbl_export_rep: "Export Data",
+                lbl_export_rep: "Export Excel Report",
                 btn_start: "START TELEMETRY",
                 btn_stop: "STOP TELEMETRY",
                 panel_unit_title: "Master Telemetry Processing Unit",
@@ -853,7 +853,7 @@
                 lbl_gen: "Sinyal Generator",
                 lbl_engine: "Daya Mesin",
                 lbl_calib: "Kalibrasi Offset",
-                lbl_export_rep: "Ekspor Gambar",
+                lbl_export_rep: "Ekspor Laporan Excel",
                 btn_start: "MULAI TELEMETRI",
                 btn_stop: "HENTIKAN TELEMETRI",
                 panel_unit_title: "Unit Pemroses Telemetri Utama",
@@ -935,7 +935,7 @@
                 lbl_gen: "测试信号源",
                 lbl_engine: "系统引擎",
                 lbl_calib: "校准偏移",
-                lbl_export_rep: "导出图片",
+                lbl_export_rep: "导出Excel报告",
                 btn_start: "启动遥测",
                 btn_stop: "停止遥测",
                 panel_unit_title: "主遥测处理单元",
@@ -1017,7 +1017,7 @@
                 lbl_gen: "テスト信号生成",
                 lbl_engine: "エンジン電力",
                 lbl_calib: "校正オフセット",
-                lbl_export_rep: "画像エクスポート",
+                lbl_export_rep: "Excelレポートエクスポート",
                 btn_start: "テレメトリ開始",
                 btn_stop: "テレメトリ停止",
                 panel_unit_title: "マスターテレメトリ処理ユニット",
@@ -1270,7 +1270,6 @@
 
         function updateGeneratorSignal() {
             if (isRunning) { 
-                const current = genSignalSelect.value;
                 setupGeneratorSignal();
             }
         }
@@ -1312,7 +1311,6 @@
             let twaCalc = (parseFloat(leqCalc) - 3.8).toFixed(1);
             let doseCalc = Math.min((Math.pow(10, (leqCalc - 85) / 10) * 0.15).toFixed(2), 999.9);
 
-            // OSHA Warning Trigger Check (> 85 dBA)
             if (parseFloat(leqCalc) > 85.0 || parseFloat(currentRMS) > 95.0) {
                 document.body.classList.add('osha-alarm');
                 sysStateLog.textContent = "[CRITICAL WARNING: OSHA NOISE EXPOSURE LIMIT EXCEEDED]";
@@ -1390,14 +1388,12 @@
             document.getElementById('thdTotalPct').textContent = totalThd + " %";
         }
 
-        /* Module: 3D Room Mode & Axial Frequency Simulator */
         function updateRoomSim() {
             const L = parseFloat(document.getElementById('roomL').value) || 5.0;
             const W = parseFloat(document.getElementById('roomW').value) || 4.0;
             const H = parseFloat(document.getElementById('roomH').value) || 2.8;
-            const c = 343.2; // Speed of sound m/s
+            const c = 343.2;
 
-            // Schroeder frequency approx: 2000 * sqrt(RT60 / V)
             const V = L * W * H;
             const schroeder = Math.round(2000 * Math.sqrt(0.5 / V));
             document.getElementById('schroederFreq').textContent = schroeder + " Hz";
@@ -1405,7 +1401,6 @@
             roomCtx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--canvas-bg').trim();
             roomCtx.fillRect(0, 0, roomCanvas.width, roomCanvas.height);
 
-            // Draw Frequency Response curve for room modes up to 300Hz
             roomCtx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent-cyan').trim();
             roomCtx.lineWidth = 1.5;
             roomCtx.beginPath();
@@ -1414,10 +1409,9 @@
             const height = roomCanvas.height;
 
             for (let x = 0; x < width; x++) {
-                let freq = (x / width) * 300; // 0 to 300 Hz
+                let freq = (x / width) * 300;
                 let response = 0;
 
-                // Calculate axial modes for L, W, H (n = 1, 2, 3)
                 for (let n = 1; n <= 3; n++) {
                     let fL = (n * c) / (2 * L);
                     let fW = (n * c) / (2 * W);
@@ -1433,7 +1427,6 @@
             }
             roomCtx.stroke();
 
-            // Draw Schroeder Frequency Line
             let schroederX = (schroeder / 300) * width;
             roomCtx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent-amber').trim();
             roomCtx.setLineDash([4, 4]);
@@ -1444,20 +1437,84 @@
             roomCtx.setLineDash([]);
         }
 
-        /* Module: Export Telemetry Report as an Image (PNG) using html2canvas */
-        function exportTelemetryImage() {
-            const reportArea = document.getElementById('exportReportArea');
-            html2canvas(reportArea, {
-                backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--bg-primary').trim(),
-                scale: 2
-            }).then(canvas => {
-                const link = document.createElement('a');
-                link.download = `SYS-ACUSTICA_Report_${Date.now()}.png`;
-                link.href = canvas.toDataURL('image/png');
-                link.click();
-            }).catch(err => {
-                alert('Gagal mengekspor gambar: ' + err.message);
-            });
+        /* Module: Export Full Telemetry Matrix Report into Excel (.xlsx) using SheetJS */
+        function exportTelemetryReport() {
+            let wb = XLSX.utils.book_new();
+
+            // Sheet 1: Primary SPL & Acoustic Metrics Summary
+            let summaryData = [
+                ["SYS-ACUSTICA PRO LAB v4.0 - MASTER TELEMETRY REPORT"],
+                ["Generated Timestamp", new Date().toISOString()],
+                [""],
+                ["Primary Metric", "Value", "Unit / Status"],
+                ["Main SPL", document.getElementById('mainSPL').textContent, "dB SPL"],
+                ["Peak SPL", document.getElementById('peakSPL').textContent, "dB"],
+                ["RMS SPL", document.getElementById('rmsSPL').textContent, "dB"],
+                ["LEQ Energy", document.getElementById('leqVal').textContent, "dB"],
+                ["LMAX Hold", document.getElementById('lMaxVal').textContent, "dB"],
+                ["LMIN Floor", document.getElementById('lMinVal').textContent, "dB"],
+                ["Crest Factor", document.getElementById('crestVal').textContent, "dB"],
+                ["OSHA Dose", document.getElementById('doseVal').textContent, "%"],
+                ["TWA (8-Hour)", document.getElementById('twaVal').textContent, "dBA"],
+                ["RT60 Reverberation", document.getElementById('rt60Val').textContent, "Seconds"],
+                ["STI Intelligibility", document.getElementById('stiVal').textContent, "Index"],
+                ["NC Rating", document.getElementById('ncVal').textContent, "Curve"],
+                ["ISO Loudness", document.getElementById('phonVal').textContent, "Phon"]
+            ];
+            let ws1 = XLSX.utils.aoa_to_sheet(summaryData);
+            XLSX.utils.book_append_sheet(wb, ws1, "Primary Summary");
+
+            // Sheet 2: 1/3 Octave Band Matrix Data
+            let octaveData = [
+                ["1/3 Octave Band Frequency Matrix"],
+                ["Band (Hz)", "31.5", "63", "125", "250", "500", "1k", "2k", "4k", "8k", "16k"],
+                ["SPL (dB)", 
+                    document.getElementById('oct31').textContent,
+                    document.getElementById('oct63').textContent,
+                    document.getElementById('oct125').textContent,
+                    document.getElementById('oct250').textContent,
+                    document.getElementById('oct500').textContent,
+                    document.getElementById('oct1k').textContent,
+                    document.getElementById('oct2k').textContent,
+                    document.getElementById('oct4k').textContent,
+                    document.getElementById('oct8k').textContent,
+                    document.getElementById('oct16k'].textContent
+                ],
+                ["Peak Hold (dB)",
+                    document.getElementById('octPk31').textContent,
+                    document.getElementById('octPk63').textContent,
+                    document.getElementById('octPk125').textContent,
+                    document.getElementById('octPk250').textContent,
+                    document.getElementById('octPk500').textContent,
+                    document.getElementById('octPk1k').textContent,
+                    document.getElementById('octPk2k').textContent,
+                    document.getElementById('octPk4k').textContent,
+                    document.getElementById('octPk8k').textContent,
+                    document.getElementById('octPk16k'].textContent
+                ]
+            ];
+            let ws2 = XLSX.utils.aoa_to_sheet(octaveData);
+            XLSX.utils.book_append_sheet(wb, ws2, "Octave Bands");
+
+            // Sheet 3: Statistical Percentiles & Harmonics
+            let statData = [
+                ["Statistical Noise Percentiles"],
+                ["Metric", "Value (dB)", "Definition"],
+                ["L1.0", document.getElementById('l1Val').textContent, "Exceeded 1% of window"],
+                ["L10.0", document.getElementById('l10Val').textContent, "Exceeded 10% of window"],
+                ["L50.0", document.getElementById('l50Val').textContent, "Median acoustic level"],
+                ["L90.0", document.getElementById('l90Val').textContent, "Background noise floor"],
+                ["L99.0", document.getElementById('l99Val').textContent, "Absolute noise floor"],
+                [""],
+                ["Harmonic Distortion Summary"],
+                ["Component", "Order", "Magnitude / THD"],
+                ["THD+N Overall", "Total", document.getElementById('thdTotalPct').textContent]
+            ];
+            let ws3 = XLSX.utils.aoa_to_sheet(statData);
+            XLSX.utils.book_append_sheet(wb, ws3, "Statistics & THD");
+
+            // Trigger Excel file download
+            XLSX.writeFile(wb, `SYS-ACUSTICA_Telemetry_Report_${Date.now()}.xlsx`);
         }
 
         function drawRTA(dataArray, bufferLength) {
