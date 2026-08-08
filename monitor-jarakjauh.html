@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Remote Media Player Jarak Jauh</title>
+    <!-- Tailwind CSS untuk Desain Responsif -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- PeerJS untuk Koneksi P2P Jarak Jauh -->
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+</head>
+<body class="bg-slate-900 text-white min-h-screen flex flex-col items-center justify-between p-4">
+
+    <!-- CONTAINER UTAMA -->
+    <div class="w-full max-w-md bg-slate-800 rounded-2xl shadow-2xl p-6 border border-slate-700">
+        
+        <!-- HALAMAN 1: PILIH PERANGKAT -->
+        <div id="view-home" class="space-y-6 text-center">
+            <h1 class="text-2xl font-bold text-cyan-400">Remote Media Jarak Jauh</h1>
+            <p class="text-slate-400 text-sm">Hubungkan 2 HP lintas kota via kode unik untuk kontrol musik & video.</p>
+            
+            <div class="space-y-4 pt-4">
+                <button onclick="selectRole('sender')" class="w-full bg-cyan-600 hover:bg-cyan-500 font-semibold py-3 px-4 rounded-xl shadow-lg transition duration-200">
+                    📱 HP 1: Sebagai Pengirim (Kontroler)
+                </button>
+                <button onclick="selectRole('receiver')" class="w-full bg-emerald-600 hover:bg-emerald-500 font-semibold py-3 px-4 rounded-xl shadow-lg transition duration-200">
+                    🔊 HP 2: Sebagai Penerima (Player)
+                </button>
+            </div>
+        </div>
+
+        <!-- HALAMAN 2: HP 1 (PENGIRIM / KONTROLER) -->
+        <div id="view-sender" class="hidden space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-700 pb-3">
+                <h2 class="font-bold text-cyan-400">HP 1 - Kontroler</h2>
+                <button onclick="location.reload()" class="text-xs bg-red-500/20 text-red-400 px-2 py-1 rounded">Keluar</button>
+            </div>
+
+            <div class="bg-slate-900 p-3 rounded-xl text-center">
+                <span class="text-xs text-slate-400 block">KODE KONEKSI ANDA:</span>
+                <span id="sender-code" class="text-2xl font-mono font-bold text-yellow-400 tracking-widest">MEMUAT...</span>
+                <p class="text-[10px] text-slate-500 mt-1">Masukkan kode ini ke HP 2</p>
+            </div>
+
+            <div id="connection-status" class="text-xs text-center text-red-400 font-medium">Status: Menunggu HP 2 terhubung...</div>
+
+            <!-- Kontrol Media -->
+            <div class="space-y-3 pt-2">
+                <div>
+                    <label class="text-xs text-slate-300 block mb-1">Putar Link YouTube:</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="yt-url" placeholder="https://youtu.be/..." class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-cyan-500">
+                        <button onclick="sendYouTube()" class="bg-cyan-600 hover:bg-cyan-500 px-4 py-2 rounded-lg text-sm font-semibold">Kirim</button>
+                    </div>
+                </div>
+
+                <div>
+ లేదా Upload File Audio/Video Lokal:
+                    <label class="text-xs text-slate-300 block mb-1 mt-2">Upload File Media:</label>
+                    <input type="file" id="local-file" accept="audio/*,video/*" class="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-slate-700 file:text-cyan-300 hover:file:bg-slate-600 cursor-pointer">
+                </div>
+
+                <div class="flex gap-2 pt-2">
+                    <button onclick="sendCommand('play')" class="flex-1 bg-emerald-600 hover:bg-emerald-500 py-2 rounded-lg text-sm font-bold">Play</button>
+                    <button onclick="sendCommand('pause')" class="flex-1 bg-amber-600 hover:bg-amber-500 py-2 rounded-lg text-sm font-bold">Pause</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- HALAMAN 3: HP 2 (PENERIMA / PLAYER) -->
+        <div id="view-receiver" class="hidden space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-700 pb-3">
+                <h2 class="font-bold text-emerald-400">HP 2 - Penerima Player</h2>
+                <button onclick="location.reload()" class="text-xs bg-red-500/20 text-red-400 px-2 py-1 rounded">Keluar</button>
+            </div>
+
+            <div class="space-y-2">
+                <label class="text-xs text-slate-300 block">Masukkan Kode dari HP 1:</label>
+                <div class="flex gap-2">
+                    <input type="text" id="input-code" placeholder="Contoh: 4892" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm font-mono tracking-widest text-center uppercase focus:outline-none focus:border-emerald-500">
+                    <button onclick="connectToSender()" class="bg-emerald-600 hover:bg-emerald-500 px-4 py-2 rounded-lg text-sm font-semibold">Sambungkan</button>
+                </div>
+            </div>
+
+            <div id="receiver-status" class="text-xs text-center text-slate-400">Status: Belum Terhubung</div>
+
+            <!-- Tombol Bluetooth Audio Shortcut -->
+            <div class="pt-2">
+                <button onclick="requestBluetooth()" class="w-full bg-blue-600/30 border border-blue-500/50 hover:bg-blue-600/50 text-blue-300 text-xs py-2 rounded-lg font-medium flex items-center justify-center gap-2">
+                    🎧 Sambungkan ke Speaker/Headset Bluetooth
+                </button>
+            </div>
+
+            <!-- Media Player Container -->
+            <div class="bg-black rounded-xl overflow-hidden aspect-video relative flex items-center justify-center border border-slate-700">
+                <div id="player-placeholder" class="text-xs text-slate-500 text-center p-4">Menunggu media dikirim dari HP 1...</div>
+                <div id="yt-player-container" class="w-full h-full hidden"></div>
+                <video id="audio-video-player" class="w-full h-full hidden" controls playsinline></video>
+            </div>
+        </div>
+
+    </div>
+
+    <footer class="text-slate-500 text-[10px] mt-4 text-center">
+        Pastikan kedua HP memiliki koneksi internet aktif. Jarak tidak terbatas (Lintas Kota/Provinsi).
+    </footer>
+
+    <!-- SCRIPT UTAMA LOGIKA APLIKASI -->
+    <script>
+        let peer, conn;
+        let myId = Math.floor(1000 + Math.random() * 9000).toString(); // Kode 4 digit unik
+
+        function selectRole(role) {
+            document.getElementById('view-home').classList.add('hidden');
+            if (role === 'sender') {
+                document.getElementById('view-sender').classList.remove('hidden');
+                initSender();
+            } else {
+                document.getElementById('view-receiver').classList.remove('hidden');
+            }
+        }
+
+        // --- INISIALISASI HP 1 (PENGIRIM) ---
+        function initSender() {
+            peer = new Peer('remotemusic-' + myId);
+            
+            peer.on('open', (id) => {
+                document.getElementById('sender-code').innerText = myId;
+            });
+
+            peer.on('connection', (connection) => {
+                conn = connection;
+                document.getElementById('connection-status').innerText = "Status: Terhubung dengan HP 2! ✅";
+                document.getElementById('connection-status').className = "text-xs text-center text-emerald-400 font-medium";
+                
+                conn.on('close', () => {
+                    document.getElementById('connection-status').innerText = "Status: HP 2 Terputus!";
+                    document.getElementById('connection-status').className = "text-xs text-center text-red-400 font-medium";
+                });
+            });
+        }
+
+        function sendCommand(action) {
+            if (conn && conn.open) {
+                conn.send({ type: 'command', action: action });
+            } else {
+                alert('HP 2 belum terhubung!');
+            }
+        }
+
+        function sendYouTube() {
+            const url = document.getElementById('yt-url').value;
+            if (!url) return alert('Masukkan URL YouTube terlebih dahulu!');
+            
+            const videoId = extractYouTubeId(url);
+            if (!videoId) return alert('URL YouTube tidak valid!');
+
+            if (conn && conn.open) {
+                conn.send({ type: 'youtube', videoId: videoId });
+                alert('Perintah putar YouTube dikirim ke HP 2!');
+            } else {
+                alert('HP 2 belum terhubung!');
+            }
+        }
+
+        // Handle upload file lokal dari HP 1 ke HP 2 via DataChannel
+        document.getElementById('local-file').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            if (conn && conn.open) {
+                alert('Mengirim file ke HP 2... Mohon tunggu.');
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    conn.send({ type: 'file', fileData: evt.target.result, fileName: file.name, fileType: file.type });
+                    alert('File berhasil dikirim dan diputar di HP 2!');
+                };
+                reader.readAsDataURL(file);
+            } else {
+                alert('HP 2 belum terhubung!');
+            }
+        });
+
+        // --- INISIALISASI HP 2 (PENERIMA) ---
+        function connectToSender() {
+            const code = document.getElementById('input-code').value.trim();
+            if (!code) return alert('Masukkan kode dari HP 1!');
+
+            document.getElementById('receiver-status').innerText = "Status: Menghubungkan...";
+            
+            peer = new Peer();
+            
+            peer.on('open', () => {
+                conn = peer.connect('remotemusic-' + code);
+
+                conn.on('open', () => {
+                    document.getElementById('receiver-status').innerText = "Status: Terhubung ke HP 1! ✅";
+                    document.getElementById('receiver-status').className = "text-xs text-center text-emerald-400 font-medium";
+                });
+
+                conn.on('data', (data) => {
+                    handleIncomingData(data);
+                });
+
+                conn.on('error', (err) => {
+                    alert('Gagal terhubung: ' + err);
+                    document.getElementById('receiver-status').innerText = "Status: Gagal Terhubung";
+                });
+            });
+        }
+
+        // --- PEMUTAR MEDIA DI HP 2 ---
+        let ytPlayer;
+        
+        function handleIncomingData(data) {
+            const placeholder = document.getElementById('player-placeholder');
+            const ytContainer = document.getElementById('yt-player-container');
+            const avPlayer = document.getElementById('audio-video-player');
+
+            placeholder.classList.add('hidden');
+
+            if (data.type === 'youtube') {
+                avPlayer.classList.add('hidden');
+                ytContainer.classList.remove('hidden');
+                
+                // Load YouTube Iframe API dynamically if needed
+                if (!window.YT) {
+                    let tag = document.createElement('script');
+                    tag.src = "https://www.youtube.com/iframe_api";
+                    let firstScriptTag = document.getElementsByTagName('script')[0];
+                    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+                    
+                    window.onYouTubeIframeAPIReady = function() {
+                        createYTPlayer(data.videoId);
+                    }
+                } else {
+                    if (ytPlayer) {
+                        ytPlayer.loadVideoById(data.videoId);
+                    } else {
+                        createYTPlayer(data.videoId);
+                    }
+                }
+            } else if (data.type === 'file') {
+                ytContainer.classList.add('hidden');
+                avPlayer.classList.remove('hidden');
+                avPlayer.src = data.fileData;
+                avPlayer.play();
+            } else if (data.type === 'command') {
+                if (data.action === 'play') {
+                    if (ytPlayer && ytPlayer.playVideo) ytPlayer.playVideo();
+                    if (avPlayer) avPlayer.play();
+                } else if (data.action === 'pause') {
+                    if (ytPlayer && ytPlayer.pauseVideo) ytPlayer.pauseVideo();
+                    if (avPlayer) avPlayer.pause();
+                }
+            }
+        }
+
+        function createYTPlayer(videoId) {
+            ytPlayer = new YT.Player('yt-player-container', {
+                height: '100%',
+                width: '100%',
+                videoId: videoId,
+                playerVars: { 'autoplay': 1, 'controls': 1 }
+            });
+        }
+
+        function extractYouTubeId(url) {
+            let regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            let match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : null;
+        }
+
+        // Shortcut Web Bluetooth API untuk pairing speaker bluetooth eksternal
+        async function requestBluetooth() {
+            try {
+                const device = await navigator.bluetooth.requestDevice({
+                    acceptAllDevices: true,
+                    optionalServices: ['audio_sink']
+                });
+                alert('Terhubung ke perangkat Bluetooth: ' + device.name);
+            } catch (error) {
+                console.log('Bluetooth error atau dibatalkan:', error);
+                alert('Pastikan browser mendukung Web Bluetooth (Chrome Android) dan berikan izin.');
+            }
+        }
+    </script>
+</body>
+</html>
