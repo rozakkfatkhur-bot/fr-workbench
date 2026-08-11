@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Akademi Saham Nusantara - SMK hingga Sarjana</title>
+    <!-- Memuat Chart.js untuk Grafik Saham Interaktif -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #0f172a;
+            --accent: #2563eb;
+            --success: #16a34a;
+            --danger: #dc2626;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #334155;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 1.5rem;
+            text-align: center;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        nav {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        nav button {
+            background-color: #e2e8f0;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+        nav button.active, nav button:hover {
+            background-color: var(--accent);
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        /* Quiz Styling */
+        .timer-bar {
+            height: 8px;
+            background: var(--accent);
+            width: 100%;
+            transition: width 1s linear;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .option-btn {
+            background: #f1f5f9;
+            border: 2px solid #cbd5e1;
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            text-align: left;
+            transition: 0.2s;
+        }
+        .option-btn:hover {
+            background: #e2e8f0;
+        }
+        /* Leaderboard Styling */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        th {
+            background-color: #f1f5f9;
+        }
+        /* Materi & Chart */
+        .module-list {
+            list-style: none;
+            padding: 0;
+        }
+        .module-list li {
+            padding: 12px;
+            background: #f8fafc;
+            margin-bottom: 8px;
+            border-left: 4px solid var(--accent);
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>📈 Akademi Saham Nusantara</h1>
+    <p>Kurikulum Terpadu: SMK Elektronika hingga Tingkat Sarjana/Analisis Fundamental</p>
+</header>
+
+<div class="container">
+    <nav>
+        <button onclick="switchTab('materi')" class="active">📚 Materi (SMK - Sarjana)</button>
+        <button onclick="switchTab('quiz')">⚡ Kuis Cepat & Poin</button>
+        <button onclick="switchTab('leaderboard')">🏆 Papan Peringkat</button>
+        <button onclick="switchTab('grafik')">📊 Simulasi Grafik Saham</button>
+    </nav>
+
+    <!-- TAB 1: MATERI -->
+    <div id="materi" class="tab-content active">
+        <div class="card">
+            <h2>Kurikulum Pembelajaran Saham</h2>
+            <p>Pilih tingkat kesulitan untuk mempelajari analisis saham secara mendalam dan benar:</p>
+            <h3>Tingkat Dasar (SMK & Pemula)</h3>
+            <ul class="module-list">
+                <li>Modul 1: Pengenalan Pasar Modal & Cara Kerja Bursa Efek Indonesia (BEI).</li>
+                <li>Modul 2: Mindset Investor vs Trader (Cocok bagi anak teknik yang terbiasa logika terstruktur).</li>
+                <li>Modul 3: Membuka Rekening Saham (RDN) & Membaca Order Book dasar.</li>
+            </ul>
+            <h3>Tingkat Menengah (Analisis Teknikal & Sektoral)</h3>
+            <ul class="module-list">
+                <li>Modul 4: Membaca Grafik (Candlestick, Support & Resistance).</li>
+                <li>Modul 5: Analisis Sektoral (Menghubungkan siklus ekonomi dengan emiten).</li>
+            </ul>
+            <h3>Tingkat Lanjut / Sarjana (Valuasi & Analisis Fundamental)</h3>
+            <ul class="module-list">
+                <li>Modul 6: Membedah Laporan Keuangan (NERACA, Laba Rugi, Arus Kas).</li>
+                <li>Modul 7: Valuasi Saham Lanjutan (PER, PBV, DCF Valuation model institusional).</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- TAB 2: KUIS CEPAT -->
+    <div id="quiz" class="tab-content">
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3 id="quiz-title">Pertanyaan Kuis</h3>
+                <span style="font-weight: bold; color: var(--accent);">Poin Anda: <span id="user-score">0</span></span>
+            </div>
+            <div class="timer-bar" id="timerBar"></div>
+            <p id="question-text" style="font-size: 1.2rem; font-weight: 600; margin-top: 20px;"></p>
+            <div class="options-grid" id="options-container">
+                <!-- Tombol Opsi Dimuat Lewat JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 3: LEADERBOARD -->
+    <div id="leaderboard" class="tab-content">
+        <div class="card">
+            <h2>🏆 Papan Peringkat Peserta Kuis</h2>
+            <p>Peringkat diperbarui secara real-time berdasarkan kecepatan dan ketepatan menjawab.</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Peringkat</th>
+                        <th>Nama Pengguna</th>
+                        <th>Jurusan / Latar Belakang</th>
+                        <th>Total Poin</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboard-data">
+                    <tr><td>1</td><td>Fathkhur</td><td>SMK Elektronika</td><td>3440 p</td></tr>
+                    <tr><td>2</td><td>Iqbal</td><td>Umum</td><td>3287 p</td></tr>
+                    <tr><td>3</td><td>Vahdil Khoerul</td><td>Sarjana Ekonomi</td><td>3253 p</td></tr>
+                    <tr><td>4</td><td>Gina Widi Astuti</td><td>Universitas</td><td>3139 p</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- TAB 4: GRAFIK SAHAM -->
+    <div id="grafik" class="tab-content">
+        <div class="card">
+            <h2>📊 Simulasi Grafik Harga Saham & Indikator Teknikal</h2>
+            <p>Contoh pergerakan grafik harga saham bulanan menggunakan simulasi Chart.js interaktif:</p>
+            <canvas id="stockChart" width="400" height="150"></canvas>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Navigasi Tab
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('nav button').forEach(el => el.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        event.target.classList.add('active');
+    }
+
+    // Data Kuis Interaktif Berwaktu
+    const quizData = [
+        {
+            question: "Apa kepanjangan dari RDN dalam instrumen investasi saham di Indonesia?",
+            options: ["Rekening Dana Nasabah", "Rencana Deposito Nasional", "Rugi Dagang Normal", "Rekening Dividen Negara"],
+            answer: 0
+        },
+        {
+            question: "Rasio keuangan yang membandingkan harga saham dengan laba bersih per lembar saham disebut...",
+            options: ["PBV (Price to Book Value)", "PER (Price to Earning Ratio)", "ROE (Return on Equity)", "DER (Debt to Equity Ratio)"],
+            answer: 1
+        },
+        {
+            question: "Dalam analisis teknikal, zona di mana harga cenderung tertahan naik karena banyaknya penjual dinamakan...",
+            options: ["Support", "Resistance", "Breakout", "Volume"],
+            answer: 1
+        }
+    ];
+
+    let currentQuestion = 0;
+    let score = 0;
+    let timeLeft = 10;
+    let timerInterval;
+
+    function loadQuiz() {
+        if (currentQuestion >= quizData.length) {
+            document.getElementById('quiz').innerHTML = `<div class="card" style="text-align: center;"><h2>Kuis Selesai! 🎉</h2><p>Total Poin Akhir Anda: <b>${score}</b></p><button onclick="resetQuiz()" style="padding: 10px 20px; background:var(--accent); color:white; border:none; border-radius:5px; cursor:pointer;">Ulangi Kuis</button></div>`;
+            return;
+        }
+
+        const q = quizData[currentQuestion];
+        document.getElementById('question-text').innerText = `Soal ${currentQuestion + 1}: ${q.question}`;
+        
+        const container = document.getElementById('options-container');
+        container.innerHTML = '';
+        
+        q.options.forEach((opt, index) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = opt;
+            btn.onclick = () => checkAnswer(index);
+            container.appendChild(btn);
+        });
+
+        startTimer();
+    }
+
+    function startTimer() {
+        clearInterval(timerInterval);
+        timeLeft = 10;
+        const timerBar = document.getElementById('timerBar');
+        timerBar.style.width = '100%';
+
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            timerBar.style.width = (timeLeft * 10) + '%';
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                currentQuestion++;
+                loadQuiz();
+            }
+        }, 1000);
+    }
+
+    function checkAnswer(selectedIndex) {
+        clearInterval(timerInterval);
+        if (selectedIndex === quizData[currentQuestion].answer) {
+            score += (timeLeft * 10) + 100; // Poin bonus berdasarkan kecepatan sisa waktu
+            document.getElementById('user-score').innerText = score;
+        }
+        currentQuestion++;
+        loadQuiz();
+    }
+
+    function resetQuiz() {
+        currentQuestion = 0;
+        score = 0;
+        document.getElementById('user-score').innerText = score;
+        location.reload();
+    }
+
+    // Inisialisasi Kuis saat pertama kali dibuka
+    loadQuiz();
+
+    // Inisialisasi Grafik Saham menggunakan Chart.js
+    const ctx = document.getElementById('stockChart').getContext('2d');
+    const stockChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu'],
+            datasets: [{
+                label: 'Pergerakan Harga Saham (IDR)',
+                data: [4200, 4350, 4100, 4400, 4650, 4500, 4800, 5050],
+                borderColor: '#2563eb',
+                backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.3
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'top' }
+            }
+        }
+    });
+</script>
+
+</body>
+</html>
