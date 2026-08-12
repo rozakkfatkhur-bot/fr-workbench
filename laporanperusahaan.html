@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generator Laporan Keuangan Standar Internasional</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @media print {
+            body {
+                background: white;
+                color: black;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-area {
+                box-shadow: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen py-10">
+
+    <div class="max-w-6xl mx-auto px-4">
+        <!-- Header Utama -->
+        <div class="text-center mb-8 no-print">
+            <h1 class="text-3xl font-bold text-slate-900">Financial Report Generator</h1>
+            <p class="text-slate-600 mt-1">Buat laporan keuangan perusahaan berstandar internasional dengan mudah dan cepat.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            <!-- FORM INPUT (NO PRINT) -->
+            <div class="bg-white p-6 rounded-xl shadow-md space-y-6 no-print">
+                <h2 class="text-xl font-semibold text-slate-700 border-b pb-3">1. Masukkan Data Perusahaan</h2>
+                
+                <!-- Informasi Umum -->
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700">Nama Perusahaan</label>
+                        <input type="text" id="compName" placeholder="Contoh: PT Inovasi Global Mandiri" class="mt-1 w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700">Periode Laporan</label>
+                        <input type="text" id="compPeriod" placeholder="Contoh: Q2 2026 (April - Juni)" class="mt-1 w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700">Upload Logo Perusahaan</label>
+                        <input type="file" id="logoInput" accept="image/*" class="mt-1 w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                    </div>
+                </div>
+
+                <!-- Pendapatan & Pendanaan -->
+                <div class="border-t pt-4 space-y-4">
+                    <h3 class="font-semibold text-slate-700">Pendapatan & Pendanaan</h3>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700">Total Penjualan / Pendapatan (Revenue)</label>
+                        <input type="number" id="totalRevenue" placeholder="0" class="mt-1 w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700">Dana dari Luar / Investor</label>
+                        <input type="number" id="externalFunding" placeholder="0" class="mt-1 w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+                    </div>
+                </div>
+
+                <!-- Biaya-Biaya (Expenses) -->
+                <div class="border-t pt-4 space-y-3">
+                    <div class="flex justify-between items-center">
+                        <h3 class="font-semibold text-slate-700">Biaya Operasional (Expenses)</h3>
+                        <button onclick="addExpenseRow()" class="text-sm bg-indigo-50 text-indigo-600 font-medium px-3 py-1 rounded-md hover:bg-indigo-100">+ Tambah Biaya</button>
+                    </div>
+                    <div id="expenseContainer" class="space-y-2">
+                        <div class="flex gap-2 expense-row">
+                            <input type="text" placeholder="Deskripsi Biaya (Cth: Gaji Karyawan)" class="flex-1 p-2 border border-slate-300 rounded-lg text-sm outline-none exp-desc">
+                            <input type="number" placeholder="Jumlah (Rp)" class="w-32 p-2 border border-slate-300 rounded-lg text-sm outline-none exp-amount">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Produk Status -->
+                <div class="border-t pt-4 space-y-4">
+                    <h3 class="font-semibold text-slate-700">Status Produk</h3>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700">Produk yang Masih Aktif (Pisahkan dengan koma)</label>
+                        <textarea id="activeProducts" rows="2" placeholder="Produk A, Produk B, Layanan X" class="mt-1 w-full p-2 border border-slate-300 rounded-lg text-sm outline-none"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700">Produk / Layanan Habis Pemakaian (Discontinued)</label>
+                        <textarea id="depletedProducts" rows="2" placeholder="Produk Lama C, Versi Lawas D" class="mt-1 w-full p-2 border border-slate-300 rounded-lg text-sm outline-none"></textarea>
+                    </div>
+                </div>
+
+                <!-- Tombol Aksi -->
+                <div class="pt-4">
+                    <button onclick="generateReport()" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition shadow-lg">Generate & Perbarui Laporan</button>
+                </div>
+            </div>
+
+            <!-- PREVIEW LAPORAN BERSTANDAR INTERNASIONAL -->
+            <div class="print-area bg-white p-8 rounded-xl shadow-md border border-slate-200 space-y-6 flex flex-col justify-between">
+                <div>
+                    <!-- Header Laporan -->
+                    <div class="flex justify-between items-start border-b pb-6">
+                        <div>
+                            <h2 id="reportCompName" class="text-2xl font-bold text-slate-900 uppercase tracking-wide">[Nama Perusahaan]</h2>
+                            <p class="text-sm text-slate-500 mt-1">Financial Performance Statement</p>
+                            <p id="reportPeriod" class="text-xs text-slate-400 mt-0.5">Periode: [Periode]</p>
+                        </div>
+                        <div class="w-20 h-20 border border-dashed border-slate-300 rounded-lg flex items-center justify-center overflow-hidden bg-slate-50" id="logoPreviewBox">
+                            <span class="text-xs text-slate-400 text-center">Logo</span>
+                        </div>
+                    </div>
+
+                    <!-- Ringkasan Eksekutif -->
+                    <div class="mt-6">
+                        <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider">1. Executive Financial Summary</h3>
+                        <div class="mt-3 grid grid-cols-2 gap-4">
+                            <div class="bg-slate-50 p-4 rounded-lg border border-slate-100">
+                                <p class="text-xs text-slate-500 font-medium">Total Revenue (Penjualan)</p>
+                                <p id="outRevenue" class="text-lg font-bold text-emerald-600">Rp 0</p>
+                            </div>
+                            <div class="bg-slate-50 p-4 rounded-lg border border-slate-100">
+                                <p class="text-xs text-slate-500 font-medium">External Funding (Investor)</p>
+                                <p id="outFunding" class="text-lg font-bold text-blue-600">Rp 0</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Laporan Laba Rugi (Income Statement) -->
+                    <div class="mt-6">
+                        <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider">2. Income Statement (Laba / Rugi Bersih)</h3>
+                        <table class="w-full mt-3 text-sm text-left">
+                            <tbody class="divide-y divide-slate-100" id="reportExpenseTable">
+                                <!-- Diisi via JS -->
+                            </tbody>
+                            <tfoot>
+                                <tr class="border-t border-slate-300 font-bold">
+                                    <td class="py-3 text-slate-700">Total Operating Expenses</td>
+                                    <td id="outTotalExpense" class="py-3 text-right text-rose-600">Rp 0</td>
+                                </tr>
+                                <tr class="bg-indigo-50 font-bold text-base">
+                                    <td class="py-3 px-2 text-indigo-900">Net Profit (Keuntungan Bersih)</td>
+                                    <td id="outNetProfit" class="py-3 px-2 text-right text-indigo-900">Rp 0</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+
+                    <!-- Portofolio & Status Produk -->
+                    <div class="mt-6 grid grid-cols-2 gap-4">
+                        <div>
+                            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">3. Active Products</h3>
+                            <div id="outActive" class="mt-2 text-sm bg-slate-50 p-3 rounded-lg border border-slate-100 min-h-[60px] text-slate-700">
+                                -
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">4. Discontinued / Depleted</h3>
+                            <div id="outDepleted" class="mt-2 text-sm bg-slate-50 p-3 rounded-lg border border-slate-100 min-h-[60px] text-slate-700">
+                                -
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tanda Tangan / Footer -->
+                <div class="pt-8 mt-8 border-t flex justify-between items-end text-xs text-slate-500">
+                    <div>
+                        <p>Dokumen ini dibuat otomatis oleh sistem.</p>
+                        <p class="font-semibold text-slate-700 mt-1">International Standard Corporate Reporting</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="h-12"></div>
+                        <p class="border-t border-slate-400 px-8 pt-1 font-semibold text-slate-700">Authorized Management</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Tombol Print / Simpan -->
+        <div class="mt-8 text-center no-print">
+            <button onclick="window.print()" class="bg-slate-900 text-white px-6 py-3 rounded-lg font-medium hover:bg-slate-800 transition shadow-md">
+                🖨️ Cetak / Simpan Laporan (PDF & Screenshot)
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Preview Logo
+        document.getElementById('logoInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const box = document.getElementById('logoPreviewBox');
+                    box.innerHTML = `<img src="${event.target.result}" class="w-full h-full object-cover">`;
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Tambah Baris Biaya Dinamis
+        function addExpenseRow() {
+            const container = document.getElementById('expenseContainer');
+            const row = document.createElement('div');
+            row.className = "flex gap-2 expense-row";
+            row.innerHTML = `
+                <input type="text" placeholder="Deskripsi Biaya" class="flex-1 p-2 border border-slate-300 rounded-lg text-sm outline-none exp-desc">
+                <input type="number" placeholder="Jumlah (Rp)" class="w-32 p-2 border border-slate-300 rounded-lg text-sm outline-none exp-amount">
+            `;
+            container.appendChild(row);
+        }
+
+        // Format Angka ke Rupiah
+        function formatRupiah(number) {
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(number);
+        }
+
+        // Generate Report Logic
+        function generateReport() {
+            // Ambil Data Umum
+            const name = document.getElementById('compName').value || "PT Nama Perusahaan";
+            const period = document.getElementById('compPeriod').value || "Periode Berjalan";
+            const revenue = parseFloat(document.getElementById('totalRevenue').value) || 0;
+            const funding = parseFloat(document.getElementById('externalFunding').value) || 0;
+
+            document.getElementById('reportCompName').innerText = name;
+            document.getElementById('reportPeriod').innerText = "Periode: " + period;
+            document.getElementById('outRevenue').innerText = formatRupiah(revenue);
+            document.getElementById('outFunding').innerText = formatRupiah(funding);
+
+            // Ambil Biaya-biaya
+            const expenseRows = document.querySelectorAll('.expense-row');
+            const expenseTable = document.getElementById('reportExpenseTable');
+            expenseTable.innerHTML = '';
+            
+            let totalExpense = 0;
+
+            expenseRows.forEach(row => {
+                const desc = row.querySelector('.exp-desc').value || "Biaya Lainnya";
+                const amount = parseFloat(row.querySelector('.exp-amount').value) || 0;
+                totalExpense += amount;
+
+                if(amount > 0 || desc) {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="py-2 text-slate-600">${desc}</td>
+                        <td class="py-2 text-right text-slate-800">${formatRupiah(amount)}</td>
+                    `;
+                    expenseTable.appendChild(tr);
+                }
+            });
+
+            if(expenseTable.innerHTML === '') {
+                expenseTable.innerHTML = `<tr><td colspan="2" class="py-2 text-slate-400 italic">Tidak ada biaya dimasukkan.</td></tr>`;
+            }
+
+            document.getElementById('outTotalExpense').innerText = formatRupiah(totalExpense);
+
+            // Hitung Net Profit (Revenue - Expense) + Funding biasanya dicatat terpisah dalam cashflow, tapi net profit murni operasional/pendapatan dihitung dari selisih pendapatan dikurangi biaya.
+            const netProfit = revenue - totalExpense;
+            const profitElement = document.getElementById('outNetProfit');
+            profitElement.innerText = formatRupiah(netProfit);
+            
+            if(netProfit < 0) {
+                profitElement.className = "py-3 px-2 text-right text-rose-600 font-bold text-base";
+            } else {
+                profitElement.className = "py-3 px-2 text-right text-emerald-700 font-bold text-base";
+            }
+
+            // Produk Status
+            const active = document.getElementById('activeProducts').value;
+            const depleted = document.getElementById('depletedProducts').value;
+            
+            document.getElementById('outActive').innerText = active ? active : "Belum ada data produk aktif.";
+            document.getElementById('outDepleted').innerText = depleted ? depleted : "Belum ada data produk habis.";
+            
+            alert("Laporan berhasil diperbarui!");
+        }
+    </script>
+</body>
+</html>
