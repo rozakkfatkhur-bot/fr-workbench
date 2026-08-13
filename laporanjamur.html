@@ -26,9 +26,11 @@
                     <p class="text-xs text-slate-400">Enterprise Cultivation & Financial Analytics</p>
                 </div>
             </div>
-            <div class="mt-3 sm:mt-0 flex space-x-2">
-                <button onclick="switchTab('input')" id="btn-input" class="px-4 py-2 text-sm font-medium rounded-lg bg-emerald-600 text-white transition">Input Data Harian</button>
-                <button onclick="switchTab('report')" id="btn-report" class="px-4 py-2 text-sm font-medium rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 transition">Laporan Internasional</button>
+            <div class="mt-3 sm:mt-0 flex flex-wrap gap-2">
+                <button onclick="switchTab('input')" id="btn-input" class="px-3 py-2 text-xs sm:text-sm font-medium rounded-lg bg-emerald-600 text-white transition">Input Setoran</button>
+                <button onclick="switchTab('analytics')" id="btn-analytics" class="px-3 py-2 text-xs sm:text-sm font-medium rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 transition">Arus & Tren Jamur</button>
+                <button onclick="switchTab('report')" id="btn-report" class="px-3 py-2 text-xs sm:text-sm font-medium rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 transition">Laporan Korporat</button>
+                <button onclick="switchTab('archive')" id="btn-archive" class="px-3 py-2 text-xs sm:text-sm font-medium rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 transition">Arsip & Semesteran</button>
             </div>
         </div>
     </header>
@@ -38,9 +40,9 @@
         <!-- TAB 1: INPUT DATA & DASHBOARD -->
         <div id="tab-input" class="space-y-6">
             <!-- Stats Overview Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
-                    <p class="text-xs font-semibold text-slate-500 uppercase">Total Setoran Panen (Kg)</p>
+                    <p class="text-xs font-semibold text-slate-500 uppercase">Total Akumulasi Panen</p>
                     <h3 id="stat-total-kg" class="text-2xl font-bold text-slate-900 mt-1">0.00 Kg</h3>
                 </div>
                 <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
@@ -48,8 +50,12 @@
                     <h3 id="stat-active-logs" class="text-2xl font-bold text-blue-600 mt-1">0</h3>
                 </div>
                 <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
-                    <p class="text-xs font-semibold text-slate-500 uppercase">Total Log Mati Baru</p>
+                    <p class="text-xs font-semibold text-slate-500 uppercase">Akumulasi Log Mati</p>
                     <h3 id="stat-dead-logs" class="text-2xl font-bold text-rose-600 mt-1">0</h3>
+                </div>
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                    <p class="text-xs font-semibold text-slate-500 uppercase">Tingkat Mortalitas Log</p>
+                    <h3 id="stat-mortality" class="text-2xl font-bold text-amber-600 mt-1">0%</h3>
                 </div>
             </div>
 
@@ -63,17 +69,28 @@
                             <label class="block text-xs font-semibold text-slate-600 mb-1">Tanggal Setor</label>
                             <input type="date" id="record-date" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
                         </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-600 mb-1">Hasil Panen (Kilogram / Kg)</label>
-                            <input type="number" step="0.01" id="record-kg" placeholder="Contoh: 45.5" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">Jumlah Panen</label>
+                                <input type="number" step="any" id="record-qty" placeholder="Contoh: 500" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">Satuan</label>
+                                <select id="record-unit" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                    <option value="Kg">Kilogram (Kg)</option>
+                                    <option value="Gram">Gram (g)</option>
+                                    <option value="Ons">Ons (100g)</option>
+                                    <option value="Ton">Ton</option>
+                                </select>
+                            </div>
                         </div>
                         <div>
                             <label class="block text-xs font-semibold text-slate-600 mb-1">Jumlah Log Aktif Saat Ini</label>
                             <input type="number" id="record-active-logs" placeholder="Contoh: 2500" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-slate-600 mb-1">Jumlah Log Mati Baru</label>
-                            <input type="number" id="record-dead-logs" placeholder="Contoh: 12" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Jumlah Log Mati Baru (Hari Ini)</label>
+                            <input type="number" id="record-dead-logs" placeholder="Contoh: 5" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
                         </div>
                         <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 rounded-lg text-sm transition shadow-sm">Simpan Setoran Harian</button>
                     </form>
@@ -83,14 +100,15 @@
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 lg:col-span-2 flex flex-col">
                     <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-100">
                         <h2 class="text-base font-bold text-slate-900">Riwayat Setoran Harian</h2>
-                        <button onclick="clearData()" class="text-xs text-rose-600 hover:underline font-medium">Reset Semua Data</button>
+                        <button onclick="clearData()" class="text-xs text-rose-600 hover:underline font-medium">Reset Data Aktif</button>
                     </div>
-                    <div class="overflow-x-auto flex-grow">
+                    <div class="overflow-x-auto flex-grow max-h-[450px]">
                         <table class="w-full text-left border-collapse">
                             <thead>
-                                <tr class="border-b border-slate-200 text-slate-500 text-xs uppercase">
+                                <tr class="border-b border-slate-200 text-slate-500 text-xs uppercase sticky top-0 bg-white">
                                     <th class="py-2 px-3">Tanggal</th>
-                                    <th class="py-2 px-3">Panen (Kg)</th>
+                                    <th class="py-2 px-3">Hasil Setor</th>
+                                    <th class="py-2 px-3">Setara Kg</th>
                                     <th class="py-2 px-3">Log Aktif</th>
                                     <th class="py-2 px-3">Log Mati</th>
                                     <th class="py-2 px-3 text-center">Aksi</th>
@@ -105,57 +123,118 @@
             </div>
         </div>
 
-        <!-- TAB 2: INTERNATIONAL STANDARD REPORT -->
-        <div id="tab-report" class="hidden space-y-6">
-            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-4">
-                <div class="flex items-center gap-3 w-full sm:w-auto">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">Harga Jual / Kg dari Penyalur (Rp)</label>
-                        <input type="number" id="price-per-kg" value="30000" oninput="generateReportView()" class="w-48 px-3 py-2 border border-slate-300 rounded-lg text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <!-- TAB 2: ARUS & TREN JAMUR -->
+        <div id="tab-analytics" class="hidden space-y-6">
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-6">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-900">Analisis Arus & Produktivitas Jamur</h2>
+                    <p class="text-xs text-slate-500">Pantau pergerakan hasil panen harian, mingguan, dan bulanan untuk mengevaluasi efisiensi operasional.</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <span class="text-xs text-slate-500 font-semibold uppercase">Rata-rata Setoran Per Hari</span>
+                        <h3 id="ana-avg-daily" class="text-xl font-bold text-slate-900 mt-1">0.00 Kg</h3>
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <span class="text-xs text-slate-500 font-semibold uppercase">Total Hari Penyetoran</span>
+                        <h3 id="ana-total-days" class="text-xl font-bold text-blue-600 mt-1">0 Hari</h3>
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <span class="text-xs text-slate-500 font-semibold uppercase">Rekor Panen Tertinggi (1 Hari)</span>
+                        <h3 id="ana-max-panen" class="text-xl font-bold text-emerald-600 mt-1">0.00 Kg</h3>
                     </div>
                 </div>
-                <button onclick="downloadReportImage()" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm flex items-center justify-center gap-2">
-                    📥 Simpan Laporan ke Galeri (PNG)
+                <div class="overflow-x-auto">
+                    <h3 class="text-sm font-bold text-slate-900 mb-3">Ringkasan Arus Jamur Berdasarkan Tanggal</h3>
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-700 border-y border-slate-300">
+                                <th class="py-2.5 px-3 font-semibold">Tanggal</th>
+                                <th class="py-2.5 px-3 font-semibold text-right">Jumlah Setoran</th>
+                                <th class="py-2.5 px-3 font-semibold text-right">Akumulasi Sampai Hari Ini</th>
+                                <th class="py-2.5 px-3 font-semibold text-right">Status Kesehatan Log</th>
+                            </tr>
+                        </thead>
+                        <tbody id="analytics-table-body" class="divide-y divide-slate-200">
+                            <!-- Injected via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: INTERNATIONAL STANDARD REPORT -->
+        <div id="tab-report" class="hidden space-y-6">
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="flex flex-wrap items-center gap-4 w-full md:w-auto">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Skema Harga Penyalur</label>
+                        <select id="price-scheme" onchange="togglePriceScheme()" class="px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="flat">Harga Tetap per Kg</option>
+                            <option value="tiered">Harga Bertingkat (Volume Bonus)</option>
+                        </select>
+                    </div>
+                    <div id="flat-price-box">
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Harga Jual / Kg (Rp)</label>
+                        <input type="number" id="price-per-kg" value="30000" oninput="generateReportView()" class="w-40 px-3 py-2 border border-slate-300 rounded-lg text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div id="tiered-price-box" class="hidden flex gap-2">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Harga Standar (Rp/Kg)</label>
+                            <input type="number" id="tier-base" value="28000" oninput="generateReportView()" class="w-32 px-3 py-2 border border-slate-300 rounded-lg text-sm font-semibold">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Bonus Volume > 500Kg (Rp/Kg)</label>
+                            <input type="number" id="tier-bonus" value="32000" oninput="generateReportView()" class="w-32 px-3 py-2 border border-slate-300 rounded-lg text-sm font-semibold">
+                        </div>
+                    </div>
+                </div>
+                <button onclick="downloadReportImage()" class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm flex items-center justify-center gap-2">
+                    📥 Simpan Laporan Korporat (PNG)
                 </button>
             </div>
 
             <!-- Printable International Report Container -->
-            <div id="report-container" class="bg-white p-10 rounded-xl shadow-md border border-slate-300 max-w-4xl mx-auto space-y-8 text-slate-900">
+            <div id="report-container" class="bg-white p-12 rounded-xl shadow-md border border-slate-300 max-w-4xl mx-auto space-y-8 text-slate-900">
                 <!-- Report Header -->
                 <div class="flex justify-between items-start border-b-2 border-slate-900 pb-6">
                     <div>
                         <h1 class="text-2xl font-black tracking-wider uppercase text-slate-900">AGRO-TECH MUSHROOM CORP.</h1>
-                        <p class="text-xs text-slate-500 font-semibold tracking-wide mt-1">GLOBAL OPERATIONS & FINANCIAL PERFORMANCE REPORT</p>
+                        <p class="text-xs text-slate-500 font-semibold tracking-wide mt-1">GLOBAL OPERATIONS, BIOMASS YIELD & FINANCIAL VALUATION REPORT</p>
                     </div>
                     <div class="text-right">
-                        <p class="text-xs font-bold text-slate-700">ISO 9001:2015 COMPLIANT REPORT</p>
+                        <p class="text-xs font-bold text-slate-700">ISO 9001:2015 / GMP COMPLIANT</p>
                         <p id="report-generated-date" class="text-xs text-slate-500 mt-0.5">Date Issued: -</p>
                     </div>
                 </div>
 
                 <!-- Executive Summary -->
                 <div class="space-y-3">
-                    <h3 class="text-xs font-bold tracking-widest text-slate-400 uppercase">1. Executive Summary</h3>
-                    <p class="text-sm text-slate-700 leading-relaxed">
-                        Laporan komprehensif ini merangkum hasil setoran produksi biomassa jamur, metrik kesehatan populasi <span class="italic">baglog</span> aktif, serta proyeksi pendapatan finansial perusahaan berdasarkan standar harga jual dari penyalur per periode audit terkini.
+                    <h3 class="text-xs font-bold tracking-widest text-slate-400 uppercase">1. Executive Summary & Audit Statement</h3>
+                    <p class="text-sm text-slate-700 leading-relaxed text-justify">
+                        Laporan resmi korporat ini menyajikan analisis komprehensif atas performa rantai pasok biomassa jamur, tingkat mortalitas populasi <span class="italic">baglog</span>, serta valuasi pendapatan finansial bruto berdasarkan kesepakatan kontrak dengan penyalur/pengepul resmi. Seluruh metrik telah diverifikasi sesuai standar audit operasional agrikultur modern.
                     </p>
                 </div>
 
                 <!-- Key Performance Indicators (KPI) Table -->
                 <div class="space-y-3">
-                    <h3 class="text-xs font-bold tracking-widest text-slate-400 uppercase">2. Key Performance Indicators (KPI)</h3>
-                    <div class="grid grid-cols-3 gap-4">
+                    <h3 class="text-xs font-bold tracking-widest text-slate-400 uppercase">2. Key Performance Indicators (KPI) Summary</h3>
+                    <div class="grid grid-cols-4 gap-4">
                         <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
                             <span class="text-xs text-slate-500 block font-medium">Total Akumulasi Panen</span>
-                            <span id="rep-total-kg" class="text-xl font-bold text-slate-900 mt-1 block">0.00 Kg</span>
+                            <span id="rep-total-kg" class="text-lg font-bold text-slate-900 mt-1 block">0.00 Kg</span>
                         </div>
                         <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
-                            <span class="text-xs text-slate-500 block font-medium">Proyeksi Total Pendapatan</span>
-                            <span id="rep-total-rev" class="text-xl font-bold text-emerald-600 mt-1 block">Rp 0</span>
+                            <span class="text-xs text-slate-500 block font-medium">Valuasi Gross Revenue</span>
+                            <span id="rep-total-rev" class="text-lg font-bold text-emerald-600 mt-1 block">Rp 0</span>
                         </div>
                         <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
-                            <span class="text-xs text-slate-500 block font-medium">Mortalitas Log (Mati / Total)</span>
-                            <span id="rep-mortality-rate" class="text-xl font-bold text-rose-600 mt-1 block">0%</span>
+                            <span class="text-xs text-slate-500 block font-medium">Log Aktif Terkini</span>
+                            <span id="rep-active-logs" class="text-lg font-bold text-blue-600 mt-1 block">0 Unit</span>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                            <span class="text-xs text-slate-500 block font-medium">Mortalitas Log</span>
+                            <span id="rep-mortality-rate" class="text-lg font-bold text-rose-600 mt-1 block">0%</span>
                         </div>
                     </div>
                 </div>
@@ -166,11 +245,11 @@
                     <table class="w-full text-left border-collapse text-xs">
                         <thead>
                             <tr class="bg-slate-100 text-slate-700 border-y border-slate-300">
-                                <th class="py-2.5 px-3 font-semibold">Tanggal</th>
-                                <th class="py-2.5 px-3 font-semibold text-right">Setoran Panen (Kg)</th>
-                                <th class="py-2.5 px-3 font-semibold text-right">Nilai Pendapatan (IDR)</th>
-                                <th class="py-2.5 px-3 font-semibold text-right">Log Aktif</th>
-                                <th class="py-2.5 px-3 font-semibold text-right">Log Mati</th>
+                                <th class="py-2.5 px-3 font-semibold">Tanggal Setor</th>
+                                <th class="py-2.5 px-3 font-semibold text-right">Jumlah Panen</th>
+                                <th class="py-2.5 px-3 font-semibold text-right">Tarif (Rp/Kg)</th>
+                                <th class="py-2.5 px-3 font-semibold text-right">Valuasi Pendapatan (IDR)</th>
+                                <th class="py-2.5 px-3 font-semibold text-right">Log Aktif / Mati</th>
                             </tr>
                         </thead>
                         <tbody id="report-table-body" class="divide-y divide-slate-200">
@@ -180,17 +259,61 @@
                 </div>
 
                 <!-- Sign-off Section -->
-                <div class="pt-10 grid grid-cols-2 gap-8 text-xs">
-                    <div class="space-y-12">
-                        <p class="font-bold text-slate-600 uppercase tracking-wider">Prepared By:</p>
-                        <div class="border-b border-slate-400 w-48 pb-1"></div>
-                        <p class="text-slate-500">Head of Production & Cultivation</p>
+                <div class="pt-12 grid grid-cols-2 gap-8 text-xs">
+                    <div class="space-y-16">
+                        <div>
+                            <p class="font-bold text-slate-600 uppercase tracking-wider">Prepared By:</p>
+                            <p class="text-slate-400 text-[11px]">Production & Supply Chain Division</p>
+                        </div>
+                        <div class="border-b border-slate-400 w-56 pb-1"></div>
+                        <p class="text-slate-600 font-semibold">Head of Cultivation & Quality Control</p>
                     </div>
-                    <div class="space-y-12">
-                        <p class="font-bold text-slate-600 uppercase tracking-wider">Approved By:</p>
-                        <div class="border-b border-slate-400 w-48 pb-1"></div>
-                        <p class="text-slate-500">Chief Executive Officer (CEO)</p>
+                    <div class="space-y-16">
+                        <div>
+                            <p class="font-bold text-slate-600 uppercase tracking-wider">Authorized & Approved By:</p>
+                            <p class="text-slate-400 text-[11px]">Executive Management Board</p>
+                        </div>
+                        <div class="border-b border-slate-400 w-56 pb-1"></div>
+                        <p class="text-slate-600 font-semibold">Chief Executive Officer (CEO)</p>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: ARSIP & LAPORAN SEMESTERAN -->
+        <div id="tab-archive" class="hidden space-y-6">
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-900">Arsip & Laporan Semesteran (Juni & Desember)</h2>
+                        <p class="text-xs text-slate-500">Simpan laporan resmi setiap akhir Juni atau Desember, lalu reset sistem untuk siklus tanam berikutnya.</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="archivePeriod('Semester 1 (Juni)')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-xs font-semibold shadow-sm transition">
+                            📁 Simpan Arsip Semester 1 (Juni)
+                        </button>
+                        <button onclick="archivePeriod('Semester 2 (Desember)')" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-xs font-semibold shadow-sm transition">
+                            📁 Simpan Arsip Semester 2 (Desember)
+                        </button>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <h3 class="text-sm font-bold text-slate-900 mb-3">Daftar Arsip Laporan Tersimpan</h3>
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-700 border-y border-slate-300">
+                                <th class="py-2.5 px-3 font-semibold">Periode Arsip</th>
+                                <th class="py-2.5 px-3 font-semibold">Tanggal Arsip Dibuat</th>
+                                <th class="py-2.5 px-3 font-semibold text-right">Total Panen (Kg)</th>
+                                <th class="py-2.5 px-3 font-semibold text-right">Total Pendapatan (IDR)</th>
+                                <th class="py-2.5 px-3 font-semibold text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="archive-table-body" class="divide-y divide-slate-200">
+                            <!-- Injected via JS -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -200,25 +323,30 @@
     <!-- JavaScript Logic -->
     <script>
         let records = JSON.parse(localStorage.getItem('mushroom_records')) || [];
+        let archives = JSON.parse(localStorage.getItem('mushroom_archives')) || [];
         document.getElementById('record-date').valueAsDate = new Date();
 
         function switchTab(tab) {
-            const inputTab = document.getElementById('tab-input');
-            const reportTab = document.getElementById('tab-report');
-            const btnInput = document.getElementById('btn-input');
-            const btnReport = document.getElementById('btn-report');
+            const tabs = ['input', 'analytics', 'report', 'archive'];
+            tabs.forEach(t => {
+                document.getElementById(`tab-${t}`).classList.add('hidden');
+                document.getElementById(`btn-${t}`).className = "px-3 py-2 text-xs sm:text-sm font-medium rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 transition";
+            });
 
-            if (tab === 'input') {
-                inputTab.classList.remove('hidden');
-                reportTab.classList.add('hidden');
-                btnInput.className = "px-4 py-2 text-sm font-medium rounded-lg bg-emerald-600 text-white transition";
-                btnReport.className = "px-4 py-2 text-sm font-medium rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 transition";
-            } else {
-                inputTab.classList.add('hidden');
-                reportTab.classList.remove('hidden');
-                btnReport.className = "px-4 py-2 text-sm font-medium rounded-lg bg-emerald-600 text-white transition";
-                btnInput.className = "px-4 py-2 text-sm font-medium rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 transition";
-                generateReportView();
+            document.getElementById(`tab-${tab}`).classList.remove('hidden');
+            document.getElementById(`btn-${tab}`).className = "px-3 py-2 text-xs sm:text-sm font-medium rounded-lg bg-emerald-600 text-white transition";
+
+            if (tab === 'analytics') renderAnalytics();
+            if (tab === 'report') generateReportView();
+            if (tab === 'archive') renderArchiveTable();
+        }
+
+        function convertToKg(qty, unit) {
+            switch(unit) {
+                case 'Gram': return qty / 1000;
+                case 'Ons': return qty / 10;
+                case 'Ton': return qty * 1000;
+                default: return qty; // Kg
             }
         }
 
@@ -229,11 +357,13 @@
         function addRecord(e) {
             e.preventDefault();
             const date = document.getElementById('record-date').value;
-            const kg = parseFloat(document.getElementById('record-kg').value);
+            const qty = parseFloat(document.getElementById('record-qty').value);
+            const unit = document.getElementById('record-unit').value;
             const activeLogs = parseInt(document.getElementById('record-active-logs').value);
             const deadLogs = parseInt(document.getElementById('record-dead-logs').value);
+            const kgVal = convertToKg(qty, unit);
 
-            const newRecord = { id: Date.now(), date, kg, activeLogs, deadLogs };
+            const newRecord = { id: Date.now(), date, qty, unit, kgVal, activeLogs, deadLogs };
             records.push(newRecord);
             records.sort((a, b) => new Date(b.date) - new Date(a.date));
 
@@ -248,7 +378,7 @@
         }
 
         function clearData() {
-            if (confirm("Apakah Anda yakin ingin menghapus seluruh data setoran?")) {
+            if (confirm("Apakah Anda yakin ingin mereset seluruh data setoran aktif saat ini?")) {
                 records = [];
                 saveAndRefresh();
             }
@@ -272,16 +402,17 @@
             }
 
             records.forEach(r => {
-                totalKg += r.kg;
+                totalKg += r.kgVal;
                 totalDeadLogs += r.deadLogs;
 
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-slate-50 transition border-b border-slate-100";
                 tr.innerHTML = `
                     <td class="py-3 px-3 font-medium text-slate-900">${r.date}</td>
-                    <td class="py-3 px-3">${r.kg.toLocaleString('id-ID')} Kg</td>
-                    <td class="py-3 px-3 text-blue-600 font-medium">${r.activeLogs}</td>
-                    <td class="py-3 px-3 text-rose-600 font-medium">${r.deadLogs}</td>
+                    <td class="py-3 px-3">${r.qty.toLocaleString('id-ID')} ${r.unit}</td>
+                    <td class="py-3 px-3 font-semibold text-slate-700">${r.kgVal.toLocaleString('id-ID', {minimumFractionDigits: 2})} Kg</td>
+                    <td class="py-3 px-3 text-blue-600 font-medium">${r.activeLogs} Unit</td>
+                    <td class="py-3 px-3 text-rose-600 font-medium">${r.deadLogs} Unit</td>
                     <td class="py-3 px-3 text-center">
                         <button onclick="deleteRecord(${r.id})" class="text-rose-500 hover:text-rose-700 font-bold text-xs bg-rose-50 px-2 py-1 rounded">Hapus</button>
                     </td>
@@ -289,16 +420,79 @@
                 tableBody.appendChild(tr);
             });
 
+            const totalInitialLogs = latestActiveLogs + totalDeadLogs;
+            let mortalityRate = totalInitialLogs > 0 ? ((totalDeadLogs / totalInitialLogs) * 100).toFixed(1) : 0;
+
             document.getElementById('stat-total-kg').innerText = totalKg.toLocaleString('id-ID', { minimumFractionDigits: 2 }) + " Kg";
-            document.getElementById('stat-active-logs').innerText = latestActiveLogs.toLocaleString('id-ID');
-            document.getElementById('stat-dead-logs').innerText = totalDeadLogs.toLocaleString('id-ID');
+            document.getElementById('stat-active-logs').innerText = latestActiveLogs.toLocaleString('id-ID') + " Unit";
+            document.getElementById('stat-dead-logs').innerText = totalDeadLogs.toLocaleString('id-ID') + " Unit";
+            document.getElementById('stat-mortality').innerText = `${mortalityRate}%`;
+        }
+
+        function renderAnalytics() {
+            let totalKg = 0;
+            let maxPanen = 0;
+            let uniqueDays = records.length;
+            let runningTotal = 0;
+
+            const tableBody = document.getElementById('analytics-table-body');
+            tableBody.innerHTML = '';
+
+            // Sort chronological for running total
+            let sortedAsc = [...records].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            sortedAsc.forEach(r => {
+                totalKg += r.kgVal;
+                if (r.kgVal > maxPanen) maxPanen = r.kgVal;
+                runningTotal += r.kgVal;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="py-2.5 px-3 font-medium">${r.date}</td>
+                    <td class="py-2.5 px-3 text-right font-semibold">${r.qty.toLocaleString('id-ID')} ${r.unit} (${r.kgVal.toFixed(2)} Kg)</td>
+                    <td class="py-2.5 px-3 text-right text-emerald-600 font-bold">${runningTotal.toFixed(2)} Kg</td>
+                    <td class="py-2.5 px-3 text-right text-blue-600">Aktif: ${r.activeLogs} | Mati: ${r.deadLogs}</td>
+                `;
+                tableBody.appendChild(tr);
+            });
+
+            let avgDaily = uniqueDays > 0 ? (totalKg / uniqueDays) : 0;
+
+            document.getElementById('ana-avg-daily').innerText = avgDaily.toFixed(2) + " Kg";
+            document.getElementById('ana-total-days').innerText = uniqueDays + " Hari";
+            document.getElementById('ana-max-panen').innerText = maxPanen.toFixed(2) + " Kg";
+        }
+
+        function togglePriceScheme() {
+            const scheme = document.getElementById('price-scheme').value;
+            if (scheme === 'flat') {
+                document.getElementById('flat-price-box').classList.remove('hidden');
+                document.getElementById('tiered-price-box').classList.add('hidden');
+            } else {
+                document.getElementById('flat-price-box').classList.add('hidden');
+                document.getElementById('tiered-price-box').classList.remove('hidden');
+            }
+            generateReportView();
+        }
+
+        function calculateRevenue(kg, scheme) {
+            if (scheme === 'flat') {
+                const price = parseFloat(document.getElementById('price-per-kg').value) || 0;
+                return kg * price;
+            } else {
+                const basePrice = parseFloat(document.getElementById('tier-base').value) || 0;
+                const bonusPrice = parseFloat(document.getElementById('tier-bonus').value) || 0;
+                // Jika total setoran hari itu > 500kg dapat harga bonus
+                return kg > 500 ? (kg * bonusPrice) : (kg * basePrice);
+            }
         }
 
         function generateReportView() {
             let totalKg = 0;
+            let totalRevenue = 0;
             let totalDeadLogs = 0;
             let latestActiveLogs = 0;
-            const pricePerKg = parseFloat(document.getElementById('price-per-kg').value) || 0;
+            const scheme = document.getElementById('price-scheme').value;
 
             if (records.length > 0) {
                 latestActiveLogs = records[0].activeLogs;
@@ -308,38 +502,104 @@
             reportTableBody.innerHTML = '';
 
             records.forEach(r => {
-                totalKg += r.kg;
+                totalKg += r.kgVal;
                 totalDeadLogs += r.deadLogs;
-                const rowRevenue = r.kg * pricePerKg;
+                const rowRev = calculateRevenue(r.kgVal, scheme);
+                totalRevenue += rowRev;
+                const activePricePerKg = rowRev / (r.kgVal || 1);
 
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td class="py-2 px-3">${r.date}</td>
-                    <td class="py-2 px-3 text-right">${r.kg.toLocaleString('id-ID')} Kg</td>
-                    <td class="py-2 px-3 text-right font-semibold text-emerald-600">${formatIDR(rowRevenue)}</td>
-                    <td class="py-2 px-3 text-right">${r.activeLogs}</td>
-                    <td class="py-2 px-3 text-right text-rose-600">${r.deadLogs}</td>
+                    <td class="py-2 px-3 text-right">${r.qty.toLocaleString('id-ID')} ${r.unit}</td>
+                    <td class="py-2 px-3 text-right">${formatIDR(activePricePerKg)}</td>
+                    <td class="py-2 px-3 text-right font-semibold text-emerald-600">${formatIDR(rowRev)}</td>
+                    <td class="py-2 px-3 text-right text-blue-600">${r.activeLogs} / <span class="text-rose-600">${r.deadLogs}</span></td>
                 `;
                 reportTableBody.appendChild(tr);
             });
 
-            const totalRevenue = totalKg * pricePerKg;
-            const totalInitialOrProcessedLogs = latestActiveLogs + totalDeadLogs;
-            let mortalityRate = totalInitialOrProcessedLogs > 0 ? ((totalDeadLogs / totalInitialOrProcessedLogs) * 100).toFixed(1) : 0;
+            const totalInitialLogs = latestActiveLogs + totalDeadLogs;
+            let mortalityRate = totalInitialLogs > 0 ? ((totalDeadLogs / totalInitialLogs) * 100).toFixed(1) : 0;
 
             document.getElementById('rep-total-kg').innerText = totalKg.toLocaleString('id-ID', { minimumFractionDigits: 2 }) + " Kg";
             document.getElementById('rep-total-rev').innerText = formatIDR(totalRevenue);
-            document.getElementById('rep-mortality-rate').innerText = `${mortalityRate}% (${totalDeadLogs} Mati)`;
+            document.getElementById('rep-active-logs').innerText = latestActiveLogs.toLocaleString('id-ID') + " Unit";
+            document.getElementById('rep-mortality-rate').innerText = `${mortalityRate}%`;
             
             const options = { year: 'numeric', month: 'long', day: 'numeric' };
             document.getElementById('report-generated-date').innerText = "Date Issued: " + new Date().toLocaleDateString('id-ID', options);
+        }
+
+        function archivePeriod(periodName) {
+            if (records.length === 0) {
+                alert("Tidak ada data untuk diarsipkan.");
+                return;
+            }
+
+            let totalKg = records.reduce((sum, r) => sum + r.kgVal, 0);
+            const scheme = document.getElementById('price-scheme').value;
+            let totalRev = records.reduce((sum, r) => sum + calculateRevenue(r.kgVal, scheme), 0);
+
+            const archiveItem = {
+                id: Date.now(),
+                period: periodName + " " + new Date().getFullYear(),
+                dateCreated: new Date().toLocaleDateString('id-ID'),
+                totalKg: totalKg.toFixed(2),
+                totalRevenue: totalRev,
+                recordsSnapshot: [...records]
+            };
+
+            archives.push(archiveItem);
+            localStorage.setItem('mushroom_archives', JSON.stringify(archives));
+
+            // Reset active records as requested after archiving in June/December
+            if (confirm(`Arsip ${archiveItem.period} berhasil disimpan! Apakah Anda ingin mereset data aktif untuk memulai siklus periode berikutnya?`)) {
+                records = [];
+                saveAndRefresh();
+            }
+
+            renderArchiveTable();
+            alert("Laporan berhasil diamankan ke dalam Arsip Semesteran.");
+        }
+
+        function renderArchiveTable() {
+            const tableBody = document.getElementById('archive-table-body');
+            tableBody.innerHTML = '';
+
+            if (archives.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-slate-400">Belum ada arsip laporan tersimpan.</td></tr>`;
+                return;
+            }
+
+            archives.forEach(arc => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="py-3 px-3 font-bold text-slate-900">${arc.period}</td>
+                    <td class="py-3 px-3 text-slate-600">${arc.dateCreated}</td>
+                    <td class="py-3 px-3 text-right font-semibold">${parseFloat(arc.totalKg).toLocaleString('id-ID')} Kg</td>
+                    <td class="py-3 px-3 text-right font-semibold text-emerald-600">${formatIDR(arc.totalRevenue)}</td>
+                    <td class="py-3 px-3 text-center">
+                        <button onclick="deleteArchive(${arc.id})" class="text-rose-500 hover:text-rose-700 font-bold text-xs bg-rose-50 px-2.5 py-1 rounded">Hapus Arsip</button>
+                    </td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        }
+
+        function deleteArchive(id) {
+            if (confirm("Hapus arsip ini dari sistem?")) {
+                archives = archives.filter(a => a.id !== id);
+                localStorage.setItem('mushroom_archives', JSON.stringify(archives));
+                renderArchiveTable();
+            }
         }
 
         function downloadReportImage() {
             const reportElement = document.getElementById('report-container');
             html2canvas(reportElement, { scale: 2 }).then(canvas => {
                 const link = document.createElement('a');
-                link.download = `Laporan_Pendapatan_Jamur_${new Date().toISOString().slice(0, 10)}.png`;
+                link.download = `Laporan_Korporat_Jamur_${new Date().toISOString().slice(0, 10)}.png`;
                 link.href = canvas.toDataURL('image/png');
                 link.click();
             });
