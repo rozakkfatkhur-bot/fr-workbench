@@ -3,473 +3,659 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>XGS001DLMS by FR AUDIO</title>
+    <title>XGS001DLMS by FR AUDIO — The Violet and White Essence of Sound</title>
     <style>
-        :root {
-            --bg-dark: #120A1F;
-            --bg-panel: #2A1A4A;
-            --bg-graph: #1E1233;
-            --primary-violet: #8A2BE2;
-            --accent-violet: #DDA0DD;
-            --text-white: #FFFFFF;
-            --text-muted: #B0A3D1;
-        }
-
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            background-color: var(--bg-dark);
-            color: var(--text-white);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 20px;
+            background-color: #0f1115;
+            color: #d0d8e0;
+            font-family: Arial, sans-serif;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            min-height: 100vh;
         }
 
-        .dlms-container {
-            background-color: var(--bg-panel);
-            width: 1000px;
-            border-radius: 8px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
-            border: 2px solid var(--primary-violet);
+        .plugin-rack {
+            width: 820px;
+            background: linear-gradient(135deg, #859bb8, #6882a6);
+            border: 3px solid #3c4f6b;
+            border-radius: 6px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.8);
+            padding: 10px;
+        }
+
+        .plugin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #4a5e7c;
+            padding: 4px 10px;
+            border: 1px solid #2e3d52;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+
+        /* Layar Grafik / Response Curve */
+        .screen-container {
+            background-color: #1a2233;
+            border: 3px inset #2d3b50;
+            border-radius: 3px;
+            height: 190px;
+            margin-bottom: 8px;
+            position: relative;
             overflow: hidden;
         }
 
-        .header {
-            background-color: var(--primary-violet);
-            padding: 15px;
-            text-align: center;
-            font-weight: bold;
-            font-size: 18px;
-            letter-spacing: 1px;
-            border-bottom: 2px solid var(--accent-violet);
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
         }
 
-        .media-loader {
-            padding: 15px;
+        /* Layout Kontrol Utama */
+        .controls-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 6px;
+            margin-bottom: 6px;
+        }
+
+        .panel-box {
+            background: rgba(110, 133, 163, 0.4);
+            border: 1px solid #526885;
+            border-radius: 4px;
+            padding: 8px;
             display: flex;
-            gap: 10px;
-            background-color: rgba(0,0,0,0.2);
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .top-row-panels {
+            display: grid;
+            grid-template-columns: 1fr 140px 1fr;
+            gap: 6px;
+            margin-bottom: 6px;
+        }
+
+        .center-master {
+            background: rgba(80, 100, 130, 0.6);
+            border: 1px solid #40526e;
+            border-radius: 4px;
+            padding: 6px;
+            display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: space-between;
         }
 
-        .media-loader input, .media-loader button {
-            background-color: var(--bg-dark);
-            color: var(--text-white);
-            border: 1px solid var(--primary-violet);
-            padding: 8px;
-            border-radius: 4px;
-        }
-
-        .graph-section {
-            padding: 20px;
-            background-color: var(--bg-graph);
-            border-bottom: 2px solid #000;
-        }
-
-        canvas {
-            background-color: #0A0514;
-            width: 100%;
-            height: 250px;
-            border: 1px solid var(--primary-violet);
-            border-radius: 4px;
-        }
-
-        .controls-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 2px;
-            background-color: #000;
-        }
-
-        .band-panel {
-            background-color: var(--bg-panel);
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            border-right: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .band-panel:last-child {
-            border-right: none;
-        }
-
-        .band-title {
+        .badge-type {
+            background: #d4af37;
+            color: #111;
+            font-size: 10px;
             font-weight: bold;
-            color: var(--accent-violet);
-            margin-bottom: 15px;
+            padding: 2px 8px;
+            border-radius: 2px;
+            border: 1px solid #a68520;
+            text-align: center;
+            width: 100%;
+        }
+
+        .badge-over {
+            background: #222;
+            color: #00ffcc;
+            font-size: 10px;
+            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 2px;
+            border: 1px solid #111;
+            text-align: center;
+            width: 100%;
+        }
+
+        .knob-row {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            gap: 5px;
         }
 
         .knob-group {
             display: flex;
             flex-direction: column;
             align-items: center;
-            width: 100%;
-            margin-bottom: 15px;
+            margin: 4px 0;
         }
 
-        .knob-group label {
-            font-size: 11px;
-            color: var(--text-muted);
-            margin-bottom: 5px;
-            text-transform: uppercase;
+        .knob-label {
+            font-size: 9px;
+            font-weight: bold;
+            color: #222;
+            margin-bottom: 2px;
+            letter-spacing: 0.5px;
         }
 
-        input[type=range] {
-            -webkit-appearance: none;
-            width: 80%;
-            background: transparent;
-        }
-
-        input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            height: 16px;
-            width: 16px;
+        /* Desain Potensio / Knob Presisi */
+        .knob {
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
-            background: var(--text-white);
+            background: radial-gradient(circle, #555 40%, #222 90%);
+            border: 2px solid #111;
+            position: relative;
             cursor: pointer;
-            margin-top: -6px;
-            box-shadow: 0 0 5px var(--primary-violet);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.4);
         }
 
-        input[type=range]::-webkit-slider-runnable-track {
-            width: 100%;
-            height: 4px;
-            cursor: pointer;
-            background: var(--primary-violet);
+        .knob::after {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 20px;
+            width: 4px;
+            height: 12px;
+            background: #ffcc00;
             border-radius: 2px;
+            transform-origin: bottom center;
         }
 
-        .val-display {
-            font-size: 11px;
-            margin-top: 5px;
-            font-family: monospace;
-            background: #000;
-            padding: 2px 5px;
+        .btn-action {
+            background-color: #62a87c;
+            color: #111;
+            border: 2px outset #7bc497;
+            font-size: 9px;
+            font-weight: bold;
+            padding: 3px 8px;
+            border-radius: 2px;
+            cursor: pointer;
+        }
+        .btn-action.active {
+            background-color: #48825f;
+            border-style: inset;
+            color: #fff;
+        }
+
+        .oct-box {
+            background: #2b3b52;
+            color: #fff;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 2px;
+            border: 1px solid #1a2433;
+            text-align: center;
+        }
+
+        /* Panel Media Loader Profesional */
+        .media-deck {
+            background: #2a384d;
+            border: 2px solid #1c2636;
+            border-radius: 4px;
+            padding: 10px;
+            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .deck-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .deck-row input[type="text"] {
+            flex: 1;
+            background: #141b26;
+            border: 1px solid #3c4f6b;
+            color: #fff;
+            padding: 6px 10px;
             border-radius: 3px;
-            border: 1px solid var(--primary-violet);
+            font-size: 12px;
+        }
+
+        .deck-row input[type="file"] {
+            color: #d0d8e0;
+            font-size: 12px;
+        }
+
+        .deck-row button {
+            background: #5a7396;
+            color: white;
+            border: 1px solid #7897c4;
+            padding: 6px 14px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 11px;
+        }
+
+        .deck-row button:hover {
+            background: #6c8cb8;
         }
 
         audio, video {
             width: 100%;
-            margin-top: 10px;
+            height: 35px;
             outline: none;
-        }
-        
-        .av-container {
-            padding: 0 15px 15px 15px;
-            background-color: rgba(0,0,0,0.2);
+            border-radius: 3px;
         }
     </style>
 </head>
 <body>
 
-<div class="dlms-container">
-    <div class="header">
-        XGS001DLMS by FR AUDIO — The Violet and White Essence of Sound
-    </div>
-    
-    <div class="media-loader">
-        <div>
-            <label style="font-size: 12px; margin-right: 10px;">Load File (Musik/Video):</label>
-            <input type="file" id="file-input" accept="audio/*, video/*">
-        </div>
-        <div>
-            <input type="text" id="yt-link" placeholder="Paste YouTube Link...">
-            <button id="yt-btn">Load YT (Butuh Backend)</button>
-        </div>
+<div class="plugin-rack">
+    <!-- Header Plugin -->
+    <div class="plugin-header">
+        <span>Sonnox Oxford EQ</span>
+        <span>XGS001DLMS by FR AUDIO</span>
+        <span>STEREO DSP v2.6</span>
     </div>
 
-    <div class="av-container">
-        <!-- Media player akan muncul di sini -->
-        <video id="media-player" controls height="150" style="display:none;"></video>
-        <audio id="audio-player" controls style="display:none;"></audio>
+    <!-- Layar Grafik Respon Frekuensi -->
+    <div class="screen-container">
+        <canvas id="eqCanvas" width="800" height="190"></canvas>
     </div>
 
-    <div class="graph-section">
-        <canvas id="eq-graph" width="960" height="250"></canvas>
+    <!-- Baris Atas: LF Filter, Master/Trim Center, HF Filter -->
+    <div class="top-row-panels">
+        <!-- LF Section -->
+        <div class="panel-box">
+            <div style="display:flex; justify-content:space-between; width:100%; margin-bottom:5px; align-items:center;">
+                <div class="oct-box">6</div>
+                <button class="btn-action active" id="lf-shelf-btn">/LF</button>
+            </div>
+            <div class="knob-row">
+                <div class="knob-group">
+                    <span class="knob-label">FREQ</span>
+                    <div class="knob" id="knob-lf-freq" data-min="20" data-max="250" data-val="60" data-step="1"></div>
+                    <span style="font-size:9px; margin-top:2px;" id="val-lf-freq">60 Hz</span>
+                </div>
+                <div class="knob-group">
+                    <span class="knob-label">Q</span>
+                    <div class="knob" id="knob-lf-q" data-min="0.1" data-max="10" data-val="1.0" data-step="0.1"></div>
+                    <span style="font-size:9px; margin-top:2px;" id="val-lf-q">1.0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Center Master / Type / Trim -->
+        <div class="center-master">
+            <div class="badge-type">TYPE 1</div>
+            <div class="badge-over">OVER</div>
+            <div style="font-size:9px; color:#111; font-weight:bold;">TRIM</div>
+            <div class="knob-group" style="margin:0;">
+                <div class="knob" style="width:36px; height:36px;" id="knob-trim" data-min="-20" data-max="20" data-val="0" data-step="0.5"></div>
+                <span style="font-size:9px;" id="val-trim">0.0 dB</span>
+            </div>
+            <div style="display:flex; gap:4px; width:100%; justify-content:center;">
+                <button class="btn-action active" style="padding:2px 6px;">A</button>
+                <button class="btn-action" style="padding:2px 6px; background:#aaa;">B</button>
+            </div>
+        </div>
+
+        <!-- HF Section -->
+        <div class="panel-box">
+            <div style="display:flex; justify-content:space-between; width:100%; margin-bottom:5px; align-items:center;">
+                <button class="btn-action active" id="hf-shelf-btn">HF\</button>
+                <div class="oct-box">6</div>
+            </div>
+            <div class="knob-row">
+                <div class="knob-group">
+                    <span class="knob-label">FREQ</span>
+                    <div class="knob" id="knob-hf-freq" data-min="5000" data-max="20000" data-val="10000" data-step="50"></div>
+                    <span style="font-size:9px; margin-top:2px;" id="val-hf-freq">10K Hz</span>
+                </div>
+                <div class="knob-group">
+                    <span class="knob-label">Q</span>
+                    <div class="knob" id="knob-hf-q" data-min="0.1" data-max="10" data-val="1.0" data-step="0.1"></div>
+                    <span style="font-size:9px; margin-top:2px;" id="val-hf-q">1.0</span>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="controls-grid" id="eq-controls">
-        <!-- Panel LF -->
-        <div class="band-panel" data-band="lf">
-            <div class="band-title">LF (Low)</div>
-            <div class="knob-group">
-                <label>Freq</label>
-                <input type="range" class="freq-slider" min="20" max="250" step="1" value="60">
-                <div class="val-display freq-val">60 Hz</div>
+    <!-- Baris Bawah: 3 Panel Parametric EQ (LF, MF, HF) -->
+    <div class="controls-grid">
+        <!-- Panel 1 (LF Parametric / Blue) -->
+        <div class="panel-box">
+            <div class="knob-row">
+                <div class="knob-group">
+                    <span class="knob-label">FREQ</span>
+                    <div class="knob" id="knob-p1-freq" data-min="40" data-max="400" data-val="100" data-step="1"></div>
+                    <span style="font-size:9px;" id="val-p1-freq">100 Hz</span>
+                </div>
+                <div class="knob-group">
+                    <span class="knob-label">Q</span>
+                    <div class="knob" id="knob-p1-q" data-min="0.1" data-max="10" data-val="1.4" data-step="0.1"></div>
+                    <span style="font-size:9px;" id="val-p1-q">1.4</span>
+                </div>
             </div>
-            <div class="knob-group">
-                <label>Q</label>
-                <input type="range" class="q-slider" min="0.1" max="10" step="0.1" value="1.0">
-                <div class="val-display q-val">1.0</div>
+            <div class="knob-group" style="margin-top:4px;">
+                <span class="knob-label">GAIN</span>
+                <div class="knob" id="knob-p1-gain" data-min="-20" data-max="20" data-val="0" data-step="0.5"></div>
+                <span style="font-size:9px;" id="val-p1-gain">0 dB</span>
             </div>
-            <div class="knob-group">
-                <label>Gain</label>
-                <input type="range" class="gain-slider" min="-20" max="20" step="0.5" value="0">
-                <div class="val-display gain-val">0 dB</div>
-            </div>
-        </div>
-
-        <!-- Panel LMF -->
-        <div class="band-panel" data-band="lmf">
-            <div class="band-title">LMF (Low Mid)</div>
-            <div class="knob-group">
-                <label>Freq</label>
-                <input type="range" class="freq-slider" min="100" max="1000" step="1" value="250">
-                <div class="val-display freq-val">250 Hz</div>
-            </div>
-            <div class="knob-group">
-                <label>Q</label>
-                <input type="range" class="q-slider" min="0.1" max="10" step="0.1" value="1.4">
-                <div class="val-display q-val">1.4</div>
-            </div>
-            <div class="knob-group">
-                <label>Gain</label>
-                <input type="range" class="gain-slider" min="-20" max="20" step="0.5" value="0">
-                <div class="val-display gain-val">0 dB</div>
+            <div style="display:flex; justify-content:space-between; width:100%; margin-top:5px; align-items:center;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#222" stroke-width="2"><path d="M3 12h18M3 6l6 6-6 6"/></svg>
+                <button class="btn-action active" style="font-size:8px; padding:2px 6px;">LF IN</button>
             </div>
         </div>
 
-        <!-- Panel MF -->
-        <div class="band-panel" data-band="mf">
-            <div class="band-title">MF (Mid)</div>
-            <div class="knob-group">
-                <label>Freq</label>
-                <input type="range" class="freq-slider" min="500" max="5000" step="10" value="1000">
-                <div class="val-display freq-val">1000 Hz</div>
+        <!-- Panel 2 (MF Parametric / Red) -->
+        <div class="panel-box">
+            <div class="knob-row">
+                <div class="knob-group">
+                    <span class="knob-label">FREQ</span>
+                    <div class="knob" id="knob-p2-freq" data-min="200" data-max="5000" data-val="1000" data-step="10"></div>
+                    <span style="font-size:9px;" id="val-p2-freq">1K Hz</span>
+                </div>
+                <div class="knob-group">
+                    <span class="knob-label">Q</span>
+                    <div class="knob" id="knob-p2-q" data-min="0.1" data-max="10" data-val="1.4" data-step="0.1"></div>
+                    <span style="font-size:9px;" id="val-p2-q">1.4</span>
+                </div>
             </div>
-            <div class="knob-group">
-                <label>Q</label>
-                <input type="range" class="q-slider" min="0.1" max="10" step="0.1" value="1.4">
-                <div class="val-display q-val">1.4</div>
+            <div class="knob-group" style="margin-top:4px;">
+                <span class="knob-label">GAIN</span>
+                <div class="knob" id="knob-p2-gain" data-min="-20" data-max="20" data-val="0" data-step="0.5"></div>
+                <span style="font-size:9px;" id="val-p2-gain">0 dB</span>
             </div>
-            <div class="knob-group">
-                <label>Gain</label>
-                <input type="range" class="gain-slider" min="-20" max="20" step="0.5" value="0">
-                <div class="val-display gain-val">0 dB</div>
-            </div>
-        </div>
-
-        <!-- Panel HMF -->
-        <div class="band-panel" data-band="hmf">
-            <div class="band-title">HMF (High Mid)</div>
-            <div class="knob-group">
-                <label>Freq</label>
-                <input type="range" class="freq-slider" min="2000" max="10000" step="10" value="4000">
-                <div class="val-display freq-val">4000 Hz</div>
-            </div>
-            <div class="knob-group">
-                <label>Q</label>
-                <input type="range" class="q-slider" min="0.1" max="10" step="0.1" value="1.4">
-                <div class="val-display q-val">1.4</div>
-            </div>
-            <div class="knob-group">
-                <label>Gain</label>
-                <input type="range" class="gain-slider" min="-20" max="20" step="0.5" value="0">
-                <div class="val-display gain-val">0 dB</div>
+            <div style="display:flex; justify-content:flex-end; width:100%; margin-top:5px;">
+                <button class="btn-action active" style="font-size:8px; padding:2px 6px;">MF IN</button>
             </div>
         </div>
 
-        <!-- Panel HF -->
-        <div class="band-panel" data-band="hf">
-            <div class="band-title">HF (High)</div>
-            <div class="knob-group">
-                <label>Freq</label>
-                <input type="range" class="freq-slider" min="5000" max="20000" step="50" value="10000">
-                <div class="val-display freq-val">10000 Hz</div>
+        <!-- Panel 3 (HF Parametric / Yellow) -->
+        <div class="panel-box">
+            <div class="knob-row">
+                <div class="knob-group">
+                    <span class="knob-label">FREQ</span>
+                    <div class="knob" id="knob-p3-freq" data-min="1000" data-max="16000" data-val="6000" data-step="10"></div>
+                    <span style="font-size:9px;" id="val-p3-freq">6K Hz</span>
+                </div>
+                <div class="knob-group">
+                    <span class="knob-label">Q / OVERSHOOT</span>
+                    <div class="knob" id="knob-p3-q" data-min="0.1" data-max="10" data-val="1.4" data-step="0.1"></div>
+                    <span style="font-size:9px;" id="val-p3-q">1.4</span>
+                </div>
             </div>
-            <div class="knob-group">
-                <label>Q</label>
-                <input type="range" class="q-slider" min="0.1" max="10" step="0.1" value="1.0">
-                <div class="val-display q-val">1.0</div>
+            <div class="knob-group" style="margin-top:4px;">
+                <span class="knob-label">GAIN</span>
+                <div class="knob" id="knob-p3-gain" data-min="-20" data-max="20" data-val="0" data-step="0.5"></div>
+                <span style="font-size:9px;" id="val-p3-gain">0 dB</span>
             </div>
-            <div class="knob-group">
-                <label>Gain</label>
-                <input type="range" class="gain-slider" min="-20" max="20" step="0.5" value="0">
-                <div class="val-display gain-val">0 dB</div>
+            <div style="display:flex; justify-content:space-between; width:100%; margin-top:5px; align-items:center;">
+                <button class="btn-action active" style="font-size:8px; padding:2px 6px;">HF IN</button>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#222" stroke-width="2"><path d="M21 12H3M21 6l-6 6 6 6"/></svg>
             </div>
         </div>
+    </div>
+
+    <!-- Deck Media (Load File & YouTube Link) -->
+    <div class="media-deck">
+        <div class="deck-row">
+            <input type="file" id="audioFile" accept="audio/*,video/*">
+            <button id="playBtn">PLAY / PAUSE</button>
+        </div>
+        <div class="deck-row">
+            <input type="text" id="ytUrlInput" placeholder="Masukkan URL YouTube atau Link Streaming Audio...">
+            <button id="loadYtBtn">LOAD STREAM</button>
+        </div>
+        <audio id="mediaElement" controls></audio>
     </div>
 </div>
 
 <script>
-    // Inisialisasi Web Audio API
-    const AudioContext = window.AudioContext || window.webkitAudioContext;
-    let audioCtx, mediaSource;
-    
-    // Pembuatan Filter Nodes (Biquad Filter)
-    const filters = {};
-    const bands = ['lf', 'lmf', 'mf', 'hmf', 'hf'];
-    const filterTypes = {
-        'lf': 'lowshelf',
-        'lmf': 'peaking',
-        'mf': 'peaking',
-        'hmf': 'peaking',
-        'hf': 'highshelf'
-    };
+    // Web Audio API & DSP Core Setup
+    let audioCtx = null;
+    let sourceNode = null;
+    let gainNode = null;
+    let filters = {};
 
-    const canvas = document.getElementById('eq-graph');
-    const canvasCtx = canvas.getContext('2d');
+    const canvas = document.getElementById('eqCanvas');
+    const ctx = canvas.getContext('2d');
     const width = canvas.width;
     const height = canvas.height;
 
-    function initAudio() {
-        if(audioCtx) return;
-        audioCtx = new AudioContext();
-        
-        // Buat 5 Node Filter
-        bands.forEach(band => {
-            filters[band] = audioCtx.createBiquadFilter();
-            filters[band].type = filterTypes[band];
-        });
+    function initAudioContext() {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            
+            // Master Gain / Trim Node
+            gainNode = audioCtx.createGain();
+            gainNode.gain.value = 1.0;
 
-        // Hubungkan filter secara seri: LF -> LMF -> MF -> HMF -> HF -> Destination
-        filters['lf'].connect(filters['lmf']);
-        filters['lmf'].connect(filters['mf']);
-        filters['mf'].connect(filters['hmf']);
-        filters['hmf'].connect(filters['hf']);
-        filters['hf'].connect(audioCtx.destination);
+            // Inisialisasi 5 Biquad Filter (LF, P1, P2, P3, HF)
+            filters['lf'] = audioCtx.createBiquadFilter();
+            filters['lf'].type = 'lowshelf';
+
+            filters['p1'] = audioCtx.createBiquadFilter();
+            filters['p1'].type = 'peaking';
+
+            filters['p2'] = audioCtx.createBiquadFilter();
+            filters['p2'].type = 'peaking';
+
+            filters['p3'] = audioCtx.createBiquadFilter();
+            filters['p3'].type = 'peaking';
+
+            filters['hf'] = audioCtx.createBiquadFilter();
+            filters['hf'].type = 'highshelf';
+
+            // Rangkaian Seri DLMS: source -> lf -> p1 -> p2 -> p3 -> hf -> gain -> destination
+            const keys = ['lf', 'p1', 'p2', 'p3', 'hf'];
+            let prev = null;
+            keys.forEach(k => {
+                if (prev) {
+                    filters[prev].connect(filters[k]);
+                }
+                prev = k;
+            });
+
+            filters['hf'].connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+        }
     }
 
-    // Fungsi menggambar respons grafik EQ real-time
-    function drawCurve() {
-        if(!audioCtx) return;
+    // Pemetaan Knob UI ke Parameter DSP
+    const knobConfigs = {
+        'knob-lf-freq': { filter: 'lf', param: 'frequency', unit: 'Hz', scale: 1 },
+        'knob-lf-q': { filter: 'lf', param: 'Q', unit: '', scale: 1 },
+        'knob-hf-freq': { filter: 'hf', param: 'frequency', unit: 'Hz', scale: 1 },
+        'knob-hf-q': { filter: 'hf', param: 'Q', unit: '', scale: 1 },
+        'knob-trim': { type: 'trim', unit: 'dB', scale: 1 },
         
-        canvasCtx.clearRect(0, 0, width, height);
-        
-        // Gambar Grid
-        canvasCtx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-        canvasCtx.lineWidth = 1;
-        canvasCtx.beginPath();
-        for(let i=10; i<width; i+=50) { canvasCtx.moveTo(i, 0); canvasCtx.lineTo(i, height); }
-        for(let i=10; i<height; i+=30) { canvasCtx.moveTo(0, i); canvasCtx.lineTo(width, i); }
-        canvasCtx.stroke();
-        
-        // Garis Netral (0 dB)
-        canvasCtx.strokeStyle = '#DDA0DD';
-        canvasCtx.beginPath();
-        canvasCtx.moveTo(0, height / 2);
-        canvasCtx.lineTo(width, height / 2);
-        canvasCtx.stroke();
+        'knob-p1-freq': { filter: 'p1', param: 'frequency', unit: 'Hz', scale: 1 },
+        'knob-p1-q': { filter: 'p1', param: 'Q', unit: '', scale: 1 },
+        'knob-p1-gain': { filter: 'p1', param: 'gain', unit: 'dB', scale: 1 },
 
-        // Hitung Respons Frekuensi Gabungan
-        const noOfFrequencies = width;
-        const frequencyArray = new Float32Array(noOfFrequencies);
-        for (let i = 0; i < noOfFrequencies; i++) {
-            // Skala logaritmik dari 20Hz ke 20kHz
-            frequencyArray[i] = 20 * Math.pow(1000, i / noOfFrequencies);
+        'knob-p2-freq': { filter: 'p2', param: 'frequency', unit: 'Hz', scale: 1 },
+        'knob-p2-q': { filter: 'p2', param: 'Q', unit: '', scale: 1 },
+        'knob-p2-gain': { filter: 'p2', param: 'gain', unit: 'dB', scale: 1 },
+
+        'knob-p3-freq': { filter: 'p3', param: 'frequency', unit: 'Hz', scale: 1 },
+        'knob-p3-q': { filter: 'p3', param: 'Q', unit: '', scale: 1 },
+        'knob-p3-gain': { filter: 'p3', param: 'gain', unit: 'dB', scale: 1 }
+    };
+
+    // Interaksi Rotasi Knob dengan Mouse/Touch
+    document.querySelectorAll('.knob').forEach(knob => {
+        let isDragging = false;
+        let startY = 0;
+        const id = knob.id;
+        const conf = knobConfigs[id];
+        
+        let min = parseFloat(knob.getAttribute('data-min'));
+        let max = parseFloat(knob.getAttribute('data-max'));
+        let val = parseFloat(knob.getAttribute('data-val'));
+        let step = parseFloat(knob.getAttribute('data-step'));
+
+        function updateKnobDisplay() {
+            let percent = (val - min) / (max - min);
+            let deg = percent * 270 - 135; // Rotasi dari -135° ke +135°
+            knob.style.transform = `rotate(${deg}deg)`;
+            
+            let displayVal = val;
+            if (conf.param === 'frequency' && val >= 1000) {
+                displayVal = (val / 1000).toFixed(1) + 'K';
+            } else {
+                displayVal = val.toFixed(conf.unit === 'dB' ? 1 : 1);
+            }
+            
+            const valSpan = document.getElementById('val-' + id.replace('knob-', ''));
+            if (valSpan) valSpan.textContent = displayVal + ' ' + conf.unit;
+
+            // Terapkan langsung ke Audio Engine jika sudah aktif
+            if (audioCtx) {
+                initAudioContext();
+                if (conf.type === 'trim') {
+                    let linearGain = Math.pow(10, val / 20);
+                    gainNode.gain.value = linearGain;
+                } else if (conf.filter && filters[conf.filter]) {
+                    filters[conf.filter][conf.param].value = val;
+                }
+                drawFrequencyResponse();
+            }
         }
 
-        const totalMagResponse = new Float32Array(noOfFrequencies).fill(1.0);
+        updateKnobDisplay();
+
+        knob.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            startY = e.clientY;
+            e.preventDefault();
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            let deltaY = startY - e.clientY;
+            startY = e.clientY;
+            
+            let range = max - min;
+            val += (deltaY / 150) * range * 0.1;
+            if (val < min) val = min;
+            if (val > max) val = max;
+            
+            // Bulatkan ke step terdekat
+            val = Math.round(val / step) * step;
+            knob.setAttribute('data-val', val);
+            updateKnobDisplay();
+        });
+
+        window.addEventListener('mouseup', () => { isDragging = false; });
+    });
+
+    // Menggambar Kurva Respon Frekuensi secara Real-Time pada Canvas
+    function drawFrequencyResponse() {
+        ctx.fillStyle = '#1a2233';
+        ctx.fillRect(0, 0, width, height);
+
+        // Gambar Grid
+        ctx.strokeStyle = '#253247';
+        ctx.lineWidth = 1;
+        for (let x = 0; x < width; x += 50) {
+            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, height); ctx.stroke();
+        }
+        for (let y = 0; y < height; y += 30) {
+            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y); ctx.stroke();
+        }
+
+        // Garis Tengah 0dB
+        ctx.strokeStyle = '#3b4d6b';
+        ctx.beginPath(); ctx.moveTo(0, height / 2); ctx.lineTo(width, height / 2); ctx.stroke();
+
+        if (!audioCtx) return;
+
+        // Hitung Respons Frekuensi dari rangkaian Biquad Filters
+        const freqArray = new Float32Array(width);
+        for (let i = 0; i < width; i++) {
+            freqArray[i] = 20 * Math.pow(1000, i / width); // Skala logaritmik 20Hz - 20kHz
+        }
+
+        let totalMag = new Float32Array(width).fill(1.0);
+        const filterKeys = ['lf', 'p1', 'p2', 'p3', 'hf'];
         
-        bands.forEach(band => {
-            const magResponse = new Float32Array(noOfFrequencies);
-            const phaseResponse = new Float32Array(noOfFrequencies);
-            filters[band].getFrequencyResponse(frequencyArray, magResponse, phaseResponse);
-            for (let i = 0; i < noOfFrequencies; i++) {
-                totalMagResponse[i] *= magResponse[i];
+        filterKeys.forEach(k => {
+            const mag = new Float32Array(width);
+            const phase = new Float32Array(width);
+            filters[k].getFrequencyResponse(freqArray, mag, phase);
+            for (let i = 0; i < width; i++) {
+                totalMag[i] *= mag[i];
             }
         });
 
-        // Gambar Kurva EQ
-        canvasCtx.strokeStyle = '#FFFFFF';
-        canvasCtx.lineWidth = 3;
-        canvasCtx.beginPath();
-        
-        for (let i = 0; i < noOfFrequencies; i++) {
-            // Konversi dari magnitude linear ke decibel (dB)
-            const dbResponse = 20 * Math.log10(totalMagResponse[i]);
-            // Petakan dB ke sumbu Y (Asumsi range +20dB ke -20dB)
-            let y = height / 2 - (dbResponse * (height / 40)); 
-            if (i === 0) canvasCtx.moveTo(i, y);
-            else canvasCtx.lineTo(i, y);
+        // Plot Kurva EQ
+        ctx.strokeStyle = '#f5e050'; // Warna kurva kuning khas Oxford EQ
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+
+        for (let i = 0; i < width; i++) {
+            let db = 20 * Math.log10(Math.max(totalMag[i], 0.0001));
+            let y = (height / 2) - (db * (height / 40)); // Skala +/- 20dB
+            if (i === 0) ctx.moveTo(i, y);
+            else ctx.lineTo(i, y);
         }
-        
-        // Warnai bagian bawah kurva
-        canvasCtx.lineTo(width, height);
-        canvasCtx.lineTo(0, height);
-        canvasCtx.fillStyle = 'rgba(138, 43, 226, 0.3)'; // Warna ungu transparan
-        canvasCtx.fill();
-        canvasCtx.stroke();
+        ctx.stroke();
+
+        // Arsiran hijau transparan di bawah kurva
+        ctx.lineTo(width, height);
+        ctx.lineTo(0, height);
+        ctx.fillStyle = 'rgba(70, 150, 100, 0.25)';
+        ctx.fill();
     }
 
-    // Setup Event Listeners untuk Slider
-    document.querySelectorAll('.band-panel').forEach(panel => {
-        const band = panel.getAttribute('data-band');
-        const freqSlider = panel.querySelector('.freq-slider');
-        const qSlider = panel.querySelector('.q-slider');
-        const gainSlider = panel.querySelector('.gain-slider');
-        
-        const freqVal = panel.querySelector('.freq-val');
-        const qVal = panel.querySelector('.q-val');
-        const gainVal = panel.querySelector('.gain-val');
+    // Inisialisasi Grafik Pertama Kali
+    setTimeout(drawFrequencyResponse, 100);
 
-        function updateFilter() {
-            initAudio(); // Pastikan AudioContext berjalan
-            const freq = parseFloat(freqSlider.value);
-            const q = parseFloat(qSlider.value);
-            const gain = parseFloat(gainSlider.value);
+    // Penanganan Media Player Lokal & YouTube Loader
+    const audioElement = document.getElementById('mediaElement');
+    const audioFileInput = document.getElementById('audioFile');
+    const playBtn = document.getElementById('playBtn');
+    const loadYtBtn = document.getElementById('loadYtBtn');
+    const ytUrlInput = document.getElementById('ytUrlInput');
 
-            filters[band].frequency.value = freq;
-            filters[band].Q.value = q;
-            if(filters[band].gain) filters[band].gain.value = gain;
-
-            freqVal.textContent = freq + ' Hz';
-            qVal.textContent = q;
-            gainVal.textContent = gain + ' dB';
-            
-            drawCurve();
-        }
-
-        freqSlider.addEventListener('input', updateFilter);
-        qSlider.addEventListener('input', updateFilter);
-        gainSlider.addEventListener('input', updateFilter);
-        
-        // Inisialisasi tampilan awal
-        setTimeout(updateFilter, 100);
-    });
-
-    // Menangani File Musik / Video
-    const fileInput = document.getElementById('file-input');
-    const audioPlayer = document.getElementById('audio-player');
-    const videoPlayer = document.getElementById('media-player');
-
-    fileInput.addEventListener('change', function(e) {
-        initAudio();
+    audioFileInput.addEventListener('change', function(e) {
+        initAudioContext();
         const file = e.target.files[0];
-        if(!file) return;
+        if (!file) return;
 
-        const url = URL.createObjectURL(file);
+        const fileURL = URL.createObjectURL(file);
+        audioElement.src = fileURL;
         
-        // Putus koneksi lama jika ada
-        if(mediaSource) mediaSource.disconnect();
-        
-        let player;
-        if(file.type.startsWith('video/')) {
-            videoPlayer.style.display = 'block';
-            audioPlayer.style.display = 'none';
-            player = videoPlayer;
-        } else {
-            audioPlayer.style.display = 'block';
-            videoPlayer.style.display = 'none';
-            player = audioPlayer;
+        if (sourceNode) {
+            try { sourceNode.disconnect(); } catch(err){}
         }
 
-        player.src = url;
-        player.play();
-
-        // Menyambungkan pemutar media ke filter LF (awal rantai)
-        mediaSource = audioCtx.createMediaElementSource(player);
-        mediaSource.connect(filters['lf']);
+        sourceNode = audioCtx.createMediaElementSource(audioElement);
+        sourceNode.connect(filters['lf']);
+        audioElement.play();
     });
 
-    // Dummy Button YouTube
-    document.getElementById('yt-btn').addEventListener('click', () => {
-        alert("Kebijakan browser saat ini mencegah pemrosesan suara dari link eksternal (YouTube) secara langsung menggunakan Web Audio API (CORS issue). Anda perlu mengimplementasikan backend Node.js (misal: dengan ytdl-core) untuk menjadikan fitur ini bekerja di produksi nyata.");
+    playBtn.addEventListener('click', () => {
+        initAudioContext();
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+        if (audioElement.paused) {
+            audioElement.play();
+        } else {
+            audioElement.pause();
+        }
     });
 
+    loadYtBtn.addEventListener('click', () => {
+        initAudioContext();
+        const url = ytUrlInput.value.trim();
+        if (!url) {
+            alert("Silakan masukkan URL YouTube atau link stream audio terlebih dahulu.");
+            return;
+        }
+        alert("Modul YouTube Stream memerlukan backend server (CORS proxy / ytdl handler) untuk mengekstrak direct audio stream ke Web Audio API. Pastikan file lokal digunakan untuk pemrosesan DSP instan.");
+    });
 </script>
 </body>
 </html>
