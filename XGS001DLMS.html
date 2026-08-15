@@ -97,7 +97,7 @@
             gap: 6px;
         }
 
-        /* Modul Panel Individual */
+        /* Modul Panel Individual dengan Beveled Corner khas Oxford */
         .panel-box {
             background: rgba(85, 110, 140, 0.45);
             border: 2px solid #3c526d;
@@ -109,6 +109,17 @@
             box-shadow: inset 0 1px 3px rgba(255,255,255,0.2), 0 2px 5px rgba(0,0,0,0.3);
             position: relative;
         }
+
+        /* Spesifikasi Sudut Potong (Beveled) untuk Baris 1 */
+        .panel-box.beveled-left {
+            clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 0 35%, 15% 0);
+            padding-top: 12px;
+        }
+        .panel-box.beveled-right {
+            clip-path: polygon(0 0, 100% 0, 100% 35%, 100% 100%, 0 100%);
+            padding-top: 12px;
+        }
+
         .center-master-panel {
             background: rgba(65, 85, 110, 0.75);
             border: 2px solid #2d3d52;
@@ -180,6 +191,25 @@
             border-style: inset;
             color: #fff;
         }
+        .btn-toggle.bypass-off {
+            background-color: #883333;
+            color: #ffcccc;
+            border-color: #aa5555;
+        }
+
+        /* Tombol Khusus A/B */
+        .btn-ab {
+            padding: 2px 8px; 
+            font-size: 8px; 
+            font-weight: bold;
+            border-radius: 2px;
+            cursor: pointer;
+            border: 1px solid #000;
+        }
+        .btn-ab.active-a { background: #d9534f; color: #fff; border-style: inset; }
+        .btn-ab.inactive-a { background: #a94442; color: #ddd; opacity: 0.6; }
+        .btn-ab.active-b { background: #f0ad4e; color: #111; border-style: inset; }
+        .btn-ab.inactive-b { background: #eea236; color: #555; opacity: 0.6; }
 
         /* Desain Knob Presisi Tinggi */
         .knob-row {
@@ -283,20 +313,20 @@
         <div class="header-logo-right">Oxford<br>Plugins :</div>
     </div>
 
-    <!-- Layar Grafik -->
+    <!-- Layar Grafik dengan Skala dan Marker -->
     <div class="screen-container">
         <canvas id="eqCanvas" width="850" height="200"></canvas>
     </div>
 
-    <!-- Kontrol Utama (Sesuai Gambar Referensi) -->
+    <!-- Kontrol Utama -->
     <div class="controls-grid">
         <!-- BARIS 1: LF Filter, Master Section, HF Filter -->
         <div class="rack-row">
-            <!-- LF Filter (Atas Kiri) -->
-            <div class="panel-box">
+            <!-- LF Filter (Atas Kiri dengan Beveled Corner) -->
+            <div class="panel-box beveled-left">
                 <div style="display:flex; justify-content:space-between; width:100%; margin-bottom:4px; align-items:center;">
                     <div class="oct-box" id="btn-lf-oct">6</div>
-                    <button class="btn-toggle active" id="btn-lf-type">/LF</button>
+                    <button class="btn-toggle active" id="btn-lff-in">/LF</button>
                 </div>
                 <div class="knob-row">
                     <div class="knob-container">
@@ -314,7 +344,7 @@
 
             <!-- Master Center Panel -->
             <div class="center-master-panel">
-                <div class="badge-type" id="btn-eq-type">TYPE 1</div>
+                <div class="badge-type" id="btn-eq-type" title="Klik untuk mengganti tipe algoritma EQ">TYPE 1</div>
                 <div class="badge-over">OVER</div>
                 <span style="font-size:8px; color:#111; font-weight:bold;">TRIM</span>
                 <div class="knob-container" style="margin:2px 0;">
@@ -322,15 +352,15 @@
                     <span class="knob-value" id="val-trim" style="font-size:7px;">0.0 dB</span>
                 </div>
                 <div style="display:flex; gap:4px; width:100%; justify-content:center;">
-                    <button class="btn-toggle active" style="padding:2px 6px; font-size:7px;" id="btn-ab-a">A</button>
-                    <button class="btn-toggle" style="padding:2px 6px; font-size:7px; background:#888;" id="btn-ab-b">B</button>
+                    <button class="btn-ab active-a" id="btn-ab-a">A</button>
+                    <button class="btn-ab inactive-b" id="btn-ab-b">B</button>
                 </div>
             </div>
 
-            <!-- HF Filter (Atas Kanan) -->
-            <div class="panel-box">
+            <!-- HF Filter (Atas Kanan dengan Beveled Corner) -->
+            <div class="panel-box beveled-right">
                 <div style="display:flex; justify-content:space-between; width:100%; margin-bottom:4px; align-items:center;">
-                    <button class="btn-toggle active" id="btn-hf-type">HF\</button>
+                    <button class="btn-toggle active" id="btn-hff-in">HF\</button>
                     <div class="oct-box" id="btn-hf-oct">6</div>
                 </div>
                 <div class="knob-row">
@@ -370,7 +400,7 @@
                 </div>
             </div>
 
-            <!-- Panel Kosong / Spacer Tengah untuk tata letak persis gambar -->
+            <!-- Spacer Tengah -->
             <div style="background: rgba(65, 85, 110, 0.3); border: 2px dashed #3c526d; border-radius:6px; display:flex; align-items:center; justify-content:center;">
                 <span style="font-size:9px; color:#1c2636; font-weight:bold; letter-spacing:1px;">OXFORD DSP ENGINE</span>
             </div>
@@ -448,7 +478,7 @@
                 </div>
             </div>
 
-            <!-- HF Parametric (Kuning) -->
+            <!-- HF Parametric (Kuning) dengan ikon kurva -->
             <div class="panel-box">
                 <div class="knob-row">
                     <div class="knob-container">
@@ -486,11 +516,17 @@
 </div>
 
 <script>
-    // Web Audio API & DSP Engine Inisialisasi
     let audioCtx = null;
     let sourceNode = null;
     let masterTrimNode = null;
     let filters = {};
+    let bypassState = { lff: true, hff: true, lmf: true, hmf: true, p1: true, p2: true, p3: true };
+    let eqType = 1; // 1 = Normal, 2 = Oxford Character Type 2 (Overshoot modifier)
+    let currentBank = 'A';
+
+    // State A & B Preset Storage
+    let stateA = {};
+    let stateB = {};
 
     const canvas = document.getElementById('eqCanvas');
     const canvasCtx = canvas.getContext('2d');
@@ -504,7 +540,6 @@
             masterTrimNode = audioCtx.createGain();
             masterTrimNode.gain.value = 1.0;
 
-            // Membuat filter biquad sesuai seluruh modul EQ
             const filterKeys = ['lff', 'hff', 'lmf', 'hmf', 'p1', 'p2', 'p3'];
             filterKeys.forEach(k => {
                 filters[k] = audioCtx.createBiquadFilter();
@@ -518,7 +553,6 @@
             filters['p2'].type = 'peaking';
             filters['p3'].type = 'peaking';
 
-            // Rantai Hubungan Seri DSP
             let prevKey = null;
             filterKeys.forEach(k => {
                 if (prevKey) filters[prevKey].connect(filters[k]);
@@ -530,7 +564,6 @@
         }
     }
 
-    // Pemetaan Knob ke Parameter Audio
     const knobMap = {
         'knob-lff-freq': { filter: 'lff', param: 'frequency', unit: 'Hz' },
         'knob-lff-q':    { filter: 'lff', param: 'Q', unit: '' },
@@ -551,11 +584,16 @@
         'knob-p2-gain':  { filter: 'p2', param: 'gain', unit: 'dB' },
 
         'knob-p3-freq':  { filter: 'p3', param: 'frequency', unit: 'Hz' },
-        'knob-p3-q':     { filter: 'p3', param: 'Q', unit: '' },
+        'knob-p3-q':     { filter: 'p3', param: 'Q', unit: '' }, // Overshoot
         'knob-p3-gain':  { filter: 'p3', param: 'gain', unit: 'dB' }
     };
 
-    // Logika Interaksi Putar Knob (Drag Vertikal)
+    // Inisialisasi State A
+    document.querySelectorAll('.knob').forEach(knob => {
+        stateA[knob.id] = parseFloat(knob.getAttribute('data-val'));
+        stateB[knob.id] = parseFloat(knob.getAttribute('data-val'));
+    });
+
     document.querySelectorAll('.knob').forEach(knob => {
         let isDragging = false;
         let startY = 0;
@@ -565,13 +603,18 @@
 
         let min = parseFloat(knob.getAttribute('data-min'));
         let max = parseFloat(knob.getAttribute('data-max'));
-        let val = parseFloat(knob.getAttribute('data-val'));
         let step = parseFloat(knob.getAttribute('data-step'));
 
-        function updateKnobState() {
+        function updateKnobState(val, saveToCurrentBank = true) {
             let percent = (val - min) / (max - min);
             let deg = percent * 270 - 135;
             knob.style.transform = `rotate(${deg}deg)`;
+            knob.setAttribute('data-val', val);
+
+            if (saveToCurrentBank) {
+                if (currentBank === 'A') stateA[id] = val;
+                else stateB[id] = val;
+            }
 
             let displayTxt = val;
             if (cfg.param === 'frequency' && val >= 1000) {
@@ -587,13 +630,18 @@
                 if (cfg.type === 'trim') {
                     masterTrimNode.gain.value = Math.pow(10, val / 20);
                 } else if (cfg.filter && filters[cfg.filter]) {
-                    filters[cfg.filter][cfg.param].value = val;
+                    let activeVal = bypassState[cfg.filter] ? val : (cfg.param === 'gain' ? 0 : filters[cfg.filter][cfg.param].value);
+                    if (cfg.filter === 'p3' && cfg.param === 'Q' && eqType === 2) {
+                        activeVal *= 1.5; // Karakter Oxford Type 2 Overshoot boost
+                    }
+                    filters[cfg.filter][cfg.param].value = activeVal;
                 }
             }
             drawFrequencyCurve();
         }
 
-        updateKnobState();
+        // Set initial
+        updateKnobState(parseFloat(knob.getAttribute('data-val')), false);
 
         knob.addEventListener('mousedown', (e) => {
             isDragging = true;
@@ -606,67 +654,167 @@
             let deltaY = startY - e.clientY;
             startY = e.clientY;
 
+            let val = parseFloat(knob.getAttribute('data-val'));
             let range = max - min;
             val += (deltaY / 100) * range * 0.08;
             if (val < min) val = min;
             if (val > max) val = max;
 
             val = Math.round(val / step) * step;
-            knob.setAttribute('data-val', val);
-            updateKnobState();
+            updateKnobState(val, true);
         });
 
         window.addEventListener('mouseup', () => { isDragging = false; });
     });
 
-    // Interaksi Tombol Toggle (IN / Filter Type / AB)
-    document.querySelectorAll('.btn-toggle').forEach(btn => {
+    // Tombol Bypass (IN / Filter Toggle)
+    const bypassMap = {
+        'btn-lff-in': 'lff',
+        'btn-hff-in': 'hff',
+        'btn-lmf-in': 'lmf',
+        'btn-hmf-in': 'hmf',
+        'btn-p1-in': 'p1',
+        'btn-p2-in': 'p2',
+        'btn-p3-in': 'p3'
+    };
+
+    Object.keys(bypassMap).forEach(btnId => {
+        const btn = document.getElementById(btnId);
+        const filterKey = bypassMap[btnId];
+        if (!btn) return;
+
         btn.addEventListener('click', () => {
-            btn.classList.toggle('active');
+            bypassState[filterKey] = !bypassState[filterKey];
+            btn.classList.toggle('active', bypassState[filterKey]);
+            btn.classList.toggle('bypass-off', !bypassState[filterKey]);
+
+            if (audioCtx && filters[filterKey]) {
+                const knobElem = document.querySelector(`[id$="-${filterKey}-gain"]`) || document.querySelector(`[id$="${filterKey}-q"]`);
+                if (!bypassState[filterKey]) {
+                    // Bypass dengan menetralisir gain / shelf
+                    if (filters[filterKey].type === 'peaking') filters[filterKey].gain.value = 0;
+                    else filters[filterKey].Q.value = 0.1;
+                } else {
+                    // Kembalikan ke nilai knob aktif
+                    const activeKnob = document.getElementById(filterKey === 'lff' || filterKey === 'hff' ? `knob-${filterKey}-q` : `knob-${filterKey}-gain`);
+                    if (activeKnob) {
+                        filters[filterKey][filterKey.includes('ff') ? 'Q' : 'gain'].value = parseFloat(activeKnob.getAttribute('data-val'));
+                    }
+                }
+            }
+            drawFrequencyCurve();
         });
     });
 
-    // Menggambar Grafik Respon Frekuensi presisi Oxford EQ
+    // Toggle EQ Type 1 / Type 2
+    const btnEqType = document.getElementById('btn-eq-type');
+    btnEqType.addEventListener('click', () => {
+        eqType = eqType === 1 ? 2 : 1;
+        btnEqType.textContent = `TYPE ${eqType}`;
+        drawFrequencyCurve();
+    });
+
+    // Tombol A/B Comparison Logic
+    const btnA = document.getElementById('btn-ab-a');
+    const btnB = document.getElementById('btn-ab-b');
+
+    function switchBank(targetBank) {
+        currentBank = targetBank;
+        const sourceState = currentBank === 'A' ? stateA : stateB;
+
+        if (currentBank === 'A') {
+            btnA.className = 'btn-ab active-a';
+            btnB.className = 'btn-ab inactive-b';
+        } else {
+            btnB.className = 'btn-ab active-b';
+            btnA.className = 'btn-ab inactive-a';
+        }
+
+        Object.keys(sourceState).forEach(knobId => {
+            const knob = document.getElementById(knobId);
+            if (!knob) return;
+            let val = sourceState[knobId];
+            let min = parseFloat(knob.getAttribute('data-min'));
+            let max = parseFloat(knob.getAttribute('data-max'));
+            let percent = (val - min) / (max - min);
+            let deg = percent * 270 - 135;
+            knob.style.transform = `rotate(${deg}deg)`;
+            knob.setAttribute('data-val', val);
+
+            const cfg = knobMap[knobId];
+            const valSpan = document.getElementById('val-' + knobId.replace('knob-', ''));
+            if (valSpan) {
+                let displayTxt = (cfg.param === 'frequency' && val >= 1000) ? (val / 1000).toFixed(val % 1000 !== 0 ? 1 : 0) + 'K' : val.toFixed(1);
+                valSpan.textContent = displayTxt + ' ' + cfg.unit;
+            }
+
+            if (audioCtx) {
+                if (cfg.type === 'trim') masterTrimNode.gain.value = Math.pow(10, val / 20);
+                else if (cfg.filter && filters[cfg.filter]) filters[cfg.filter][cfg.param].value = val;
+            }
+        });
+        drawFrequencyCurve();
+    }
+
+    btnA.addEventListener('click', () => switchBank('A'));
+    btnB.addEventListener('click', () => switchBank('B'));
+
+    // Menggambar Grafik Respon Frekuensi presisi Oxford EQ dengan Grid, Skala, dan Marker Band
     function drawFrequencyCurve() {
         canvasCtx.fillStyle = '#1a2332';
         canvasCtx.fillRect(0, 0, width, height);
+
+        const padLeft = 35;
+        const padRight = 35;
+        const plotWidth = width - padLeft - padRight;
+        const plotHeight = height - 30;
 
         // Grid Desibel & Frekuensi
         canvasCtx.strokeStyle = '#27374b';
         canvasCtx.lineWidth = 1;
 
-        const freqMarkers = [20, 40, 60, 100, 200, 400, 600, 1000, 2000, 4000, 6000, 10000];
+        const freqMarkers = [20, 40, 60, 100, 200, 400, 600, 1000, 2000, 4000, 6000, 10000, 20000];
         freqMarkers.forEach(f => {
-            let x = (Math.log10(f / 20) / Math.log10(1000 / 20)) * width;
-            canvasCtx.beginPath(); canvasCtx.moveTo(x, 0); canvasCtx.lineTo(x, height); canvasCtx.stroke();
+            let x = padLeft + (Math.log10(f / 20) / Math.log10(20000 / 20)) * plotWidth;
+            canvasCtx.beginPath(); canvasCtx.moveTo(x, 0); canvasCtx.lineTo(x, plotHeight); canvasCtx.stroke();
+            
+            // Label Frekuensi di Bawah
+            if ([20, 40, 60, 100, 200, 400, 600, 1000, 2000, 4000, 6000, 10000].includes(f)) {
+                canvasCtx.fillStyle = '#8899aa';
+                canvasCtx.font = '8px Arial';
+                let labelTxt = f >= 1000 ? (f/1000) + 'K' : f;
+                canvasCtx.fillText(labelTxt, x - 6, height - 6);
+            }
         });
 
-        for (let y = 0; y < height; y += 25) {
-            canvasCtx.beginPath(); canvasCtx.moveTo(0, y); canvasCtx.lineTo(width, y); canvasCtx.stroke();
+        // Grid Desibel Horizontal & Angka Skala
+        const dbSteps = [20, 15, 10, 5, 0, -5, -10, -15, -20];
+        dbSteps.forEach(db => {
+            let y = (plotHeight / 2) - (db * (plotHeight / 40));
+            canvasCtx.strokeStyle = db === 0 ? '#384d6b' : '#27374b';
+            canvasCtx.beginPath(); canvasCtx.moveTo(padLeft, y); canvasCtx.lineTo(width - padRight, y); canvasCtx.stroke();
+
+            canvasCtx.fillStyle = '#8899aa';
+            canvasCtx.font = '8px Arial';
+            let txt = (db > 0 ? '+' : '') + db;
+            canvasCtx.fillText(txt, 5, y + 3);
+            canvasCtx.fillText(txt, width - 28, y + 3);
+        });
+
+        // Kalkulasi Respon Filter untuk Kurva
+        const freqArray = new Float32Array(plotWidth);
+        for (let i = 0; i < plotWidth; i++) {
+            freqArray[i] = 20 * Math.pow(20000 / 20, i / plotWidth);
         }
 
-        // Garis Tengah 0dB
-        canvasCtx.strokeStyle = '#384d6b';
-        canvasCtx.beginPath(); canvasCtx.moveTo(0, height / 2); canvasCtx.lineTo(width, height / 2); canvasCtx.stroke();
-
-        // Watermark Teks Oxford EQ
-        canvasCtx.fillStyle = 'rgba(255, 255, 255, 0.04)';
-        canvasCtx.font = 'bold 64px Arial';
-        canvasCtx.fillText("OXFORD EQ", 180, 120);
-
-        // Kalkulasi Respon Filter
-        const freqArray = new Float32Array(width);
-        for (let i = 0; i < width; i++) {
-            freqArray[i] = 20 * Math.pow(1000, i / width);
-        }
-
-        let totalMag = new Float32Array(width).fill(1.0);
+        let totalMag = new Float32Array(plotWidth).fill(1.0);
         if (audioCtx) {
             Object.keys(filters).forEach(k => {
-                const mag = new Float32Array(width);
-                const phase = new Float32Array(width);
+                if (!bypassState[k]) return;
+                const mag = new Float32Array(plotWidth);
+                const phase = new Float32Array(plotWidth);
                 filters[k].getFrequencyResponse(freqArray, mag, phase);
-                for (let i = 0; i < width; i++) totalMag[i] *= mag[i];
+                for (let i = 0; i < plotWidth; i++) totalMag[i] *= mag[i];
             });
         }
 
@@ -675,19 +823,52 @@
         canvasCtx.lineWidth = 2.5;
         canvasCtx.beginPath();
 
-        for (let i = 0; i < width; i++) {
+        for (let i = 0; i < plotWidth; i++) {
             let db = 20 * Math.log10(Math.max(totalMag[i], 0.0001));
-            let y = (height / 2) - (db * (height / 35));
-            if (i === 0) canvasCtx.moveTo(i, y);
-            else canvasCtx.lineTo(i, y);
+            let y = (plotHeight / 2) - (db * (plotHeight / 40));
+            let x = padLeft + i;
+            if (i === 0) canvasCtx.moveTo(x, y);
+            else canvasCtx.lineTo(x, y);
         }
         canvasCtx.stroke();
 
         // Arsiran Hijau Transparan
-        canvasCtx.lineTo(width, height);
-        canvasCtx.lineTo(0, height);
+        canvasCtx.lineTo(padLeft + plotWidth, plotHeight / 2);
+        canvasCtx.lineTo(padLeft, plotHeight / 2);
         canvasCtx.fillStyle = 'rgba(46, 117, 79, 0.35)';
         canvasCtx.fill();
+
+        // Gambar Titik Marker Interaktif di Atas Kurva untuk Setiap Band
+        const bandMarkers = [
+            { id: 'knob-lff-freq', color: '#9ca3af' }, // Grey
+            { id: 'knob-p1-freq', color: '#3b82f6' },  // Blue
+            { id: 'knob-p2-freq', color: '#ef4444' },  // Red
+            { id: 'knob-p3-freq', color: '#eab308' },  // Yellow
+            { id: 'knob-hff-freq', color: '#ffffff' }  // White
+        ];
+
+        bandMarkers.forEach(m => {
+            const knob = document.getElementById(m.id);
+            if (!knob) return;
+            let fVal = parseFloat(knob.getAttribute('data-val'));
+            let x = padLeft + (Math.log10(fVal / 20) / Math.log10(20000 / 20)) * plotWidth;
+            
+            // Estimasi gain untuk posisi marker vertikal
+            let correspondingGainId = m.id.replace('freq', 'gain');
+            let gVal = 0;
+            const gKnob = document.getElementById(correspondingGainId);
+            if (gKnob) gVal = parseFloat(gKnob.getAttribute('data-val'));
+
+            let y = (plotHeight / 2) - (gVal * (plotHeight / 40));
+
+            canvasCtx.fillStyle = m.color;
+            canvasCtx.beginPath();
+            canvasCtx.arc(x, y, 4, 0, Math.PI * 2);
+            canvasCtx.fill();
+            canvasCtx.lineWidth = 1;
+            canvasCtx.strokeStyle = '#000';
+            canvasCtx.stroke();
+        });
     }
 
     setTimeout(drawFrequencyCurve, 100);
