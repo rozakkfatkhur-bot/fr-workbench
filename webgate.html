@@ -2183,8 +2183,16 @@
             signInWithPopup(auth, googleProvider).catch((error) => {
                 console.error("Google Auth Error:", error);
                 let friendly = "Gagal masuk: " + error.message;
-                if (error.code === 'auth/api-key-not-valid.-please-pass-a-valid-api-key.' || (error.message || '').includes('api-key-not-valid')) {
+                const code = error.code || '';
+                const msg = (error.message || '').toLowerCase();
+                if (code.includes('api-key-not-valid') || msg.includes('api-key-not-valid')) {
                     friendly = "Konfigurasi Firebase (API Key) tidak valid. Ini masalah pengaturan project Firebase, bukan akun Anda — mohon hubungi admin/developer portal untuk memeriksa API Key di Firebase Console.";
+                } else if (code === 'auth/configuration-not-found') {
+                    friendly = "Login Google belum diaktifkan di project Firebase ini. Admin perlu membuka Firebase Console → Authentication → Sign-in method → aktifkan provider 'Google'.";
+                } else if (code === 'auth/unauthorized-domain') {
+                    friendly = "Domain web ini belum diizinkan untuk login Google. Admin perlu menambahkan domain ini di Firebase Console → Authentication → Settings → Authorized domains.";
+                } else if (code === 'auth/popup-blocked' || code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') {
+                    friendly = "Jendela login Google tertutup/terblokir. Pastikan pop-up tidak diblokir browser, lalu coba lagi.";
                 }
                 if (errEl) errEl.innerText = friendly;
                 if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-brands fa-google"></i> Masuk Dengan Google'; }
@@ -3375,6 +3383,12 @@
                 document.querySelectorAll('.tab-btn')[3].classList.add('active');
                 document.getElementById('tabBadges').classList.add('active');
                 renderBadgesTab();
+            } else if (tabName === 'wawasan') {
+                document.querySelectorAll('.tab-btn')[4].classList.add('active');
+                document.getElementById('tabWawasan').classList.add('active');
+                renderDailyTip();
+                renderGlossary();
+                renderQuiz();
             }
         };
 
