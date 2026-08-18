@@ -2419,4 +2419,829 @@
                     complaintPhotosBase64.push(evt.target.result);
                     count++;
                     if (count === files.length) {
-                
+                        renderComplaintPhotoPreviews();
+                    }
+                };
+                reader.readAsDataURL(file);
+            });
+        };
+
+        function renderComplaintPhotoPreviews() {
+            const grid = document.getElementById('complaintPhotoPreviewGrid');
+            grid.innerHTML = '';
+            complaintPhotosBase64.forEach((img, idx) => {
+                const thumb = document.createElement('div');
+                thumb.className = 'admin-img-thumb';
+                thumb.innerHTML = `
+                    <img src="${escapeAttr(img)}">
+                    <button class="btn-del-img" onclick="removeComplaintPhoto(${idx})">&times;</button>
+                `;
+                grid.appendChild(thumb);
+            });
+        }
+
+        window.removeComplaintPhoto = function(idx) {
+            complaintPhotosBase64.splice(idx, 1);
+            renderComplaintPhotoPreviews();
+        };
+
+        window.submitComplaint = function() {
+            if (!userProfile) { alert("Silakan masuk dengan Google terlebih dahulu."); return; }
+            const category = document.getElementById('complaintCategory').value;
+            const title = document.getElementById('complaintTitle').value.trim();
+            const desc = document.getElementById('complaintDesc').value.trim();
+
+            if (!title || !desc) {
+                alert("Judul dan deskripsi pengaduan wajib diisi!");
+                return;
+            }
+
+            const payload = {
+                category,
+                title,
+                desc,
+                photos: [...complaintPhotosBase64],
+                userId: userProfile.uid,
+                userName: userProfile.name,
+                userAvatar: userProfile.avatar,
+                badges: userProfile.ownedBadges || ["b1"],
+                status: 'pending',
+                timestamp: new Date().toLocaleString('id-ID'),
+                createdAt: Date.now()
+            };
+
+            push(complaintsRef, payload).then(() => {
+                alert("Pengaduan berhasil dikirim ke Admin!");
+                document.getElementById('complaintTitle').value = '';
+                document.getElementById('complaintDesc').value = '';
+                complaintPhotosBase64 = [];
+                renderComplaintPhotoPreviews();
+                // Tambahkan 30 Poin untuk setiap laporan pengaduan
+                addActivityPoints(30, 'complaint');
+            }).catch(err => alert("Gagal mengirim pengaduan: " + err.message));
+        };
+
+        window.filterComplaints = function(category, btn) {
+            currentComplaintFilter = category;
+            document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            renderComplaints();
+        };
+
+        window.updateComplaintStatus = function(id, status) {
+            update(ref(db, `complaints/${id}`), { status: status }).then(() => {
+                const item = rawComplaintsData[id];
+                if (item && item.userId) {
+                    let msg;
+                    let icon;
+                    if (status === 'resolved') {
+                        msg = `Laporan Anda "${item.title}" telah SELESAI diperbaiki oleh Admin! Terima kasih atas laporannya.`;
+                        icon = 'fa-circle-check';
+                    } else {
+                        msg = `Laporan Anda "${item.title}" sedang DIPROSES oleh Admin.`;
+                        icon = 'fa-gears';
+                    }
+                    pushNotification(item.userId, 'complaint', msg, icon);
+                }
+            });
+        };
+
+        function renderComplaints() {
+            const container = document.getElementById('complaintContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const complaintKeys = Object.keys(rawComplaintsData);
+            if (complaintKeys.length === 0) {
+                container.innerHTML = '<p style="font-size:0.85rem; color:var(--text-muted); text-align:center;">Belum ada pengaduan.</p>';
+                return;
+            }
+
+            const filtered = complaintKeys
+                .map(k => ({ id: k, ...rawComplaintsData[k] }))
+                .filter(item => currentComplaintFilter === 'all' || item.category === currentComplaintFilter);
+
+            filtered.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'complaint-card';
+
+                let statusBadge = '';
+                if (item.status === 'pending') statusBadge = '<span class="badge-status status-pending">Pending</span>';
+                else if (item.status === 'process') statusBadge = '<span class="badge-status status-process">Diproses</span>';
+                else if (item.status === 'resolved') statusBadge = '<span class="badge-status status-resolved">Selesai</span>';
+
+                let photosGallery = '';
+                if (item.photos && item.photos.length > 0) {
+                    let itemsHtml = item.photos.map(p => `
+                        <div class="gallery-item ${item.photos.length > 1 ? 'multi' : ''}" style="height:120px;">
+                            <img src="${escapeAttr(p)}">
+                        </div>
+                    `).join('');
+                    photosGallery = `<div class="preview-gallery-container">${itemsHtml}</div>`;
+                }
+
+                const isAdminUser = userProfile && userProfile.isAdmin;
+                let adminActions = isAdminUser ? `
+                    <div style="margin-top:10px; padding-top:8px; border-top:1px solid var(--card-border); font-size:0.75rem;">
+                        <strong>Ubah Status (Admin):</strong>
+                        <button class="comment-action-btn" style="display:inline;" onclick="updateComplaintStatus('${item.id}', 'process')">Set Diproses</button> |
+                        <button class="comment-action-btn" style="display:inline; color:#22c55e;" onclick="updateComplaintStatus('${item.id}', 'resolved')">Set Selesai</button>
+                    </div>
+                ` : '';
+
+                card.innerHTML = `
+                    <div class="complaint-header">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <img src="${escapeAttr(item.userAvatar)}" style="width:24px; height:24px; border-radius:50%;">
+                            <strong style="font-size:0.85rem;">${escapeHtml(item.userName)}</strong>
+                        </div>
+                        ${statusBadge}
+                    </div>
+                    <h4 style="color:var(--accent-gold); font-size:0.95rem; margin-bottom:4px;">[${escapeHtml((item.category||'').toUpperCase())}] ${escapeHtml(item.title)}</h4>
+                    <p style="font-size:0.82rem; color:var(--text-sub); line-height:1.4; margin-bottom:8px;">${escapeHtml(item.desc)}</p>
+                    ${photosGallery}
+                    <div style="font-size:0.7rem; color:var(--text-muted); margin-top:6px;">Dikirim: ${escapeHtml(item.timestamp || '')}</div>
+                    ${adminActions}
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // --- RENDER BADGES TAB INTERFACE ---
+        function renderBadgesTab() {
+            const container = document.getElementById('badgeListContainer');
+            if (!container || !userProfile) return;
+            container.innerHTML = '';
+
+            document.getElementById('statPoints').innerText = userProfile.points || 0;
+            document.getElementById('statComments').innerText = userProfile.commentCount || 0;
+            document.getElementById('statComplaints').innerText = userProfile.complaintCount || 0;
+            document.getElementById('statBadgesCount').innerText = `${(userProfile.ownedBadges || []).length} / 20`;
+
+            SYSTEM_BADGES.forEach(badge => {
+                const isOwned = (userProfile.ownedBadges || []).includes(badge.id);
+                const isKesayangan = badge.id === "b20";
+
+                const card = document.createElement('div');
+                card.className = `badge-card-item ${isOwned ? 'owned' : ''} ${isKesayangan ? 'special' : ''}`;
+
+                let statusBtnText = "Tukar Lencana";
+                let btnDisabled = false;
+
+                if (isOwned) {
+                    statusBtnText = "✓ Dimiliki";
+                    btnDisabled = true;
+                } else if (badge.reqType === 'admin_only') {
+                    statusBtnText = "🔒 Khusus Admin";
+                } else if (badge.reqType === 'luck') {
+                    // BUGFIX: sebelumnya tombol lencana acak tetap berlabel "Tukar Lencana"
+                    // walau tidak bisa ditukar manual sama sekali.
+                    statusBtnText = "🎲 Acak Otomatis";
+                }
+
+                const reqLabel = badge.reqType === 'luck' ? `Drop Rate ${badge.reqVal}%` :
+                                  badge.reqType === 'admin_only' ? 'Pemberian Khusus Admin' :
+                                  `${badge.reqVal} ${badge.reqType.toUpperCase()}`;
+
+                card.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                        <div class="badge-icon-box">${badge.icon}</div>
+                        <span class="${badge.bgClass}">Lvl ${badge.level}</span>
+                    </div>
+                    <div class="badge-card-title">${escapeHtml(badge.name)} ${isKesayangan ? '❤️' : ''}</div>
+                    <div class="badge-card-desc">${escapeHtml(badge.desc)}</div>
+                    <div class="badge-card-benefit"><i class="fa-solid fa-gift"></i> ${escapeHtml(badge.benefit)}</div>
+                    <div class="badge-req-tag">Syarat: ${reqLabel}</div>
+                    <button class="btn-primary ${isOwned ? 'btn-secondary' : ''}" style="margin-top:6px; font-size:0.75rem; padding:6px;" ${btnDisabled ? 'disabled' : ''} onclick="claimOrUnlockBadge('${badge.id}')">
+                        ${statusBtnText}
+                    </button>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // --- ADMIN GRANT SPECIAL BADGE FUNCTION ---
+        window.grantBadgeByAdmin = function() {
+            if (!userProfile) return;
+            const targetInput = document.getElementById('adminGrantUserId').value.trim();
+            const badgeId = document.getElementById('adminGrantBadgeSelect').value;
+            const badgeObj = SYSTEM_BADGES.find(b => b.id === badgeId);
+
+            if (!targetInput) {
+                alert("Masukkan UID Pengguna atau ketik 'diri saya' terlebih dahulu!");
+                return;
+            }
+
+            // Jika target user adalah diri sendiri
+            if (targetInput.toLowerCase() === 'diri saya' || targetInput === userProfile.uid) {
+                if (!userProfile.ownedBadges.includes(badgeId)) {
+                    userProfile.ownedBadges.push(badgeId);
+                    syncUserDataToFirebase();
+                    pushNotification(userProfile.uid, 'badge', `Admin menganugerahkan Lencana "${badgeObj ? badgeObj.name : badgeId}" kepada Anda! ❤️`, 'fa-award');
+                    alert(`Lencana berhasil dianugerahkan kepada ${userProfile.name}!`);
+                    updateProfileUI();
+                    renderBadgesTab();
+                } else {
+                    alert("Anda sudah memiliki lencana ini.");
+                }
+            } else {
+                // Berikan lencana ke user lain di database Firebase Realtime (key = UID Google)
+                const targetRef = ref(db, `user_badges/${targetInput}`);
+                get(targetRef).then(snapshot => {
+                    if (snapshot.exists()) {
+                        const data = snapshot.val();
+                        let currentBadges = data.ownedBadges || [];
+                        if (!currentBadges.includes(badgeId)) {
+                            currentBadges.push(badgeId);
+                            update(targetRef, { ownedBadges: currentBadges }).then(() => {
+                                pushNotification(targetInput, 'badge', `Admin menganugerahkan Lencana "${badgeObj ? badgeObj.name : badgeId}" kepada Anda! ❤️`, 'fa-award');
+                                alert(`Lencana berhasil dianugerahkan ke akun ${targetInput}!`);
+                            });
+                        } else {
+                            alert("User tersebut sudah memiliki lencana ini.");
+                        }
+                    } else {
+                        alert("Pengguna tidak ditemukan di database Firebase! Pastikan UID yang dimasukkan benar (UID muncul saat pengguna pernah login & beraktivitas).");
+                    }
+                });
+            }
+        };
+
+        function escapeHtml(text) {
+            if (!text) return "";
+            return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+
+        // Escape khusus untuk digunakan di dalam atribut HTML (src="...")
+        function escapeAttr(text) {
+            if (!text) return "";
+            return String(text).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+
+        // --- MANAJEMEN TEMA & NAVIGATION ---
+        window.initTheme = function() {
+            const savedTheme = localStorage.getItem('faro_theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            updateThemeUI(savedTheme);
+        };
+
+        window.toggleTheme = function() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('faro_theme', newTheme);
+            updateThemeUI(newTheme);
+        };
+
+        function updateThemeUI(theme) {
+            const icon = document.getElementById('themeIcon');
+            const text = document.getElementById('themeText');
+            if (theme === 'dark') {
+                icon.className = 'fa-solid fa-moon';
+                text.innerText = 'Mode Gelap';
+            } else {
+                icon.className = 'fa-solid fa-sun';
+                text.innerText = 'Mode Terang';
+            }
+        }
+
+        window.switchTab = function(tabName) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            if (tabName === 'portal') {
+                document.querySelectorAll('.tab-btn')[0].classList.add('active');
+                document.getElementById('tabPortal').classList.add('active');
+            } else if (tabName === 'comments') {
+                document.querySelectorAll('.tab-btn')[1].classList.add('active');
+                document.getElementById('tabComments').classList.add('active');
+                renderComments();
+            } else if (tabName === 'complaints') {
+                document.querySelectorAll('.tab-btn')[2].classList.add('active');
+                document.getElementById('tabComplaints').classList.add('active');
+                renderComplaints();
+            } else if (tabName === 'badges') {
+                document.querySelectorAll('.tab-btn')[3].classList.add('active');
+                document.getElementById('tabBadges').classList.add('active');
+                renderBadgesTab();
+            }
+        };
+
+        function calculateLevel() {
+            if (!userProfile) return 1;
+            if (userProfile.isAdmin) return "999999+";
+            const totalHours = (userProfile.activeTimeSeconds || 0) / 3600;
+            return Math.floor(totalHours / 168) + 1;
+        }
+
+        setInterval(() => {
+            if (userProfile && document.getElementById('appViewer').style.display === 'flex') {
+                let addTime = 1;
+                if (currentOpenAppIsMixer) addTime = 2;
+                userProfile.activeTimeSeconds = (userProfile.activeTimeSeconds || 0) + addTime;
+                userProfile.points = (userProfile.points || 0) + 1;
+                updateProfileUI();
+            }
+        }, 1000);
+
+        // Simpan progres poin waktu-aktif ke Firebase setiap 20 detik (bukan setiap detik, hemat kuota)
+        setInterval(() => {
+            if (userProfile) syncUserDataToFirebase();
+        }, 20000);
+
+        function updateProfileUI() {
+            if (!userProfile) return;
+
+            document.getElementById('topAvatar').src = userProfile.avatar;
+            document.getElementById('topName').innerText = userProfile.name;
+            document.getElementById('topLvl').innerText = `Lvl ${calculateLevel()}`;
+
+            document.getElementById('profileAvatarPreview').src = userProfile.avatar;
+            document.getElementById('profName').value = userProfile.name;
+            document.getElementById('profEmail').value = userProfile.email || '';
+            document.getElementById('profAge').value = userProfile.age || '';
+            document.getElementById('profVipStatus').innerText = userProfile.isAdmin ? 'ADMIN' : (userProfile.isVip ? 'VIP' : 'Tidak Aktif');
+            document.getElementById('profLevel').innerText = `Lvl ${calculateLevel()}`;
+            document.getElementById('profPoints').innerText = `${userProfile.points || 0} Poin`;
+
+            // Display Owned Badges in Profile Modal
+            const badgesContainer = document.getElementById('profBadgesDisplay');
+            if (badgesContainer) {
+                badgesContainer.innerHTML = '';
+                (userProfile.ownedBadges || []).forEach(bId => {
+                    const bObj = SYSTEM_BADGES.find(b => b.id === bId);
+                    if (bObj) {
+                        badgesContainer.innerHTML += `<span class="${bObj.bgClass}">${bObj.icon} ${escapeHtml(bObj.name)}</span>`;
+                    }
+                });
+            }
+
+            // HARGA VIP DINAMIS (Diatur Admin, real-time)
+            const vipPrice = getCurrentVipPrice();
+            const payBtnAmount = document.getElementById('vipPayAmountBtn');
+            const modalPayAmount = document.getElementById('modalPayBadgeAmount');
+            if (payBtnAmount) payBtnAmount.innerText = `Rp ${vipPrice.toLocaleString('id-ID')}`;
+            if (modalPayAmount) modalPayAmount.innerText = `Rp ${vipPrice.toLocaleString('id-ID')}`;
+        }
+
+        window.renderUI = function() {
+            const vipContainer = document.getElementById('vipLinksContainer');
+            const appContainer = document.getElementById('appLinksContainer');
+            const mainContainer = document.getElementById('mainLinksContainer');
+            const researchContainer = document.getElementById('researchLinksContainer');
+            if (!vipContainer) return;
+
+            vipContainer.innerHTML = '';
+            appContainer.innerHTML = '';
+            mainContainer.innerHTML = '';
+            researchContainer.innerHTML = '';
+
+            const linkKeys = Object.keys(rawLinksData);
+            const vipPrice = getCurrentVipPrice();
+
+            linkKeys.forEach(key => {
+                const item = { id: key, ...rawLinksData[key] };
+                const card = document.createElement('div');
+                card.className = `link-card ${item.category === 'vip' ? 'vip-card' : ''}`;
+                card.onclick = () => handleCardClick(item);
+
+                const isResearch = item.category === 'research';
+                const isVip = item.category === 'vip';
+                const isApp = item.category === 'app';
+
+                let badgeHtml = '';
+                if (isVip) badgeHtml = '<span class="badge-vip"><i class="fa-solid fa-crown"></i> VIP</span>';
+                else if (isApp) badgeHtml = '<span class="badge-app"><i class="fa-solid fa-mobile-screen"></i> Web App</span>';
+                else if (isResearch) badgeHtml = '<span class="badge-rd">Riset</span>';
+
+                let priceTagHtml = isVip ? `
+                    <div class="vip-price-tag">
+                        <span class="price-strike">Rp ${pricingData.originalPrice.toLocaleString('id-ID')}</span>
+                        <span>Promo VIP ${(userProfile && userProfile.ownedBadges && userProfile.ownedBadges.includes("b20")) ? `<strong style="color:#ff007f;">Rp ${vipPrice.toLocaleString('id-ID')} (Kesayangan Admin)</strong>` : `Rp ${vipPrice.toLocaleString('id-ID')} / Bln`}</span>
+                    </div>
+                ` : '';
+
+                let imgList = item.images || (item.image ? [item.image] : []);
+                let galleryHtml = '';
+
+                if (imgList.length > 0) {
+                    let itemsHtml = imgList.map(imgSrc => `
+                        <div class="gallery-item ${imgList.length > 1 ? 'multi' : ''}">
+                            <img src="${escapeAttr(imgSrc)}" alt="Preview">
+                        </div>
+                    `).join('');
+
+                    galleryHtml = `
+                        <div class="preview-gallery-container" onclick="event.stopPropagation()">
+                            ${itemsHtml}
+                        </div>
+                    `;
+                }
+
+                const isVipUnlocked = userProfile && (userProfile.isVip || userProfile.isAdmin);
+
+                card.innerHTML = `
+                    <div class="link-header-row">
+                        <div class="link-title-row">
+                            <span class="link-title">${escapeHtml(item.title)}</span>
+                            ${badgeHtml}
+                        </div>
+                        <div class="arrow-box">
+                            <i class="fa-solid ${isVip && !isVipUnlocked ? 'fa-lock' : 'fa-arrow-right'}"></i>
+                        </div>
+                    </div>
+                    ${galleryHtml}
+                    <div class="link-desc">${escapeHtml(item.desc)}</div>
+                    ${priceTagHtml}
+                `;
+
+                if (isVip) vipContainer.appendChild(card);
+                else if (isApp) appContainer.appendChild(card);
+                else if (isResearch) researchContainer.appendChild(card);
+                else mainContainer.appendChild(card);
+            });
+
+            document.getElementById('annoTitle').innerText = announcement.title || "";
+            document.getElementById('annoBody').innerText = announcement.body || "";
+            updateProfileUI();
+        };
+
+        function handleCardClick(item) {
+            if (!userProfile) { alert("Silakan masuk dengan Google terlebih dahulu."); return; }
+            if (item.category === 'vip' && !userProfile.isAdmin && !userProfile.isVip) {
+                activeVipItem = item;
+                openVipGateway(item);
+            } else {
+                openSecureApp(item.url, item.title);
+            }
+        }
+
+        // BUGFIX UTAMA: sebelumnya web VIP/app eksternal dibungkus dalam iframe
+        // bersarang ganda (blob URL -> iframe -> situs asli). Iframe bersarang ganda
+        // seperti ini sering merusak YouTube IFrame Player API (postMessage/origin
+        // check gagal karena origin blob: bersifat unik/null), sehingga muncul error
+        // "YouTube player belum siap". Sekarang iframe langsung diarahkan ke URL
+        // aslinya (hanya 1 lapis iframe), jauh lebih kompatibel dengan YouTube API.
+        function openSecureApp(url, title) {
+            document.getElementById('viewerTitle').innerHTML = `<i class="fa-solid fa-shield-halved"></i> ${escapeHtml(title)}`;
+            currentOpenAppIsMixer = title.toLowerCase().includes('mixer');
+
+            const frame = document.getElementById('innerFrame');
+            frame.src = url;
+
+            document.getElementById('appViewer').style.display = 'flex';
+        }
+
+        window.closeAppViewer = function() {
+            document.getElementById('innerFrame').src = 'about:blank';
+            document.getElementById('appViewer').style.display = 'none';
+            currentOpenAppIsMixer = false;
+        };
+
+        // BUGFIX: status trial sebelumnya disimpan di localStorage per-perangkat,
+        // sehingga pengguna bisa reset trial gratis hanya dengan membersihkan
+        // penyimpanan browser. Sekarang trial disimpan per-akun di Firebase.
+        async function openVipGateway(item) {
+            document.getElementById('vipItemTitle').innerText = item.title;
+            const trialBox = document.getElementById('trialStatusBox');
+            const btnTrial = document.getElementById('btnStartTrial');
+
+            trialBox.innerHTML = 'Memeriksa status uji coba...';
+            btnTrial.style.display = 'none';
+            document.getElementById('vipAccessModal').style.display = 'flex';
+
+            try {
+                const trialSnap = await get(ref(db, `trials/${userProfile.uid}/${item.id}`));
+
+                if (!trialSnap.exists()) {
+                    trialBox.innerHTML = `
+                        <strong style="color: var(--accent-gold); display: block; margin-bottom: 2px;">Uji Coba Gratis 7 Hari Tersedia</strong>
+                        <span style="font-size: 0.8rem; color: var(--text-sub);">Nikmati akses penuh ke web ini secara gratis selama 1 minggu pertama!</span>
+                    `;
+                    btnTrial.style.display = 'block';
+                } else {
+                    const trialStart = trialSnap.val();
+                    const diffDays = Math.ceil((Date.now() - trialStart) / (1000 * 60 * 60 * 24));
+
+                    if (diffDays <= 7) {
+                        closeModal('vipAccessModal');
+                        openSecureApp(item.url, item.title + " (Uji Coba Gratis)");
+                        return;
+                    } else {
+                        trialBox.innerHTML = `
+                            <strong style="color: #ef4444; display: block; margin-bottom: 2px;">Masa Uji Coba Gratis Habis</strong>
+                            <span style="font-size: 0.8rem; color: var(--text-sub);">Silakan lakukan pembayaran VIP untuk melanjutkan.</span>
+                        `;
+                        btnTrial.style.display = 'none';
+                    }
+                }
+            } catch (err) {
+                trialBox.innerHTML = `<span style="font-size:0.8rem; color:#ef4444;">Gagal memuat status uji coba.</span>`;
+            }
+        }
+
+        window.activateTrial = function() {
+            if (activeVipItem && userProfile) {
+                set(ref(db, `trials/${userProfile.uid}/${activeVipItem.id}`), Date.now()).then(() => {
+                    alert("Uji Coba Gratis 7 Hari berhasil diaktifkan!");
+                    closeModal('vipAccessModal');
+                    openSecureApp(activeVipItem.url, activeVipItem.title + " (Uji Coba Gratis)");
+                }).catch(err => alert("Gagal mengaktifkan uji coba: " + err.message));
+            }
+        };
+
+        window.verifyVipAccess = function() {
+            const inputPass = document.getElementById('vipPassInput').value.trim();
+            if (inputPass === vipKey || inputPass === TARGET_PASS) {
+                alert("Akses VIP Berhasil Diakui!");
+                grantVipAccess();
+                closeModal('vipAccessModal');
+                document.getElementById('vipPassInput').value = '';
+                if (activeVipItem) {
+                    openSecureApp(activeVipItem.url, activeVipItem.title);
+                }
+            } else {
+                alert("Passcode VIP Salah!");
+            }
+        };
+
+        function grantVipAccess() {
+            if (!userProfile) return;
+            userProfile.isVip = true;
+            // BUGFIX: sebelumnya status VIP hanya tersimpan di localStorage (per
+            // perangkat/browser), sehingga hilang jika ganti perangkat atau membersihkan
+            // data browser. Sekarang disimpan di Firebase, terikat ke akun Google.
+            syncUserDataToFirebase();
+            renderUI();
+        }
+
+        window.processAutomaticPayment = async function() {
+            if (!userProfile) { alert("Silakan masuk dengan Google terlebih dahulu."); return; }
+            const payButtons = document.querySelectorAll('.btn-pay-now');
+
+            payButtons.forEach(btn => {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memproses...';
+            });
+
+            // Harga otomatis mengikuti pengaturan Admin & lencana yang dimiliki
+            const finalAmount = getCurrentVipPrice();
+
+            try {
+                const response = await fetch('/api/create-transaction', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userName: userProfile.name,
+                        amount: finalAmount,
+                        itemDetails: "Langganan VIP FARO Hub (1 Bulan)"
+                    })
+                });
+
+                if (!response.ok) {
+                    const errData = await response.json().catch(() => ({}));
+                    throw new Error(errData.error || "Gagal membuat transaksi.");
+                }
+
+                const data = await response.json();
+
+                closeModal('vipAccessModal');
+                closeModal('transferModal');
+
+                if (window.snap && typeof window.snap.pay === 'function') {
+                    window.snap.pay(data.token, {
+                        onSuccess: function () {
+                            alert("Pembayaran Berhasil! Akses VIP Anda telah aktif.");
+                            grantVipAccess();
+                            pushNotification(userProfile.uid, 'payment', 'Pembayaran VIP Anda berhasil! Akses penuh telah aktif.', 'fa-circle-check');
+                            if (activeVipItem) openSecureApp(activeVipItem.url, activeVipItem.title);
+                        },
+                        onPending: function () { alert("Pembayaran menunggu transfer."); },
+                        onError: function () { alert("Pembayaran gagal."); }
+                    });
+                }
+
+            } catch (err) {
+                alert("Terjadi kesalahan: " + err.message);
+            } finally {
+                payButtons.forEach(btn => {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-bolt"></i> Bayar Otomatis Sekarang';
+                });
+            }
+        };
+
+        window.toggleReplyBox = function(id) {
+            const el = document.getElementById(`replyBox-${id}`);
+            el.style.display = el.style.display === 'none' ? 'block' : 'none';
+        };
+
+        window.openProfileModal = function() {
+            if (!userProfile) return;
+            updateProfileUI();
+            document.getElementById('profileModal').style.display = 'flex';
+        };
+
+        window.saveProfile = function() {
+            if (!userProfile) return;
+            userProfile.age = document.getElementById('profAge').value.trim();
+            syncUserDataToFirebase();
+            updateProfileUI();
+            closeModal('profileModal');
+            alert("Profil berhasil diperbarui!");
+        };
+
+        window.handleLogin = function(e) {
+            e.preventDefault();
+            if (!userProfile) { alert("Silakan masuk dengan Google terlebih dahulu."); return; }
+            const email = document.getElementById('adminEmail').value.trim();
+            const pass = document.getElementById('adminPass').value.trim();
+
+            if (email.toLowerCase() === TARGET_EMAIL.toLowerCase() && pass === TARGET_PASS) {
+                userProfile.isAdmin = true;
+                userProfile.isVip = true;
+                // BUGFIX: sebelumnya login admin menimpa nama asli pengguna menjadi
+                // "Admin FARO", menghapus identitas Google aslinya. Sekarang nama asli
+                // dipertahankan, hanya status admin yang ditambahkan.
+                if (!userProfile.ownedBadges.includes("b20")) userProfile.ownedBadges.push("b20");
+                syncUserDataToFirebase();
+
+                closeModal('loginModal');
+                openAdminDashboard();
+                document.getElementById('loginForm').reset();
+                updateProfileUI();
+            } else {
+                alert("Kredensial Admin Salah!");
+            }
+        };
+
+        function openAdminDashboard() {
+            document.getElementById('editAnnoTitle').value = announcement.title || "";
+            document.getElementById('editAnnoBody').value = announcement.body || "";
+            document.getElementById('editVipKey').value = vipKey;
+            fillPricingFormFields();
+            resetAdminLinkForm();
+            renderAdminLinkList();
+            document.getElementById('adminModal').style.display = 'flex';
+        }
+
+        window.convertMultipleImagesToBase64 = function(e) {
+            const files = Array.from(e.target.files);
+            if (files.length === 0) return;
+
+            let loadedCount = 0;
+            files.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function (evt) {
+                    currentEditingImages.push(evt.target.result);
+                    loadedCount++;
+                    if (loadedCount === files.length) {
+                        renderAdminImgPreviews();
+                    }
+                };
+                reader.readAsDataURL(file);
+            });
+        };
+
+        function renderAdminImgPreviews() {
+            const grid = document.getElementById('adminImgPreviewGrid');
+            grid.innerHTML = '';
+            currentEditingImages.forEach((imgData, idx) => {
+                const thumb = document.createElement('div');
+                thumb.className = 'admin-img-thumb';
+                thumb.innerHTML = `
+                    <img src="${escapeAttr(imgData)}" alt="Thumb">
+                    <button class="btn-del-img" onclick="removeEditingImg(${idx})">&times;</button>
+                `;
+                grid.appendChild(thumb);
+            });
+        }
+
+        window.removeEditingImg = function(index) {
+            currentEditingImages.splice(index, 1);
+            renderAdminImgPreviews();
+        };
+
+        window.editLink = function(key) {
+            const item = rawLinksData[key];
+            if (item) {
+                document.getElementById('editLinkId').value = key;
+                document.getElementById('newTitle').value = item.title;
+                document.getElementById('newUrl').value = item.url;
+                document.getElementById('newDesc').value = item.desc;
+                document.getElementById('newCategory').value = item.category;
+
+                currentEditingImages = item.images ? [...item.images] : (item.image ? [item.image] : []);
+                renderAdminImgPreviews();
+
+                document.getElementById('adminFormTitle').innerText = "Edit Modul Link (Firebase)";
+                document.getElementById('btnSaveLink').innerText = "Simpan Perubahan ke Firebase";
+            }
+        };
+
+        window.saveLink = function() {
+            const key = document.getElementById('editLinkId').value;
+            const title = document.getElementById('newTitle').value.trim();
+            const url = document.getElementById('newUrl').value.trim();
+            const desc = document.getElementById('newDesc').value.trim();
+            const category = document.getElementById('newCategory').value;
+
+            if(!title || !url) {
+                alert('Nama dan URL wajib diisi!');
+                return;
+            }
+
+            const payload = {
+                title,
+                url,
+                desc: desc || "Tidak ada deskripsi",
+                category,
+                images: [...currentEditingImages]
+            };
+
+            if (key) {
+                update(ref(db, `links/${key}`), payload).then(() => {
+                    alert('Modul link berhasil diperbarui!');
+                    resetAdminLinkForm();
+                });
+            } else {
+                push(linksRef, payload).then(() => {
+                    alert('Modul link baru berhasil ditambahkan!');
+                    resetAdminLinkForm();
+                });
+            }
+        };
+
+        function resetAdminLinkForm() {
+            document.getElementById('editLinkId').value = '';
+            document.getElementById('newTitle').value = '';
+            document.getElementById('newUrl').value = '';
+            document.getElementById('newDesc').value = '';
+            document.getElementById('newImgFile').value = '';
+            currentEditingImages = [];
+            renderAdminImgPreviews();
+            document.getElementById('adminFormTitle').innerText = "Tambah Modul Link Baru";
+            document.getElementById('btnSaveLink').innerText = "+ Simpan Link ke Firebase";
+        }
+
+        window.deleteLink = function(key) {
+            if(confirm('Hapus link/modul ini dari Firebase database?')) {
+                remove(ref(db, `links/${key}`));
+            }
+        };
+
+        function renderAdminLinkList() {
+            const container = document.getElementById('adminLinkList');
+            container.innerHTML = '';
+            const linkKeys = Object.keys(rawLinksData);
+
+            if (linkKeys.length === 0) {
+                container.innerHTML = '<p style="font-size:0.8rem; color:var(--text-muted);">Belum ada modul link.</p>';
+                return;
+            }
+
+            linkKeys.forEach(key => {
+                const l = rawLinksData[key];
+                const row = document.createElement('div');
+                row.className = 'admin-item-row';
+                row.innerHTML = `
+                    <div>
+                        <strong>${escapeHtml(l.title)}</strong> (${escapeHtml((l.category || '').toUpperCase())})
+                    </div>
+                    <div>
+                        <button class="comment-action-btn" onclick="editLink('${key}')" style="display:inline; margin-right:8px;"><i class="fa-solid fa-pen"></i></button>
+                        <button class="comment-action-btn" onclick="deleteLink('${key}')" style="display:inline; color:#ef4444;"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        window.saveAnnouncement = function() {
+            const newAnno = {
+                title: document.getElementById('editAnnoTitle').value.trim(),
+                body: document.getElementById('editAnnoBody').value.trim()
+            };
+            set(annoRef, newAnno).then(() => alert('Pengumuman diperbarui!'));
+        };
+
+        window.saveVipKey = function() {
+            vipKey = document.getElementById('editVipKey').value.trim();
+            localStorage.setItem('faro_vip_key', vipKey);
+            alert('Passcode VIP diperbarui!');
+        };
+
+        window.openTransferModal = function() {
+            if (!userProfile) { alert("Silakan masuk dengan Google terlebih dahulu."); return; }
+            document.getElementById('transferModal').style.display = 'flex';
+        };
+        window.openLoginModal = function() {
+            if (!userProfile) { alert("Silakan masuk dengan Google terlebih dahulu."); return; }
+            document.getElementById('loginModal').style.display = 'flex';
+        };
+        window.closeModal = function(id) { document.getElementById(id).style.display = 'none'; };
+
+        initTheme();
+    </script>
+</body>
+    </html>
