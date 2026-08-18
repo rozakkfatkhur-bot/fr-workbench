@@ -1130,70 +1130,205 @@
             margin-top: 4px;
         }
 
-        /* AUTH GATE - WAJIB LOGIN GOOGLE */
-        #authGate {
-            position: fixed;
-            inset: 0;
-            background-color: var(--bg-color);
-            background-image: var(--bg-gradient);
-            z-index: 99999;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem 1.5rem;
-            text-align: center;
-            gap: 1rem;
-        }
-
+        /* LOGIN PROMPT - hanya muncul saat aksi tertentu butuh identitas Google */
         #authGate .logo-img {
-            width: 110px;
-            height: 110px;
+            width: 90px;
+            height: 90px;
+            margin-bottom: 6px;
         }
 
         #authGate p {
             color: var(--text-sub);
             font-size: 0.85rem;
-            max-width: 320px;
             line-height: 1.5;
         }
 
-        #authGate .btn-google {
-            max-width: 320px;
-            width: 100%;
-        }
-
         #mainContainer {
-            display: none;
+            display: flex;
             width: 100%;
             flex-direction: column;
             align-items: center;
+        }
+
+        .guest-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            padding: 6px 14px 6px 8px;
+            border-radius: 40px;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            box-shadow: var(--shadow);
+            color: var(--accent-gold);
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .guest-bar img {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+        }
+
+        /* BACKGROUND KOMENTAR (VIP) */
+        .comment-card.has-custom-bg {
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+        .comment-card.has-custom-bg::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(6,9,14,0.72);
+            border-radius: 12px;
+            z-index: 0;
+        }
+        .comment-card.has-custom-bg > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .sticker-emoji-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 4px;
+            background: var(--input-bg);
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid var(--card-border);
+            max-height: 160px;
+            overflow-y: auto;
+            margin-top: 8px;
+        }
+
+        .sticker-emoji-btn {
+            font-size: 1.4rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            border-radius: 6px;
+            padding: 4px 0;
+        }
+
+        .sticker-emoji-btn:hover {
+            background: rgba(229,168,35,0.15);
+        }
+
+        .comment-sticker-display {
+            font-size: 2.2rem;
+            margin: 6px 0;
+        }
+
+        .leaderboard-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            padding: 8px 12px;
+            margin-bottom: 8px;
+        }
+        .leaderboard-rank {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: var(--badge-bg);
+            color: var(--accent-gold);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 0.78rem;
+            flex-shrink: 0;
+        }
+        .leaderboard-row img {
+            width: 30px; height: 30px; border-radius: 50%; object-fit: cover;
+        }
+
+        .glossary-item {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+        .glossary-term {
+            color: var(--accent-gold);
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+        }
+        .glossary-def {
+            font-size: 0.82rem;
+            color: var(--text-sub);
+            line-height: 1.4;
+        }
+
+        .quiz-option-btn {
+            width: 100%;
+            text-align: left;
+            padding: 10px 12px;
+            background: var(--input-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            color: var(--text-main);
+            font-size: 0.85rem;
+            cursor: pointer;
+            margin-bottom: 8px;
+        }
+        .quiz-option-btn:hover {
+            border-color: var(--accent-gold);
+        }
+
+        .favorite-star-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            cursor: pointer;
+        }
+        .favorite-star-btn.active {
+            color: var(--accent-gold);
+        }
+
+        .search-bar-wrap {
+            margin-bottom: 1rem;
         }
     </style>
 </head>
 <body>
 
-    <!-- AUTH GATE: WAJIB LOGIN GOOGLE SEBELUM MENGAKSES PORTAL -->
-    <div id="authGate">
-        <img id="authGateLogo" src="https://ui-avatars.com/api/?name=FARO&background=131c38&color=E5A823&size=130" alt="FARO Logo" class="logo-img">
-        <h1 class="brand-title" style="font-size:1.6rem;">FARO TRIUMPHANTLY</h1>
-        <p>Untuk melanjutkan ke portal, silakan masuk menggunakan akun Google Anda. Nama dan foto profil Google akan digunakan sebagai identitas resmi Anda di portal ini.</p>
-        <button class="btn-primary btn-google" id="authGateLoginBtn" onclick="loginGoogleReal()">
-            <i class="fa-brands fa-google"></i> Masuk Dengan Google
-        </button>
-        <p id="authGateError" style="color:#ef4444;"></p>
-        <p id="authGateStatus" style="font-size:0.72rem; color:var(--text-muted);">Memeriksa status login...</p>
+    <!-- MODAL LOGIN GOOGLE: hanya muncul saat aksi tertentu butuh identitas -->
+    <div class="modal-bg" id="authGate">
+        <div class="modal" style="text-align:center; max-width:400px;">
+            <img id="authGateLogo" src="https://ui-avatars.com/api/?name=FARO&background=131c38&color=E5A823&size=130" alt="FARO Logo" class="logo-img">
+            <h3 style="color: var(--accent-gold); margin-bottom:8px;">Masuk Diperlukan</h3>
+            <p id="authGateReason">Untuk berkomentar, mengirim laporan, atau menggunakan modul VIP, silakan masuk dengan akun Google Anda. Nama dan foto profil Google akan digunakan sebagai identitas Anda di portal ini.</p>
+            <button class="btn-primary btn-google" id="authGateLoginBtn" onclick="loginGoogleReal()" style="margin-top:1rem;">
+                <i class="fa-brands fa-google"></i> Masuk Dengan Google
+            </button>
+            <p id="authGateError" style="color:#ef4444; font-size:0.78rem; margin-top:8px;"></p>
+            <button class="btn-primary btn-secondary" onclick="closeModal('authGate')" style="margin-top:6px;">Nanti Saja</button>
+        </div>
     </div>
 
     <div class="container" id="mainContainer">
         <!-- Top Bar -->
         <div class="top-bar">
-            <div class="profile-chip" onclick="openProfileModal()">
+            <div class="profile-chip" id="loggedProfileChip" onclick="openProfileModal()" style="display:none;">
                 <img id="topAvatar" src="https://ui-avatars.com/api/?name=User&background=E5A823&color=000" alt="Avatar">
                 <div class="profile-chip-info">
                     <span class="profile-chip-name" id="topName">Tamu</span>
                     <span class="profile-chip-lvl" id="topLvl">Lvl 1</span>
                 </div>
+            </div>
+            <div class="guest-bar" id="guestBarChip" onclick="promptLogin('Masuk untuk mengakses profil, poin, dan lencana Anda.')">
+                <img src="https://ui-avatars.com/api/?name=Tamu&background=64748b&color=fff" alt="Tamu">
+                <span>Masuk / Tamu</span>
             </div>
 
             <div class="top-actions">
@@ -1228,7 +1363,8 @@
             <button class="tab-btn active" onclick="switchTab('portal')"><i class="fa-solid fa-layer-group"></i> Portal Utama</button>
             <button class="tab-btn" onclick="switchTab('comments')"><i class="fa-solid fa-comments"></i> Komunitas</button>
             <button class="tab-btn" onclick="switchTab('complaints')"><i class="fa-solid fa-triangle-exclamation"></i> Pengaduan</button>
-            <button class="tab-btn" onclick="switchTab('badges')"><i class="fa-solid fa-award"></i> Koleksi Lencana</button>
+            <button class="tab-btn" onclick="switchTab('badges')"><i class="fa-solid fa-award"></i> Lencana</button>
+            <button class="tab-btn" onclick="switchTab('wawasan')"><i class="fa-solid fa-graduation-cap"></i> Wawasan</button>
         </div>
 
         <!-- TAB 1: PORTAL UTAMA -->
@@ -1242,6 +1378,25 @@
                     <h3 id="annoTitle">Info Server & Portal VIP</h3>
                     <p id="annoBody">Memuat pengumuman...</p>
                 </div>
+            </div>
+
+            <!-- Tip Harian -->
+            <div class="announcement-box" style="border-left-color:#10b981;">
+                <div class="announcement-icon" style="color:#10b981;">
+                    <i class="fa-solid fa-lightbulb"></i>
+                </div>
+                <div class="announcement-content">
+                    <h3 style="color:#10b981;">Tips Audio Hari Ini</h3>
+                    <p id="dailyTipBody">Memuat tips...</p>
+                </div>
+            </div>
+
+            <!-- Search & Favorit -->
+            <div class="search-bar-wrap" style="display:flex; gap:8px;">
+                <input type="text" id="moduleSearchInput" class="form-control" placeholder="Cari modul web..." oninput="renderUI()">
+                <button class="theme-toggle" id="favFilterBtn" onclick="toggleFavFilter()" style="white-space:nowrap;">
+                    <i class="fa-solid fa-star"></i> Favorit
+                </button>
             </div>
 
             <!-- WIDGET IKLAN -->
@@ -1306,7 +1461,7 @@
                 <!-- Media Input Toolbar -->
                 <div class="media-toolbar">
                     <label class="media-btn">
-                        <i class="fa-solid fa-image"></i> Sisipkan Foto
+                        <i class="fa-solid fa-image"></i> Foto (maks 2)
                         <input type="file" accept="image/*" style="display:none;" onchange="handleCommentImageUpload(event, 'main')">
                     </label>
                     <button class="media-btn" onclick="toggleStickerPicker('main')">
@@ -1315,15 +1470,15 @@
                     <button class="media-btn" onclick="promptGifUrl('main')">
                         <i class="fa-solid fa-film"></i> GIF (URL)
                     </button>
+                    <label class="media-btn" id="vipBgBtn-main" style="display:none;">
+                        <i class="fa-solid fa-image-portrait"></i> Latar Komentar (VIP)
+                        <input type="file" accept="image/*" style="display:none;" onchange="handleCommentBgUpload(event, 'main')">
+                    </label>
                 </div>
 
-                <!-- Sticker Picker Panel -->
-                <div class="sticker-picker" id="stickerPicker-main" style="display:none;">
-                    <img src="https://cdn-icons-png.flaticon.com/512/742/742751.png" class="sticker-item" onclick="selectSticker('https://cdn-icons-png.flaticon.com/512/742/742751.png', 'main')">
-                    <img src="https://cdn-icons-png.flaticon.com/512/742/742752.png" class="sticker-item" onclick="selectSticker('https://cdn-icons-png.flaticon.com/512/742/742752.png', 'main')">
-                    <img src="https://cdn-icons-png.flaticon.com/512/742/742920.png" class="sticker-item" onclick="selectSticker('https://cdn-icons-png.flaticon.com/512/742/742920.png', 'main')">
-                    <img src="https://cdn-icons-png.flaticon.com/512/742/742760.png" class="sticker-item" onclick="selectSticker('https://cdn-icons-png.flaticon.com/512/742/742760.png', 'main')">
-                    <img src="https://cdn-icons-png.flaticon.com/512/742/742823.png" class="sticker-item" onclick="selectSticker('https://cdn-icons-png.flaticon.com/512/742/742823.png', 'main')">
+                <!-- Sticker Picker Panel (Emoji, 100+) -->
+                <div class="sticker-picker" id="stickerPicker-main" style="display:none; flex-direction:column;">
+                    <div class="sticker-emoji-grid" id="stickerGrid-main"></div>
                 </div>
 
                 <!-- Media Preview -->
@@ -1416,10 +1571,34 @@
             </div>
 
             <div class="section-header">
+                <i class="fa-solid fa-ranking-star"></i> Papan Peringkat (Top 10 Poin)
+            </div>
+            <div id="leaderboardContainer">Memuat papan peringkat...</div>
+
+            <div class="section-header">
                 <i class="fa-solid fa-medal"></i> Daftar Lencana & Penukaran
             </div>
 
             <div class="badge-grid" id="badgeListContainer">Memuat lencana...</div>
+        </div>
+
+        <!-- TAB 5: WAWASAN SOUND SYSTEM (EDUKASI, GLOSARIUM, KUIS) -->
+        <div id="tabWawasan" class="tab-content">
+            <div class="comment-input-box" style="background: linear-gradient(135deg, rgba(59,130,246,0.12) 0%, var(--card-bg) 100%);">
+                <h3 style="font-size: 1.05rem; margin-bottom: 6px; color: #3b82f6;"><i class="fa-solid fa-graduation-cap"></i> Wawasan Dunia Sound System</h3>
+                <p style="font-size: 0.82rem; color: var(--text-sub); line-height: 1.4;">
+                    Pelajari istilah, tips, dan uji pemahaman Anda tentang audio engineering & manajemen sound system. Jawab kuis harian untuk poin tambahan!
+                </p>
+            </div>
+
+            <div class="section-header"><i class="fa-solid fa-circle-question"></i> Kuis Audio Harian</div>
+            <div class="comment-input-box" id="quizContainer">Memuat kuis...</div>
+
+            <div class="section-header"><i class="fa-solid fa-book"></i> Glosarium Istilah Audio</div>
+            <div class="search-bar-wrap">
+                <input type="text" id="glossarySearchInput" class="form-control" placeholder="Cari istilah (misal: gain, phantom power)..." oninput="renderGlossary()">
+            </div>
+            <div id="glossaryContainer"></div>
         </div>
 
         <!-- Action Triggers Bottom -->
@@ -1627,6 +1806,20 @@
                 <button class="btn-primary" onclick="saveNewLogo()" style="margin-top:8px;">Perbarui Logo Portal</button>
             </div>
 
+            <!-- EDIT LATAR BELAKANG HALAMAN -->
+            <div class="form-group" style="background: var(--input-bg); padding:10px; border-radius:8px; border:1px solid var(--card-border); margin-top:1rem;">
+                <label><i class="fa-solid fa-panorama"></i> Ubah Latar Belakang Halaman Portal</label>
+                <input type="file" id="pageBgFileInput" class="form-control" accept="image/*" onchange="handlePageBgChange(event)">
+                <button class="btn-primary" onclick="saveNewPageBg()" style="margin-top:8px;">Perbarui Latar Belakang</button>
+                <button class="btn-primary btn-secondary" onclick="resetPageBg()" style="margin-top:8px;">Reset ke Default</button>
+            </div>
+
+            <!-- MODERASI LATAR KOMENTAR VIP -->
+            <div class="form-group" style="background: rgba(59,130,246,0.08); padding:10px; border-radius:8px; border:1px solid #3b82f6; margin-top:1rem;">
+                <label style="color:#3b82f6;"><i class="fa-solid fa-shield-halved"></i> Moderasi Latar Komentar VIP</label>
+                <div id="bgModerationList" style="margin-top:8px;">Memuat...</div>
+            </div>
+
             <div class="form-group">
                 <label>Judul Pengumuman</label>
                 <input type="text" id="editAnnoTitle" class="form-control">
@@ -1703,11 +1896,11 @@
         import { getDatabase, ref, push, onValue, set, update, remove, get, onDisconnect } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-        // Konfigurasi Firebase Anda
+        // Konfigurasi Firebase Anda (API Key resmi dari Firebase Console project faro-hub)
         const firebaseConfig = {
-            apiKey: "AIzaSyCsFxTMAvPsmAjbVInbOwEy8Ibn5ZWpKa8",
+            apiKey: "AIzaSyCaFxTWAvPsmAjbVInbGwEy8Ibn5ZWpKa0",
             authDomain: "faro-hub.firebaseapp.com",
-            databaseURL: "https://faro-hub-default-rtdb.asia-southeast1.firebasedatabase.app/",
+            databaseURL: "https://faro-hub-default-rtdb.asia-southeast1.firebasedatabase.app",
             projectId: "faro-hub",
             storageBucket: "faro-hub.firebasestorage.app",
             messagingSenderId: "250465697777",
@@ -1715,7 +1908,7 @@
         };
 
         const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app, "https://faro-hub-default-rtdb.asia-southeast1.firebasedatabase.app/");
+        const db = getDatabase(app, "https://faro-hub-default-rtdb.asia-southeast1.firebasedatabase.app");
         const auth = getAuth(app);
         const googleProvider = new GoogleAuthProvider();
 
@@ -1769,13 +1962,75 @@
         let activeVipItem = null;
         let currentOpenAppIsMixer = false;
         let newLogoBase64 = null;
+        let newPageBgBase64 = null;
+        let pendingLoginAction = null;
 
-        // Temporary Media Attachments
+        // Temporary Media Attachments (maks 2 foto per komentar + 1 stiker/gif + 1 latar VIP)
         let activeMediaAttachments = {
-            main: { mediaUrl: '', mediaType: '' }
+            main: { images: [], stickerEmoji: '', gifUrl: '', bgUrl: '' }
         };
         let complaintPhotosBase64 = [];
         let currentComplaintFilter = 'all';
+        let favFilterActive = false;
+        let userFavorites = {};
+        let pageBackgroundUrl = '';
+
+        // 100+ Stiker Emoji (tanpa hotlink eksternal supaya selalu tampil)
+        const STICKER_EMOJIS = ["🎚️","🎛️","🎧","🎤","🔊","🔈","🔉","📢","📣","🥁","🎸","🎹","🎺","🎷","🎻","🪗","📻","💽","💿","🎼",
+            "🎵","🎶","👍","👎","👏","🙌","🙏","💪","🤝","✌️","🤘","👌","🔥","💯","⭐","🌟","✨","🎉","🎊","🥳",
+            "😀","😁","😂","🤣","😊","😍","😎","🤩","🥰","😇","🙂","😉","😜","🤪","🤔","😴","😭","😱","😡","🤯",
+            "❤️","🧡","💛","💚","💙","💜","🖤","🤍","💔","💕","👋","🤙","🫡","🙋","🤷","🤦","💡","⚡","🌈","☀️",
+            "🌙","⏰","✅","❌","⚠️","❓","❗","💬","💭","📌","📍","🎯","🏆","🥇","🥈","🥉","🎁","🎈","🎇","🎆",
+            "🍕","☕","🍺","🥤","🍔","🍟","🚀","🛠️","⚙️","🔧","🔩","💻","📱","🖥️","🎮","📷","🎬","🕹️","🧠","👀"];
+
+        // Glosarium Istilah Audio & Sound System
+        const AUDIO_GLOSSARY = [
+            { term: "Gain", def: "Penguatan sinyal input dari sumber suara (mic/instrumen) sebelum masuk ke rangkaian mixer. Beda dengan Volume, Gain mengatur level sinyal di titik paling awal untuk menghindari noise atau clipping." },
+            { term: "Phantom Power (48V)", def: "Suplai daya listrik 48 volt dari mixer/audio interface ke microphone condenser yang membutuhkan daya untuk beroperasi." },
+            { term: "Feedback", def: "Suara melengking/berdengung yang terjadi ketika sinyal dari speaker tertangkap kembali oleh microphone dan diperkuat berulang kali membentuk loop." },
+            { term: "Equalizer (EQ)", def: "Perangkat/fitur untuk mengatur keseimbangan frekuensi suara (bass, mid, treble) agar sesuai karakter ruangan dan sumber suara." },
+            { term: "Compressor", def: "Alat pemroses sinyal yang meratakan dinamika suara — menekan bagian yang terlalu keras dan menaikkan bagian yang terlalu lembut." },
+            { term: "Crossover", def: "Pembagi frekuensi yang mengarahkan frekuensi rendah ke subwoofer dan frekuensi tinggi ke speaker satelit/tweeter." },
+            { term: "FOH (Front of House)", def: "Posisi mixer/operator utama yang mengatur suara untuk penonton, biasanya berada di tengah/belakang venue." },
+            { term: "Monitor Mix", def: "Campuran suara khusus yang dikirim ke speaker monitor panggung agar musisi bisa mendengar diri mereka sendiri saat tampil." },
+            { term: "DI Box (Direct Injection)", def: "Alat untuk mengubah sinyal instrumen (gitar/bass) menjadi sinyal balanced agar bisa masuk ke mixer dengan noise minimal." },
+            { term: "SPL (Sound Pressure Level)", def: "Satuan pengukuran tekanan/kekerasan suara dalam desibel (dB)." },
+            { term: "Line Array", def: "Susunan vertikal beberapa speaker yang dirancang untuk menyebarkan suara secara merata pada jarak jauh, umum dipakai di konser besar." },
+            { term: "Subwoofer", def: "Speaker khusus yang mereproduksi frekuensi rendah (bass) untuk menambah kedalaman suara sistem audio." },
+            { term: "Balanced vs Unbalanced", def: "Kabel balanced (XLR/TRS) punya 3 konduktor yang menolak noise pada kabel panjang; unbalanced (TS/RCA) lebih rentan noise pada jarak jauh." },
+            { term: "Headroom", def: "Selisih antara level sinyal normal dengan titik clipping/distorsi maksimum sebuah perangkat audio." },
+            { term: "Clipping", def: "Distorsi yang terjadi ketika sinyal audio melebihi batas maksimum yang bisa ditangani perangkat, menghasilkan suara pecah/kasar." },
+            { term: "Aux Send", def: "Jalur output tambahan pada mixer untuk mengirim sinyal terpisah, biasanya untuk monitor panggung atau efek (reverb/delay)." },
+            { term: "Pan", def: "Pengaturan posisi suara pada bidang stereo (kiri-kanan)." },
+            { term: "Impedansi (Ohm)", def: "Hambatan listrik pada speaker/perangkat audio; kecocokan impedansi antara amplifier dan speaker penting untuk performa optimal dan keamanan perangkat." },
+            { term: "RTA (Real-Time Analyzer)", def: "Alat/software yang menampilkan analisis frekuensi suara secara real-time, membantu proses tuning sistem sound." },
+            { term: "Soundcheck", def: "Proses pengecekan dan penyesuaian sistem suara sebelum pertunjukan dimulai, memastikan semua channel berfungsi optimal." }
+        ];
+
+        // Kuis Audio Harian (rotasi berdasarkan tanggal)
+        const AUDIO_QUIZ = [
+            { q: "Apa fungsi utama Phantom Power 48V?", options: ["Menyalakan mixer", "Memberi daya ke microphone condenser", "Menambah volume speaker", "Mengurangi noise kabel"], correct: 1 },
+            { q: "Feedback (suara melengking) pada sistem audio disebabkan oleh?", options: ["Kabel putus", "Loop sinyal antara speaker dan microphone", "Volume terlalu kecil", "Kualitas speaker jelek"], correct: 1 },
+            { q: "Apa fungsi Crossover pada sound system?", options: ["Mengatur pan stereo", "Membagi frekuensi ke speaker yang sesuai", "Menambah gain", "Merekam suara"], correct: 1 },
+            { q: "DI Box umumnya digunakan untuk?", options: ["Instrumen seperti gitar/bass ke mixer", "Mengganti microphone", "Menambah daya speaker", "Mengatur lighting panggung"], correct: 0 },
+            { q: "Compressor pada audio berfungsi untuk?", options: ["Menambah bass", "Meratakan dinamika suara", "Mengubah pitch", "Menghilangkan noise total"], correct: 1 },
+            { q: "Posisi FOH pada sebuah venue biasanya berada di?", options: ["Backstage", "Tengah/belakang area penonton", "Di dalam subwoofer", "Di ruang admin"], correct: 1 },
+            { q: "Clipping pada sinyal audio menghasilkan?", options: ["Suara lebih jernih", "Distorsi/suara pecah", "Bass lebih dalam", "Delay otomatis"], correct: 1 }
+        ];
+
+        // Tips Audio Harian (rotasi berdasarkan hari)
+        const DAILY_TIPS = [
+            "Selalu lakukan gain staging sebelum menaikkan volume master — sinyal bersih dari awal mencegah noise menumpuk.",
+            "Cek polaritas speaker (fase) sebelum event besar untuk menghindari pembatalan frekuensi (cancellation) antar speaker.",
+            "Gunakan high-pass filter pada channel vokal untuk memotong frekuensi rendah yang tidak perlu dan mengurangi rumbling.",
+            "Jaga jarak aman microphone dari speaker monitor untuk mengurangi risiko feedback saat live.",
+            "Lakukan RTA sweep di ruangan baru sebelum tuning EQ sistem utama, setiap ruangan punya karakter akustik berbeda.",
+            "Selalu backup preset mixer digital Anda sebelum event penting.",
+            "Gunakan limiter pada output master sebagai pengaman terakhir dari clipping yang bisa merusak speaker.",
+            "Cek impedansi total speaker sebelum menyambungkan ke amplifier untuk mencegah overload.",
+            "Beri jeda (headroom) minimal 6dB pada mix sebelum limiter agar dinamika musik tetap natural.",
+            "Rapikan kabel signal terpisah dari kabel power untuk mengurangi induksi noise (hum)."
+        ];
 
         // --- REALTIME LISTENERS FIREBASE (GLOBAL, TIDAK BUTUH LOGIN) ---
         const linksRef = ref(db, "links");
@@ -1818,6 +2073,30 @@
             }
         });
 
+        // Listener Latar Belakang Halaman (diatur Admin, real-time untuk semua pengguna)
+        const pageBgRef = ref(db, "pageBackground");
+        onValue(pageBgRef, (snapshot) => {
+            pageBackgroundUrl = snapshot.exists() ? snapshot.val() : '';
+            if (pageBackgroundUrl) {
+                document.body.style.backgroundImage = `linear-gradient(rgba(6,9,14,0.75), rgba(6,9,14,0.85)), url('${pageBackgroundUrl}')`;
+                document.body.style.backgroundSize = 'cover';
+                document.body.style.backgroundPosition = 'center';
+                document.body.style.backgroundAttachment = 'fixed';
+            } else {
+                document.body.style.backgroundImage = '';
+            }
+        });
+
+        // Listener Antrian Moderasi Latar Komentar VIP (untuk Admin)
+        const bgModerationRef = ref(db, "bgModeration");
+        let rawBgModerationData = {};
+        onValue(bgModerationRef, (snapshot) => {
+            rawBgModerationData = snapshot.val() || {};
+            if (document.getElementById('adminModal').style.display === 'flex') {
+                renderBgModerationList();
+            }
+        });
+
         // Listener Modul Link
         onValue(linksRef, (snapshot) => {
             rawLinksData = snapshot.val() || {};
@@ -1848,27 +2127,52 @@
             renderComplaints();
         });
 
-        // --- AUTH GATE: WAJIB LOGIN GOOGLE ---
+        // --- LOGIN OPSIONAL: pengguna bisa menjelajah portal tanpa login.
+        // Login Google baru diwajibkan saat melakukan aksi yang butuh identitas
+        // (komentar, balas, laporan, klaim lencana, VIP, dsb) lewat requireLogin().
         onAuthStateChanged(auth, (user) => {
-            const gate = document.getElementById('authGate');
-            const main = document.getElementById('mainContainer');
-            const statusEl = document.getElementById('authGateStatus');
+            const loggedChip = document.getElementById('loggedProfileChip');
+            const guestChip = document.getElementById('guestBarChip');
 
             if (user) {
                 firebaseUser = user;
                 initUserData(user);
-                gate.style.display = 'none';
-                main.style.display = 'flex';
+                loggedChip.style.display = 'flex';
+                guestChip.style.display = 'none';
+                closeModal('authGate');
+
+                // Jika ada aksi yang tertunda sebelum login, lanjutkan otomatis
+                if (typeof pendingLoginAction === 'function') {
+                    const action = pendingLoginAction;
+                    pendingLoginAction = null;
+                    setTimeout(action, 300);
+                }
             } else {
                 firebaseUser = null;
                 userProfile = null;
-                gate.style.display = 'flex';
-                main.style.display = 'none';
-                if (statusEl) statusEl.innerText = '';
-                const btn = document.getElementById('authGateLoginBtn');
-                if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-brands fa-google"></i> Masuk Dengan Google'; }
+                loggedChip.style.display = 'none';
+                guestChip.style.display = 'flex';
+                renderUI();
+                renderBadgesTab();
+                renderComments();
+                renderComplaints();
             }
         });
+
+        // Tampilkan modal login dengan alasan kontekstual
+        window.promptLogin = function(reason, actionAfterLogin) {
+            const reasonEl = document.getElementById('authGateReason');
+            if (reasonEl && reason) reasonEl.innerText = reason;
+            pendingLoginAction = typeof actionAfterLogin === 'function' ? actionAfterLogin : null;
+            document.getElementById('authGate').style.display = 'flex';
+        };
+
+        // Helper: kembalikan true jika sudah login, jika belum tampilkan modal login dan kembalikan false
+        function requireLogin(reason) {
+            if (userProfile) return true;
+            promptLogin(reason || "Silakan masuk dengan akun Google untuk melanjutkan.");
+            return false;
+        }
 
         window.loginGoogleReal = function() {
             const btn = document.getElementById('authGateLoginBtn');
@@ -1878,7 +2182,11 @@
 
             signInWithPopup(auth, googleProvider).catch((error) => {
                 console.error("Google Auth Error:", error);
-                if (errEl) errEl.innerText = "Gagal masuk: " + error.message;
+                let friendly = "Gagal masuk: " + error.message;
+                if (error.code === 'auth/api-key-not-valid.-please-pass-a-valid-api-key.' || (error.message || '').includes('api-key-not-valid')) {
+                    friendly = "Konfigurasi Firebase (API Key) tidak valid. Ini masalah pengaturan project Firebase, bukan akun Anda — mohon hubungi admin/developer portal untuk memeriksa API Key di Firebase Console.";
+                }
+                if (errEl) errEl.innerText = friendly;
                 if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-brands fa-google"></i> Masuk Dengan Google'; }
             });
         };
@@ -1957,7 +2265,15 @@
                 renderNotifications();
             });
 
+            // Listener Favorit Modul
+            const favRef = ref(db, `favorites/${uid}`);
+            onValue(favRef, (snapshot) => {
+                userFavorites = snapshot.val() || {};
+                renderUI();
+            });
+
             updateProfileUI();
+            renderQuiz();
         }
 
         function syncUserDataToFirebase() {
@@ -2040,7 +2356,7 @@
         };
 
         window.openNotifModal = function() {
-            if (!userProfile) return;
+            if (!requireLogin("Masuk untuk melihat notifikasi Anda.")) return;
             document.getElementById('notifModal').style.display = 'flex';
             renderNotifications();
         };
@@ -2083,7 +2399,7 @@
         }
 
         window.claimOrUnlockBadge = function(badgeId) {
-            if (!userProfile) return;
+            if (!requireLogin("Masuk untuk mengklaim lencana Anda.")) return;
             const badge = SYSTEM_BADGES.find(b => b.id === badgeId);
             if (!badge) return;
 
@@ -2145,6 +2461,84 @@
             }).catch(err => alert("Gagal memperbarui logo: " + err.message));
         };
 
+        // --- MANAJEMEN LATAR BELAKANG HALAMAN BY ADMIN ---
+        window.handlePageBgChange = function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (evt) {
+                    newPageBgBase64 = evt.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+
+        window.saveNewPageBg = function() {
+            if (!newPageBgBase64) {
+                alert("Pilih foto latar belakang terlebih dahulu!");
+                return;
+            }
+            set(pageBgRef, newPageBgBase64).then(() => {
+                alert("Latar belakang halaman berhasil diperbarui untuk seluruh pengguna!");
+                newPageBgBase64 = null;
+            }).catch(err => alert("Gagal memperbarui latar belakang: " + err.message));
+        };
+
+        window.resetPageBg = function() {
+            if (confirm("Kembalikan latar belakang ke default (gradient bawaan)?")) {
+                remove(pageBgRef).then(() => alert("Latar belakang dikembalikan ke default."));
+            }
+        };
+
+        // --- MODERASI LATAR BELAKANG KOMENTAR VIP (Admin approve/reject) ---
+        function renderBgModerationList() {
+            const container = document.getElementById('bgModerationList');
+            if (!container) return;
+            const keys = Object.keys(rawBgModerationData).filter(k => rawBgModerationData[k].status === 'pending');
+
+            if (keys.length === 0) {
+                container.innerHTML = '<p style="font-size:0.78rem; color:var(--text-muted);">Tidak ada latar komentar yang menunggu moderasi.</p>';
+                return;
+            }
+
+            container.innerHTML = keys.map(k => {
+                const item = rawBgModerationData[k];
+                return `
+                    <div class="admin-item-row" style="flex-direction:column; align-items:stretch; gap:8px;">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <img src="${escapeAttr(item.userAvatar)}" style="width:24px;height:24px;border-radius:50%;">
+                            <strong style="font-size:0.8rem;">${escapeHtml(item.userName)}</strong>
+                        </div>
+                        <img src="${escapeAttr(item.bgUrl)}" style="width:100%; max-height:140px; object-fit:cover; border-radius:8px; border:1px solid var(--card-border);">
+                        <div style="display:flex; gap:8px;">
+                            <button class="comment-action-btn" style="color:#22c55e;" onclick="approveBgModeration('${k}')"><i class="fa-solid fa-check"></i> Setujui</button>
+                            <button class="comment-action-btn" style="color:#ef4444;" onclick="rejectBgModeration('${k}')"><i class="fa-solid fa-xmark"></i> Tolak</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        window.approveBgModeration = function(key) {
+            const item = rawBgModerationData[key];
+            update(ref(db, `bgModeration/${key}`), { status: 'approved' }).then(() => {
+                if (item && item.commentId) {
+                    update(ref(db, `comments/${item.commentId}`), { bgStatus: 'approved' });
+                    pushNotification(item.userId, 'bg', 'Latar belakang komentar Anda telah disetujui Admin!', 'fa-image');
+                }
+            });
+        };
+
+        window.rejectBgModeration = function(key) {
+            const item = rawBgModerationData[key];
+            update(ref(db, `bgModeration/${key}`), { status: 'rejected' }).then(() => {
+                if (item && item.commentId) {
+                    update(ref(db, `comments/${item.commentId}`), { bgUrl: '', bgStatus: 'rejected' });
+                    pushNotification(item.userId, 'bg', 'Latar belakang komentar Anda ditolak Admin karena tidak sesuai ketentuan konten.', 'fa-triangle-exclamation');
+                }
+            });
+        };
+
         // --- PENGATURAN HARGA VIP OLEH ADMIN ---
         function getCurrentVipPrice() {
             if (!userProfile) return pricingData.basePrice;
@@ -2175,26 +2569,60 @@
             });
         }
 
-        // --- FITUR MEDIA KOMENTAR (FOTO, STICKER, GIF) ---
+        // --- FITUR MEDIA KOMENTAR (FOTO maks 2, STIKER EMOJI 100+, GIF, LATAR VIP) ---
+        function ensureAttachmentSlot(key) {
+            if (!activeMediaAttachments[key]) {
+                activeMediaAttachments[key] = { images: [], stickerEmoji: '', gifUrl: '', bgUrl: '' };
+            }
+            return activeMediaAttachments[key];
+        }
+
+        // BUGFIX: sebelumnya upload foto komentar hanya menyimpan 1 gambar dan selalu
+        // menimpa gambar sebelumnya (mediaUrl tunggal). Sekarang mendukung hingga 2 foto.
         window.handleCommentImageUpload = function(e, key) {
+            const slot = ensureAttachmentSlot(key);
+            if (slot.images.length >= 2) {
+                alert("Maksimal 2 foto per komentar. Hapus salah satu foto dulu jika ingin mengganti.");
+                e.target.value = '';
+                return;
+            }
             const file = e.target.files[0];
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(evt) {
-                    activeMediaAttachments[key] = { mediaUrl: evt.target.result, mediaType: 'image' };
+                    slot.images.push(evt.target.result);
                     renderMediaPreview(key);
                 };
                 reader.readAsDataURL(file);
             }
+            e.target.value = '';
+        };
+
+        window.removeCommentImage = function(key, idx) {
+            const slot = ensureAttachmentSlot(key);
+            slot.images.splice(idx, 1);
+            renderMediaPreview(key);
         };
 
         window.toggleStickerPicker = function(key) {
             const el = document.getElementById(`stickerPicker-${key}`);
-            if (el) el.style.display = el.style.display === 'none' ? 'flex' : 'none';
+            if (!el) return;
+            const showing = el.style.display !== 'none';
+            el.style.display = showing ? 'none' : 'flex';
+            if (!showing) populateStickerGrid(key);
         };
 
-        window.selectSticker = function(url, key) {
-            activeMediaAttachments[key] = { mediaUrl: url, mediaType: 'sticker' };
+        function populateStickerGrid(key) {
+            const grid = document.getElementById(`stickerGrid-${key}`);
+            if (!grid || grid.dataset.filled === '1') return;
+            grid.innerHTML = STICKER_EMOJIS.map(em => `<button type="button" class="sticker-emoji-btn" onclick="selectSticker('${em}', '${key}')">${em}</button>`).join('');
+            grid.dataset.filled = '1';
+        }
+
+        window.selectSticker = function(emoji, key) {
+            const slot = ensureAttachmentSlot(key);
+            slot.stickerEmoji = emoji;
+            slot.gifUrl = '';
             toggleStickerPicker(key);
             renderMediaPreview(key);
         };
@@ -2202,44 +2630,98 @@
         window.promptGifUrl = function(key) {
             const url = prompt("Masukkan URL Gambar GIF:", "https://media.giphy.com/media/...");
             if (url) {
-                activeMediaAttachments[key] = { mediaUrl: url, mediaType: 'gif' };
+                const slot = ensureAttachmentSlot(key);
+                slot.gifUrl = url;
+                slot.stickerEmoji = '';
                 renderMediaPreview(key);
             }
+        };
+
+        // Latar Belakang Komentar khusus VIP/Admin — wajib konfirmasi konten sopan,
+        // masuk antrian moderasi Admin sebelum tampil ke publik.
+        window.handleCommentBgUpload = function(e, key) {
+            if (!userProfile || !(userProfile.isVip || userProfile.isAdmin)) {
+                alert("Fitur latar belakang komentar khusus untuk pengguna VIP.");
+                e.target.value = '';
+                return;
+            }
+            const ok = confirm("Dengan mengunggah foto ini, saya menyatakan foto BUKAN konten dewasa/vulgar/melanggar hukum, dan bersedia foto ditinjau Admin sebelum tampil ke publik. Lanjutkan?");
+            if (!ok) { e.target.value = ''; return; }
+
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    const slot = ensureAttachmentSlot(key);
+                    slot.bgUrl = evt.target.result;
+                    renderMediaPreview(key);
+                };
+                reader.readAsDataURL(file);
+            }
+            e.target.value = '';
         };
 
         function renderMediaPreview(key) {
             const container = document.getElementById(`mediaPreview-${key}`);
             if (!container) return;
-            const att = activeMediaAttachments[key];
-            if (att && att.mediaUrl) {
-                container.innerHTML = `
+            const slot = ensureAttachmentSlot(key);
+            let html = '';
+
+            slot.images.forEach((img, idx) => {
+                html += `
                     <div class="admin-img-thumb" style="width:100px; height:80px;">
-                        <img src="${escapeAttr(att.mediaUrl)}">
-                        <button class="btn-del-img" onclick="clearMediaAttachment('${key}')">&times;</button>
+                        <img src="${escapeAttr(img)}">
+                        <button class="btn-del-img" onclick="removeCommentImage('${key}', ${idx})">&times;</button>
                     </div>
                 `;
-            } else {
-                container.innerHTML = '';
+            });
+
+            if (slot.stickerEmoji) {
+                html += `<div class="admin-img-thumb" style="width:80px; height:80px; display:flex; align-items:center; justify-content:center; font-size:2rem;">${slot.stickerEmoji}<button class="btn-del-img" onclick="clearStickerOrGif('${key}')">&times;</button></div>`;
             }
+            if (slot.gifUrl) {
+                html += `<div class="admin-img-thumb" style="width:100px; height:80px;"><img src="${escapeAttr(slot.gifUrl)}"><button class="btn-del-img" onclick="clearStickerOrGif('${key}')">&times;</button></div>`;
+            }
+            if (slot.bgUrl) {
+                html += `<div class="admin-img-thumb" style="width:100px; height:80px; border-color:var(--accent-gold);"><img src="${escapeAttr(slot.bgUrl)}"><button class="btn-del-img" onclick="clearCommentBg('${key}')">&times;</button></div>`;
+            }
+
+            container.innerHTML = html;
         }
 
+        window.clearStickerOrGif = function(key) {
+            const slot = ensureAttachmentSlot(key);
+            slot.stickerEmoji = '';
+            slot.gifUrl = '';
+            renderMediaPreview(key);
+        };
+
+        window.clearCommentBg = function(key) {
+            const slot = ensureAttachmentSlot(key);
+            slot.bgUrl = '';
+            renderMediaPreview(key);
+        };
+
         window.clearMediaAttachment = function(key) {
-            activeMediaAttachments[key] = { mediaUrl: '', mediaType: '' };
+            activeMediaAttachments[key] = { images: [], stickerEmoji: '', gifUrl: '', bgUrl: '' };
             renderMediaPreview(key);
         };
 
         // --- POSTING KOMENTAR ---
         window.postComment = function(parentId = null) {
-            if (!userProfile) { alert("Silakan masuk dengan Google terlebih dahulu."); return; }
+            if (!requireLogin("Masuk untuk berkomentar atau membalas.")) return;
             const key = parentId ? parentId : 'main';
             let inputEl = parentId ? document.getElementById(`replyInput-${parentId}`) : document.getElementById('mainCommentInput');
             let text = inputEl.value.trim();
-            const media = activeMediaAttachments[key] || { mediaUrl: '', mediaType: '' };
+            const media = ensureAttachmentSlot(key);
+            const hasMedia = media.images.length > 0 || media.stickerEmoji || media.gifUrl;
 
-            if (!text && !media.mediaUrl) {
+            if (!text && !hasMedia) {
                 alert("Komentar atau media tidak boleh kosong!");
                 return;
             }
+
+            const hasVipBg = !!media.bgUrl && (userProfile.isVip || userProfile.isAdmin);
 
             const newComment = {
                 parentId: parentId || null,
@@ -2251,8 +2733,11 @@
                 badges: userProfile.ownedBadges || ["b1"],
                 level: calculateLevel(),
                 text: text,
-                mediaUrl: media.mediaUrl || '',
-                mediaType: media.mediaType || '',
+                images: [...media.images],
+                stickerEmoji: media.stickerEmoji || '',
+                gifUrl: media.gifUrl || '',
+                bgUrl: hasVipBg ? media.bgUrl : '',
+                bgStatus: hasVipBg ? 'pending' : '',
                 likes: 0,
                 isStarred: false,
                 isPinned: false,
@@ -2260,11 +2745,24 @@
                 createdAt: Date.now()
             };
 
-            push(commentsRef, newComment).then(() => {
+            push(commentsRef, newComment).then((commentRefResult) => {
                 inputEl.value = '';
                 clearMediaAttachment(key);
                 // Tambahkan 15 Poin untuk setiap komentar/balasan
                 addActivityPoints(15, 'comment');
+
+                // Masukkan ke antrian moderasi jika ada latar belakang VIP
+                if (hasVipBg) {
+                    push(ref(db, 'bgModeration'), {
+                        commentId: commentRefResult.key,
+                        userId: userProfile.uid,
+                        userName: userProfile.name,
+                        userAvatar: userProfile.avatar,
+                        bgUrl: media.bgUrl,
+                        status: 'pending',
+                        createdAt: Date.now()
+                    });
+                }
 
                 // Notifikasi ke pemilik komentar induk jika ini adalah balasan
                 if (parentId && rawCommentsData[parentId]) {
@@ -2280,10 +2778,29 @@
         };
 
         window.likeComment = function(id) {
+            if (!requireLogin("Masuk untuk menyukai komentar.")) return;
             const currentLikes = (rawCommentsData[id] && rawCommentsData[id].likes) ? rawCommentsData[id].likes : 0;
             update(ref(db, `comments/${id}`), { likes: currentLikes + 1 });
             addActivityPoints(2, 'like');
         };
+
+        // Kembalikan hanya lencana level tertinggi (non-b20) + lencana Kesayangan Admin (b20)
+        // jika dimiliki, bukan seluruh koleksi lencana — supaya tampilan komentar rapi & jelas.
+        function getDisplayBadges(badgesArr) {
+            if (!badgesArr || !Array.isArray(badgesArr)) return [];
+            const owned = badgesArr.map(id => SYSTEM_BADGES.find(b => b.id === id)).filter(Boolean);
+            const normal = owned.filter(b => b.id !== 'b20');
+            const hasKesayangan = owned.some(b => b.id === 'b20');
+            let result = [];
+            if (normal.length > 0) {
+                const highest = normal.reduce((max, b) => (b.level > max.level ? b : max), normal[0]);
+                result.push(highest);
+            }
+            if (hasKesayangan) {
+                result.push(SYSTEM_BADGES.find(b => b.id === 'b20'));
+            }
+            return result;
+        }
 
         window.togglePin = function(id) {
             const currentStatus = (rawCommentsData[id] && rawCommentsData[id].isPinned) || false;
@@ -2331,15 +2848,12 @@
             if (c.isAdmin) badgeUserHtml += '<span class="badge-admin">ADMIN</span>';
             else if (c.isVip) badgeUserHtml += '<span class="badge-vip">VIP</span>';
 
-            // Render Lencana Aktif Pengguna
-            if (c.badges && Array.isArray(c.badges)) {
-                c.badges.forEach(bId => {
-                    const bObj = SYSTEM_BADGES.find(b => b.id === bId);
-                    if (bObj) {
-                        badgeUserHtml += `<span class="${bObj.bgClass}">${bObj.icon} ${escapeHtml(bObj.name)}</span>`;
-                    }
-                });
-            }
+            // BUGFIX: sebelumnya SEMUA lencana yang dimiliki pengguna dirender di setiap
+            // komentar (bisa sampai puluhan badge), membuat tampilan berantakan. Sekarang
+            // hanya menampilkan lencana level tertinggi + lencana Kesayangan Admin (jika ada).
+            getDisplayBadges(c.badges).forEach(bObj => {
+                badgeUserHtml += `<span class="${bObj.bgClass}">${bObj.icon} ${escapeHtml(bObj.name)}</span>`;
+            });
 
             const isAdminUser = userProfile && userProfile.isAdmin;
             let adminControls = isAdminUser ? `
@@ -2348,10 +2862,31 @@
                 <button class="comment-action-btn" style="color:#ef4444;" onclick="deleteComment('${c.id}')"><i class="fa-solid fa-trash"></i> Hapus</button>
             ` : '';
 
+            // Media: foto (maks 2), stiker emoji, GIF. Tetap dukung komentar lama (mediaUrl tunggal).
             let mediaHtml = '';
-            if (c.mediaUrl) {
-                mediaHtml = `<div class="comment-media-container"><img src="${escapeAttr(c.mediaUrl)}" alt="Attachment"></div>`;
+            const imgList = Array.isArray(c.images) ? c.images : (c.mediaUrl && c.mediaType !== 'sticker' ? [c.mediaUrl] : []);
+            if (imgList.length > 0) {
+                mediaHtml += `<div style="display:flex; gap:6px; flex-wrap:wrap;">` +
+                    imgList.map(img => `<div class="comment-media-container" style="max-width:160px;"><img src="${escapeAttr(img)}" alt="Attachment"></div>`).join('') +
+                    `</div>`;
             }
+            if (c.stickerEmoji) {
+                mediaHtml += `<div class="comment-sticker-display">${c.stickerEmoji}</div>`;
+            }
+            if (c.gifUrl) {
+                mediaHtml += `<div class="comment-media-container" style="max-width:200px;"><img src="${escapeAttr(c.gifUrl)}" alt="GIF"></div>`;
+            }
+
+            // Latar belakang komentar VIP — hanya tampil setelah disetujui Admin
+            let bgStyle = '';
+            let bgNote = '';
+            if (c.bgUrl && c.bgStatus === 'approved') {
+                bgStyle = `style="background-image:url('${escapeAttr(c.bgUrl)}');"`;
+                card.classList.add('has-custom-bg');
+            } else if (c.bgUrl && c.bgStatus === 'pending' && userProfile && c.userId === userProfile.uid) {
+                bgNote = `<div style="font-size:0.68rem; color:var(--accent-gold); margin-top:4px;"><i class="fa-solid fa-hourglass-half"></i> Latar belakang menunggu moderasi Admin</div>`;
+            }
+            if (bgStyle) card.setAttribute('style', bgStyle.replace('style="', '').replace('"', ''));
 
             card.innerHTML = `
                 <div class="comment-header">
@@ -2365,6 +2900,7 @@
                 </div>
                 <div class="comment-text">${c.isStarred ? '⭐ ' : ''}${escapeHtml(c.text)}</div>
                 ${mediaHtml}
+                ${bgNote}
                 <div class="comment-actions">
                     <button class="comment-action-btn" onclick="likeComment('${c.id}')"><i class="fa-regular fa-thumbs-up"></i> ${c.likes || 0}</button>
                     <button class="comment-action-btn" onclick="toggleReplyBox('${c.id}')"><i class="fa-solid fa-reply"></i> Balas</button>
@@ -2376,15 +2912,14 @@
 
                     <div class="media-toolbar">
                         <label class="media-btn">
-                            <i class="fa-solid fa-image"></i> Foto
+                            <i class="fa-solid fa-image"></i> Foto (maks 2)
                             <input type="file" accept="image/*" style="display:none;" onchange="handleCommentImageUpload(event, '${c.id}')">
                         </label>
                         <button class="media-btn" onclick="toggleStickerPicker('${c.id}')"><i class="fa-solid fa-face-smile"></i> Stiker</button>
                     </div>
 
-                    <div class="sticker-picker" id="stickerPicker-${c.id}" style="display:none;">
-                        <img src="https://cdn-icons-png.flaticon.com/512/742/742751.png" class="sticker-item" onclick="selectSticker('https://cdn-icons-png.flaticon.com/512/742/742751.png', '${c.id}')">
-                        <img src="https://cdn-icons-png.flaticon.com/512/742/742752.png" class="sticker-item" onclick="selectSticker('https://cdn-icons-png.flaticon.com/512/742/742752.png', '${c.id}')">
+                    <div class="sticker-picker" id="stickerPicker-${c.id}" style="display:none; flex-direction:column;">
+                        <div class="sticker-emoji-grid" id="stickerGrid-${c.id}"></div>
                     </div>
 
                     <div id="mediaPreview-${c.id}" class="admin-image-preview-grid" style="margin-top:6px;"></div>
@@ -2446,7 +2981,7 @@
         };
 
         window.submitComplaint = function() {
-            if (!userProfile) { alert("Silakan masuk dengan Google terlebih dahulu."); return; }
+            if (!requireLogin("Masuk untuk mengirim laporan pengaduan.")) return;
             const category = document.getElementById('complaintCategory').value;
             const title = document.getElementById('complaintTitle').value.trim();
             const desc = document.getElementById('complaintDesc').value.trim();
@@ -2567,19 +3102,21 @@
             });
         }
 
-        // --- RENDER BADGES TAB INTERFACE ---
+        // --- RENDER BADGES TAB INTERFACE (tetap tampil untuk tamu, read-only) ---
         function renderBadgesTab() {
             const container = document.getElementById('badgeListContainer');
-            if (!container || !userProfile) return;
+            if (!container) return;
             container.innerHTML = '';
 
-            document.getElementById('statPoints').innerText = userProfile.points || 0;
-            document.getElementById('statComments').innerText = userProfile.commentCount || 0;
-            document.getElementById('statComplaints').innerText = userProfile.complaintCount || 0;
-            document.getElementById('statBadgesCount').innerText = `${(userProfile.ownedBadges || []).length} / 20`;
+            document.getElementById('statPoints').innerText = userProfile ? (userProfile.points || 0) : '-';
+            document.getElementById('statComments').innerText = userProfile ? (userProfile.commentCount || 0) : '-';
+            document.getElementById('statComplaints').innerText = userProfile ? (userProfile.complaintCount || 0) : '-';
+            document.getElementById('statBadgesCount').innerText = userProfile ? `${(userProfile.ownedBadges || []).length} / 20` : '- / 20';
+
+            renderLeaderboard();
 
             SYSTEM_BADGES.forEach(badge => {
-                const isOwned = (userProfile.ownedBadges || []).includes(badge.id);
+                const isOwned = userProfile && (userProfile.ownedBadges || []).includes(badge.id);
                 const isKesayangan = badge.id === "b20";
 
                 const card = document.createElement('div');
@@ -2619,6 +3156,120 @@
                 container.appendChild(card);
             });
         }
+
+        // --- PAPAN PERINGKAT (LEADERBOARD) ---
+        function renderLeaderboard() {
+            const container = document.getElementById('leaderboardContainer');
+            if (!container) return;
+            get(ref(db, 'user_badges')).then(snapshot => {
+                if (!snapshot.exists()) {
+                    container.innerHTML = '<p style="font-size:0.8rem; color:var(--text-muted);">Belum ada data peringkat.</p>';
+                    return;
+                }
+                const data = snapshot.val();
+                const list = Object.keys(data).map(uid => ({ uid, ...data[uid] }))
+                    .sort((a, b) => (b.points || 0) - (a.points || 0))
+                    .slice(0, 10);
+
+                container.innerHTML = list.map((u, idx) => `
+                    <div class="leaderboard-row">
+                        <div class="leaderboard-rank">${idx + 1}</div>
+                        <img src="${escapeAttr(u.avatar || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.name || 'User'))}" alt="">
+                        <div style="flex:1;">
+                            <div style="font-size:0.82rem; font-weight:700;">${escapeHtml(u.name || 'Pengguna FARO')}</div>
+                        </div>
+                        <div style="color:var(--accent-gold); font-weight:700; font-size:0.82rem;">${(u.points || 0).toLocaleString('id-ID')} Poin</div>
+                    </div>
+                `).join('') || '<p style="font-size:0.8rem; color:var(--text-muted);">Belum ada data peringkat.</p>';
+            }).catch(() => {
+                container.innerHTML = '<p style="font-size:0.8rem; color:var(--text-muted);">Gagal memuat papan peringkat.</p>';
+            });
+        }
+
+        // --- TIPS AUDIO HARIAN ---
+        function renderDailyTip() {
+            const el = document.getElementById('dailyTipBody');
+            if (!el) return;
+            const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
+            el.innerText = DAILY_TIPS[dayOfYear % DAILY_TIPS.length];
+        }
+
+        // --- GLOSARIUM AUDIO ---
+        window.renderGlossary = function() {
+            const container = document.getElementById('glossaryContainer');
+            if (!container) return;
+            const query = (document.getElementById('glossarySearchInput')?.value || '').toLowerCase().trim();
+            const filtered = AUDIO_GLOSSARY.filter(g => !query || g.term.toLowerCase().includes(query) || g.def.toLowerCase().includes(query));
+
+            if (filtered.length === 0) {
+                container.innerHTML = '<p style="font-size:0.82rem; color:var(--text-muted);">Istilah tidak ditemukan.</p>';
+                return;
+            }
+
+            container.innerHTML = filtered.map(g => `
+                <div class="glossary-item">
+                    <div class="glossary-term">${escapeHtml(g.term)}</div>
+                    <div class="glossary-def">${escapeHtml(g.def)}</div>
+                </div>
+            `).join('');
+        };
+
+        // --- KUIS AUDIO HARIAN (1x jawaban benar per hari mendapat poin) ---
+        function getTodayDateKey() {
+            const d = new Date();
+            return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+        }
+
+        function renderQuiz() {
+            const container = document.getElementById('quizContainer');
+            if (!container) return;
+
+            const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
+            const quiz = AUDIO_QUIZ[dayOfYear % AUDIO_QUIZ.length];
+
+            if (!userProfile) {
+                container.innerHTML = `<p style="font-size:0.85rem; color:var(--text-sub);">${escapeHtml(quiz.q)}</p><p style="font-size:0.78rem; color:var(--text-muted); margin-top:8px;">Masuk dengan Google untuk menjawab kuis dan mendapatkan poin.</p>`;
+                return;
+            }
+
+            get(ref(db, `quizAnswers/${userProfile.uid}/${getTodayDateKey()}`)).then(snapshot => {
+                if (snapshot.exists()) {
+                    const wasCorrect = snapshot.val().correct;
+                    container.innerHTML = `<p style="font-size:0.85rem; color:var(--text-sub);">${escapeHtml(quiz.q)}</p><p style="font-size:0.8rem; margin-top:8px; color:${wasCorrect ? '#22c55e' : '#ef4444'};"><i class="fa-solid ${wasCorrect ? 'fa-circle-check' : 'fa-circle-xmark'}"></i> Anda sudah menjawab kuis hari ini (${wasCorrect ? 'Benar' : 'Kurang tepat'}). Kembali lagi besok!</p>`;
+                } else {
+                    container.innerHTML = `<p style="font-size:0.85rem; color:var(--text-sub); margin-bottom:10px;">${escapeHtml(quiz.q)}</p>` +
+                        quiz.options.map((opt, idx) => `<button type="button" class="quiz-option-btn" onclick="answerQuiz(${idx}, ${quiz.correct})">${escapeHtml(opt)}</button>`).join('');
+                }
+            });
+        }
+
+        window.answerQuiz = function(selectedIdx, correctIdx) {
+            if (!requireLogin("Masuk untuk menjawab kuis dan mendapatkan poin.")) return;
+            const isCorrect = selectedIdx === correctIdx;
+            set(ref(db, `quizAnswers/${userProfile.uid}/${getTodayDateKey()}`), { correct: isCorrect, answeredAt: Date.now() }).then(() => {
+                if (isCorrect) {
+                    addActivityPoints(20, 'quiz');
+                    alert("🎉 Jawaban benar! Anda mendapat 20 poin.");
+                } else {
+                    alert("Kurang tepat. Coba lagi besok untuk kuis baru!");
+                }
+                renderQuiz();
+            });
+        };
+
+        // --- FAVORIT MODUL ---
+        window.toggleFavorite = function(itemId) {
+            if (!requireLogin("Masuk untuk menyimpan modul favorit.")) return;
+            const isFav = !!userFavorites[itemId];
+            update(ref(db, `favorites/${userProfile.uid}`), { [itemId]: !isFav });
+        };
+
+        window.toggleFavFilter = function() {
+            favFilterActive = !favFilterActive;
+            const btn = document.getElementById('favFilterBtn');
+            if (btn) btn.style.color = favFilterActive ? 'var(--accent-gold)' : '';
+            renderUI();
+        };
 
         // --- ADMIN GRANT SPECIAL BADGE FUNCTION ---
         window.grantBadgeByAdmin = function() {
@@ -2782,6 +3433,10 @@
             const modalPayAmount = document.getElementById('modalPayBadgeAmount');
             if (payBtnAmount) payBtnAmount.innerText = `Rp ${vipPrice.toLocaleString('id-ID')}`;
             if (modalPayAmount) modalPayAmount.innerText = `Rp ${vipPrice.toLocaleString('id-ID')}`;
+
+            // Tombol latar belakang komentar hanya untuk VIP/Admin
+            const vipBgBtn = document.getElementById('vipBgBtn-main');
+            if (vipBgBtn) vipBgBtn.style.display = (userProfile.isVip || userProfile.isAdmin) ? 'inline-flex' : 'none';
         }
 
         window.renderUI = function() {
@@ -2796,11 +3451,25 @@
             mainContainer.innerHTML = '';
             researchContainer.innerHTML = '';
 
-            const linkKeys = Object.keys(rawLinksData);
+            const searchQuery = (document.getElementById('moduleSearchInput')?.value || '').toLowerCase().trim();
+            let linkKeys = Object.keys(rawLinksData);
             const vipPrice = getCurrentVipPrice();
+
+            if (searchQuery) {
+                linkKeys = linkKeys.filter(key => (rawLinksData[key].title || '').toLowerCase().includes(searchQuery));
+            }
+            if (favFilterActive) {
+                linkKeys = linkKeys.filter(key => !!userFavorites[key]);
+            }
+
+            if (linkKeys.length === 0) {
+                const emptyMsg = `<p style="font-size:0.82rem; color:var(--text-muted); text-align:center; padding:1rem;">Tidak ada modul yang cocok.</p>`;
+                vipContainer.innerHTML = emptyMsg;
+            }
 
             linkKeys.forEach(key => {
                 const item = { id: key, ...rawLinksData[key] };
+                const isFav = !!userFavorites[key];
                 const card = document.createElement('div');
                 card.className = `link-card ${item.category === 'vip' ? 'vip-card' : ''}`;
                 card.onclick = () => handleCardClick(item);
@@ -2843,6 +3512,7 @@
                 card.innerHTML = `
                     <div class="link-header-row">
                         <div class="link-title-row">
+                            <button class="favorite-star-btn ${isFav ? 'active' : ''}" onclick="event.stopPropagation(); toggleFavorite('${key}')" title="Simpan ke favorit"><i class="fa-solid fa-star"></i></button>
                             <span class="link-title">${escapeHtml(item.title)}</span>
                             ${badgeHtml}
                         </div>
@@ -2867,10 +3537,15 @@
         };
 
         function handleCardClick(item) {
-            if (!userProfile) { alert("Silakan masuk dengan Google terlebih dahulu."); return; }
-            if (item.category === 'vip' && !userProfile.isAdmin && !userProfile.isVip) {
-                activeVipItem = item;
-                openVipGateway(item);
+            if (item.category === 'vip') {
+                if (!requireLogin("Masuk untuk mengakses modul VIP.")) return;
+                if (!userProfile.isAdmin && !userProfile.isVip) {
+                    activeVipItem = item;
+                    openVipGateway(item);
+                    return;
+                }
+                openSecureApp(item.url, item.title);
+                return;
             } else {
                 openSecureApp(item.url, item.title);
             }
@@ -2951,6 +3626,7 @@
         };
 
         window.verifyVipAccess = function() {
+            if (!requireLogin("Masuk untuk memverifikasi akses VIP.")) return;
             const inputPass = document.getElementById('vipPassInput').value.trim();
             if (inputPass === vipKey || inputPass === TARGET_PASS) {
                 alert("Akses VIP Berhasil Diakui!");
@@ -2976,7 +3652,7 @@
         }
 
         window.processAutomaticPayment = async function() {
-            if (!userProfile) { alert("Silakan masuk dengan Google terlebih dahulu."); return; }
+            if (!requireLogin("Masuk untuk melakukan pembayaran VIP.")) return;
             const payButtons = document.querySelectorAll('.btn-pay-now');
 
             payButtons.forEach(btn => {
@@ -3037,7 +3713,7 @@
         };
 
         window.openProfileModal = function() {
-            if (!userProfile) return;
+            if (!requireLogin("Masuk untuk melihat profil, poin, dan lencana Anda.")) return;
             updateProfileUI();
             document.getElementById('profileModal').style.display = 'flex';
         };
@@ -3082,6 +3758,7 @@
             fillPricingFormFields();
             resetAdminLinkForm();
             renderAdminLinkList();
+            renderBgModerationList();
             document.getElementById('adminModal').style.display = 'flex';
         }
 
@@ -3232,16 +3909,20 @@
         };
 
         window.openTransferModal = function() {
-            if (!userProfile) { alert("Silakan masuk dengan Google terlebih dahulu."); return; }
+            if (!requireLogin("Masuk untuk membeli VIP.")) return;
             document.getElementById('transferModal').style.display = 'flex';
         };
         window.openLoginModal = function() {
-            if (!userProfile) { alert("Silakan masuk dengan Google terlebih dahulu."); return; }
+            if (!requireLogin("Masuk dengan akun Google Anda dahulu, lalu masukkan kredensial Admin.")) return;
             document.getElementById('loginModal').style.display = 'flex';
         };
         window.closeModal = function(id) { document.getElementById(id).style.display = 'none'; };
 
         initTheme();
+        renderDailyTip();
+        renderGlossary();
+        renderQuiz();
+        renderBadgesTab();
     </script>
 </body>
     </html>
