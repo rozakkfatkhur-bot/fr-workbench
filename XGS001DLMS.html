@@ -1,914 +1,1125 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sonnox Oxford EQ - Fully Interactive Web DSP (Pro Version)</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
-        body {
-            background-color: #0f131a;
-            color: #d0d8e0;
-            font-family: Tahoma, Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 10px;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XGS001DLMS — FR AUDIO Parametric Equalizer</title>
+<style>
+  :root{
+    --panel-1:#8fa4bd;
+    --panel-2:#7690ac;
+    --panel-3:#65809d;
+    --panel-dark:#2b3846;
+    --screen-bg:#0d1620;
+    --grid-line:#24384a;
+    --curve:#d7e05a;
+    --led-green:#3ddc72;
+    --led-red:#ff5b52;
+    --text-dark:#1c2733;
+    --text-light:#eef3f8;
+    --c-lf:#8fb6e6;
+    --c-lmf:#5ecb8c;
+    --c-mf:#e05a5a;
+    --c-hmf:#e8a24a;
+    --c-hf:#e0d15a;
+    --c-neutral:#c7cfd8;
+    font-family: 'Segoe UI', Arial, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;padding:0;
+    background:#12181f;
+    color:var(--text-light);
+    height:100%;
+    -webkit-user-select:none;
+    user-select:none;
+  }
+  #unit{
+    max-width:1180px;
+    margin:16px auto;
+    border-radius:10px;
+    padding:14px;
+    background:linear-gradient(180deg,var(--panel-1),var(--panel-3) 90%);
+    box-shadow:0 20px 50px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.35);
+    border:1px solid #4b5c6f;
+  }
+  #topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:2px 10px 10px;
+  }
+  #brand{
+    font-weight:800;
+    letter-spacing:2px;
+    font-size:13px;
+    color:var(--text-dark);
+    text-shadow:0 1px 0 rgba(255,255,255,.35);
+  }
+  #brand span{
+    display:block;
+    font-size:19px;
+    letter-spacing:1px;
+  }
+  #powerled{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-size:11px;
+    color:var(--text-dark);
+    font-weight:600;
+  }
+  .led-dot{
+    width:9px;height:9px;border-radius:50%;
+    background:var(--led-green);
+    box-shadow:0 0 6px 2px rgba(61,220,114,.8), inset 0 0 2px rgba(0,0,0,.4);
+  }
 
-        .plugin-rack {
-            width: 880px;
-            background: linear-gradient(135deg, #a4c2e8 0%, #7b9fc9 50%, #597c9f 100%);
-            border: 5px solid #1a222d;
-            border-radius: 8px;
-            box-shadow: 0 25px 60px rgba(0,0,0,0.9), inset 0 1px 2px rgba(255,255,255,0.4);
-            padding: 12px;
-        }
+  /* ---- Display / graph area ---- */
+  #display-row{
+    display:flex;
+    gap:8px;
+    background:var(--panel-dark);
+    border-radius:6px;
+    padding:8px;
+    box-shadow:inset 0 2px 6px rgba(0,0,0,.5);
+  }
+  #screen-wrap{
+    flex:1;
+    position:relative;
+    background:var(--screen-bg);
+    border-radius:4px;
+    overflow:hidden;
+    border:1px solid #000;
+  }
+  #eqCanvas, #mediaView{
+    width:100%;
+    height:280px;
+    display:block;
+  }
+  #mediaView{
+    display:none;
+    background:#000;
+    position:relative;
+  }
+  #mediaView video, #yt-embed{
+    width:100%;
+    height:100%;
+    object-fit:contain;
+    display:block;
+    border:0;
+  }
+  #mediaView .placeholder{
+    position:absolute;inset:0;
+    display:flex;align-items:center;justify-content:center;
+    color:#5a6b7d;font-size:13px;letter-spacing:1px;
+  }
 
-        .header-bar {
-            display: grid;
-            grid-template-columns: 140px 1fr 140px;
-            align-items: center;
-            background: #4b6482;
-            border: 2px solid #27374b;
-            border-radius: 4px;
-            padding: 4px 8px;
-            margin-bottom: 8px;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.4);
-        }
-        .header-logo-left {
-            background: linear-gradient(to bottom, #2b3e56, #1a2738);
-            color: #ffffff;
-            font-weight: bold;
-            font-size: 14px;
-            padding: 4px 8px;
-            border: 1px solid #111;
-            border-radius: 2px;
-            letter-spacing: 1px;
-        }
-        .header-title-center {
-            text-align: center;
-            font-size: 18px;
-            font-weight: bold;
-            color: #ffffff;
-            letter-spacing: 2px;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.6);
-        }
-        .header-logo-right {
-            background: linear-gradient(to bottom, #1a2738, #2b3e56);
-            color: #a0c0e0;
-            font-size: 10px;
-            padding: 4px 6px;
-            border: 1px solid #111;
-            border-radius: 2px;
-            text-align: right;
-            line-height: 1.1;
-        }
+  #nav-col{
+    width:78px;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .nav-btn{
+    flex:1;
+    background:linear-gradient(180deg,#3a4756,#232d38);
+    color:#b9c4d0;
+    border:1px solid #10161d;
+    border-radius:4px;
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:1px;
+    cursor:pointer;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.08), 0 2px 3px rgba(0,0,0,.4);
+  }
+  .nav-btn.active{
+    background:linear-gradient(180deg,#4fae7a,#2c6f4c);
+    color:#eafff0;
+    box-shadow:inset 0 0 8px rgba(0,0,0,.4), 0 0 8px rgba(79,174,122,.6);
+  }
 
-        .screen-container {
-            background-color: #1a2332;
-            border: 4px inset #2d3d54;
-            border-radius: 4px;
-            height: 200px;
-            margin-bottom: 10px;
-            position: relative;
-            box-shadow: inset 0 0 15px rgba(0,0,0,0.8);
-        }
-        canvas {
-            display: block;
-            width: 100%;
-            height: 100%;
-        }
+  /* ---- Control rack ---- */
+  #rack{
+    display:grid;
+    grid-template-columns: 1fr 1fr 200px 1fr 1fr;
+    gap:6px;
+    margin-top:10px;
+  }
+  .band{
+    background:linear-gradient(180deg,var(--panel-2),var(--panel-3));
+    border-radius:6px;
+    padding:8px 6px;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.25), 0 2px 4px rgba(0,0,0,.25);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:6px;
+  }
+  .band-label{
+    font-size:11px;
+    font-weight:800;
+    color:var(--text-dark);
+    letter-spacing:1px;
+  }
+  .band-top-row{
+    display:flex;
+    gap:6px;
+    width:100%;
+    justify-content:center;
+  }
+  .knob-cell{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:3px;
+  }
+  .knob-label{
+    font-size:9px;
+    font-weight:700;
+    color:var(--text-dark);
+    letter-spacing:.5px;
+  }
+  .knob{
+    width:46px;height:46px;
+    border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #5c6875, #21262c 70%);
+    border:2px solid #14181c;
+    position:relative;
+    cursor:ns-resize;
+    box-shadow:0 3px 5px rgba(0,0,0,.5), inset 0 1px 1px rgba(255,255,255,.15);
+  }
+  .knob::before{
+    content:'';
+    position:absolute;
+    top:3px;left:50%;
+    width:4px;height:16px;
+    background:var(--dot-color, #fff);
+    border-radius:2px;
+    transform-origin:2px 20px;
+    transform:translateX(-50%) rotate(var(--rot,0deg));
+    box-shadow:0 0 4px 1px var(--dot-color,#fff);
+  }
+  .knob-ring{
+    position:absolute;
+    inset:-6px;
+    border-radius:50%;
+    pointer-events:none;
+  }
+  .knob-val{
+    font-size:9px;
+    color:#e9eef4;
+    background:#101418;
+    border-radius:3px;
+    padding:1px 4px;
+    min-width:34px;
+    text-align:center;
+    font-variant-numeric:tabular-nums;
+  }
+  .toggle-btn{
+    width:100%;
+    font-size:10px;
+    font-weight:800;
+    letter-spacing:.5px;
+    padding:4px 0;
+    border-radius:4px;
+    border:1px solid #10161d;
+    background:linear-gradient(180deg,#3a4756,#232d38);
+    color:#aab7c4;
+    cursor:pointer;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.08);
+  }
+  .toggle-btn.on{
+    background:linear-gradient(180deg,#4fae7a,#2c6f4c);
+    color:#eafff0;
+    box-shadow:0 0 8px rgba(79,174,122,.6), inset 0 0 6px rgba(0,0,0,.3);
+  }
+  .slope-btn{
+    font-size:10px;
+    font-weight:700;
+    color:var(--text-light);
+    background:#181e24;
+    border:1px solid #05070a;
+    border-radius:3px;
+    padding:2px 6px;
+    cursor:pointer;
+  }
+  .mini-row{
+    display:flex;
+    align-items:center;
+    gap:4px;
+    justify-content:center;
+    width:100%;
+  }
 
-        .controls-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-        .rack-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 6px;
-        }
+  /* center master module */
+  #master{
+    background:linear-gradient(180deg,#3d4a58,#252f3a);
+    border-radius:6px;
+    padding:8px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:6px;
+    color:var(--text-light);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.1);
+  }
+  #master .type-box{
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    gap:3px;
+  }
+  #master .type-line{
+    background:#0d1216;
+    border:1px solid #000;
+    border-radius:3px;
+    font-size:10px;
+    letter-spacing:1px;
+    text-align:center;
+    padding:3px 0;
+    color:var(--curve);
+  }
+  #master .trim-label{font-size:10px;font-weight:700;letter-spacing:1px;color:#cfd8e0;}
+  #master .trim-digital{
+    background:#0d1216;
+    border:1px solid #000;
+    border-radius:3px;
+    font-size:12px;
+    text-align:center;
+    padding:2px 6px;
+    color:var(--curve);
+    min-width:56px;
+  }
+  #master .ab-row{display:flex;gap:6px;width:100%;}
+  #master .ab-btn{
+    flex:1;
+    padding:5px 0;
+    text-align:center;
+    font-size:11px;
+    font-weight:800;
+    border-radius:3px;
+    border:1px solid #000;
+    cursor:pointer;
+  }
+  #master .ab-btn.a{background:#c94f45;color:#fff;}
+  #master .ab-btn.b{background:#9aa4ad;color:#22282e;}
+  #master .ab-btn.sel{box-shadow:0 0 8px 2px rgba(255,255,255,.6) inset, 0 0 6px rgba(255,255,255,.5);}
 
-        .panel-box {
-            background: rgba(85, 110, 140, 0.45);
-            border: 2px solid #3c526d;
-            border-radius: 6px;
-            padding: 6px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            box-shadow: inset 0 1px 3px rgba(255,255,255,0.2), 0 2px 5px rgba(0,0,0,0.3);
-            position: relative;
-        }
-
-        .panel-box.beveled-left {
-            clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 0 35%, 15% 0);
-            padding-top: 12px;
-        }
-        .panel-box.beveled-right {
-            clip-path: polygon(0 0, 100% 0, 100% 35%, 100% 100%, 0 100%);
-            padding-top: 12px;
-        }
-
-        .center-master-panel {
-            background: rgba(65, 85, 110, 0.75);
-            border: 2px solid #2d3d52;
-            border-radius: 6px;
-            padding: 6px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .badge-type {
-            background: linear-gradient(to bottom, #f5d76c, #d4af37);
-            color: #111;
-            font-size: 10px;
-            font-weight: bold;
-            padding: 2px 8px;
-            border-radius: 2px;
-            border: 1px solid #7c6212;
-            text-align: center;
-            width: 100%;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.3);
-            cursor: pointer;
-        }
-        .badge-over {
-            background: #11161d;
-            color: #00ffcc;
-            font-size: 9px;
-            font-weight: bold;
-            padding: 1px 6px;
-            border-radius: 2px;
-            border: 1px solid #000;
-            text-align: center;
-            width: 100%;
-            transition: background 0.1s, box-shadow 0.1s;
-        }
-        .label-text {
-            font-size: 8px;
-            font-weight: bold;
-            color: #1a2433;
-            margin-bottom: 1px;
-            letter-spacing: 0.5px;
-            text-align: center;
-        }
-        .oct-box {
-            background: #1e2836;
-            color: #fff;
-            font-size: 9px;
-            padding: 2px 6px;
-            border-radius: 2px;
-            border: 1px solid #0a0e14;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .btn-toggle {
-            background-color: #589670;
-            color: #111;
-            border: 2px outset #7cbfa4;
-            font-size: 9px;
-            font-weight: bold;
-            padding: 2px 8px;
-            border-radius: 2px;
-            cursor: pointer;
-        }
-        .btn-toggle.active {
-            background-color: #2e5940;
-            border-style: inset;
-            color: #fff;
-        }
-        .btn-toggle.bypass-off {
-            background-color: #883333;
-            color: #ffcccc;
-            border-color: #aa5555;
-        }
-
-        .btn-ab {
-            padding: 2px 8px; 
-            font-size: 8px; 
-            font-weight: bold;
-            border-radius: 2px;
-            cursor: pointer;
-            border: 1px solid #000;
-        }
-        .btn-ab.active-a { background: #d9534f; color: #fff; border-style: inset; }
-        .btn-ab.inactive-a { background: #a94442; color: #ddd; opacity: 0.6; }
-        .btn-ab.active-b { background: #f0ad4e; color: #111; border-style: inset; }
-        .btn-ab.inactive-b { background: #eea236; color: #555; opacity: 0.6; }
-
-        .knob-row {
-            display: flex;
-            justify-content: space-around;
-            width: 100%;
-            gap: 4px;
-        }
-        .knob-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin: 2px 0;
-        }
-        .knob {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: radial-gradient(circle, #555 20%, #1a1a1a 85%);
-            border: 2px solid #0a0e14;
-            position: relative;
-            cursor: ns-resize;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.6), inset 0 2px 3px rgba(255,255,255,0.3);
-        }
-        .knob::after {
-            content: '';
-            position: absolute;
-            top: 3px;
-            left: 17px;
-            width: 3px;
-            height: 11px;
-            background: #ffcc00;
-            border-radius: 2px;
-            transform-origin: bottom center;
-        }
-        .knob-value {
-            font-size: 8px;
-            margin-top: 2px;
-            color: #111a26;
-            font-weight: bold;
-            font-family: monospace;
-        }
-
-        .knob.grey::before { content:''; position:absolute; top:6px; left:6px; right:6px; bottom:6px; background:radial-gradient(circle, #9ca3af, #4b5563); border-radius:50%; border:1px solid #0a0e14; z-index:1; }
-        .knob.grey::after { z-index: 2; }
-
-        .knob.blue::before { content:''; position:absolute; top:6px; left:6px; right:6px; bottom:6px; background:radial-gradient(circle, #3b82f6, #1d4ed8); border-radius:50%; border:1px solid #0a0e14; z-index:1; }
-        .knob.blue::after { z-index: 2; }
-
-        .knob.red::before { content:''; position:absolute; top:6px; left:6px; right:6px; bottom:6px; background:radial-gradient(circle, #ef4444, #b91c1c); border-radius:50%; border:1px solid #0a0e14; z-index:1; }
-        .knob.red::after { z-index: 2; }
-
-        .knob.yellow::before { content:''; position:absolute; top:6px; left:6px; right:6px; bottom:6px; background:radial-gradient(circle, #eab308, #a16207); border-radius:50%; border:1px solid #0a0e14; z-index:1; }
-        .knob.yellow::after { z-index: 2; }
-
-        .knob.cyan::before { content:''; position:absolute; top:6px; left:6px; right:6px; bottom:6px; background:radial-gradient(circle, #06b6d4, #0e7490); border-radius:50%; border:1px solid #0a0e14; z-index:1; }
-        .knob.cyan::after { z-index: 2; }
-
-        .player-deck {
-            background: #1c2636;
-            border: 2px solid #0a0e14;
-            border-radius: 6px;
-            padding: 8px;
-            margin-top: 8px;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            box-shadow: inset 0 2px 5px rgba(0,0,0,0.7);
-        }
-        .player-row {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-        .player-row input[type="file"] {
-            color: #d0d8e0;
-            font-size: 11px;
-        }
-        .player-row button {
-            background: linear-gradient(to bottom, #506e94, #364d6b);
-            color: white;
-            border: 1px solid #222;
-            padding: 5px 12px;
-            border-radius: 3px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 11px;
-        }
-        audio { width: 100%; height: 30px; outline: none; }
-    </style>
+  /* transport / media bar */
+  #transport{
+    margin-top:10px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    background:var(--panel-dark);
+    border-radius:6px;
+    padding:8px 12px;
+    flex-wrap:wrap;
+  }
+  #transport button{
+    background:linear-gradient(180deg,#3a4756,#232d38);
+    color:#dbe4ec;
+    border:1px solid #10161d;
+    border-radius:4px;
+    padding:6px 12px;
+    font-size:12px;
+    font-weight:700;
+    cursor:pointer;
+    letter-spacing:.5px;
+  }
+  #transport button:hover{filter:brightness(1.15);}
+  #transport button:active{filter:brightness(.9);}
+  #playpause{min-width:64px;}
+  #timeDisplay{
+    font-size:11px;
+    color:#cfe0ef;
+    font-variant-numeric:tabular-nums;
+    min-width:96px;
+  }
+  #trackName{
+    font-size:11px;
+    color:#8fa3b5;
+    flex:1;
+    min-width:140px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  #ytPopup{
+    position:fixed;inset:0;
+    background:rgba(0,0,0,.6);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:50;
+  }
+  #ytPopup .box{
+    background:#1c2530;
+    padding:18px;
+    border-radius:8px;
+    width:320px;
+    box-shadow:0 10px 40px rgba(0,0,0,.6);
+  }
+  #ytPopup input{
+    width:100%;
+    padding:8px;
+    border-radius:4px;
+    border:1px solid #444;
+    background:#0d1319;
+    color:#eee;
+    font-size:12px;
+    margin:10px 0;
+  }
+  #ytPopup .row{display:flex;gap:8px;justify-content:flex-end;}
+  #ytPopup button{
+    padding:6px 12px;
+    border-radius:4px;
+    border:none;
+    cursor:pointer;
+    font-size:12px;
+    font-weight:700;
+  }
+  #ytPopup .cancel{background:#39414c;color:#ccc;}
+  #ytPopup .confirm{background:#4fae7a;color:#062;}
+  #hint{
+    font-size:10px;
+    color:#7b8ea0;
+    padding:6px 4px 0;
+  }
+  @media (max-width:820px){
+    #rack{grid-template-columns:1fr 1fr;}
+    #master{order:5;grid-column:1/3;}
+  }
+</style>
 </head>
 <body>
 
-<div class="plugin-rack">
-    <div class="header-bar">
-        <div class="header-logo-left">Sonnox</div>
-        <div class="header-title-center">OXFORD EQ</div>
-        <div class="header-logo-right">Oxford<br>Plugins :</div>
+<div id="unit">
+  <div id="topbar">
+    <div id="brand">FR AUDIO<span>XGS001DLMS</span></div>
+    <div id="powerled"><div class="led-dot"></div>UNIT ACTIVE</div>
+  </div>
+
+  <div id="display-row">
+    <div id="screen-wrap">
+      <canvas id="eqCanvas"></canvas>
+      <div id="mediaView">
+        <div class="placeholder">NO SOURCE LOADED</div>
+        <video id="videoEl" style="display:none" playsinline></video>
+        <iframe id="yt-embed" style="display:none" allow="autoplay"></iframe>
+      </div>
+    </div>
+    <div id="nav-col">
+      <button class="nav-btn active" id="btnEQ">EQ</button>
+      <button class="nav-btn" id="btnMEDIA">MEDIA</button>
+    </div>
+  </div>
+
+  <div id="rack">
+    <!-- LF band -->
+    <div class="band" id="band-LF">
+      <div class="band-label">LF</div>
+      <div class="mini-row">
+        <div class="slope-btn" data-band="LF">6</div>
+        <div class="toggle-btn" data-band="LF" data-role="shelf">/LF</div>
+      </div>
+      <div class="band-top-row">
+        <div class="knob-cell">
+          <div class="knob-label">FREQ</div>
+          <div class="knob" id="k-LF-freq" style="--dot-color:var(--c-neutral)"></div>
+          <div class="knob-val" id="v-LF-freq">80Hz</div>
+        </div>
+      </div>
+      <div class="knob-cell">
+        <div class="knob-label">GAIN</div>
+        <div class="knob" id="k-LF-gain" style="--dot-color:var(--c-lf)"></div>
+        <div class="knob-val" id="v-LF-gain">0.0dB</div>
+      </div>
+      <button class="toggle-btn on" data-band="LF" data-role="in">IN</button>
     </div>
 
-    <div class="screen-container">
-        <canvas id="eqCanvas" width="850" height="200"></canvas>
+    <!-- LMF band -->
+    <div class="band" id="band-LMF">
+      <div class="band-label">LMF</div>
+      <div class="band-top-row">
+        <div class="knob-cell">
+          <div class="knob-label">FREQ</div>
+          <div class="knob" id="k-LMF-freq" style="--dot-color:var(--c-lmf)"></div>
+          <div class="knob-val" id="v-LMF-freq">250Hz</div>
+        </div>
+        <div class="knob-cell">
+          <div class="knob-label">Q</div>
+          <div class="knob" id="k-LMF-q" style="--dot-color:var(--c-lmf)"></div>
+          <div class="knob-val" id="v-LMF-q">1.0</div>
+        </div>
+      </div>
+      <div class="knob-cell">
+        <div class="knob-label">GAIN</div>
+        <div class="knob" id="k-LMF-gain" style="--dot-color:var(--c-lmf)"></div>
+        <div class="knob-val" id="v-LMF-gain">0.0dB</div>
+      </div>
+      <button class="toggle-btn on" data-band="LMF" data-role="in">IN</button>
     </div>
 
-    <div class="controls-grid">
-        <div class="rack-row">
-            <div class="panel-box beveled-left">
-                <div style="display:flex; justify-content:space-between; width:100%; margin-bottom:4px; align-items:center;">
-                    <div class="oct-box" id="btn-lf-oct">6</div>
-                    <button class="btn-toggle active" id="btn-lff-in">/LF</button>
-                </div>
-                <div class="knob-row">
-                    <div class="knob-container">
-                        <span class="label-text">FREQ</span>
-                        <div class="knob grey" id="knob-lff-freq" data-min="20" data-max="250" data-val="60" data-step="1"></div>
-                        <span class="knob-value" id="val-lff-freq">60 Hz</span>
-                    </div>
-                    <div class="knob-container">
-                        <span class="label-text">Q</span>
-                        <div class="knob grey" id="knob-lff-q" data-min="0.1" data-max="10" data-val="1.0" data-step="0.1"></div>
-                        <span class="knob-value" id="val-lff-q">1.0</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="center-master-panel">
-                <div class="badge-type" id="btn-eq-type" title="Klik untuk mengganti tipe algoritma EQ">TYPE 1</div>
-                <div class="badge-over">OVER</div>
-                <span style="font-size:8px; color:#111; font-weight:bold;">TRIM</span>
-                <div class="knob-container" style="margin:2px 0;">
-                    <div class="knob cyan" style="width:34px; height:34px;" id="knob-trim" data-min="-20" data-max="20" data-val="0" data-step="0.5"></div>
-                    <span class="knob-value" id="val-trim" style="font-size:7px;">0.0 dB</span>
-                </div>
-                <div style="display:flex; gap:4px; width:100%; justify-content:center;">
-                    <button class="btn-ab active-a" id="btn-ab-a">A</button>
-                    <button class="btn-ab inactive-b" id="btn-ab-b">B</button>
-                </div>
-            </div>
-
-            <div class="panel-box beveled-right">
-                <div style="display:flex; justify-content:space-between; width:100%; margin-bottom:4px; align-items:center;">
-                    <button class="btn-toggle active" id="btn-hff-in">HF\</button>
-                    <div class="oct-box" id="btn-hf-oct">6</div>
-                </div>
-                <div class="knob-row">
-                    <div class="knob-container">
-                        <span class="label-text">FREQ</span>
-                        <div class="knob grey" id="knob-hff-freq" data-min="5000" data-max="20000" data-val="10000" data-step="50"></div>
-                        <span class="knob-value" id="val-hff-freq">10K Hz</span>
-                    </div>
-                    <div class="knob-container">
-                        <span class="label-text">Q</span>
-                        <div class="knob grey" id="knob-hff-q" data-min="0.1" data-max="10" data-val="1.0" data-step="0.1"></div>
-                        <span class="knob-value" id="val-hff-q">1.0</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="rack-row">
-            <div class="panel-box">
-                <div class="knob-row">
-                    <div class="knob-container">
-                        <span class="label-text">FREQ</span>
-                        <div class="knob grey" id="knob-lmf-freq" data-min="100" data-max="1000" data-val="300" data-step="1"></div>
-                        <span class="knob-value" id="val-lmf-freq">300 Hz</span>
-                    </div>
-                    <div class="knob-container">
-                        <span class="label-text">GAIN</span>
-                        <div class="knob grey" id="knob-lmf-gain" data-min="-20" data-max="20" data-val="0" data-step="0.5"></div>
-                        <span class="knob-value" id="val-lmf-gain">0.0 dB</span>
-                    </div>
-                </div>
-                <div style="display:flex; justify-content:space-between; width:100%; margin-top:4px; align-items:center;">
-                    <span style="font-size:9px; font-weight:bold; color:#111;">LMF</span>
-                    <button class="btn-toggle active" style="font-size:8px; padding:2px 6px;" id="btn-lmf-in">IN</button>
-                </div>
-            </div>
-
-            <div style="background: rgba(65, 85, 110, 0.3); border: 2px dashed #3c526d; border-radius:6px; display:flex; align-items:center; justify-content:center;">
-                <span style="font-size:9px; color:#1c2636; font-weight:bold; letter-spacing:1px;">OXFORD DSP ENGINE</span>
-            </div>
-
-            <div class="panel-box">
-                <div class="knob-row">
-                    <div class="knob-container">
-                        <span class="label-text">FREQ</span>
-                        <div class="knob grey" id="knob-hmf-freq" data-min="1000" data-max="10000" data-val="3000" data-step="10"></div>
-                        <span class="knob-value" id="val-hmf-freq">3K Hz</span>
-                    </div>
-                    <div class="knob-container">
-                        <span class="label-text">GAIN</span>
-                        <div class="knob grey" id="knob-hmf-gain" data-min="-20" data-max="20" data-val="0" data-step="0.5"></div>
-                        <span class="knob-value" id="val-hmf-gain">0.0 dB</span>
-                    </div>
-                </div>
-                <div style="display:flex; justify-content:space-between; width:100%; margin-top:4px; align-items:center;">
-                    <button class="btn-toggle active" style="font-size:8px; padding:2px 6px;" id="btn-hmf-in">IN</button>
-                    <span style="font-size:9px; font-weight:bold; color:#111;">HMF</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="rack-row">
-            <div class="panel-box">
-                <div class="knob-row">
-                    <div class="knob-container">
-                        <span class="label-text">FREQ</span>
-                        <div class="knob blue" id="knob-p1-freq" data-min="40" data-max="400" data-val="100" data-step="1"></div>
-                        <span class="knob-value" id="val-p1-freq">100 Hz</span>
-                    </div>
-                    <div class="knob-container">
-                        <span class="label-text">Q</span>
-                        <div class="knob blue" id="knob-p1-q" data-min="0.1" data-max="10" data-val="1.4" data-step="0.1"></div>
-                        <span class="knob-value" id="val-p1-q">1.4</span>
-                    </div>
-                </div>
-                <div class="knob-container" style="margin-top:4px;">
-                    <span class="label-text">GAIN</span>
-                    <div class="knob blue" id="knob-p1-gain" data-min="-20" data-max="20" data-val="0" data-step="0.5"></div>
-                    <span class="knob-value" id="val-p1-gain">0.0 dB</span>
-                </div>
-                <div style="display:flex; justify-content:space-between; width:100%; margin-top:4px; align-items:center;">
-                    <span style="font-size:9px; font-weight:bold; color:#111;">LF</span>
-                    <button class="btn-toggle active" style="font-size:8px; padding:2px 6px;" id="btn-p1-in">IN</button>
-                </div>
-            </div>
-
-            <div class="panel-box">
-                <div class="knob-row">
-                    <div class="knob-container">
-                        <span class="label-text">FREQ</span>
-                        <div class="knob red" id="knob-p2-freq" data-min="200" data-max="5000" data-val="1000" data-step="10"></div>
-                        <span class="knob-value" id="val-p2-freq">1K Hz</span>
-                    </div>
-                    <div class="knob-container">
-                        <span class="label-text">Q</span>
-                        <div class="knob red" id="knob-p2-q" data-min="0.1" data-max="10" data-val="1.4" data-step="0.1"></div>
-                        <span class="knob-value" id="val-p2-q">1.4</span>
-                    </div>
-                </div>
-                <div class="knob-container" style="margin-top:4px;">
-                    <span class="label-text">GAIN</span>
-                    <div class="knob red" id="knob-p2-gain" data-min="-20" data-max="20" data-val="0" data-step="0.5"></div>
-                    <span class="knob-value" id="val-p2-gain">0.0 dB</span>
-                </div>
-                <div style="display:flex; justify-content:space-between; width:100%; margin-top:4px; align-items:center;">
-                    <span style="font-size:9px; font-weight:bold; color:#111;">MF</span>
-                    <button class="btn-toggle active" style="font-size:8px; padding:2px 6px;" id="btn-p2-in">IN</button>
-                </div>
-            </div>
-
-            <div class="panel-box">
-                <div class="knob-row">
-                    <div class="knob-container">
-                        <span class="label-text">FREQ</span>
-                        <div class="knob yellow" id="knob-p3-freq" data-min="1000" data-max="16000" data-val="6000" data-step="10"></div>
-                        <span class="knob-value" id="val-p3-freq">6K Hz</span>
-                    </div>
-                    <div class="knob-container">
-                        <span class="label-text">OVERSHOOT</span>
-                        <div class="knob yellow" id="knob-p3-q" data-min="0.1" data-max="10" data-val="1.4" data-step="0.1"></div>
-                        <span class="knob-value" id="val-p3-q">1.4</span>
-                    </div>
-                </div>
-                <div class="knob-container" style="margin-top:4px;">
-                    <span class="label-text">GAIN</span>
-                    <div class="knob yellow" id="knob-p3-gain" data-min="-20" data-max="20" data-val="0" data-step="0.5"></div>
-                    <span class="knob-value" id="val-p3-gain">0.0 dB</span>
-                </div>
-                <div style="display:flex; justify-content:space-between; width:100%; margin-top:4px; align-items:center;">
-                    <button class="btn-toggle active" style="font-size:8px; padding:2px 6px;" id="btn-p3-in">IN</button>
-                    <span style="font-size:9px; font-weight:bold; color:#111;">HF</span>
-                </div>
-            </div>
-        </div>
+    <!-- Master center module -->
+    <div id="master">
+      <div class="type-box">
+        <div class="type-line">TYPE 1</div>
+        <div class="type-line">OVER</div>
+      </div>
+      <div class="trim-label">TRIM</div>
+      <div class="knob" id="k-trim" style="--dot-color:var(--curve)"></div>
+      <div class="trim-digital" id="v-trim">0.0 dB</div>
+      <div class="ab-row">
+        <div class="ab-btn a sel" id="btnA">A</div>
+        <div class="ab-btn b" id="btnB">B</div>
+      </div>
     </div>
 
-    <div class="player-deck">
-        <div class="player-row">
-            <input type="file" id="audioFile" accept="audio/*">
-            <button id="playPauseBtn">PLAY / PAUSE AUDIO</button>
+    <!-- HMF band -->
+    <div class="band" id="band-HMF">
+      <div class="band-label">HMF</div>
+      <div class="band-top-row">
+        <div class="knob-cell">
+          <div class="knob-label">FREQ</div>
+          <div class="knob" id="k-HMF-freq" style="--dot-color:var(--c-hmf)"></div>
+          <div class="knob-val" id="v-HMF-freq">2.5kHz</div>
         </div>
-        <audio id="audioElement" controls></audio>
+        <div class="knob-cell">
+          <div class="knob-label">Q</div>
+          <div class="knob" id="k-HMF-q" style="--dot-color:var(--c-hmf)"></div>
+          <div class="knob-val" id="v-HMF-q">1.0</div>
+        </div>
+      </div>
+      <div class="knob-cell">
+        <div class="knob-label">GAIN</div>
+        <div class="knob" id="k-HMF-gain" style="--dot-color:var(--c-hmf)"></div>
+        <div class="knob-val" id="v-HMF-gain">0.0dB</div>
+      </div>
+      <button class="toggle-btn on" data-band="HMF" data-role="in">IN</button>
     </div>
+
+    <!-- HF band -->
+    <div class="band" id="band-HF">
+      <div class="band-label">HF</div>
+      <div class="mini-row">
+        <div class="toggle-btn" data-band="HF" data-role="shelf">\HF</div>
+        <div class="slope-btn" data-band="HF">6</div>
+      </div>
+      <div class="band-top-row">
+        <div class="knob-cell">
+          <div class="knob-label">FREQ</div>
+          <div class="knob" id="k-HF-freq" style="--dot-color:var(--c-neutral)"></div>
+          <div class="knob-val" id="v-HF-freq">8kHz</div>
+        </div>
+      </div>
+      <div class="knob-cell">
+        <div class="knob-label">GAIN</div>
+        <div class="knob" id="k-HF-gain" style="--dot-color:var(--c-hf)"></div>
+        <div class="knob-val" id="v-HF-gain">0.0dB</div>
+      </div>
+      <button class="toggle-btn on" data-band="HF" data-role="in">IN</button>
+    </div>
+
+    <!-- Row 2: LF extra freq knob placeholder handled above; MF band -->
+    <div class="band" id="band-MF" style="grid-column: 2 / 3;">
+      <div class="band-label">MF</div>
+      <div class="band-top-row">
+        <div class="knob-cell">
+          <div class="knob-label">FREQ</div>
+          <div class="knob" id="k-MF-freq" style="--dot-color:var(--c-mf)"></div>
+          <div class="knob-val" id="v-MF-freq">1kHz</div>
+        </div>
+        <div class="knob-cell">
+          <div class="knob-label">Q</div>
+          <div class="knob" id="k-MF-q" style="--dot-color:var(--c-mf)"></div>
+          <div class="knob-val" id="v-MF-q">1.0</div>
+        </div>
+      </div>
+      <div class="knob-cell">
+        <div class="knob-label">GAIN</div>
+        <div class="knob" id="k-MF-gain" style="--dot-color:var(--c-mf)"></div>
+        <div class="knob-val" id="v-MF-gain">0.0dB</div>
+      </div>
+      <button class="toggle-btn on" data-band="MF" data-role="in">IN</button>
+    </div>
+  </div>
+
+  <div id="transport">
+    <button id="loadFileBtn">Load File</button>
+    <button id="loadYTBtn">Load Link YT</button>
+    <button id="playpause">Play</button>
+    <button id="nextBtn">Next</button>
+    <div id="timeDisplay">00:00 / 00:00</div>
+    <div id="trackName">Tidak ada berkas dimuat</div>
+    <input type="file" id="fileInput" accept="audio/*,video/*" style="display:none">
+  </div>
+  <div id="hint">Geser kenop secara vertikal atau gunakan scroll mouse untuk mengubah nilai. Klik tombol IN untuk mem-bypass band. Catatan: audio dari tautan YouTube diputar sebagai video referensi visual dan tidak dapat dirutekan melalui prosesor EQ karena batasan keamanan browser lintas domain — gunakan "Load File" untuk pemrosesan EQ nyata.</div>
+</div>
+
+<div id="ytPopup">
+  <div class="box">
+    <div style="font-size:13px;font-weight:700;margin-bottom:4px;">Masukkan tautan YouTube</div>
+    <input type="text" id="ytInput" placeholder="https://www.youtube.com/watch?v=...">
+    <div class="row">
+      <button class="cancel" id="ytCancel">Batal</button>
+      <button class="confirm" id="ytConfirm">Muat</button>
+    </div>
+  </div>
 </div>
 
 <script>
-    let audioCtx = null;
-    let sourceNode = null;
-    let masterTrimNode = null;
-    let analyserNode = null;
-    let filters = {};
-    let bypassState = { lff: true, hff: true, lmf: true, hmf: true, p1: true, p2: true, p3: true };
-    let eqType = 1; 
-    let currentBank = 'A';
+(function(){
+  'use strict';
 
-    let stateA = {};
-    let stateB = {};
+  /* ============ Audio engine ============ */
+  let audioCtx = null;
+  let sourceNode = null;
+  let mediaEl = document.getElementById('videoEl');
+  let isPlayingLocal = false;
 
-    const canvas = document.getElementById('eqCanvas');
-    const canvasCtx = canvas.getContext('2d');
-    const width = canvas.width;
-    const height = canvas.height;
+  const bandDefs = {
+    LF:  {type:'lowshelf',  freqMin:20,   freqMax:500,   freqDefault:80,   color:'--c-lf',  hasQ:false},
+    LMF: {type:'peaking',   freqMin:60,   freqMax:2000,  freqDefault:250,  color:'--c-lmf', hasQ:true},
+    MF:  {type:'peaking',   freqMin:200,  freqMax:6000,  freqDefault:1000, color:'--c-mf',  hasQ:true},
+    HMF: {type:'peaking',   freqMin:800,  freqMax:12000, freqDefault:2500, color:'--c-hmf', hasQ:true},
+    HF:  {type:'highshelf', freqMin:2000, freqMax:20000, freqDefault:8000, color:'--c-hf',  hasQ:false}
+  };
+  const bandOrder = ['LF','LMF','MF','HMF','HF'];
 
-    function initAudioEngine() {
-        if (!audioCtx) {
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-            masterTrimNode = audioCtx.createGain();
-            masterTrimNode.gain.value = 1.0;
-
-            analyserNode = audioCtx.createAnalyser();
-            analyserNode.fftSize = 256;
-
-            const filterKeys = ['lff', 'hff', 'lmf', 'hmf', 'p1', 'p2', 'p3'];
-            filterKeys.forEach(k => {
-                filters[k] = audioCtx.createBiquadFilter();
-            });
-
-            filters['lff'].type = 'lowshelf';
-            filters['hff'].type = 'highshelf';
-            filters['lmf'].type = 'peaking';
-            filters['hmf'].type = 'peaking';
-            filters['p1'].type = 'peaking';
-            filters['p2'].type = 'peaking';
-            filters['p3'].type = 'peaking';
-
-            let prevKey = null;
-            filterKeys.forEach(k => {
-                if (prevKey) filters[prevKey].connect(filters[k]);
-                prevKey = k;
-            });
-
-            filters['p3'].connect(masterTrimNode);
-            masterTrimNode.connect(analyserNode);
-            analyserNode.connect(audioCtx.destination);
-
-            startPeakMeter();
-        }
-    }
-
-    function startPeakMeter() {
-        const bufferLength = analyserNode.frequencyBinCount;
-        const dataArray = new Uint8Array(bufferLength);
-        const overBadge = document.querySelector('.badge-over');
-        let holdTimer = null;
-
-        function checkPeak() {
-            if (!audioCtx || audioCtx.state !== 'running') {
-                requestAnimationFrame(checkPeak);
-                return;
-            }
-
-            analyserNode.getByteTimeDomainData(dataArray);
-            let maxSample = 0;
-            
-            for (let i = 0; i < bufferLength; i++) {
-                let sample = Math.abs(dataArray[i] - 128) / 128;
-                if (sample > maxSample) maxSample = sample;
-            }
-
-            if (maxSample >= 0.98) {
-                overBadge.style.background = '#ff3333';
-                overBadge.style.color = '#ffffff';
-                overBadge.style.boxShadow = '0 0 8px #ff3333';
-                
-                clearTimeout(holdTimer);
-                holdTimer = setTimeout(() => {
-                    overBadge.style.background = '#11161d';
-                    overBadge.style.color = '#00ffcc';
-                    overBadge.style.boxShadow = 'none';
-                }, 400);
-            }
-
-            requestAnimationFrame(checkPeak);
-        }
-        requestAnimationFrame(checkPeak);
-    }
-
-    const knobMap = {
-        'knob-lff-freq': { filter: 'lff', param: 'frequency', unit: 'Hz' },
-        'knob-lff-q':    { filter: 'lff', param: 'Q', unit: '' },
-        'knob-hff-freq': { filter: 'hff', param: 'frequency', unit: 'Hz' },
-        'knob-hff-q':    { filter: 'hff', param: 'Q', unit: '' },
-        'knob-lmf-freq': { filter: 'lmf', param: 'frequency', unit: 'Hz' },
-        'knob-lmf-gain': { filter: 'lmf', param: 'gain', unit: 'dB' },
-        'knob-hmf-freq': { filter: 'hmf', param: 'frequency', unit: 'Hz' },
-        'knob-hmf-gain': { filter: 'hmf', param: 'gain', unit: 'dB' },
-        'knob-trim':     { type: 'trim', unit: 'dB' },
-
-        'knob-p1-freq':  { filter: 'p1', param: 'frequency', unit: 'Hz' },
-        'knob-p1-q':     { filter: 'p1', param: 'Q', unit: '' },
-        'knob-p1-gain':  { filter: 'p1', param: 'gain', unit: 'dB' },
-
-        'knob-p2-freq':  { filter: 'p2', param: 'frequency', unit: 'Hz' },
-        'knob-p2-q':     { filter: 'p2', param: 'Q', unit: '' },
-        'knob-p2-gain':  { filter: 'p2', param: 'gain', unit: 'dB' },
-
-        'knob-p3-freq':  { filter: 'p3', param: 'frequency', unit: 'Hz' },
-        'knob-p3-q':     { filter: 'p3', param: 'Q', unit: '' }, 
-        'knob-p3-gain':  { filter: 'p3', param: 'gain', unit: 'dB' }
+  const state = {};
+  bandOrder.forEach(b=>{
+    state[b] = {
+      freq: bandDefs[b].freqDefault,
+      gain: 0,
+      q: 1.0,
+      on: true
     };
+  });
+  state.trim = 0;
 
-    document.querySelectorAll('.knob').forEach(knob => {
-        stateA[knob.id] = parseFloat(knob.getAttribute('data-val'));
-        stateB[knob.id] = parseFloat(knob.getAttribute('data-val'));
+  let filters = {};
+  let trimGain = null;
+  let analyserNode = null;
+
+  function buildGraph(){
+    if(!audioCtx) return;
+    // (re)create filter chain
+    filters = {};
+    bandOrder.forEach(b=>{
+      const f = audioCtx.createBiquadFilter();
+      f.type = bandDefs[b].type;
+      f.frequency.value = state[b].freq;
+      f.gain.value = state[b].on ? state[b].gain : 0;
+      if(bandDefs[b].hasQ) f.Q.value = state[b].q;
+      filters[b] = f;
     });
+    trimGain = audioCtx.createGain();
+    trimGain.gain.value = dbToLinear(state.trim);
+    analyserNode = audioCtx.createAnalyser();
 
-    document.querySelectorAll('.knob').forEach(knob => {
-        let isDragging = false;
-        let startY = 0;
-        const id = knob.id;
-        const cfg = knobMap[id];
-        if (!cfg) return;
-
-        let min = parseFloat(knob.getAttribute('data-min'));
-        let max = parseFloat(knob.getAttribute('data-max'));
-        let step = parseFloat(knob.getAttribute('data-step'));
-
-        function updateKnobState(val, saveToCurrentBank = true) {
-            let percent = (val - min) / (max - min);
-            let deg = percent * 270 - 135;
-            knob.style.transform = `rotate(${deg}deg)`;
-            knob.setAttribute('data-val', val);
-
-            if (saveToCurrentBank) {
-                if (currentBank === 'A') stateA[id] = val;
-                else stateB[id] = val;
-            }
-
-            let displayTxt = val;
-            if (cfg.param === 'frequency' && val >= 1000) {
-                displayTxt = (val / 1000).toFixed(val % 1000 !== 0 ? 1 : 0) + 'K';
-            } else {
-                displayTxt = val.toFixed(cfg.unit === 'dB' ? 1 : 1);
-            }
-
-            const valSpan = document.getElementById('val-' + id.replace('knob-', ''));
-            if (valSpan) valSpan.textContent = displayTxt + ' ' + cfg.unit;
-
-            if (audioCtx) {
-                let currentTime = audioCtx.currentTime;
-                let targetTime = currentTime + 0.03; // Smooth ramp to avoid zipper noise
-
-                if (cfg.type === 'trim') {
-                    let targetGain = Math.pow(10, val / 20);
-                    masterTrimNode.gain.cancelScheduledValues(currentTime);
-                    masterTrimNode.gain.setValueAtTime(masterTrimNode.gain.value, currentTime);
-                    masterTrimNode.gain.linearRampToValueAtTime(targetGain, targetTime);
-                } else if (cfg.filter && filters[cfg.filter]) {
-                    let activeVal = bypassState[cfg.filter] ? val : (cfg.param === 'gain' ? 0 : filters[cfg.filter][cfg.param].value);
-                    if (cfg.filter === 'p3' && cfg.param === 'Q' && eqType === 2) {
-                        activeVal *= 1.5; 
-                    }
-                    let paramObj = filters[cfg.filter][cfg.param];
-                    paramObj.cancelScheduledValues(currentTime);
-                    paramObj.setValueAtTime(paramObj.value, currentTime);
-                    paramObj.linearRampToValueAtTime(activeVal, targetTime);
-                }
-            }
-            drawFrequencyCurve();
-        }
-
-        updateKnobState(parseFloat(knob.getAttribute('data-val')), false);
-
-        knob.addEventListener('mousedown', (e) => {
-            isDragging = true;
-            startY = e.clientY;
-            e.preventDefault();
-        });
-
-        window.addEventListener('mousemove', (e) => {
-            if (!isDragging) return;
-            let deltaY = startY - e.clientY;
-            startY = e.clientY;
-
-            let val = parseFloat(knob.getAttribute('data-val'));
-            let range = max - min;
-            val += (deltaY / 100) * range * 0.08;
-            if (val < min) val = min;
-            if (val > max) val = max;
-
-            val = Math.round(val / step) * step;
-            updateKnobState(val, true);
-        });
-
-        window.addEventListener('mouseup', () => { isDragging = false; });
+    // chain them
+    let prev = null;
+    bandOrder.forEach(b=>{
+      if(prev) prev.connect(filters[b]);
+      prev = filters[b];
     });
+    prev.connect(trimGain);
+    trimGain.connect(analyserNode);
+    analyserNode.connect(audioCtx.destination);
+  }
 
-    const bypassMap = {
-        'btn-lff-in': 'lff',
-        'btn-hff-in': 'hff',
-        'btn-lmf-in': 'lmf',
-        'btn-hmf-in': 'hmf',
-        'btn-p1-in': 'p1',
-        'btn-p2-in': 'p2',
-        'btn-p3-in': 'p3'
-    };
+  function dbToLinear(db){ return Math.pow(10, db/20); }
 
-    Object.keys(bypassMap).forEach(btnId => {
-        const btn = document.getElementById(btnId);
-        const filterKey = bypassMap[btnId];
-        if (!btn) return;
+  function connectSource(){
+    if(!audioCtx) return;
+    if(sourceNode){
+      try{ sourceNode.disconnect(); }catch(e){}
+    }
+    sourceNode = audioCtx.createMediaElementSource(mediaEl);
+    sourceNode.connect(filters[bandOrder[0]]);
+  }
 
-        btn.addEventListener('click', () => {
-            bypassState[filterKey] = !bypassState[filterKey];
-            btn.classList.toggle('active', bypassState[filterKey]);
-            btn.classList.toggle('bypass-off', !bypassState[filterKey]);
+  function ensureAudioCtx(){
+    if(!audioCtx){
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      buildGraph();
+    }
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+  }
 
-            if (audioCtx && filters[filterKey]) {
-                if (!bypassState[filterKey]) {
-                    if (filters[filterKey].type === 'peaking') filters[filterKey].gain.value = 0;
-                    else filters[filterKey].Q.value = 0.1;
-                } else {
-                    const activeKnob = document.getElementById(filterKey === 'lff' || filterKey === 'hff' ? `knob-${filterKey}-q` : `knob-${filterKey}-gain`);
-                    if (activeKnob) {
-                        filters[filterKey][filterKey.includes('ff') ? 'Q' : 'gain'].value = parseFloat(activeKnob.getAttribute('data-val'));
-                    }
-                }
-            }
-            drawFrequencyCurve();
-        });
-    });
+  function updateFilterParam(band, param){
+    if(!filters[band]) return;
+    const f = filters[band];
+    const s = state[band];
+    if(param==='freq' || param==='all') f.frequency.value = s.freq;
+    if(param==='gain' || param==='all') f.gain.value = s.on ? s.gain : 0;
+    if(param==='q' || param==='all') { if(bandDefs[band].hasQ) f.Q.value = s.q; }
+    if(param==='on' || param==='all') f.gain.value = s.on ? s.gain : 0;
+  }
 
-    const btnEqType = document.getElementById('btn-eq-type');
-    btnEqType.addEventListener('click', () => {
-        eqType = eqType === 1 ? 2 : 1;
-        btnEqType.textContent = `TYPE ${eqType}`;
-        drawFrequencyCurve();
-    });
+  /* ============ Knob widget ============ */
+  function fmtFreq(v){
+    return v>=1000 ? (v/1000).toFixed(v>=10000?1:2).replace(/\.0$/,'') + 'kHz' : Math.round(v)+'Hz';
+  }
+  function fmtDb(v){
+    return (v>=0?'+':'') + v.toFixed(1)+'dB';
+  }
+  function fmtQ(v){ return v.toFixed(2); }
 
-    const btnA = document.getElementById('btn-ab-a');
-    const btnB = document.getElementById('btn-ab-b');
+  function makeKnob(el, opts){
+    // opts: {min,max,value,log,angleRange, onChange, format}
+    const angle = opts.angleRange || 270; // total sweep degrees
+    let value = opts.value;
 
-    function switchBank(targetBank) {
-        currentBank = targetBank;
-        const sourceState = currentBank === 'A' ? stateA : stateB;
-
-        if (currentBank === 'A') {
-            btnA.className = 'btn-ab active-a';
-            btnB.className = 'btn-ab inactive-b';
-        } else {
-            btnB.className = 'btn-ab active-b';
-            btnA.className = 'btn-ab inactive-a';
-        }
-
-        Object.keys(sourceState).forEach(knobId => {
-            const knob = document.getElementById(knobId);
-            if (!knob) return;
-            let val = sourceState[knobId];
-            let min = parseFloat(knob.getAttribute('data-min'));
-            let max = parseFloat(knob.getAttribute('data-max'));
-            let percent = (val - min) / (max - min);
-            let deg = percent * 270 - 135;
-            knob.style.transform = `rotate(${deg}deg)`;
-            knob.setAttribute('data-val', val);
-
-            const cfg = knobMap[knobId];
-            const valSpan = document.getElementById('val-' + knobId.replace('knob-', ''));
-            if (valSpan) {
-                let displayTxt = (cfg.param === 'frequency' && val >= 1000) ? (val / 1000).toFixed(val % 1000 !== 0 ? 1 : 0) + 'K' : val.toFixed(1);
-                valSpan.textContent = displayTxt + ' ' + cfg.unit;
-            }
-
-            if (audioCtx) {
-                if (cfg.type === 'trim') masterTrimNode.gain.value = Math.pow(10, val / 20);
-                else if (cfg.filter && filters[cfg.filter]) filters[cfg.filter][cfg.param].value = val;
-            }
-        });
-        drawFrequencyCurve();
+    function valueToFrac(v){
+      if(opts.log){
+        const lo = Math.log(opts.min), hi = Math.log(opts.max);
+        return (Math.log(v)-lo)/(hi-lo);
+      }
+      return (v-opts.min)/(opts.max-opts.min);
+    }
+    function fracToValue(f){
+      f = Math.max(0,Math.min(1,f));
+      if(opts.log){
+        const lo = Math.log(opts.min), hi = Math.log(opts.max);
+        return Math.exp(lo + f*(hi-lo));
+      }
+      return opts.min + f*(opts.max-opts.min);
+    }
+    function render(){
+      const frac = valueToFrac(value);
+      const rot = -angle/2 + frac*angle;
+      el.style.setProperty('--rot', rot+'deg');
+      if(opts.onRender) opts.onRender(value);
+    }
+    function setValue(v, notify){
+      value = Math.max(opts.min, Math.min(opts.max, v));
+      render();
+      if(notify!==false && opts.onChange) opts.onChange(value);
     }
 
-    btnA.addEventListener('click', () => switchBank('A'));
-    btnB.addEventListener('click', () => switchBank('B'));
+    let dragging=false, startY=0, startFrac=0;
+    el.addEventListener('mousedown', (e)=>{
+      dragging=true; startY = e.clientY; startFrac = valueToFrac(value);
+      document.body.style.cursor='ns-resize';
+      e.preventDefault();
+    });
+    window.addEventListener('mousemove',(e)=>{
+      if(!dragging) return;
+      const dy = startY - e.clientY;
+      const frac = startFrac + dy/160;
+      setValue(fracToValue(frac));
+    });
+    window.addEventListener('mouseup',()=>{ dragging=false; document.body.style.cursor=''; });
 
-    function drawFrequencyCurve() {
-        canvasCtx.fillStyle = '#1a2332';
-        canvasCtx.fillRect(0, 0, width, height);
+    el.addEventListener('touchstart',(e)=>{
+      dragging=true; startY=e.touches[0].clientY; startFrac=valueToFrac(value);
+    }, {passive:true});
+    el.addEventListener('touchmove',(e)=>{
+      if(!dragging) return;
+      const dy = startY - e.touches[0].clientY;
+      const frac = startFrac + dy/160;
+      setValue(fracToValue(frac));
+    }, {passive:true});
+    el.addEventListener('touchend',()=>{dragging=false;});
 
-        const padLeft = 35;
-        const padRight = 35;
-        const plotWidth = width - padLeft - padRight;
-        const plotHeight = height - 30;
+    el.addEventListener('wheel',(e)=>{
+      e.preventDefault();
+      const step = (opts.max-opts.min)/200;
+      const dir = e.deltaY < 0 ? 1 : -1;
+      if(opts.log){
+        const frac = valueToFrac(value) + dir*0.01;
+        setValue(fracToValue(frac));
+      } else {
+        setValue(value + dir*step*4);
+      }
+    }, {passive:false});
 
-        canvasCtx.strokeStyle = '#27374b';
-        canvasCtx.lineWidth = 1;
+    el.addEventListener('dblclick', ()=>{ setValue(opts.defaultValue!==undefined?opts.defaultValue:value); });
 
-        const freqMarkers = [20, 40, 60, 100, 200, 400, 600, 1000, 2000, 4000, 6000, 10000, 20000];
-        freqMarkers.forEach(f => {
-            let x = padLeft + (Math.log10(f / 20) / Math.log10(20000 / 20)) * plotWidth;
-            canvasCtx.beginPath(); canvasCtx.moveTo(x, 0); canvasCtx.lineTo(x, plotHeight); canvasCtx.stroke();
-            
-            if ([20, 40, 60, 100, 200, 400, 600, 1000, 2000, 4000, 6000, 10000].includes(f)) {
-                canvasCtx.fillStyle = '#8899aa';
-                canvasCtx.font = '8px Arial';
-                let labelTxt = f >= 1000 ? (f/1000) + 'K' : f;
-                canvasCtx.fillText(labelTxt, x - 6, height - 6);
-            }
-        });
+    render();
+    return { setValue, getValue:()=>value };
+  }
 
-        const dbSteps = [20, 15, 10, 5, 0, -5, -10, -15, -20];
-        dbSteps.forEach(db => {
-            let y = (plotHeight / 2) - (db * (plotHeight / 40));
-            canvasCtx.strokeStyle = db === 0 ? '#384d6b' : '#27374b';
-            canvasCtx.beginPath(); canvasCtx.moveTo(padLeft, y); canvasCtx.lineTo(width - padRight, y); canvasCtx.stroke();
+  /* ============ Wire up bands ============ */
+  const knobRefs = {};
 
-            canvasCtx.fillStyle = '#8899aa';
-            canvasCtx.font = '8px Arial';
-            let txt = (db > 0 ? '+' : '') + db;
-            canvasCtx.fillText(txt, 5, y + 3);
-            canvasCtx.fillText(txt, width - 28, y + 3);
-        });
+  bandOrder.forEach(band=>{
+    const def = bandDefs[band];
+    const valEl = document.getElementById('v-'+band+'-freq');
+    knobRefs[band+'-freq'] = makeKnob(document.getElementById('k-'+band+'-freq'), {
+      min:def.freqMin, max:def.freqMax, value:state[band].freq, log:true, defaultValue:def.freqDefault,
+      onChange:(v)=>{ state[band].freq=v; updateFilterParam(band,'freq'); valEl.textContent=fmtFreq(v); drawResponse(); },
+      onRender:(v)=>{ valEl.textContent=fmtFreq(v); }
+    });
 
-        const freqArray = new Float32Array(plotWidth);
-        for (let i = 0; i < plotWidth; i++) {
-            freqArray[i] = 20 * Math.pow(20000 / 20, i / plotWidth);
+    const gEl = document.getElementById('v-'+band+'-gain');
+    knobRefs[band+'-gain'] = makeKnob(document.getElementById('k-'+band+'-gain'), {
+      min:-18, max:18, value:state[band].gain, defaultValue:0,
+      onChange:(v)=>{ state[band].gain=v; updateFilterParam(band,'gain'); gEl.textContent=fmtDb(v); drawResponse(); },
+      onRender:(v)=>{ gEl.textContent=fmtDb(v); }
+    });
+
+    if(def.hasQ){
+      const qEl = document.getElementById('v-'+band+'-q');
+      knobRefs[band+'-q'] = makeKnob(document.getElementById('k-'+band+'-q'), {
+        min:0.1, max:10, value:state[band].q, log:true, defaultValue:1.0,
+        onChange:(v)=>{ state[band].q=v; updateFilterParam(band,'q'); qEl.textContent=fmtQ(v); drawResponse(); },
+        onRender:(v)=>{ qEl.textContent=fmtQ(v); }
+      });
+    }
+  });
+
+  knobRefs['trim'] = makeKnob(document.getElementById('k-trim'), {
+    min:-20, max:20, value:0, defaultValue:0,
+    onChange:(v)=>{ state.trim=v; if(trimGain) trimGain.gain.value=dbToLinear(v); document.getElementById('v-trim').textContent=fmtDb(v); },
+    onRender:(v)=>{ document.getElementById('v-trim').textContent=fmtDb(v); }
+  });
+
+  // IN toggle buttons
+  document.querySelectorAll('.toggle-btn[data-role="in"]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const band = btn.dataset.band;
+      state[band].on = !state[band].on;
+      btn.classList.toggle('on', state[band].on);
+      updateFilterParam(band,'on');
+      drawResponse();
+    });
+  });
+
+  // A/B compare (two simple snapshot slots)
+  let snapshots = {A:null, B:null};
+  let currentSlot = 'A';
+  function snapshotCurrent(){
+    return JSON.parse(JSON.stringify(state));
+  }
+  function applySnapshot(s){
+    if(!s) return;
+    bandOrder.forEach(b=>{
+      state[b].freq=s[b].freq; state[b].gain=s[b].gain; state[b].q=s[b].q; state[b].on=s[b].on;
+      knobRefs[b+'-freq'].setValue(s[b].freq,false);
+      knobRefs[b+'-gain'].setValue(s[b].gain,false);
+      if(bandDefs[b].hasQ) knobRefs[b+'-q'].setValue(s[b].q,false);
+      document.querySelector('.toggle-btn[data-band="'+b+'"][data-role="in"]').classList.toggle('on', s[b].on);
+      updateFilterParam(b,'all');
+    });
+    state.trim = s.trim; knobRefs['trim'].setValue(s.trim,false);
+    if(trimGain) trimGain.gain.value = dbToLinear(s.trim);
+    drawResponse();
+  }
+  snapshots.A = snapshotCurrent();
+  document.getElementById('btnA').addEventListener('click',()=>{
+    snapshots[currentSlot] = snapshotCurrent();
+    currentSlot='A';
+    document.getElementById('btnA').classList.add('sel');
+    document.getElementById('btnB').classList.remove('sel');
+    if(snapshots.A) applySnapshot(snapshots.A);
+  });
+  document.getElementById('btnB').addEventListener('click',()=>{
+    snapshots[currentSlot] = snapshotCurrent();
+    currentSlot='B';
+    document.getElementById('btnB').classList.add('sel');
+    document.getElementById('btnA').classList.remove('sel');
+    if(!snapshots.B) snapshots.B = snapshotCurrent();
+    applySnapshot(snapshots.B);
+  });
+
+  // LF/HF shelf-toggle buttons + slope buttons (cosmetic / affect filter type choice)
+  document.querySelectorAll('.toggle-btn[data-role="shelf"]').forEach(btn=>{
+    btn.classList.add('on');
+    btn.addEventListener('click', ()=>{
+      // toggles between shelf and peaking behavior for LF/HF
+      const band = btn.dataset.band;
+      const nowShelf = btn.classList.toggle('on');
+      bandDefs[band].type = nowShelf ? (band==='LF'?'lowshelf':'highshelf') : 'peaking';
+      if(filters[band]) filters[band].type = bandDefs[band].type;
+      drawResponse();
+    });
+  });
+  document.querySelectorAll('.slope-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      // cycles displayed slope value (cosmetic label; shelf slope realism limited by BiquadFilter)
+      const vals=[6,12,18,24];
+      let idx = vals.indexOf(parseInt(btn.textContent,10));
+      idx = (idx+1)%vals.length;
+      btn.textContent = vals[idx];
+    });
+  });
+
+  /* ============ Frequency response drawing ============ */
+  const canvas = document.getElementById('eqCanvas');
+  const ctx = canvas.getContext('2d');
+  const FREQ_POINTS = 240;
+  const freqArray = new Float32Array(FREQ_POINTS);
+  for(let i=0;i<FREQ_POINTS;i++){
+    const t = i/(FREQ_POINTS-1);
+    freqArray[i] = 20*Math.pow(1000, t); // 20Hz .. 20000Hz log
+  }
+
+  function resizeCanvas(){
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * devicePixelRatio;
+    canvas.height = rect.height * devicePixelRatio;
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    drawResponse();
+  }
+  window.addEventListener('resize', resizeCanvas);
+
+  function computeMagnitudeDb(){
+    // If audio context not yet created, compute manually via formulae approximations using offline biquad math.
+    const totalDb = new Float32Array(FREQ_POINTS);
+    if(audioCtx && filters[bandOrder[0]]){
+      const mag = new Float32Array(FREQ_POINTS);
+      const phase = new Float32Array(FREQ_POINTS);
+      const accumDb = new Float32Array(FREQ_POINTS).fill(0);
+      bandOrder.forEach(b=>{
+        filters[b].getFrequencyResponse(freqArray, mag, phase);
+        for(let i=0;i<FREQ_POINTS;i++){
+          accumDb[i] += 20*Math.log10(mag[i] || 1e-6);
         }
-
-        let totalMag = new Float32Array(plotWidth).fill(1.0);
-        if (audioCtx) {
-            Object.keys(filters).forEach(k => {
-                if (!bypassState[k]) return;
-                const mag = new Float32Array(plotWidth);
-                const phase = new Float32Array(plotWidth);
-                filters[k].getFrequencyResponse(freqArray, mag, phase);
-                for (let i = 0; i < plotWidth; i++) totalMag[i] *= mag[i];
-            });
-        }
-
-        canvasCtx.strokeStyle = '#e6d545';
-        canvasCtx.lineWidth = 2.5;
-        canvasCtx.beginPath();
-
-        for (let i = 0; i < plotWidth; i++) {
-            let db = 20 * Math.log10(Math.max(totalMag[i], 0.0001));
-            let y = (plotHeight / 2) - (db * (plotHeight / 40));
-            let x = padLeft + i;
-            if (i === 0) canvasCtx.moveTo(x, y);
-            else canvasCtx.lineTo(x, y);
-        }
-        canvasCtx.stroke();
-
-        canvasCtx.lineTo(padLeft + plotWidth, plotHeight / 2);
-        canvasCtx.lineTo(padLeft, plotHeight / 2);
-        canvasCtx.fillStyle = 'rgba(46, 117, 79, 0.35)';
-        canvasCtx.fill();
-
-        const bandMarkers = [
-            { id: 'knob-lff-freq', color: '#9ca3af' },
-            { id: 'knob-p1-freq', color: '#3b82f6' },
-            { id: 'knob-p2-freq', color: '#ef4444' },
-            { id: 'knob-p3-freq', color: '#eab308' },
-            { id: 'knob-hff-freq', color: '#ffffff' }
-        ];
-
-        bandMarkers.forEach(m => {
-            const knob = document.getElementById(m.id);
-            if (!knob) return;
-            let fVal = parseFloat(knob.getAttribute('data-val'));
-            let x = padLeft + (Math.log10(fVal / 20) / Math.log10(20000 / 20)) * plotWidth;
-            
-            let correspondingGainId = m.id.replace('freq', 'gain');
-            let gVal = 0;
-            const gKnob = document.getElementById(correspondingGainId);
-            if (gKnob) gVal = parseFloat(gKnob.getAttribute('data-val'));
-
-            let y = (plotHeight / 2) - (gVal * (plotHeight / 40));
-
-            canvasCtx.fillStyle = m.color;
-            canvasCtx.beginPath();
-            canvasCtx.arc(x, y, 4, 0, Math.PI * 2);
-            canvasCtx.fill();
-            canvasCtx.lineWidth = 1;
-            canvasCtx.strokeStyle = '#000';
-            canvasCtx.stroke();
+      });
+      for(let i=0;i<FREQ_POINTS;i++) totalDb[i] = accumDb[i] + state.trim;
+      return totalDb;
+    } else {
+      // offline approximate using temp OfflineAudioContext-free biquad math (simple peaking approximation)
+      for(let i=0;i<FREQ_POINTS;i++){
+        let db = state.trim;
+        bandOrder.forEach(b=>{
+          db += approxBandDb(b, freqArray[i]);
         });
+        totalDb[i] = db;
+      }
+      return totalDb;
+    }
+  }
+
+  function approxBandDb(band, f){
+    const s = state[band];
+    if(!s.on) return 0;
+    const def = bandDefs[band];
+    const f0 = s.freq;
+    const g = s.gain;
+    if(def.type==='lowshelf'){
+      const x = f/f0;
+      return g / (1+Math.pow(x,2));
+    } else if(def.type==='highshelf'){
+      const x = f0/f;
+      return g / (1+Math.pow(x,2));
+    } else {
+      const q = s.q || 1;
+      const x = (f/f0 - f0/f) * q;
+      return g / (1+x*x);
+    }
+  }
+
+  function drawResponse(){
+    if(!ctx || canvas.clientWidth===0) return;
+    const W = canvas.clientWidth, H = canvas.clientHeight;
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle = '#0d1620';
+    ctx.fillRect(0,0,W,H);
+
+    const dbTop=20, dbBottom=-20;
+    const padL=34, padR=10, padT=10, padB=18;
+    const plotW = W-padL-padR, plotH = H-padT-padB;
+
+    function xForFreq(f){
+      const t = Math.log(f/20)/Math.log(1000);
+      return padL + t*plotW;
+    }
+    function yForDb(db){
+      const t = (db-dbTop)/(dbBottom-dbTop);
+      return padT + t*plotH;
     }
 
-    setTimeout(drawFrequencyCurve, 100);
-
-    const audioElement = document.getElementById('audioElement');
-    const audioFileInput = document.getElementById('audioFile');
-    const playPauseBtn = document.getElementById('playPauseBtn');
-
-    audioFileInput.addEventListener('change', function(e) {
-        initAudioEngine();
-        const file = e.target.files[0];
-        if (!file) return;
-
-        const fileURL = URL.createObjectURL(file);
-        audioElement.src = fileURL;
-
-        if (sourceNode) {
-            try { sourceNode.disconnect(); } catch(err) {}
-        }
-
-        sourceNode = audioCtx.createMediaElementSource(audioElement);
-        sourceNode.connect(filters['lff']);
-        audioElement.play();
+    // grid
+    ctx.strokeStyle = '#1c2c3a';
+    ctx.lineWidth=1;
+    ctx.font = '9px Segoe UI, Arial';
+    ctx.fillStyle = '#5a7185';
+    const dbLines=[20,15,10,5,0,-5,-10,-15,-20];
+    dbLines.forEach(db=>{
+      const y = yForDb(db);
+      ctx.beginPath();
+      ctx.moveTo(padL,y); ctx.lineTo(W-padR,y);
+      ctx.strokeStyle = db===0 ? '#33495c' : '#182530';
+      ctx.stroke();
+      ctx.fillText(db, 2, y+3);
+      ctx.fillText(db, W-padR+2, y+3);
+    });
+    const freqLines=[20,40,60,100,200,400,600,1000,2000,4000,6000,10000,20000];
+    freqLines.forEach(f=>{
+      const x = xForFreq(f);
+      ctx.beginPath();
+      ctx.moveTo(x,padT); ctx.lineTo(x,H-padB);
+      ctx.strokeStyle='#182530';
+      ctx.stroke();
+      const label = f>=1000 ? (f/1000)+'K' : f;
+      ctx.fillText(label, x-8, H-4);
     });
 
-    playPauseBtn.addEventListener('click', () => {
-        initAudioEngine();
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-        if (audioElement.paused) audioElement.play();
-        else audioElement.pause();
+    // response curve
+    const dbVals = computeMagnitudeDb();
+    ctx.beginPath();
+    for(let i=0;i<FREQ_POINTS;i++){
+      const x = xForFreq(freqArray[i]);
+      const y = yForDb(Math.max(dbBottom,Math.min(dbTop,dbVals[i])));
+      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.strokeStyle = '#d7e05a';
+    ctx.lineWidth=2;
+    ctx.shadowColor='rgba(215,224,90,.5)';
+    ctx.shadowBlur=4;
+    ctx.stroke();
+    ctx.shadowBlur=0;
+
+    // fill under curve
+    ctx.lineTo(xForFreq(20000), yForDb(0));
+    ctx.lineTo(xForFreq(20), yForDb(0));
+    ctx.closePath();
+    ctx.fillStyle='rgba(90,150,90,.18)';
+    ctx.fill();
+
+    // control points
+    bandOrder.forEach(b=>{
+      const s = state[b];
+      const x = xForFreq(s.freq);
+      const y = yForDb(Math.max(dbBottom,Math.min(dbTop, s.on?s.gain:0)));
+      ctx.beginPath();
+      ctx.arc(x,y,5,0,Math.PI*2);
+      ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue(bandDefs[b].color).trim() || '#fff';
+      ctx.fill();
+      ctx.strokeStyle='#0d1620';
+      ctx.lineWidth=1.5;
+      ctx.stroke();
     });
+  }
+
+  requestAnimationFrame(function loop(){
+    drawResponse();
+    requestAnimationFrame(loop);
+  });
+
+  /* ============ Page navigation ============ */
+  const btnEQ = document.getElementById('btnEQ');
+  const btnMEDIA = document.getElementById('btnMEDIA');
+  const eqCanvas = document.getElementById('eqCanvas');
+  const mediaView = document.getElementById('mediaView');
+  btnEQ.addEventListener('click', ()=>{
+    btnEQ.classList.add('active'); btnMEDIA.classList.remove('active');
+    eqCanvas.style.display='block'; mediaView.style.display='none';
+    resizeCanvas();
+  });
+  btnMEDIA.addEventListener('click', ()=>{
+    btnMEDIA.classList.add('active'); btnEQ.classList.remove('active');
+    eqCanvas.style.display='none'; mediaView.style.display='block';
+  });
+
+  /* ============ Transport / File loading ============ */
+  const fileInput = document.getElementById('fileInput');
+  const loadFileBtn = document.getElementById('loadFileBtn');
+  const loadYTBtn = document.getElementById('loadYTBtn');
+  const playpauseBtn = document.getElementById('playpause');
+  const nextBtn = document.getElementById('nextBtn');
+  const timeDisplay = document.getElementById('timeDisplay');
+  const trackName = document.getElementById('trackName');
+  const placeholder = document.querySelector('#mediaView .placeholder');
+  const ytEmbed = document.getElementById('yt-embed');
+  const videoEl = document.getElementById('videoEl');
+
+  let playlist = [];
+  let playlistIndex = -1;
+
+  loadFileBtn.addEventListener('click', ()=> fileInput.click());
+  fileInput.addEventListener('change', (e)=>{
+    const files = Array.from(e.target.files||[]);
+    if(!files.length) return;
+    files.forEach(f=> playlist.push(f));
+    if(playlistIndex===-1) playlistIndex=0;
+    loadPlaylistIndex(playlistIndex);
+  });
+
+  function loadPlaylistIndex(idx){
+    if(idx<0 || idx>=playlist.length) return;
+    playlistIndex = idx;
+    const file = playlist[idx];
+    const url = URL.createObjectURL(file);
+    ensureAudioCtx();
+    videoEl.src = url;
+    videoEl.style.display='block';
+    ytEmbed.style.display='none';
+    placeholder.style.display='none';
+    trackName.textContent = file.name;
+    connectSource();
+    videoEl.play().then(()=>{
+      isPlayingLocal=true;
+      playpauseBtn.textContent='Pause';
+    }).catch(()=>{});
+  }
+
+  playpauseBtn.addEventListener('click', ()=>{
+    if(!videoEl.src){ return; }
+    ensureAudioCtx();
+    if(videoEl.paused){
+      videoEl.play();
+      playpauseBtn.textContent='Pause';
+    } else {
+      videoEl.pause();
+      playpauseBtn.textContent='Play';
+    }
+  });
+
+  nextBtn.addEventListener('click', ()=>{
+    if(playlist.length===0) return;
+    const nextIdx = (playlistIndex+1) % playlist.length;
+    loadPlaylistIndex(nextIdx);
+  });
+
+  videoEl.addEventListener('timeupdate', updateTimeDisplay);
+  videoEl.addEventListener('loadedmetadata', updateTimeDisplay);
+  videoEl.addEventListener('ended', ()=>{ playpauseBtn.textContent='Play'; });
+
+  function fmtTime(t){
+    if(!isFinite(t)) return '00:00';
+    const m = Math.floor(t/60), s = Math.floor(t%60);
+    return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+  }
+  function updateTimeDisplay(){
+    timeDisplay.textContent = fmtTime(videoEl.currentTime) + ' / ' + fmtTime(videoEl.duration||0);
+  }
+
+  // YouTube link popup
+  const ytPopup = document.getElementById('ytPopup');
+  const ytInput = document.getElementById('ytInput');
+  document.getElementById('loadYTBtn').addEventListener('click', ()=>{
+    ytPopup.style.display='flex';
+    ytInput.focus();
+  });
+  document.getElementById('ytCancel').addEventListener('click', ()=>{ ytPopup.style.display='none'; });
+  document.getElementById('ytConfirm').addEventListener('click', ()=>{
+    const url = ytInput.value.trim();
+    const id = extractYouTubeId(url);
+    if(!id){ alert('Tautan YouTube tidak valid.'); return; }
+    ytEmbed.src = 'https://www.youtube.com/embed/'+id+'?autoplay=1';
+    ytEmbed.style.display='block';
+    videoEl.style.display='none';
+    placeholder.style.display='none';
+    trackName.textContent = 'YouTube: '+id+' (tampilan visual saja — audio tidak melalui EQ)';
+    btnMEDIA.click();
+    ytPopup.style.display='none';
+  });
+  function extractYouTubeId(url){
+    const m = url.match(/(?:v=|youtu\.be\/|embed\/)([A-Za-z0-9_-]{11})/);
+    return m ? m[1] : null;
+  }
+
+  /* ============ Init ============ */
+  window.addEventListener('load', resizeCanvas);
+  setTimeout(resizeCanvas, 50);
+
+})();
 </script>
 </body>
-</html>
+            </html>
