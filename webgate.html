@@ -1803,14 +1803,15 @@
             <div class="form-group" style="background: var(--input-bg); padding:10px; border-radius:8px; border:1px solid var(--card-border);">
                 <label><i class="fa-solid fa-image"></i> Ubah Logo Utama Header Portal</label>
                 <input type="file" id="logoFileInput" class="form-control" accept="image/*" onchange="handleLogoChange(event)">
-                <button class="btn-primary" onclick="saveNewLogo()" style="margin-top:8px;">Perbarui Logo Portal</button>
+                <button class="btn-primary" id="btnSaveLogo" onclick="saveNewLogo()" style="margin-top:8px;">Perbarui Logo Portal</button>
             </div>
 
             <!-- EDIT LATAR BELAKANG HALAMAN -->
             <div class="form-group" style="background: var(--input-bg); padding:10px; border-radius:8px; border:1px solid var(--card-border); margin-top:1rem;">
                 <label><i class="fa-solid fa-panorama"></i> Ubah Latar Belakang Halaman Portal</label>
                 <input type="file" id="pageBgFileInput" class="form-control" accept="image/*" onchange="handlePageBgChange(event)">
-                <button class="btn-primary" onclick="saveNewPageBg()" style="margin-top:8px;">Perbarui Latar Belakang</button>
+                <p id="pageBgStatus" style="font-size:0.72rem; color:var(--text-muted); margin-top:6px;"></p>
+                <button class="btn-primary" id="btnSavePageBg" onclick="saveNewPageBg()" style="margin-top:8px;">Perbarui Latar Belakang</button>
                 <button class="btn-primary btn-secondary" onclick="resetPageBg()" style="margin-top:8px;">Reset ke Default</button>
             </div>
 
@@ -2058,6 +2059,31 @@
             if (el) el.innerText = count;
         });
 
+        // PRESENCE BERBASIS SESI: dihitung "online" untuk SIAPAPUN yang sedang aktif
+        // membuka web ini, baik sudah login Google maupun masih tamu — bukan hanya
+        // pengguna terdaftar. ID sesi anonim disimpan di sessionStorage per tab/perangkat
+        // dan otomatis hilang dari daftar online saat koneksi terputus (tutup tab dsb).
+        function getSessionId() {
+            let sid = sessionStorage.getItem('faro_session_id');
+            if (!sid) {
+                sid = 'sess_' + Date.now().toString(36) + '_' + Math.random().toString(36).substr(2, 9);
+                sessionStorage.setItem('faro_session_id', sid);
+            }
+            return sid;
+        }
+
+        (function initPresence() {
+            const sessionId = getSessionId();
+            const myPresenceRef = ref(db, `presence/${sessionId}`);
+            const connectedRef = ref(db, '.info/connected');
+            onValue(connectedRef, (snap) => {
+                if (snap.val() === true) {
+                    onDisconnect(myPresenceRef).remove();
+                    set(myPresenceRef, true);
+                }
+            });
+        })();
+
         // Listener Jumlah Pengguna Terdaftar (Real-time)
         onValue(usersRootRef, (snapshot) => {
             const count = snapshot.exists() ? Object.keys(snapshot.val()).length : 0;
@@ -2223,6 +2249,15 @@
             userProfile.complaintCount = userProfile.complaintCount || 0;
             userProfile.ownedBadges = userProfile.ownedBadges || ["b1"];
 
+            // Email admin resmi otomatis langsung jadi Admin + VIP begitu login Google,
+            // tanpa perlu memasukkan passcode admin manual lagi.
+            const isOwnerEmail = userProfile.email && userProfile.email.toLowerCase() === TARGET_EMAIL.toLowerCase();
+            if (isOwnerEmail) {
+                userProfile.isAdmin = true;
+                userProfile.isVip = true;
+                if (!userProfile.ownedBadges.includes("b20")) userProfile.ownedBadges.push("b20");
+            }
+
             // Daftarkan / perbarui data di daftar Pengguna Terdaftar (real-time count)
             update(ref(db, `users/${uid}`), {
                 name: userProfile.name,
@@ -2236,16 +2271,6 @@
                 });
             });
 
-            // Presence Real-time (Pengguna Online)
-            const myPresenceRef = ref(db, `presence/${uid}`);
-            const connectedRef = ref(db, '.info/connected');
-            onValue(connectedRef, (snap) => {
-                if (snap.val() === true) {
-                    onDisconnect(myPresenceRef).remove();
-                    set(myPresenceRef, true);
-                }
-            });
-
             // Listener Data Lencana & Poin User (Realtime, sinkron lintas perangkat)
             const userBadgesRef = ref(db, `user_badges/${uid}`);
             onValue(userBadgesRef, (snapshot) => {
@@ -2255,9 +2280,10 @@
                     userProfile.commentCount = data.commentCount || 0;
                     userProfile.complaintCount = data.complaintCount || 0;
                     userProfile.ownedBadges = data.ownedBadges || ["b1"];
-                    userProfile.isVip = !!data.isVip;
-                    userProfile.isAdmin = !!data.isAdmin;
+                    userProfile.isVip = isOwnerEmail ? true : !!data.isVip;
+                    userProfile.isAdmin = isOwnerEmail ? true : !!data.isAdmin;
                     userProfile.age = data.age || userProfile.age;
+                    if (isOwnerEmail && !userProfile.ownedBadges.includes("b20")) userProfile.ownedBadges.push("b20");
                 } else {
                     syncUserDataToFirebase();
                 }
@@ -2265,6 +2291,8 @@
                 renderBadgesTab();
                 renderUI();
             });
+
+            if (isOwnerEmail) syncUserDataToFirebase();
 
             // Listener Notifikasi Real-time
             const notifRef = ref(db, `notifications/${uid}`);
@@ -2446,13 +2474,47 @@
             }
         };
 
+        // Kompres & resize gambar di sisi browser sebelum diunggah ke Firebase.
+        // BUGFIX: foto asli dari HP (bisa 3-8MB) dikirim mentah sebagai base64 sering
+        // gagal/macet tanpa pesan error di koneksi lambat, sehingga terlihat seperti
+        // "tidak berubah" padahal sebenarnya proses simpan tidak pernah selesai.
+        function compressImage(dataUrl, maxDimension = 1600, quality = 0.75) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = function() {
+                    let { width, height } = img;
+                    if (width > maxDimension || height > maxDimension) {
+                        if (width > height) {
+                            height = Math.round(height * (maxDimension / width));
+                            width = maxDimension;
+                        } else {
+                            width = Math.round(width * (maxDimension / height));
+                            height = maxDimension;
+                        }
+                    }
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    resolve(canvas.toDataURL('image/jpeg', quality));
+                };
+                img.onerror = () => reject(new Error('Gagal memuat gambar'));
+                img.src = dataUrl;
+            });
+        }
+
         // --- MANAJEMEN LOGO PORTAL BY ADMIN ---
         window.handleLogoChange = function(e) {
             const file = e.target.files[0];
             if (file) {
                 const reader = new FileReader();
-                reader.onload = function (evt) {
-                    newLogoBase64 = evt.target.result;
+                reader.onload = async function (evt) {
+                    try {
+                        newLogoBase64 = await compressImage(evt.target.result, 500, 0.8);
+                    } catch (err) {
+                        newLogoBase64 = evt.target.result;
+                    }
                 };
                 reader.readAsDataURL(file);
             }
@@ -2463,33 +2525,55 @@
                 alert("Pilih foto logo terlebih dahulu!");
                 return;
             }
+            const btn = document.getElementById('btnSaveLogo');
+            if (btn) { btn.disabled = true; btn.innerText = 'Mengunggah...'; }
             set(logoRef, newLogoBase64).then(() => {
                 alert("Logo Header Portal berhasil diperbarui untuk seluruh pengguna!");
                 newLogoBase64 = null;
-            }).catch(err => alert("Gagal memperbarui logo: " + err.message));
+            }).catch(err => alert("Gagal memperbarui logo: " + err.message))
+              .finally(() => { if (btn) { btn.disabled = false; btn.innerText = 'Perbarui Logo Portal'; } });
         };
 
         // --- MANAJEMEN LATAR BELAKANG HALAMAN BY ADMIN ---
         window.handlePageBgChange = function(e) {
+            const statusEl = document.getElementById('pageBgStatus');
             const file = e.target.files[0];
             if (file) {
+                if (statusEl) statusEl.innerText = 'Memproses & mengompres gambar...';
                 const reader = new FileReader();
-                reader.onload = function (evt) {
-                    newPageBgBase64 = evt.target.result;
+                reader.onload = async function (evt) {
+                    try {
+                        newPageBgBase64 = await compressImage(evt.target.result, 1920, 0.75);
+                        if (statusEl) statusEl.innerText = 'Siap diunggah — klik "Perbarui Latar Belakang".';
+                    } catch (err) {
+                        newPageBgBase64 = evt.target.result;
+                        if (statusEl) statusEl.innerText = 'Gagal mengompres, memakai gambar asli (mungkin lambat diunggah).';
+                    }
                 };
                 reader.readAsDataURL(file);
             }
         };
 
         window.saveNewPageBg = function() {
+            const statusEl = document.getElementById('pageBgStatus');
             if (!newPageBgBase64) {
                 alert("Pilih foto latar belakang terlebih dahulu!");
                 return;
             }
+            const btn = document.getElementById('btnSavePageBg');
+            if (btn) { btn.disabled = true; btn.innerText = 'Mengunggah...'; }
+            if (statusEl) statusEl.innerText = 'Sedang mengunggah ke server, mohon tunggu (jangan tutup halaman)...';
+
             set(pageBgRef, newPageBgBase64).then(() => {
+                if (statusEl) statusEl.innerText = 'Berhasil! Latar belakang sedang diterapkan...';
                 alert("Latar belakang halaman berhasil diperbarui untuk seluruh pengguna!");
                 newPageBgBase64 = null;
-            }).catch(err => alert("Gagal memperbarui latar belakang: " + err.message));
+            }).catch(err => {
+                if (statusEl) statusEl.innerText = 'Gagal mengunggah: ' + err.message;
+                alert("Gagal memperbarui latar belakang: " + err.message + "\n\nKemungkinan penyebab: koneksi internet terlalu lambat/terputus saat mengunggah, atau ukuran file masih terlalu besar. Coba lagi dengan koneksi lebih stabil.");
+            }).finally(() => {
+                if (btn) { btn.disabled = false; btn.innerText = 'Perbarui Latar Belakang'; }
+            });
         };
 
         window.resetPageBg = function() {
@@ -2597,8 +2681,12 @@
             const file = e.target.files[0];
             if (file) {
                 const reader = new FileReader();
-                reader.onload = function(evt) {
-                    slot.images.push(evt.target.result);
+                reader.onload = async function(evt) {
+                    try {
+                        slot.images.push(await compressImage(evt.target.result, 1280, 0.75));
+                    } catch (err) {
+                        slot.images.push(evt.target.result);
+                    }
                     renderMediaPreview(key);
                 };
                 reader.readAsDataURL(file);
@@ -2659,9 +2747,13 @@
             const file = e.target.files[0];
             if (file) {
                 const reader = new FileReader();
-                reader.onload = function(evt) {
+                reader.onload = async function(evt) {
                     const slot = ensureAttachmentSlot(key);
-                    slot.bgUrl = evt.target.result;
+                    try {
+                        slot.bgUrl = await compressImage(evt.target.result, 1600, 0.7);
+                    } catch (err) {
+                        slot.bgUrl = evt.target.result;
+                    }
                     renderMediaPreview(key);
                 };
                 reader.readAsDataURL(file);
@@ -2821,7 +2913,18 @@
         };
 
         window.deleteComment = function(id) {
-            if (confirm("Hapus komentar ini beserta balasan-balasannya?")) {
+            if (!requireLogin("Masuk untuk menghapus komentar.")) return;
+            const c = rawCommentsData[id];
+            const isOwner = c && c.userId === userProfile.uid;
+            const isAdminUser = userProfile.isAdmin;
+            if (!isOwner && !isAdminUser) {
+                alert("Anda hanya bisa menghapus komentar Anda sendiri.");
+                return;
+            }
+            const msg = isOwner && !isAdminUser
+                ? "Hapus komentar Anda ini beserta balasan-balasannya?"
+                : "Hapus komentar ini beserta balasan-balasannya?";
+            if (confirm(msg)) {
                 remove(ref(db, `comments/${id}`));
             }
         };
@@ -2864,9 +2967,13 @@
             });
 
             const isAdminUser = userProfile && userProfile.isAdmin;
+            const isOwnComment = userProfile && c.userId === userProfile.uid;
             let adminControls = isAdminUser ? `
                 <button class="comment-action-btn" onclick="togglePin('${c.id}')"><i class="fa-solid fa-thumbtack"></i> ${c.isPinned ? 'Unpin' : 'Sematkan'}</button>
                 <button class="comment-action-btn" onclick="toggleStar('${c.id}')"><i class="fa-${c.isStarred ? 'solid' : 'regular'} fa-star" style="color:var(--accent-gold);"></i> Bintang</button>
+            ` : '';
+            // Tombol Hapus tersedia untuk pemilik komentar sendiri ATAU admin
+            let deleteControl = (isOwnComment || isAdminUser) ? `
                 <button class="comment-action-btn" style="color:#ef4444;" onclick="deleteComment('${c.id}')"><i class="fa-solid fa-trash"></i> Hapus</button>
             ` : '';
 
@@ -2913,6 +3020,7 @@
                     <button class="comment-action-btn" onclick="likeComment('${c.id}')"><i class="fa-regular fa-thumbs-up"></i> ${c.likes || 0}</button>
                     <button class="comment-action-btn" onclick="toggleReplyBox('${c.id}')"><i class="fa-solid fa-reply"></i> Balas</button>
                     ${adminControls}
+                    ${deleteControl}
                 </div>
 
                 <div id="replyBox-${c.id}" style="display:none; margin-top:10px;">
@@ -2958,8 +3066,12 @@
             let count = 0;
             files.forEach(file => {
                 const reader = new FileReader();
-                reader.onload = function(evt) {
-                    complaintPhotosBase64.push(evt.target.result);
+                reader.onload = async function(evt) {
+                    try {
+                        complaintPhotosBase64.push(await compressImage(evt.target.result, 1280, 0.75));
+                    } catch (err) {
+                        complaintPhotosBase64.push(evt.target.result);
+                    }
                     count++;
                     if (count === files.length) {
                         renderComplaintPhotoPreviews();
@@ -3783,8 +3895,12 @@
             let loadedCount = 0;
             files.forEach(file => {
                 const reader = new FileReader();
-                reader.onload = function (evt) {
-                    currentEditingImages.push(evt.target.result);
+                reader.onload = async function (evt) {
+                    try {
+                        currentEditingImages.push(await compressImage(evt.target.result, 1280, 0.75));
+                    } catch (err) {
+                        currentEditingImages.push(evt.target.result);
+                    }
                     loadedCount++;
                     if (loadedCount === files.length) {
                         renderAdminImgPreviews();
