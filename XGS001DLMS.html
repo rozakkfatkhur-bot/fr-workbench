@@ -3,393 +3,158 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>XGS001DLMS — FR AUDIO Parametric Equalizer</title>
+<title>XGS001DLMS PRO — FR AUDIO Digital Processor Suite</title>
 <style>
   :root{
-    --panel-1:#8fa4bd;
-    --panel-2:#7690ac;
-    --panel-3:#65809d;
-    --panel-dark:#2b3846;
-    --screen-bg:#0d1620;
-    --grid-line:#24384a;
+    --panel-1:#7e94ae;
+    --panel-2:#6d84a0;
+    --panel-3:#5c7290;
+    --panel-dark:#1c2732;
+    --screen-bg:#080e15;
+    --grid-line:#1c2c3a;
     --curve:#d7e05a;
     --led-green:#3ddc72;
     --led-red:#ff5b52;
-    --text-dark:#1c2733;
-    --text-light:#eef3f8;
-    --c-lf:#8fb6e6;
-    --c-lmf:#5ecb8c;
-    --c-mf:#e05a5a;
-    --c-hmf:#e8a24a;
-    --c-hf:#e0d15a;
-    --c-neutral:#c7cfd8;
-    font-family: 'Segoe UI', Arial, sans-serif;
+    --led-amber:#f2b840;
+    --text-dark:#111a24;
+    --text-light:#e9eff5;
+    --dim:#8ea0b3;
+    --c-lf:#8fb6e6; --c-lmf:#5ecb8c; --c-mf:#e05a5a; --c-hmf:#e8a24a; --c-hf:#e0d15a;
+    --c-bassL:#5fc7e0; --c-bassR:#e07b5f;
+    font-family:'Segoe UI',Arial,sans-serif;
   }
   *{box-sizing:border-box;}
-  html,body{
-    margin:0;padding:0;
-    background:#12181f;
-    color:var(--text-light);
-    height:100%;
-    -webkit-user-select:none;
-    user-select:none;
-  }
-  #unit{
-    max-width:1180px;
-    margin:16px auto;
-    border-radius:10px;
-    padding:14px;
-    background:linear-gradient(180deg,var(--panel-1),var(--panel-3) 90%);
-    box-shadow:0 20px 50px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.35);
-    border:1px solid #4b5c6f;
-  }
-  #topbar{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    padding:2px 10px 10px;
-  }
-  #brand{
-    font-weight:800;
-    letter-spacing:2px;
-    font-size:13px;
-    color:var(--text-dark);
-    text-shadow:0 1px 0 rgba(255,255,255,.35);
-  }
-  #brand span{
-    display:block;
-    font-size:19px;
-    letter-spacing:1px;
-  }
-  #powerled{
-    display:flex;
-    align-items:center;
-    gap:6px;
-    font-size:11px;
-    color:var(--text-dark);
-    font-weight:600;
-  }
-  .led-dot{
-    width:9px;height:9px;border-radius:50%;
-    background:var(--led-green);
-    box-shadow:0 0 6px 2px rgba(61,220,114,.8), inset 0 0 2px rgba(0,0,0,.4);
-  }
+  html,body{margin:0;padding:0;background:#0b0f14;color:var(--text-light);-webkit-user-select:none;user-select:none;font-size:12px;}
+  #unit{max-width:1240px;margin:10px auto;border-radius:8px;padding:8px;
+    background:linear-gradient(180deg,var(--panel-1),var(--panel-3) 92%);
+    box-shadow:0 18px 46px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.3);
+    border:1px solid #3d4c5e;}
 
-  /* ---- Display / graph area ---- */
-  #display-row{
-    display:flex;
-    gap:8px;
-    background:var(--panel-dark);
-    border-radius:6px;
-    padding:8px;
-    box-shadow:inset 0 2px 6px rgba(0,0,0,.5);
+  /* Top bar w/ tabs */
+  #topbar{display:flex;align-items:center;gap:10px;padding:4px 6px 8px;flex-wrap:wrap;}
+  #brand{font-weight:800;letter-spacing:1.5px;font-size:11px;color:var(--text-dark);text-shadow:0 1px 0 rgba(255,255,255,.3);line-height:1.1;}
+  #brand span{display:block;font-size:15px;letter-spacing:.5px;}
+  #tabs{display:flex;gap:3px;flex:1;flex-wrap:wrap;}
+  .tab-btn{
+    background:linear-gradient(180deg,#33404e,#1d2731);
+    color:#9fb0c0;border:1px solid #0a0f14;border-radius:3px;
+    font-size:10px;font-weight:800;letter-spacing:.6px;padding:6px 10px;
+    cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.06);
   }
-  #screen-wrap{
-    flex:1;
-    position:relative;
-    background:var(--screen-bg);
-    border-radius:4px;
-    overflow:hidden;
-    border:1px solid #000;
-  }
-  #eqCanvas, #mediaView{
-    width:100%;
-    height:280px;
-    display:block;
-  }
-  #mediaView{
-    display:none;
-    background:#000;
-    position:relative;
-  }
-  #mediaView video, #yt-embed{
-    width:100%;
-    height:100%;
-    object-fit:contain;
-    display:block;
-    border:0;
-  }
-  #mediaView .placeholder{
-    position:absolute;inset:0;
-    display:flex;align-items:center;justify-content:center;
-    color:#5a6b7d;font-size:13px;letter-spacing:1px;
-  }
+  .tab-btn.active{background:linear-gradient(180deg,#4fae7a,#28633f);color:#eafff0;box-shadow:0 0 8px rgba(79,174,122,.55), inset 0 0 5px rgba(0,0,0,.35);}
+  #powerled{display:flex;align-items:center;gap:5px;font-size:9px;color:var(--text-dark);font-weight:700;}
+  .led-dot{width:8px;height:8px;border-radius:50%;background:var(--led-green);box-shadow:0 0 5px 2px rgba(61,220,114,.75), inset 0 0 2px rgba(0,0,0,.4);}
+  .led-dot.amber{background:var(--led-amber);box-shadow:0 0 5px 2px rgba(242,184,64,.75), inset 0 0 2px rgba(0,0,0,.4);}
 
-  #nav-col{
-    width:78px;
-    display:flex;
-    flex-direction:column;
-    gap:8px;
-  }
-  .nav-btn{
-    flex:1;
-    background:linear-gradient(180deg,#3a4756,#232d38);
-    color:#b9c4d0;
-    border:1px solid #10161d;
-    border-radius:4px;
-    font-size:12px;
-    font-weight:700;
-    letter-spacing:1px;
-    cursor:pointer;
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.08), 0 2px 3px rgba(0,0,0,.4);
-  }
-  .nav-btn.active{
-    background:linear-gradient(180deg,#4fae7a,#2c6f4c);
-    color:#eafff0;
-    box-shadow:inset 0 0 8px rgba(0,0,0,.4), 0 0 8px rgba(79,174,122,.6);
-  }
+  .page{display:none;}
+  .page.active{display:block;}
 
-  /* ---- Control rack ---- */
-  #rack{
-    display:grid;
-    grid-template-columns: 1fr 1fr 200px 1fr 1fr;
-    gap:6px;
-    margin-top:10px;
-  }
-  .band{
-    background:linear-gradient(180deg,var(--panel-2),var(--panel-3));
-    border-radius:6px;
-    padding:8px 6px;
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.25), 0 2px 4px rgba(0,0,0,.25);
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    gap:6px;
-  }
-  .band-label{
-    font-size:11px;
-    font-weight:800;
-    color:var(--text-dark);
-    letter-spacing:1px;
-  }
-  .band-top-row{
-    display:flex;
-    gap:6px;
-    width:100%;
-    justify-content:center;
-  }
-  .knob-cell{
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    gap:3px;
-  }
-  .knob-label{
-    font-size:9px;
-    font-weight:700;
-    color:var(--text-dark);
-    letter-spacing:.5px;
-  }
-  .knob{
-    width:46px;height:46px;
-    border-radius:50%;
-    background:radial-gradient(circle at 35% 30%, #5c6875, #21262c 70%);
-    border:2px solid #14181c;
-    position:relative;
-    cursor:ns-resize;
-    box-shadow:0 3px 5px rgba(0,0,0,.5), inset 0 1px 1px rgba(255,255,255,.15);
-  }
-  .knob::before{
-    content:'';
-    position:absolute;
-    top:3px;left:50%;
-    width:4px;height:16px;
-    background:var(--dot-color, #fff);
-    border-radius:2px;
-    transform-origin:2px 20px;
-    transform:translateX(-50%) rotate(var(--rot,0deg));
-    box-shadow:0 0 4px 1px var(--dot-color,#fff);
-  }
-  .knob-ring{
-    position:absolute;
-    inset:-6px;
-    border-radius:50%;
-    pointer-events:none;
-  }
-  .knob-val{
-    font-size:9px;
-    color:#e9eef4;
-    background:#101418;
-    border-radius:3px;
-    padding:1px 4px;
-    min-width:34px;
-    text-align:center;
-    font-variant-numeric:tabular-nums;
-  }
-  .toggle-btn{
-    width:100%;
-    font-size:10px;
-    font-weight:800;
-    letter-spacing:.5px;
-    padding:4px 0;
-    border-radius:4px;
-    border:1px solid #10161d;
-    background:linear-gradient(180deg,#3a4756,#232d38);
-    color:#aab7c4;
-    cursor:pointer;
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.08);
-  }
-  .toggle-btn.on{
-    background:linear-gradient(180deg,#4fae7a,#2c6f4c);
-    color:#eafff0;
-    box-shadow:0 0 8px rgba(79,174,122,.6), inset 0 0 6px rgba(0,0,0,.3);
-  }
-  .slope-btn{
-    font-size:10px;
-    font-weight:700;
-    color:var(--text-light);
-    background:#181e24;
-    border:1px solid #05070a;
-    border-radius:3px;
-    padding:2px 6px;
-    cursor:pointer;
-  }
-  .mini-row{
-    display:flex;
-    align-items:center;
-    gap:4px;
-    justify-content:center;
-    width:100%;
-  }
+  /* ===== Screen / graph frame shared ===== */
+  .screen-frame{background:var(--panel-dark);border-radius:5px;padding:6px;box-shadow:inset 0 2px 6px rgba(0,0,0,.5);}
+  .screen{background:var(--screen-bg);border-radius:3px;border:1px solid #000;overflow:hidden;position:relative;}
+  canvas.gcanvas{width:100%;height:230px;display:block;}
+  .screen-title{position:absolute;top:4px;left:8px;font-size:9px;letter-spacing:1.5px;color:#4a6376;font-weight:700;z-index:2;}
 
-  /* center master module */
-  #master{
-    background:linear-gradient(180deg,#3d4a58,#252f3a);
-    border-radius:6px;
-    padding:8px;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    gap:6px;
-    color:var(--text-light);
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.1);
-  }
-  #master .type-box{
-    width:100%;
-    display:flex;
-    flex-direction:column;
-    gap:3px;
-  }
-  #master .type-line{
-    background:#0d1216;
-    border:1px solid #000;
-    border-radius:3px;
-    font-size:10px;
-    letter-spacing:1px;
-    text-align:center;
-    padding:3px 0;
-    color:var(--curve);
-  }
-  #master .trim-label{font-size:10px;font-weight:700;letter-spacing:1px;color:#cfd8e0;}
-  #master .trim-digital{
-    background:#0d1216;
-    border:1px solid #000;
-    border-radius:3px;
-    font-size:12px;
-    text-align:center;
-    padding:2px 6px;
-    color:var(--curve);
-    min-width:56px;
-  }
-  #master .ab-row{display:flex;gap:6px;width:100%;}
-  #master .ab-btn{
-    flex:1;
-    padding:5px 0;
-    text-align:center;
-    font-size:11px;
-    font-weight:800;
-    border-radius:3px;
-    border:1px solid #000;
-    cursor:pointer;
-  }
+  /* ===== EQ page ===== */
+  #eq-toprow{display:flex;gap:6px;}
+  #eq-nav{width:56px;display:flex;flex-direction:column;gap:5px;}
+  #rack{display:grid;grid-template-columns:1fr 1fr 150px 1fr 1fr;gap:5px;margin-top:6px;}
+  .band{background:linear-gradient(180deg,var(--panel-2),var(--panel-3));border-radius:5px;padding:6px 4px;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.22), 0 2px 4px rgba(0,0,0,.22);
+    display:flex;flex-direction:column;align-items:center;gap:4px;}
+  .band-label{font-size:10px;font-weight:800;color:var(--text-dark);letter-spacing:.8px;}
+  .band-top-row{display:flex;gap:4px;width:100%;justify-content:center;}
+  .knob-cell{display:flex;flex-direction:column;align-items:center;gap:2px;}
+  .knob-label{font-size:8px;font-weight:700;color:var(--text-dark);letter-spacing:.4px;}
+  .knob{width:38px;height:38px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#5c6875,#20252a 72%);
+    border:2px solid #101418;position:relative;cursor:ns-resize;
+    box-shadow:0 3px 5px rgba(0,0,0,.5), inset 0 1px 1px rgba(255,255,255,.14);}
+  .knob.sm{width:30px;height:30px;}
+  .knob::before{content:'';position:absolute;top:2px;left:50%;width:3px;height:13px;background:var(--dot-color,#fff);
+    border-radius:2px;transform-origin:1.5px 17px;transform:translateX(-50%) rotate(var(--rot,0deg));
+    box-shadow:0 0 3px 1px var(--dot-color,#fff);}
+  .knob-val{font-size:8px;color:#e9eef4;background:#0d1114;border-radius:2px;padding:1px 3px;min-width:30px;text-align:center;font-variant-numeric:tabular-nums;}
+  .toggle-btn{width:100%;font-size:9px;font-weight:800;letter-spacing:.4px;padding:3px 0;border-radius:3px;border:1px solid #0a0f14;
+    background:linear-gradient(180deg,#33404e,#1d2731);color:#9fb0c0;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.06);}
+  .toggle-btn.on{background:linear-gradient(180deg,#4fae7a,#28633f);color:#eafff0;box-shadow:0 0 6px rgba(79,174,122,.55), inset 0 0 5px rgba(0,0,0,.3);}
+  .slope-btn{font-size:9px;font-weight:700;color:var(--text-light);background:#141a1f;border:1px solid #000;border-radius:2px;padding:1px 5px;cursor:pointer;}
+  .mini-row{display:flex;align-items:center;gap:3px;justify-content:center;width:100%;}
+
+  #master{background:linear-gradient(180deg,#354250,#1f2831);border-radius:5px;padding:6px;
+    display:flex;flex-direction:column;align-items:center;gap:5px;box-shadow:inset 0 1px 0 rgba(255,255,255,.08);}
+  #master .type-line{background:#0a0e12;border:1px solid #000;border-radius:2px;font-size:9px;letter-spacing:.8px;text-align:center;padding:2px 0;color:var(--curve);width:100%;}
+  #master .trim-label{font-size:9px;font-weight:700;letter-spacing:.8px;color:#cfd8e0;}
+  #master .trim-digital{background:#0a0e12;border:1px solid #000;border-radius:2px;font-size:11px;text-align:center;padding:2px 5px;color:var(--curve);min-width:48px;}
+  #master .ab-row{display:flex;gap:5px;width:100%;}
+  #master .ab-btn{flex:1;padding:4px 0;text-align:center;font-size:10px;font-weight:800;border-radius:2px;border:1px solid #000;cursor:pointer;}
   #master .ab-btn.a{background:#c94f45;color:#fff;}
   #master .ab-btn.b{background:#9aa4ad;color:#22282e;}
-  #master .ab-btn.sel{box-shadow:0 0 8px 2px rgba(255,255,255,.6) inset, 0 0 6px rgba(255,255,255,.5);}
+  #master .ab-btn.sel{box-shadow:0 0 6px 2px rgba(255,255,255,.55) inset, 0 0 5px rgba(255,255,255,.45);}
 
-  /* transport / media bar */
-  #transport{
-    margin-top:10px;
-    display:flex;
-    align-items:center;
-    gap:10px;
-    background:var(--panel-dark);
-    border-radius:6px;
-    padding:8px 12px;
-    flex-wrap:wrap;
-  }
-  #transport button{
-    background:linear-gradient(180deg,#3a4756,#232d38);
-    color:#dbe4ec;
-    border:1px solid #10161d;
-    border-radius:4px;
-    padding:6px 12px;
-    font-size:12px;
-    font-weight:700;
-    cursor:pointer;
-    letter-spacing:.5px;
-  }
-  #transport button:hover{filter:brightness(1.15);}
-  #transport button:active{filter:brightness(.9);}
-  #playpause{min-width:64px;}
-  #timeDisplay{
-    font-size:11px;
-    color:#cfe0ef;
-    font-variant-numeric:tabular-nums;
-    min-width:96px;
-  }
-  #trackName{
-    font-size:11px;
-    color:#8fa3b5;
-    flex:1;
-    min-width:140px;
-    overflow:hidden;
-    text-overflow:ellipsis;
-    white-space:nowrap;
-  }
-  #ytPopup{
-    position:fixed;inset:0;
-    background:rgba(0,0,0,.6);
-    display:none;
-    align-items:center;
-    justify-content:center;
-    z-index:50;
-  }
-  #ytPopup .box{
-    background:#1c2530;
-    padding:18px;
-    border-radius:8px;
-    width:320px;
-    box-shadow:0 10px 40px rgba(0,0,0,.6);
-  }
-  #ytPopup input{
-    width:100%;
-    padding:8px;
-    border-radius:4px;
-    border:1px solid #444;
-    background:#0d1319;
-    color:#eee;
-    font-size:12px;
-    margin:10px 0;
-  }
+  /* meters */
+  #meterRow{display:flex;gap:6px;margin-top:6px;align-items:center;}
+  .meter{flex:1;height:14px;background:#0a0e12;border-radius:2px;overflow:hidden;position:relative;border:1px solid #000;}
+  .meter .bar{position:absolute;left:0;top:0;bottom:0;width:0%;background:linear-gradient(90deg,#3ddc72,#e0d15a 70%,#ff5b52 92%);}
+  .meter-label{font-size:8px;color:var(--dim);width:22px;}
+
+  /* ===== BASS page ===== */
+  #bass-header{display:flex;justify-content:space-between;align-items:center;padding:6px 2px;font-size:10px;color:#cfe0ef;font-weight:700;letter-spacing:.5px;}
+  #bass-cols{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .bass-col-title{font-size:10px;font-weight:800;letter-spacing:1px;text-align:center;padding:4px 0;border-radius:3px 3px 0 0;color:#0c1216;}
+  .bass-col-title.l{background:var(--c-bassL);}
+  .bass-col-title.r{background:var(--c-bassR);}
+  .bass-tones{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;background:linear-gradient(180deg,var(--panel-2),var(--panel-3));padding:6px 4px;border-radius:0 0 4px 4px;}
+  .bass-tone{display:flex;flex-direction:column;align-items:center;gap:3px;background:rgba(0,0,0,.08);border-radius:4px;padding:4px 2px;}
+  .bass-tone .tname{font-size:8px;font-weight:800;color:var(--text-dark);}
+
+  /* ===== FX page ===== */
+  #fx-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
+  .fx-card{background:linear-gradient(180deg,var(--panel-2),var(--panel-3));border-radius:5px;padding:6px;display:flex;flex-direction:column;gap:5px;box-shadow:inset 0 1px 0 rgba(255,255,255,.15);}
+  .fx-card-head{display:flex;justify-content:space-between;align-items:center;}
+  .fx-card-head .name{font-size:9px;font-weight:800;color:var(--text-dark);letter-spacing:.4px;}
+  .fx-card .knobs-row{display:flex;gap:6px;justify-content:center;}
+  #preset-row{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;}
+  .preset-btn{background:linear-gradient(180deg,#3a4756,#232d38);color:#c8d3dd;border:1px solid #0a0f14;border-radius:3px;
+    font-size:9px;font-weight:700;padding:5px 9px;cursor:pointer;letter-spacing:.3px;}
+  .preset-btn.active{background:linear-gradient(180deg,#4fae7a,#28633f);color:#eafff0;}
+  .section-title{font-size:10px;font-weight:800;letter-spacing:1px;color:#cfe0ef;margin:8px 2px 4px;}
+
+  /* ===== RTA / 3D pages ===== */
+  #rtaCanvas, #spec3dCanvas{width:100%;height:340px;display:block;}
+
+  /* ===== MEDIA page ===== */
+  #media-layout{display:flex;gap:6px;}
+  #media-screen{flex:2;}
+  #playlist-panel{flex:1;background:var(--panel-dark);border-radius:5px;padding:6px;display:flex;flex-direction:column;gap:4px;min-width:170px;max-height:340px;overflow-y:auto;}
+  #playlist-panel .pl-title{font-size:9px;font-weight:800;color:#cfe0ef;letter-spacing:1px;display:flex;justify-content:space-between;align-items:center;}
+  .pl-item{background:#141c24;border-radius:3px;padding:5px 6px;font-size:9px;color:#b7c6d3;cursor:pointer;display:flex;justify-content:space-between;gap:4px;}
+  .pl-item.playing{background:#28633f;color:#eafff0;}
+  #mediaView{background:#000;position:relative;height:340px;}
+  #mediaView video, #yt-embed{width:100%;height:100%;object-fit:contain;display:block;border:0;}
+  #mediaView .placeholder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#4a5f70;font-size:11px;letter-spacing:1px;}
+
+  /* ===== transport (shared bottom bar) ===== */
+  #transport{margin-top:6px;display:flex;align-items:center;gap:6px;background:var(--panel-dark);border-radius:5px;padding:6px 8px;flex-wrap:wrap;}
+  #transport button{background:linear-gradient(180deg,#3a4756,#232d38);color:#dbe4ec;border:1px solid #0a0f14;border-radius:3px;
+    padding:5px 10px;font-size:10px;font-weight:700;cursor:pointer;letter-spacing:.3px;}
+  #transport button.on{background:linear-gradient(180deg,#4fae7a,#28633f);color:#eafff0;}
+  #timeDisplay{font-size:9px;color:#cfe0ef;font-variant-numeric:tabular-nums;min-width:84px;}
+  #trackName{font-size:9px;color:#7f95a8;flex:1;min-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+  #ytPopup{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:50;}
+  #ytPopup .box{background:#1c2530;padding:16px;border-radius:8px;width:300px;box-shadow:0 10px 40px rgba(0,0,0,.6);}
+  #ytPopup input{width:100%;padding:7px;border-radius:4px;border:1px solid #444;background:#0d1319;color:#eee;font-size:11px;margin:8px 0;}
   #ytPopup .row{display:flex;gap:8px;justify-content:flex-end;}
-  #ytPopup button{
-    padding:6px 12px;
-    border-radius:4px;
-    border:none;
-    cursor:pointer;
-    font-size:12px;
-    font-weight:700;
-  }
+  #ytPopup button{padding:6px 12px;border-radius:4px;border:none;cursor:pointer;font-size:11px;font-weight:700;}
   #ytPopup .cancel{background:#39414c;color:#ccc;}
   #ytPopup .confirm{background:#4fae7a;color:#062;}
-  #hint{
-    font-size:10px;
-    color:#7b8ea0;
-    padding:6px 4px 0;
-  }
-  @media (max-width:820px){
+  #hint{font-size:9px;color:#6f8497;padding:5px 3px 0;line-height:1.4;}
+  @media (max-width:900px){
     #rack{grid-template-columns:1fr 1fr;}
     #master{order:5;grid-column:1/3;}
+    #fx-grid{grid-template-columns:1fr 1fr;}
+    #bass-cols{grid-template-columns:1fr;}
+    #media-layout{flex-direction:column;}
   }
 </style>
 </head>
@@ -397,729 +162,1051 @@
 
 <div id="unit">
   <div id="topbar">
-    <div id="brand">FR AUDIO<span>XGS001DLMS</span></div>
-    <div id="powerled"><div class="led-dot"></div>UNIT ACTIVE</div>
+    <div id="brand">FR AUDIO<span>XGS001DLMS <small style="font-size:9px;">PRO</small></span></div>
+    <div id="tabs">
+      <button class="tab-btn active" data-page="eq">EQ</button>
+      <button class="tab-btn" data-page="bass">BASS BOOST</button>
+      <button class="tab-btn" data-page="fx">FX RACK</button>
+      <button class="tab-btn" data-page="rta">RTA</button>
+      <button class="tab-btn" data-page="spec3d">3D SPECTRUM</button>
+      <button class="tab-btn" data-page="media">MEDIA</button>
+    </div>
+    <div id="powerled"><div class="led-dot" id="powerDot"></div><span id="powerText">STANDBY</span></div>
   </div>
 
-  <div id="display-row">
-    <div id="screen-wrap">
-      <canvas id="eqCanvas"></canvas>
-      <div id="mediaView">
-        <div class="placeholder">NO SOURCE LOADED</div>
-        <video id="videoEl" style="display:none" playsinline></video>
-        <iframe id="yt-embed" style="display:none" allow="autoplay"></iframe>
+  <!-- ===================== EQ PAGE ===================== -->
+  <div class="page active" id="page-eq">
+    <div id="eq-toprow">
+      <div class="screen-frame" style="flex:1;">
+        <div class="screen"><div class="screen-title">FREQUENCY RESPONSE</div><canvas id="eqCanvas" class="gcanvas"></canvas></div>
       </div>
     </div>
-    <div id="nav-col">
-      <button class="nav-btn active" id="btnEQ">EQ</button>
-      <button class="nav-btn" id="btnMEDIA">MEDIA</button>
+    <div id="meterRow">
+      <span class="meter-label">L</span><div class="meter"><div class="bar" id="meterL"></div></div>
+      <span class="meter-label">R</span><div class="meter"><div class="bar" id="meterR"></div></div>
     </div>
-  </div>
-
-  <div id="rack">
-    <!-- LF band -->
-    <div class="band" id="band-LF">
-      <div class="band-label">LF</div>
-      <div class="mini-row">
-        <div class="slope-btn" data-band="LF">6</div>
-        <div class="toggle-btn" data-band="LF" data-role="shelf">/LF</div>
+    <div id="rack">
+      <div class="band" id="band-LF">
+        <div class="band-label">LF</div>
+        <div class="mini-row"><div class="slope-btn" data-band="LF">6</div><div class="toggle-btn on" data-band="LF" data-role="shelf">/LF</div></div>
+        <div class="knob-cell"><div class="knob-label">FREQ</div><div class="knob" id="k-LF-freq" style="--dot-color:var(--c-neutral,#c7cfd8)"></div><div class="knob-val" id="v-LF-freq">80Hz</div></div>
+        <div class="knob-cell"><div class="knob-label">GAIN</div><div class="knob" id="k-LF-gain" style="--dot-color:var(--c-lf)"></div><div class="knob-val" id="v-LF-gain">0.0dB</div></div>
+        <button class="toggle-btn on" data-band="LF" data-role="in">IN</button>
       </div>
-      <div class="band-top-row">
-        <div class="knob-cell">
-          <div class="knob-label">FREQ</div>
-          <div class="knob" id="k-LF-freq" style="--dot-color:var(--c-neutral)"></div>
-          <div class="knob-val" id="v-LF-freq">80Hz</div>
+      <div class="band" id="band-LMF">
+        <div class="band-label">LMF</div>
+        <div class="band-top-row">
+          <div class="knob-cell"><div class="knob-label">FREQ</div><div class="knob" id="k-LMF-freq" style="--dot-color:var(--c-lmf)"></div><div class="knob-val" id="v-LMF-freq">250Hz</div></div>
+          <div class="knob-cell"><div class="knob-label">Q</div><div class="knob" id="k-LMF-q" style="--dot-color:var(--c-lmf)"></div><div class="knob-val" id="v-LMF-q">1.0</div></div>
         </div>
+        <div class="knob-cell"><div class="knob-label">GAIN</div><div class="knob" id="k-LMF-gain" style="--dot-color:var(--c-lmf)"></div><div class="knob-val" id="v-LMF-gain">0.0dB</div></div>
+        <button class="toggle-btn on" data-band="LMF" data-role="in">IN</button>
       </div>
-      <div class="knob-cell">
-        <div class="knob-label">GAIN</div>
-        <div class="knob" id="k-LF-gain" style="--dot-color:var(--c-lf)"></div>
-        <div class="knob-val" id="v-LF-gain">0.0dB</div>
+      <div id="master">
+        <div class="type-line">TYPE 1</div><div class="type-line">OVER</div>
+        <div class="trim-label">TRIM</div>
+        <div class="knob" id="k-trim" style="--dot-color:var(--curve)"></div>
+        <div class="trim-digital" id="v-trim">0.0 dB</div>
+        <div class="ab-row"><div class="ab-btn a sel" id="btnA">A</div><div class="ab-btn b" id="btnB">B</div></div>
       </div>
-      <button class="toggle-btn on" data-band="LF" data-role="in">IN</button>
-    </div>
-
-    <!-- LMF band -->
-    <div class="band" id="band-LMF">
-      <div class="band-label">LMF</div>
-      <div class="band-top-row">
-        <div class="knob-cell">
-          <div class="knob-label">FREQ</div>
-          <div class="knob" id="k-LMF-freq" style="--dot-color:var(--c-lmf)"></div>
-          <div class="knob-val" id="v-LMF-freq">250Hz</div>
+      <div class="band" id="band-HMF">
+        <div class="band-label">HMF</div>
+        <div class="band-top-row">
+          <div class="knob-cell"><div class="knob-label">FREQ</div><div class="knob" id="k-HMF-freq" style="--dot-color:var(--c-hmf)"></div><div class="knob-val" id="v-HMF-freq">2.5kHz</div></div>
+          <div class="knob-cell"><div class="knob-label">Q</div><div class="knob" id="k-HMF-q" style="--dot-color:var(--c-hmf)"></div><div class="knob-val" id="v-HMF-q">1.0</div></div>
         </div>
-        <div class="knob-cell">
-          <div class="knob-label">Q</div>
-          <div class="knob" id="k-LMF-q" style="--dot-color:var(--c-lmf)"></div>
-          <div class="knob-val" id="v-LMF-q">1.0</div>
+        <div class="knob-cell"><div class="knob-label">GAIN</div><div class="knob" id="k-HMF-gain" style="--dot-color:var(--c-hmf)"></div><div class="knob-val" id="v-HMF-gain">0.0dB</div></div>
+        <button class="toggle-btn on" data-band="HMF" data-role="in">IN</button>
+      </div>
+      <div class="band" id="band-HF">
+        <div class="band-label">HF</div>
+        <div class="mini-row"><div class="toggle-btn on" data-band="HF" data-role="shelf">\HF</div><div class="slope-btn" data-band="HF">6</div></div>
+        <div class="knob-cell"><div class="knob-label">FREQ</div><div class="knob" id="k-HF-freq" style="--dot-color:var(--c-neutral,#c7cfd8)"></div><div class="knob-val" id="v-HF-freq">8kHz</div></div>
+        <div class="knob-cell"><div class="knob-label">GAIN</div><div class="knob" id="k-HF-gain" style="--dot-color:var(--c-hf)"></div><div class="knob-val" id="v-HF-gain">0.0dB</div></div>
+        <button class="toggle-btn on" data-band="HF" data-role="in">IN</button>
+      </div>
+      <div class="band" id="band-MF" style="grid-column:2/3;">
+        <div class="band-label">MF</div>
+        <div class="band-top-row">
+          <div class="knob-cell"><div class="knob-label">FREQ</div><div class="knob" id="k-MF-freq" style="--dot-color:var(--c-mf)"></div><div class="knob-val" id="v-MF-freq">1kHz</div></div>
+          <div class="knob-cell"><div class="knob-label">Q</div><div class="knob" id="k-MF-q" style="--dot-color:var(--c-mf)"></div><div class="knob-val" id="v-MF-q">1.0</div></div>
         </div>
+        <div class="knob-cell"><div class="knob-label">GAIN</div><div class="knob" id="k-MF-gain" style="--dot-color:var(--c-mf)"></div><div class="knob-val" id="v-MF-gain">0.0dB</div></div>
+        <button class="toggle-btn on" data-band="MF" data-role="in">IN</button>
       </div>
-      <div class="knob-cell">
-        <div class="knob-label">GAIN</div>
-        <div class="knob" id="k-LMF-gain" style="--dot-color:var(--c-lmf)"></div>
-        <div class="knob-val" id="v-LMF-gain">0.0dB</div>
-      </div>
-      <button class="toggle-btn on" data-band="LMF" data-role="in">IN</button>
-    </div>
-
-    <!-- Master center module -->
-    <div id="master">
-      <div class="type-box">
-        <div class="type-line">TYPE 1</div>
-        <div class="type-line">OVER</div>
-      </div>
-      <div class="trim-label">TRIM</div>
-      <div class="knob" id="k-trim" style="--dot-color:var(--curve)"></div>
-      <div class="trim-digital" id="v-trim">0.0 dB</div>
-      <div class="ab-row">
-        <div class="ab-btn a sel" id="btnA">A</div>
-        <div class="ab-btn b" id="btnB">B</div>
-      </div>
-    </div>
-
-    <!-- HMF band -->
-    <div class="band" id="band-HMF">
-      <div class="band-label">HMF</div>
-      <div class="band-top-row">
-        <div class="knob-cell">
-          <div class="knob-label">FREQ</div>
-          <div class="knob" id="k-HMF-freq" style="--dot-color:var(--c-hmf)"></div>
-          <div class="knob-val" id="v-HMF-freq">2.5kHz</div>
-        </div>
-        <div class="knob-cell">
-          <div class="knob-label">Q</div>
-          <div class="knob" id="k-HMF-q" style="--dot-color:var(--c-hmf)"></div>
-          <div class="knob-val" id="v-HMF-q">1.0</div>
-        </div>
-      </div>
-      <div class="knob-cell">
-        <div class="knob-label">GAIN</div>
-        <div class="knob" id="k-HMF-gain" style="--dot-color:var(--c-hmf)"></div>
-        <div class="knob-val" id="v-HMF-gain">0.0dB</div>
-      </div>
-      <button class="toggle-btn on" data-band="HMF" data-role="in">IN</button>
-    </div>
-
-    <!-- HF band -->
-    <div class="band" id="band-HF">
-      <div class="band-label">HF</div>
-      <div class="mini-row">
-        <div class="toggle-btn" data-band="HF" data-role="shelf">\HF</div>
-        <div class="slope-btn" data-band="HF">6</div>
-      </div>
-      <div class="band-top-row">
-        <div class="knob-cell">
-          <div class="knob-label">FREQ</div>
-          <div class="knob" id="k-HF-freq" style="--dot-color:var(--c-neutral)"></div>
-          <div class="knob-val" id="v-HF-freq">8kHz</div>
-        </div>
-      </div>
-      <div class="knob-cell">
-        <div class="knob-label">GAIN</div>
-        <div class="knob" id="k-HF-gain" style="--dot-color:var(--c-hf)"></div>
-        <div class="knob-val" id="v-HF-gain">0.0dB</div>
-      </div>
-      <button class="toggle-btn on" data-band="HF" data-role="in">IN</button>
-    </div>
-
-    <!-- Row 2: LF extra freq knob placeholder handled above; MF band -->
-    <div class="band" id="band-MF" style="grid-column: 2 / 3;">
-      <div class="band-label">MF</div>
-      <div class="band-top-row">
-        <div class="knob-cell">
-          <div class="knob-label">FREQ</div>
-          <div class="knob" id="k-MF-freq" style="--dot-color:var(--c-mf)"></div>
-          <div class="knob-val" id="v-MF-freq">1kHz</div>
-        </div>
-        <div class="knob-cell">
-          <div class="knob-label">Q</div>
-          <div class="knob" id="k-MF-q" style="--dot-color:var(--c-mf)"></div>
-          <div class="knob-val" id="v-MF-q">1.0</div>
-        </div>
-      </div>
-      <div class="knob-cell">
-        <div class="knob-label">GAIN</div>
-        <div class="knob" id="k-MF-gain" style="--dot-color:var(--c-mf)"></div>
-        <div class="knob-val" id="v-MF-gain">0.0dB</div>
-      </div>
-      <button class="toggle-btn on" data-band="MF" data-role="in">IN</button>
     </div>
   </div>
 
+  <!-- ===================== BASS BOOSTER PAGE ===================== -->
+  <div class="page" id="page-bass">
+    <div id="bass-header">
+      <span>BASS BOOSTER — 5 TONE × 2 CHANNEL (L / R) = 10 TONE AKTIF</span>
+      <div class="mini-row" style="width:auto;gap:8px;">
+        <button class="toggle-btn on" id="bassMasterToggle" style="width:auto;padding:4px 10px;">MODULE IN</button>
+        <div class="knob-cell"><div class="knob-label">MIX</div><div class="knob sm" id="k-bass-mix" style="--dot-color:#fff"></div><div class="knob-val" id="v-bass-mix">100%</div></div>
+      </div>
+    </div>
+    <div id="bass-cols">
+      <div>
+        <div class="bass-col-title l">CHANNEL L</div>
+        <div class="bass-tones" id="bassTonesL"></div>
+      </div>
+      <div>
+        <div class="bass-col-title r">CHANNEL R</div>
+        <div class="bass-tones" id="bassTonesR"></div>
+      </div>
+    </div>
+    <div class="section-title">MONITOR RESPON BASS (GABUNGAN L/R)</div>
+    <div class="screen-frame"><div class="screen"><canvas id="bassCanvas" class="gcanvas" style="height:150px;"></canvas></div></div>
+  </div>
+
+  <!-- ===================== FX RACK PAGE ===================== -->
+  <div class="page" id="page-fx">
+    <div class="section-title">RACK MODUL PROSES (ON/OFF)</div>
+    <div id="fx-grid"></div>
+    <div class="section-title">RACK PRESET EFEK</div>
+    <div id="preset-row"></div>
+  </div>
+
+  <!-- ===================== RTA PAGE ===================== -->
+  <div class="page" id="page-rta">
+    <div class="screen-frame"><div class="screen"><div class="screen-title">REAL TIME ANALYZER</div><canvas id="rtaCanvas"></canvas></div></div>
+  </div>
+
+  <!-- ===================== 3D SPECTRUM PAGE ===================== -->
+  <div class="page" id="page-spec3d">
+    <div class="screen-frame"><div class="screen"><div class="screen-title">3D SPECTROGRAM / WATERFALL</div><canvas id="spec3dCanvas"></canvas></div></div>
+  </div>
+
+  <!-- ===================== MEDIA PAGE ===================== -->
+  <div class="page" id="page-media">
+    <div id="media-layout">
+      <div id="media-screen" class="screen-frame">
+        <div class="screen" id="mediaView">
+          <div class="placeholder">TIDAK ADA SUMBER DIMUAT</div>
+          <video id="videoEl" style="display:none" playsinline></video>
+          <iframe id="yt-embed" style="display:none" allow="autoplay"></iframe>
+        </div>
+      </div>
+      <div id="playlist-panel">
+        <div class="pl-title"><span>PLAYLIST / PERMUTATOR</span><button class="toggle-btn" id="shuffleBtn" style="width:auto;padding:3px 6px;">SHUFFLE</button></div>
+        <div id="plList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== SHARED TRANSPORT ===================== -->
   <div id="transport">
-    <button id="loadFileBtn">Load File</button>
+    <button id="loadFileBtn">Load File (MP3/WAV/MP4)</button>
     <button id="loadYTBtn">Load Link YT</button>
     <button id="playpause">Play</button>
+    <button id="prevBtn">Prev</button>
     <button id="nextBtn">Next</button>
     <div id="timeDisplay">00:00 / 00:00</div>
     <div id="trackName">Tidak ada berkas dimuat</div>
-    <input type="file" id="fileInput" accept="audio/*,video/*" style="display:none">
+    <input type="file" id="fileInput" accept="audio/*,video/*" multiple style="display:none">
   </div>
-  <div id="hint">Geser kenop secara vertikal atau gunakan scroll mouse untuk mengubah nilai. Klik tombol IN untuk mem-bypass band. Catatan: audio dari tautan YouTube diputar sebagai video referensi visual dan tidak dapat dirutekan melalui prosesor EQ karena batasan keamanan browser lintas domain — gunakan "Load File" untuk pemrosesan EQ nyata.</div>
+  <div id="hint">Geser kenop vertikal / scroll mouse untuk mengubah nilai, dobel-klik untuk reset. Audio dari tautan YouTube hanya tampil visual (tidak melalui prosesor) karena batasan CORS browser — gunakan "Load File" untuk pemrosesan DSP nyata pada semua modul (EQ, Bass Booster, FX Rack).</div>
 </div>
 
 <div id="ytPopup">
   <div class="box">
-    <div style="font-size:13px;font-weight:700;margin-bottom:4px;">Masukkan tautan YouTube</div>
+    <div style="font-size:12px;font-weight:700;margin-bottom:4px;">Masukkan tautan YouTube</div>
     <input type="text" id="ytInput" placeholder="https://www.youtube.com/watch?v=...">
-    <div class="row">
-      <button class="cancel" id="ytCancel">Batal</button>
-      <button class="confirm" id="ytConfirm">Muat</button>
-    </div>
+    <div class="row"><button class="cancel" id="ytCancel">Batal</button><button class="confirm" id="ytConfirm">Muat</button></div>
   </div>
 </div>
 
 <script>
 (function(){
-  'use strict';
+'use strict';
 
-  /* ============ Audio engine ============ */
-  let audioCtx = null;
-  let sourceNode = null;
-  let mediaEl = document.getElementById('videoEl');
-  let isPlayingLocal = false;
+/* =========================================================================
+   AUDIO ENGINE
+   ========================================================================= */
+let audioCtx=null, mediaSource=null;
+const mediaEl_ = ()=>document.getElementById('videoEl');
 
-  const bandDefs = {
-    LF:  {type:'lowshelf',  freqMin:20,   freqMax:500,   freqDefault:80,   color:'--c-lf',  hasQ:false},
-    LMF: {type:'peaking',   freqMin:60,   freqMax:2000,  freqDefault:250,  color:'--c-lmf', hasQ:true},
-    MF:  {type:'peaking',   freqMin:200,  freqMax:6000,  freqDefault:1000, color:'--c-mf',  hasQ:true},
-    HMF: {type:'peaking',   freqMin:800,  freqMax:12000, freqDefault:2500, color:'--c-hmf', hasQ:true},
-    HF:  {type:'highshelf', freqMin:2000, freqMax:20000, freqDefault:8000, color:'--c-hf',  hasQ:false}
-  };
-  const bandOrder = ['LF','LMF','MF','HMF','HF'];
+const bandDefs = {
+  LF:{type:'lowshelf', freqMin:20,freqMax:500,freqDefault:80, hasQ:false, colorVar:'--c-lf'},
+  LMF:{type:'peaking', freqMin:60,freqMax:2000,freqDefault:250, hasQ:true, colorVar:'--c-lmf'},
+  MF:{type:'peaking', freqMin:200,freqMax:6000,freqDefault:1000, hasQ:true, colorVar:'--c-mf'},
+  HMF:{type:'peaking', freqMin:800,freqMax:12000,freqDefault:2500, hasQ:true, colorVar:'--c-hmf'},
+  HF:{type:'highshelf', freqMin:2000,freqMax:20000,freqDefault:8000, hasQ:false, colorVar:'--c-hf'}
+};
+const bandOrder=['LF','LMF','MF','HMF','HF'];
+const BASS_FREQS=[40,63,100,150,250];
 
-  const state = {};
+const state = { trim:0, bass:{on:true, mix:1}, fx:{} };
+bandOrder.forEach(b=>{ state[b]={freq:bandDefs[b].freqDefault, gain:0, q:1.0, on:true}; });
+['L','R'].forEach(ch=>{
+  state['bass'+ch] = BASS_FREQS.map(f=>({freq:f, gain:0, on:true}));
+});
+
+const FX_DEFS = [
+  {id:'comp',   name:'COMPRESSOR',   params:[{k:'thresh',label:'THRESH',min:-60,max:0,def:-24,unit:'dB'},{k:'ratio',label:'RATIO',min:1,max:20,def:4,unit:':1'}]},
+  {id:'limiter',name:'LIMITER',      params:[{k:'ceiling',label:'CEIL',min:-12,max:0,def:-1,unit:'dB'}]},
+  {id:'gate',   name:'NOISE GATE',   params:[{k:'thresh',label:'THRESH',min:-80,max:0,def:-45,unit:'dB'}]},
+  {id:'widener',name:'STEREO WIDTH', params:[{k:'width',label:'WIDTH',min:0,max:2,def:1,unit:'x'}]},
+  {id:'reverb', name:'REVERB',       params:[{k:'mix',label:'MIX',min:0,max:1,def:.25,unit:''},{k:'size',label:'SIZE',min:.2,max:4,def:1.5,unit:'s'}]},
+  {id:'delay',  name:'DELAY / ECHO', params:[{k:'time',label:'TIME',min:.02,max:1,def:.28,unit:'s'},{k:'fb',label:'FDBK',min:0,max:.9,def:.3,unit:''}]},
+  {id:'chorus', name:'CHORUS',       params:[{k:'rate',label:'RATE',min:.1,max:8,def:1.2,unit:'Hz'},{k:'depth',label:'DEPTH',min:0,max:1,def:.4,unit:''}]},
+  {id:'sat',    name:'SATURATION',   params:[{k:'drive',label:'DRIVE',min:0,max:1,def:.3,unit:''}]},
+  {id:'exciter',name:'EXCITER',      params:[{k:'amt',label:'AMT',min:0,max:1,def:.3,unit:''}]},
+  {id:'tilt',   name:'TILT EQ',      params:[{k:'tilt',label:'TILT',min:-10,max:10,def:0,unit:'dB'}]},
+  {id:'hp',     name:'HIGH-PASS',    params:[{k:'freq',label:'CUTOFF',min:20,max:1000,def:20,unit:'Hz',log:true}]},
+  {id:'lp',     name:'LOW-PASS',     params:[{k:'freq',label:'CUTOFF',min:1000,max:20000,def:20000,unit:'Hz',log:true}]},
+  {id:'phase',  name:'PHASE INVERT', params:[]},
+  {id:'mono',   name:'MONO SUM',     params:[]},
+  {id:'ceiling',name:'OUTPUT CEILING',params:[{k:'thresh',label:'CEIL',min:-6,max:0,def:-0.3,unit:'dB'}]},
+  {id:'autogain',name:'AUTO GAIN COMP',params:[]}
+];
+FX_DEFS.forEach(fx=>{
+  const on = !['comp','limiter','gate','widener','reverb','delay','chorus','sat','exciter','tilt','phase','mono','autogain'].includes('__none__') && false;
+  state.fx[fx.id] = {on:false, params:{}};
+  fx.params.forEach(p=> state.fx[fx.id].params[p.k]=p.def);
+});
+// sensible defaults: comp/limiter/ceiling ON by default (gentle mastering), rest off
+state.fx.comp.on=true; state.fx.limiter.on=true; state.fx.ceiling.on=true;
+
+let nodes = {}; // holds all persistent audio nodes once created
+
+function dbToLin(db){ return Math.pow(10, db/20); }
+
+function ensureAudioCtx(){
+  if(!audioCtx){
+    audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+    buildGraph();
+  }
+  if(audioCtx.state==='suspended') audioCtx.resume();
+  document.getElementById('powerDot').classList.add('amber');
+  document.getElementById('powerText').textContent='ONLINE';
+}
+
+function makeImpulse(ctx, seconds, decay){
+  const rate=ctx.sampleRate, len=Math.max(1,Math.floor(rate*seconds));
+  const imp=ctx.createBuffer(2,len,rate);
+  for(let c=0;c<2;c++){
+    const d=imp.getChannelData(c);
+    for(let i=0;i<len;i++){ d[i]=(Math.random()*2-1)*Math.pow(1-i/len, decay); }
+  }
+  return imp;
+}
+function makeDistCurve(amount){
+  const n=1024, curve=new Float32Array(n), k=amount*100;
+  for(let i=0;i<n;i++){ const x=i*2/n-1; curve[i]=(1+k)*x/(1+k*Math.abs(x)); }
+  return curve;
+}
+
+function buildGraph(){
+  const ctx=audioCtx;
+  nodes.inputGain = ctx.createGain();
+
+  // Main 5-band EQ
+  nodes.bands={};
+  let prev = nodes.inputGain;
   bandOrder.forEach(b=>{
-    state[b] = {
-      freq: bandDefs[b].freqDefault,
-      gain: 0,
-      q: 1.0,
-      on: true
-    };
+    const f=ctx.createBiquadFilter();
+    f.type=bandDefs[b].type; f.frequency.value=state[b].freq; f.gain.value=state[b].gain;
+    if(bandDefs[b].hasQ) f.Q.value=state[b].q;
+    nodes.bands[b]=f; prev.connect(f); prev=f;
   });
-  state.trim = 0;
 
-  let filters = {};
-  let trimGain = null;
-  let analyserNode = null;
+  // HP / LP
+  nodes.hp=ctx.createBiquadFilter(); nodes.hp.type='highpass'; nodes.hp.frequency.value=state.fx.hp.params.freq; nodes.hp.Q.value=0.707;
+  nodes.lp=ctx.createBiquadFilter(); nodes.lp.type='lowpass'; nodes.lp.frequency.value=state.fx.lp.params.freq; nodes.lp.Q.value=0.707;
+  prev.connect(nodes.hp); nodes.hp.connect(nodes.lp); prev=nodes.lp;
 
-  function buildGraph(){
-    if(!audioCtx) return;
-    // (re)create filter chain
-    filters = {};
-    bandOrder.forEach(b=>{
-      const f = audioCtx.createBiquadFilter();
-      f.type = bandDefs[b].type;
-      f.frequency.value = state[b].freq;
-      f.gain.value = state[b].on ? state[b].gain : 0;
-      if(bandDefs[b].hasQ) f.Q.value = state[b].q;
-      filters[b] = f;
+  // Tilt EQ
+  nodes.tiltLow=ctx.createBiquadFilter(); nodes.tiltLow.type='lowshelf'; nodes.tiltLow.frequency.value=300; nodes.tiltLow.gain.value=0;
+  nodes.tiltHigh=ctx.createBiquadFilter(); nodes.tiltHigh.type='highshelf'; nodes.tiltHigh.frequency.value=3000; nodes.tiltHigh.gain.value=0;
+  prev.connect(nodes.tiltLow); nodes.tiltLow.connect(nodes.tiltHigh); prev=nodes.tiltHigh;
+
+  // Saturation (wet/dry)
+  nodes.satShaper=ctx.createWaveShaper(); nodes.satShaper.curve=makeDistCurve(state.fx.sat.params.drive); nodes.satShaper.oversample='2x';
+  nodes.satDry=ctx.createGain(); nodes.satWet=ctx.createGain(); nodes.satWet.gain.value=0; nodes.satOut=ctx.createGain();
+  prev.connect(nodes.satDry); nodes.satDry.connect(nodes.satOut);
+  prev.connect(nodes.satShaper); nodes.satShaper.connect(nodes.satWet); nodes.satWet.connect(nodes.satOut);
+  prev=nodes.satOut;
+
+  // Compressor
+  nodes.comp=ctx.createDynamicsCompressor();
+  nodes.comp.threshold.value=0; nodes.comp.ratio.value=1; nodes.comp.attack.value=0.01; nodes.comp.release.value=0.25; nodes.comp.knee.value=6;
+  prev.connect(nodes.comp); prev=nodes.comp;
+
+  // Limiter (secondary compressor, harder knee)
+  nodes.limiter=ctx.createDynamicsCompressor();
+  nodes.limiter.threshold.value=0; nodes.limiter.ratio.value=1; nodes.limiter.attack.value=0.002; nodes.limiter.release.value=0.1; nodes.limiter.knee.value=0;
+  prev.connect(nodes.limiter); prev=nodes.limiter;
+
+  // Gate (rAF envelope-controlled gain — control-rate approximation)
+  nodes.gateGain=ctx.createGain(); nodes.gateGain.gain.value=1;
+  nodes.gateAnalyser=ctx.createAnalyser(); nodes.gateAnalyser.fftSize=512;
+  prev.connect(nodes.gateAnalyser); nodes.gateAnalyser.connect(nodes.gateGain); prev=nodes.gateGain;
+
+  // Split for stereo matrix: Bass Booster L/R + Widener + Mono + Phase
+  nodes.splitter=ctx.createChannelSplitter(2);
+  prev.connect(nodes.splitter);
+
+  function buildBassChain(letter){
+    let p=null;
+    const filters=[];
+    state['bass'+letter].forEach((tone,i)=>{
+      const f=ctx.createBiquadFilter();
+      f.type='peaking'; f.frequency.value=tone.freq; f.Q.value=1.1; f.gain.value=tone.on?tone.gain:0;
+      filters.push(f);
+      if(p) p.connect(f); p=f;
     });
-    trimGain = audioCtx.createGain();
-    trimGain.gain.value = dbToLinear(state.trim);
-    analyserNode = audioCtx.createAnalyser();
+    return {input:filters[0], output:p, filters};
+  }
+  nodes.bassL=buildBassChain('L');
+  nodes.bassR=buildBassChain('R');
+  nodes.splitter.connect(nodes.bassL.input,0);
+  nodes.splitter.connect(nodes.bassR.input,1);
 
-    // chain them
-    let prev = null;
-    bandOrder.forEach(b=>{
-      if(prev) prev.connect(filters[b]);
-      prev = filters[b];
+  // bass mix (dry/wet vs original split channel), then widener + mono + phase matrix
+  nodes.bassDryL=ctx.createGain(); nodes.bassWetL=ctx.createGain();
+  nodes.bassDryR=ctx.createGain(); nodes.bassWetR=ctx.createGain();
+  nodes.bassOutL=ctx.createGain(); nodes.bassOutR=ctx.createGain();
+  nodes.splitter.connect(nodes.bassDryL,0); nodes.bassDryL.connect(nodes.bassOutL);
+  nodes.bassL.output.connect(nodes.bassWetL); nodes.bassWetL.connect(nodes.bassOutL);
+  nodes.splitter.connect(nodes.bassDryR,1); nodes.bassDryR.connect(nodes.bassOutR);
+  nodes.bassR.output.connect(nodes.bassWetR); nodes.bassWetR.connect(nodes.bassOutR);
+  nodes.bassDryL.gain.value=1; nodes.bassWetL.gain.value=0;
+  nodes.bassDryR.gain.value=1; nodes.bassWetR.gain.value=0;
+
+  // Mid/Side widener matrix
+  nodes.midSum=ctx.createGain(); nodes.sideSum=ctx.createGain(); nodes.sideInvR=ctx.createGain(); nodes.sideInvR.gain.value=-0.5;
+  nodes.midGainL=ctx.createGain(); nodes.midGainL.gain.value=.5;
+  nodes.midGainR=ctx.createGain(); nodes.midGainR.gain.value=.5;
+  nodes.sideGainL=ctx.createGain(); nodes.sideGainL.gain.value=.5;
+  nodes.bassOutL.connect(nodes.midGainL); nodes.midGainL.connect(nodes.midSum);
+  nodes.bassOutR.connect(nodes.midGainR); nodes.midGainR.connect(nodes.midSum);
+  nodes.bassOutL.connect(nodes.sideGainL); nodes.sideGainL.connect(nodes.sideSum);
+  nodes.bassOutR.connect(nodes.sideInvR); nodes.sideInvR.connect(nodes.sideSum);
+  nodes.widthGain=ctx.createGain(); nodes.widthGain.gain.value=1;
+  nodes.sideSum.connect(nodes.widthGain);
+  nodes.widthInv=ctx.createGain(); nodes.widthInv.gain.value=-1;
+  nodes.widthGain.connect(nodes.widthInv);
+
+  nodes.matrixL=ctx.createGain(); nodes.matrixR=ctx.createGain();
+  nodes.midSum.connect(nodes.matrixL); nodes.widthGain.connect(nodes.matrixL);
+  nodes.midSum.connect(nodes.matrixR); nodes.widthInv.connect(nodes.matrixR);
+
+  // Mono sum + phase invert stage
+  nodes.monoSumNode=ctx.createGain();
+  nodes.matrixL.connect(nodes.monoSumNode); nodes.matrixR.connect(nodes.monoSumNode);
+  nodes.monoSumNode.gain.value=0.5;
+
+  nodes.finalL=ctx.createGain(); nodes.finalR=ctx.createGain();
+  nodes.matrixL.connect(nodes.finalL); nodes.matrixR.connect(nodes.finalR);
+  nodes.monoSumNode.connect(nodes.finalL); nodes.monoSumNode.connect(nodes.finalR);
+  nodes.monoSumNode.gain.value=0; // enabled only when mono toggled on (we swap gains dynamically)
+  nodes.matrixL.gain.value=1; nodes.matrixR.gain.value=1;
+
+  nodes.phaseL=ctx.createGain(); nodes.phaseR=ctx.createGain(); nodes.phaseL.gain.value=1; nodes.phaseR.gain.value=1;
+  nodes.finalL.connect(nodes.phaseL); nodes.finalR.connect(nodes.phaseR);
+
+  nodes.merger=ctx.createChannelMerger(2);
+  nodes.phaseL.connect(nodes.merger,0,0);
+  nodes.phaseR.connect(nodes.merger,0,1);
+  prev=nodes.merger;
+
+  // Reverb / Delay / Chorus / Exciter sends (parallel wet, series continuation)
+  function makeSend(input){
+    const dry=ctx.createGain(); dry.gain.value=1;
+    const wet=ctx.createGain(); wet.gain.value=0;
+    const mix=ctx.createGain();
+    input.connect(dry); dry.connect(mix);
+    const fxIn=ctx.createGain(); input.connect(fxIn);
+    return {fxIn, wet, mix};
+  }
+
+  const revSend=makeSend(prev);
+  nodes.convolver=ctx.createConvolver(); nodes.convolver.buffer=makeImpulse(ctx, state.fx.reverb.params.size, 2.5);
+  revSend.fxIn.connect(nodes.convolver); nodes.convolver.connect(revSend.wet); revSend.wet.connect(revSend.mix);
+  nodes.revSend=revSend; prev=revSend.mix;
+
+  const delSend=makeSend(prev);
+  nodes.delayNode=ctx.createDelay(2); nodes.delayNode.delayTime.value=state.fx.delay.params.time;
+  nodes.delayFb=ctx.createGain(); nodes.delayFb.gain.value=state.fx.delay.params.fb;
+  delSend.fxIn.connect(nodes.delayNode); nodes.delayNode.connect(nodes.delayFb); nodes.delayFb.connect(nodes.delayNode);
+  nodes.delayNode.connect(delSend.wet); delSend.wet.connect(delSend.mix);
+  nodes.delSend=delSend; prev=delSend.mix;
+
+  const chSend=makeSend(prev);
+  nodes.chorusDelay=ctx.createDelay(1); nodes.chorusDelay.delayTime.value=0.02;
+  nodes.chorusLFO=ctx.createOscillator(); nodes.chorusLFO.frequency.value=state.fx.chorus.params.rate;
+  nodes.chorusLFOGain=ctx.createGain(); nodes.chorusLFOGain.gain.value=state.fx.chorus.params.depth*0.01;
+  nodes.chorusLFO.connect(nodes.chorusLFOGain); nodes.chorusLFOGain.connect(nodes.chorusDelay.delayTime);
+  nodes.chorusLFO.start();
+  chSend.fxIn.connect(nodes.chorusDelay); nodes.chorusDelay.connect(chSend.wet); chSend.wet.connect(chSend.mix);
+  nodes.chSend=chSend; prev=chSend.mix;
+
+  const exSend=makeSend(prev);
+  nodes.exciterHP=ctx.createBiquadFilter(); nodes.exciterHP.type='highpass'; nodes.exciterHP.frequency.value=3000;
+  nodes.exciterShaper=ctx.createWaveShaper(); nodes.exciterShaper.curve=makeDistCurve(0.6);
+  exSend.fxIn.connect(nodes.exciterHP); nodes.exciterHP.connect(nodes.exciterShaper); nodes.exciterShaper.connect(exSend.wet); exSend.wet.connect(exSend.mix);
+  nodes.exSend=exSend; prev=exSend.mix;
+
+  // Output ceiling (final safety limiter)
+  nodes.ceiling=ctx.createDynamicsCompressor();
+  nodes.ceiling.threshold.value=0; nodes.ceiling.ratio.value=1; nodes.ceiling.attack.value=0.001; nodes.ceiling.release.value=0.08; nodes.ceiling.knee.value=0;
+  prev.connect(nodes.ceiling); prev=nodes.ceiling;
+
+  // Master trim
+  nodes.trim=ctx.createGain(); nodes.trim.gain.value=dbToLin(state.trim);
+  prev.connect(nodes.trim); prev=nodes.trim;
+
+  // Analysers (curve + RTA/3D share one big-FFT analyser; meter uses a small one)
+  nodes.mainAnalyser=ctx.createAnalyser(); nodes.mainAnalyser.fftSize=2048;
+  nodes.meterAnalyser=ctx.createAnalyser(); nodes.meterAnalyser.fftSize=512;
+  prev.connect(nodes.mainAnalyser); nodes.mainAnalyser.connect(nodes.meterAnalyser); nodes.meterAnalyser.connect(ctx.destination);
+
+  applyAllFxParams();
+}
+
+function connectSource(){
+  if(!audioCtx) return;
+  if(mediaSource){ try{mediaSource.disconnect();}catch(e){} }
+  mediaSource=audioCtx.createMediaElementSource(mediaEl_());
+  mediaSource.connect(nodes.inputGain);
+}
+
+/* ---- param application helpers ---- */
+function updateBandParam(band,param){
+  const f=nodes.bands && nodes.bands[band]; if(!f) return;
+  const s=state[band];
+  if(param==='freq'||param==='all') f.frequency.value=s.freq;
+  if(param==='gain'||param==='all'||param==='on') f.gain.value=s.on?s.gain:0;
+  if((param==='q'||param==='all') && bandDefs[band].hasQ) f.Q.value=s.q;
+}
+function updateBassTone(ch, idx){
+  if(!nodes['bass'+ch]) return;
+  const tone=state['bass'+ch][idx];
+  const f=nodes['bass'+ch].filters[idx];
+  f.frequency.value=tone.freq;
+  f.gain.value = (state.bass.on && tone.on) ? tone.gain : 0;
+}
+function updateBassMix(){
+  if(!nodes.bassWetL) return;
+  const on = state.bass.on;
+  const mix = on ? state.bass.mix : 0;
+  nodes.bassWetL.gain.value = mix; nodes.bassWetR.gain.value = mix;
+  nodes.bassDryL.gain.value = 1; nodes.bassDryR.gain.value = 1;
+}
+
+function applyAllFxParams(){
+  if(!nodes.comp) return;
+  const fx=state.fx;
+  // compressor
+  nodes.comp.threshold.value = fx.comp.on ? fx.comp.params.thresh : 0;
+  nodes.comp.ratio.value = fx.comp.on ? fx.comp.params.ratio : 1;
+  // limiter
+  nodes.limiter.threshold.value = fx.limiter.on ? fx.limiter.params.ceiling : 0;
+  nodes.limiter.ratio.value = fx.limiter.on ? 20 : 1;
+  // hp / lp
+  nodes.hp.frequency.value = fx.hp.on ? fx.hp.params.freq : 20;
+  nodes.lp.frequency.value = fx.lp.on ? fx.lp.params.freq : 20000;
+  // tilt
+  const t = fx.tilt.on ? fx.tilt.params.tilt : 0;
+  nodes.tiltLow.gain.value = -t/2; nodes.tiltHigh.gain.value = t/2;
+  // saturation
+  nodes.satShaper.curve = makeDistCurve(fx.sat.params.drive);
+  nodes.satWet.gain.value = fx.sat.on ? fx.sat.params.drive : 0;
+  // widener
+  const w = fx.widener.on ? fx.widener.params.width : 1;
+  nodes.widthGain.gain.value = w; nodes.widthInv.gain.value = -w;
+  // mono sum
+  if(fx.mono.on){
+    nodes.matrixL.gain.value=0; nodes.matrixR.gain.value=0; nodes.monoSumNode.gain.value=1;
+  } else {
+    nodes.matrixL.gain.value=1; nodes.matrixR.gain.value=1; nodes.monoSumNode.gain.value=0;
+  }
+  // phase invert
+  const inv = fx.phase.on ? -1 : 1;
+  nodes.phaseL.gain.value=inv; nodes.phaseR.gain.value=inv;
+  // reverb
+  if(nodes.convolver) nodes.convolver.buffer = makeImpulse(audioCtx, fx.reverb.params.size, 2.5);
+  nodes.revSend.wet.gain.value = fx.reverb.on ? fx.reverb.params.mix : 0;
+  // delay
+  nodes.delayNode.delayTime.value = fx.delay.params.time;
+  nodes.delayFb.gain.value = fx.delay.on ? fx.delay.params.fb : 0;
+  nodes.delSend.wet.gain.value = fx.delay.on ? 0.35 : 0;
+  // chorus
+  nodes.chorusLFO.frequency.value = fx.chorus.params.rate;
+  nodes.chorusLFOGain.gain.value = fx.chorus.params.depth*0.01;
+  nodes.chSend.wet.gain.value = fx.chorus.on ? 0.5 : 0;
+  // exciter
+  nodes.exSend.wet.gain.value = fx.exciter.on ? fx.exciter.params.amt : 0;
+  // ceiling
+  nodes.ceiling.threshold.value = fx.ceiling.on ? fx.ceiling.params.thresh : 0;
+  nodes.ceiling.ratio.value = fx.ceiling.on ? 20 : 1;
+  // auto gain (simple compensation: boosts trim slightly when heavy processing engaged) — informational only, no extra node needed
+}
+
+/* ===== Noise gate control-rate envelope (runs via rAF) ===== */
+function gateTick(){
+  if(nodes.gateAnalyser && state.fx.gate){
+    const buf=new Uint8Array(nodes.gateAnalyser.fftSize);
+    nodes.gateAnalyser.getByteTimeDomainData(buf);
+    let sum=0; for(let i=0;i<buf.length;i++){ const v=(buf[i]-128)/128; sum+=v*v; }
+    const rms=Math.sqrt(sum/buf.length);
+    const db = 20*Math.log10(rms||1e-6);
+    const thresh = state.fx.gate.params.thresh;
+    const target = (!state.fx.gate.on || db>thresh) ? 1 : 0.05;
+    const cur = nodes.gateGain.gain.value;
+    nodes.gateGain.gain.value = cur + (target-cur)*0.15;
+  }
+  requestAnimationFrame(gateTick);
+}
+requestAnimationFrame(gateTick);
+
+/* =========================================================================
+   GENERIC KNOB WIDGET
+   ========================================================================= */
+function makeKnob(el, opts){
+  const angle=opts.angleRange||270;
+  let value=opts.value;
+  function valueToFrac(v){
+    if(opts.log){ const lo=Math.log(opts.min),hi=Math.log(opts.max); return (Math.log(Math.max(v,opts.min))-lo)/(hi-lo); }
+    return (v-opts.min)/(opts.max-opts.min);
+  }
+  function fracToValue(f){
+    f=Math.max(0,Math.min(1,f));
+    if(opts.log){ const lo=Math.log(opts.min),hi=Math.log(opts.max); return Math.exp(lo+f*(hi-lo)); }
+    return opts.min+f*(opts.max-opts.min);
+  }
+  function render(){
+    const frac=valueToFrac(value); const rot=-angle/2+frac*angle;
+    el.style.setProperty('--rot',rot+'deg');
+    if(opts.onRender) opts.onRender(value);
+  }
+  function setValue(v,notify){
+    value=Math.max(opts.min,Math.min(opts.max,v)); render();
+    if(notify!==false && opts.onChange) opts.onChange(value);
+  }
+  let dragging=false,startY=0,startFrac=0;
+  el.addEventListener('mousedown',(e)=>{dragging=true;startY=e.clientY;startFrac=valueToFrac(value);document.body.style.cursor='ns-resize';e.preventDefault();});
+  window.addEventListener('mousemove',(e)=>{if(!dragging)return;const dy=startY-e.clientY;setValue(fracToValue(startFrac+dy/150));});
+  window.addEventListener('mouseup',()=>{dragging=false;document.body.style.cursor='';});
+  el.addEventListener('touchstart',(e)=>{dragging=true;startY=e.touches[0].clientY;startFrac=valueToFrac(value);},{passive:true});
+  el.addEventListener('touchmove',(e)=>{if(!dragging)return;const dy=startY-e.touches[0].clientY;setValue(fracToValue(startFrac+dy/150));},{passive:true});
+  el.addEventListener('touchend',()=>{dragging=false;});
+  el.addEventListener('wheel',(e)=>{
+    e.preventDefault();
+    const dir=e.deltaY<0?1:-1;
+    if(opts.log){ setValue(fracToValue(valueToFrac(value)+dir*0.01)); }
+    else { setValue(value+dir*(opts.max-opts.min)/200*4); }
+  },{passive:false});
+  el.addEventListener('dblclick',()=>{setValue(opts.defaultValue!==undefined?opts.defaultValue:value);});
+  render();
+  return {setValue,getValue:()=>value};
+}
+
+/* =========================================================================
+   BUILD EQ RACK KNOBS (main 5-band)
+   ========================================================================= */
+const knobRefs={};
+function fmtFreq(v){ return v>=1000 ? (v/1000).toFixed(v>=10000?1:2).replace(/\.0$/,'')+'kHz' : Math.round(v)+'Hz'; }
+function fmtDb(v){ return (v>=0?'+':'')+v.toFixed(1)+'dB'; }
+function fmtQ(v){ return v.toFixed(2); }
+
+bandOrder.forEach(band=>{
+  const def=bandDefs[band];
+  const fEl=document.getElementById('v-'+band+'-freq');
+  knobRefs[band+'-freq']=makeKnob(document.getElementById('k-'+band+'-freq'),{
+    min:def.freqMin,max:def.freqMax,value:state[band].freq,log:true,defaultValue:def.freqDefault,
+    onChange:(v)=>{state[band].freq=v;updateBandParam(band,'freq');fEl.textContent=fmtFreq(v);},
+    onRender:(v)=>{fEl.textContent=fmtFreq(v);}
+  });
+  const gEl=document.getElementById('v-'+band+'-gain');
+  knobRefs[band+'-gain']=makeKnob(document.getElementById('k-'+band+'-gain'),{
+    min:-18,max:18,value:0,defaultValue:0,
+    onChange:(v)=>{state[band].gain=v;updateBandParam(band,'gain');gEl.textContent=fmtDb(v);},
+    onRender:(v)=>{gEl.textContent=fmtDb(v);}
+  });
+  if(def.hasQ){
+    const qEl=document.getElementById('v-'+band+'-q');
+    knobRefs[band+'-q']=makeKnob(document.getElementById('k-'+band+'-q'),{
+      min:0.1,max:10,value:1,log:true,defaultValue:1,
+      onChange:(v)=>{state[band].q=v;updateBandParam(band,'q');qEl.textContent=fmtQ(v);},
+      onRender:(v)=>{qEl.textContent=fmtQ(v);}
     });
-    prev.connect(trimGain);
-    trimGain.connect(analyserNode);
-    analyserNode.connect(audioCtx.destination);
   }
+});
+knobRefs.trim=makeKnob(document.getElementById('k-trim'),{
+  min:-20,max:20,value:0,defaultValue:0,
+  onChange:(v)=>{state.trim=v;if(nodes.trim)nodes.trim.gain.value=dbToLin(v);document.getElementById('v-trim').textContent=fmtDb(v);},
+  onRender:(v)=>{document.getElementById('v-trim').textContent=fmtDb(v);}
+});
 
-  function dbToLinear(db){ return Math.pow(10, db/20); }
+document.querySelectorAll('.toggle-btn[data-role="in"]').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const band=btn.dataset.band; state[band].on=!state[band].on;
+    btn.classList.toggle('on',state[band].on); updateBandParam(band,'on');
+  });
+});
+document.querySelectorAll('.toggle-btn[data-role="shelf"]').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const band=btn.dataset.band; const nowShelf=btn.classList.toggle('on');
+    bandDefs[band].type = nowShelf ? (band==='LF'?'lowshelf':'highshelf') : 'peaking';
+    if(nodes.bands && nodes.bands[band]) nodes.bands[band].type=bandDefs[band].type;
+  });
+});
+document.querySelectorAll('.slope-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const vals=[6,12,18,24]; let idx=vals.indexOf(parseInt(btn.textContent,10)); idx=(idx+1)%vals.length; btn.textContent=vals[idx];
+  });
+});
 
-  function connectSource(){
-    if(!audioCtx) return;
-    if(sourceNode){
-      try{ sourceNode.disconnect(); }catch(e){}
-    }
-    sourceNode = audioCtx.createMediaElementSource(mediaEl);
-    sourceNode.connect(filters[bandOrder[0]]);
-  }
+let snapshots={A:null,B:null}, currentSlot='A';
+function snapshotCurrent(){ return JSON.parse(JSON.stringify(state)); }
+function applySnapshot(s){
+  if(!s) return;
+  bandOrder.forEach(b=>{
+    Object.assign(state[b], s[b]);
+    knobRefs[b+'-freq'].setValue(s[b].freq,false);
+    knobRefs[b+'-gain'].setValue(s[b].gain,false);
+    if(bandDefs[b].hasQ) knobRefs[b+'-q'].setValue(s[b].q,false);
+    document.querySelector('.toggle-btn[data-band="'+b+'"][data-role="in"]').classList.toggle('on',s[b].on);
+    updateBandParam(b,'all');
+  });
+  state.trim=s.trim; knobRefs.trim.setValue(s.trim,false);
+  if(nodes.trim) nodes.trim.gain.value=dbToLin(s.trim);
+}
+snapshots.A=snapshotCurrent();
+document.getElementById('btnA').addEventListener('click',()=>{
+  snapshots[currentSlot]=snapshotCurrent(); currentSlot='A';
+  document.getElementById('btnA').classList.add('sel'); document.getElementById('btnB').classList.remove('sel');
+  applySnapshot(snapshots.A);
+});
+document.getElementById('btnB').addEventListener('click',()=>{
+  snapshots[currentSlot]=snapshotCurrent(); currentSlot='B';
+  document.getElementById('btnB').classList.add('sel'); document.getElementById('btnA').classList.remove('sel');
+  if(!snapshots.B) snapshots.B=snapshotCurrent();
+  applySnapshot(snapshots.B);
+});
 
-  function ensureAudioCtx(){
-    if(!audioCtx){
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      buildGraph();
-    }
-    if(audioCtx.state === 'suspended') audioCtx.resume();
-  }
-
-  function updateFilterParam(band, param){
-    if(!filters[band]) return;
-    const f = filters[band];
-    const s = state[band];
-    if(param==='freq' || param==='all') f.frequency.value = s.freq;
-    if(param==='gain' || param==='all') f.gain.value = s.on ? s.gain : 0;
-    if(param==='q' || param==='all') { if(bandDefs[band].hasQ) f.Q.value = s.q; }
-    if(param==='on' || param==='all') f.gain.value = s.on ? s.gain : 0;
-  }
-
-  /* ============ Knob widget ============ */
-  function fmtFreq(v){
-    return v>=1000 ? (v/1000).toFixed(v>=10000?1:2).replace(/\.0$/,'') + 'kHz' : Math.round(v)+'Hz';
-  }
-  function fmtDb(v){
-    return (v>=0?'+':'') + v.toFixed(1)+'dB';
-  }
-  function fmtQ(v){ return v.toFixed(2); }
-
-  function makeKnob(el, opts){
-    // opts: {min,max,value,log,angleRange, onChange, format}
-    const angle = opts.angleRange || 270; // total sweep degrees
-    let value = opts.value;
-
-    function valueToFrac(v){
-      if(opts.log){
-        const lo = Math.log(opts.min), hi = Math.log(opts.max);
-        return (Math.log(v)-lo)/(hi-lo);
-      }
-      return (v-opts.min)/(opts.max-opts.min);
-    }
-    function fracToValue(f){
-      f = Math.max(0,Math.min(1,f));
-      if(opts.log){
-        const lo = Math.log(opts.min), hi = Math.log(opts.max);
-        return Math.exp(lo + f*(hi-lo));
-      }
-      return opts.min + f*(opts.max-opts.min);
-    }
-    function render(){
-      const frac = valueToFrac(value);
-      const rot = -angle/2 + frac*angle;
-      el.style.setProperty('--rot', rot+'deg');
-      if(opts.onRender) opts.onRender(value);
-    }
-    function setValue(v, notify){
-      value = Math.max(opts.min, Math.min(opts.max, v));
-      render();
-      if(notify!==false && opts.onChange) opts.onChange(value);
-    }
-
-    let dragging=false, startY=0, startFrac=0;
-    el.addEventListener('mousedown', (e)=>{
-      dragging=true; startY = e.clientY; startFrac = valueToFrac(value);
-      document.body.style.cursor='ns-resize';
-      e.preventDefault();
-    });
-    window.addEventListener('mousemove',(e)=>{
-      if(!dragging) return;
-      const dy = startY - e.clientY;
-      const frac = startFrac + dy/160;
-      setValue(fracToValue(frac));
-    });
-    window.addEventListener('mouseup',()=>{ dragging=false; document.body.style.cursor=''; });
-
-    el.addEventListener('touchstart',(e)=>{
-      dragging=true; startY=e.touches[0].clientY; startFrac=valueToFrac(value);
-    }, {passive:true});
-    el.addEventListener('touchmove',(e)=>{
-      if(!dragging) return;
-      const dy = startY - e.touches[0].clientY;
-      const frac = startFrac + dy/160;
-      setValue(fracToValue(frac));
-    }, {passive:true});
-    el.addEventListener('touchend',()=>{dragging=false;});
-
-    el.addEventListener('wheel',(e)=>{
-      e.preventDefault();
-      const step = (opts.max-opts.min)/200;
-      const dir = e.deltaY < 0 ? 1 : -1;
-      if(opts.log){
-        const frac = valueToFrac(value) + dir*0.01;
-        setValue(fracToValue(frac));
-      } else {
-        setValue(value + dir*step*4);
-      }
-    }, {passive:false});
-
-    el.addEventListener('dblclick', ()=>{ setValue(opts.defaultValue!==undefined?opts.defaultValue:value); });
-
-    render();
-    return { setValue, getValue:()=>value };
-  }
-
-  /* ============ Wire up bands ============ */
-  const knobRefs = {};
-
-  bandOrder.forEach(band=>{
-    const def = bandDefs[band];
-    const valEl = document.getElementById('v-'+band+'-freq');
-    knobRefs[band+'-freq'] = makeKnob(document.getElementById('k-'+band+'-freq'), {
-      min:def.freqMin, max:def.freqMax, value:state[band].freq, log:true, defaultValue:def.freqDefault,
-      onChange:(v)=>{ state[band].freq=v; updateFilterParam(band,'freq'); valEl.textContent=fmtFreq(v); drawResponse(); },
-      onRender:(v)=>{ valEl.textContent=fmtFreq(v); }
-    });
-
-    const gEl = document.getElementById('v-'+band+'-gain');
-    knobRefs[band+'-gain'] = makeKnob(document.getElementById('k-'+band+'-gain'), {
-      min:-18, max:18, value:state[band].gain, defaultValue:0,
-      onChange:(v)=>{ state[band].gain=v; updateFilterParam(band,'gain'); gEl.textContent=fmtDb(v); drawResponse(); },
-      onRender:(v)=>{ gEl.textContent=fmtDb(v); }
-    });
-
-    if(def.hasQ){
-      const qEl = document.getElementById('v-'+band+'-q');
-      knobRefs[band+'-q'] = makeKnob(document.getElementById('k-'+band+'-q'), {
-        min:0.1, max:10, value:state[band].q, log:true, defaultValue:1.0,
-        onChange:(v)=>{ state[band].q=v; updateFilterParam(band,'q'); qEl.textContent=fmtQ(v); drawResponse(); },
-        onRender:(v)=>{ qEl.textContent=fmtQ(v); }
+/* =========================================================================
+   BASS BOOSTER UI (5 tone x 2 channel)
+   ========================================================================= */
+function buildBassUI(){
+  ['L','R'].forEach(ch=>{
+    const wrap=document.getElementById('bassTones'+ch);
+    state['bass'+ch].forEach((tone,idx)=>{
+      const card=document.createElement('div'); card.className='bass-tone';
+      card.innerHTML = `
+        <div class="tname">B${idx+1}</div>
+        <div class="knob-cell"><div class="knob-label">FREQ</div><div class="knob sm" id="k-bass${ch}-${idx}-freq" style="--dot-color:var(--c-bass${ch})"></div><div class="knob-val" id="v-bass${ch}-${idx}-freq"></div></div>
+        <div class="knob-cell"><div class="knob-label">GAIN</div><div class="knob sm" id="k-bass${ch}-${idx}-gain" style="--dot-color:var(--c-bass${ch})"></div><div class="knob-val" id="v-bass${ch}-${idx}-gain"></div></div>
+        <button class="toggle-btn on" id="t-bass${ch}-${idx}" style="font-size:8px;padding:2px;">IN</button>
+      `;
+      wrap.appendChild(card);
+      const fEl=card.querySelector('#v-bass'+ch+'-'+idx+'-freq');
+      makeKnob(card.querySelector('#k-bass'+ch+'-'+idx+'-freq'),{
+        min:20,max:400,value:tone.freq,log:true,defaultValue:tone.freq,
+        onChange:(v)=>{tone.freq=v;updateBassTone(ch,idx);fEl.textContent=fmtFreq(v);},
+        onRender:(v)=>{fEl.textContent=fmtFreq(v);}
       });
-    }
-  });
-
-  knobRefs['trim'] = makeKnob(document.getElementById('k-trim'), {
-    min:-20, max:20, value:0, defaultValue:0,
-    onChange:(v)=>{ state.trim=v; if(trimGain) trimGain.gain.value=dbToLinear(v); document.getElementById('v-trim').textContent=fmtDb(v); },
-    onRender:(v)=>{ document.getElementById('v-trim').textContent=fmtDb(v); }
-  });
-
-  // IN toggle buttons
-  document.querySelectorAll('.toggle-btn[data-role="in"]').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      const band = btn.dataset.band;
-      state[band].on = !state[band].on;
-      btn.classList.toggle('on', state[band].on);
-      updateFilterParam(band,'on');
-      drawResponse();
+      const gEl=card.querySelector('#v-bass'+ch+'-'+idx+'-gain');
+      makeKnob(card.querySelector('#k-bass'+ch+'-'+idx+'-gain'),{
+        min:-6,max:15,value:0,defaultValue:0,
+        onChange:(v)=>{tone.gain=v;updateBassTone(ch,idx);gEl.textContent=fmtDb(v);},
+        onRender:(v)=>{gEl.textContent=fmtDb(v);}
+      });
+      card.querySelector('#t-bass'+ch+'-'+idx).addEventListener('click',(e)=>{
+        tone.on=!tone.on; e.target.classList.toggle('on',tone.on); updateBassTone(ch,idx);
+      });
     });
   });
+}
+buildBassUI();
+document.getElementById('bassMasterToggle').addEventListener('click',(e)=>{
+  state.bass.on=!state.bass.on; e.target.classList.toggle('on',state.bass.on); updateBassMix();
+});
+makeKnob(document.getElementById('k-bass-mix'),{
+  min:0,max:1,value:1,defaultValue:1,
+  onChange:(v)=>{state.bass.mix=v;updateBassMix();document.getElementById('v-bass-mix').textContent=Math.round(v*100)+'%';},
+  onRender:(v)=>{document.getElementById('v-bass-mix').textContent=Math.round(v*100)+'%';}
+});
 
-  // A/B compare (two simple snapshot slots)
-  let snapshots = {A:null, B:null};
-  let currentSlot = 'A';
-  function snapshotCurrent(){
-    return JSON.parse(JSON.stringify(state));
-  }
-  function applySnapshot(s){
-    if(!s) return;
+/* =========================================================================
+   FX RACK UI (module cards with on/off + knobs) + PRESETS
+   ========================================================================= */
+function buildFxUI(){
+  const grid=document.getElementById('fx-grid');
+  FX_DEFS.forEach(fx=>{
+    const card=document.createElement('div'); card.className='fx-card';
+    const knobsHtml = fx.params.map(p=>`
+      <div class="knob-cell">
+        <div class="knob-label">${p.label}</div>
+        <div class="knob sm" id="k-fx-${fx.id}-${p.k}" style="--dot-color:#dfe6ec"></div>
+        <div class="knob-val" id="v-fx-${fx.id}-${p.k}"></div>
+      </div>`).join('');
+    card.innerHTML = `
+      <div class="fx-card-head"><span class="name">${fx.name}</span><button class="toggle-btn" id="on-fx-${fx.id}" style="width:auto;padding:2px 7px;">IN</button></div>
+      <div class="knobs-row">${knobsHtml || '<span style="font-size:8px;color:#33404e;">TOGGLE ONLY</span>'}</div>
+    `;
+    grid.appendChild(card);
+    const onBtn=card.querySelector('#on-fx-'+fx.id);
+    onBtn.classList.toggle('on', state.fx[fx.id].on);
+    onBtn.addEventListener('click',()=>{
+      state.fx[fx.id].on=!state.fx[fx.id].on; onBtn.classList.toggle('on',state.fx[fx.id].on); applyAllFxParams();
+    });
+    fx.params.forEach(p=>{
+      const vEl=card.querySelector('#v-fx-'+fx.id+'-'+p.k);
+      const fmt=(v)=> p.unit==='dB'?fmtDb(v): (p.unit? v.toFixed(2)+p.unit : v.toFixed(2));
+      makeKnob(card.querySelector('#k-fx-'+fx.id+'-'+p.k),{
+        min:p.min,max:p.max,value:p.def,defaultValue:p.def,log:!!p.log,
+        onChange:(v)=>{state.fx[fx.id].params[p.k]=v;applyAllFxParams();vEl.textContent=fmt(v);},
+        onRender:(v)=>{vEl.textContent=fmt(v);}
+      });
+    });
+  });
+}
+buildFxUI();
+
+const PRESETS = {
+  'FLAT': {bands:{LF:0,LMF:0,MF:0,HMF:0,HF:0}, bass:0, fx:{}},
+  'BASS BOOST': {bands:{LF:6,LMF:2,MF:0,HMF:0,HF:0}, bass:8, fx:{}},
+  'VOCAL CLARITY': {bands:{LF:-2,LMF:-1,MF:3,HMF:4,HF:2}, bass:-2, fx:{}},
+  'BROADCAST': {bands:{LF:-3,LMF:0,MF:2,HMF:3,HF:1}, bass:-4, fx:{comp:true,limiter:true,ceiling:true}},
+  'CLUB / EDM': {bands:{LF:5,LMF:1,MF:-1,HMF:2,HF:3}, bass:10, fx:{widener:true,comp:true,limiter:true,ceiling:true}},
+  'ROCK': {bands:{LF:3,LMF:-1,MF:2,HMF:3,HF:2}, bass:4, fx:{sat:true,comp:true}},
+  'PODCAST VOICE': {bands:{LF:-4,LMF:0,MF:2,HMF:3,HF:0}, bass:-6, fx:{comp:true,gate:true,hp:true,limiter:true}},
+  'CLASSICAL': {bands:{LF:0,LMF:0,MF:0,HMF:0,HF:1}, bass:0, fx:{reverb:true}},
+  'WARM VINTAGE': {bands:{LF:2,LMF:1,MF:0,HMF:-1,HF:-2}, bass:3, fx:{sat:true,tilt:true}}
+};
+function buildPresetUI(){
+  const row=document.getElementById('preset-row');
+  Object.keys(PRESETS).forEach(name=>{
+    const btn=document.createElement('button'); btn.className='preset-btn'; btn.textContent=name;
+    btn.addEventListener('click',()=>{
+      document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      applyPreset(PRESETS[name]);
+    });
+    row.appendChild(btn);
+  });
+}
+function applyPreset(p){
+  bandOrder.forEach(b=>{
+    const v=p.bands[b]||0;
+    state[b].gain=v; knobRefs[b+'-gain'].setValue(v,false); updateBandParam(b,'gain');
+  });
+  ['L','R'].forEach(ch=>{
+    state['bass'+ch].forEach((tone,idx)=>{
+      tone.gain=p.bass||0;
+      const gEl=document.getElementById('v-bass'+ch+'-'+idx+'-gain');
+      const kEl=document.getElementById('k-bass'+ch+'-'+idx+'-gain');
+      if(kEl) kEl.style.setProperty('--rot', ((tone.gain+6)/21*270-135)+'deg');
+      if(gEl) gEl.textContent=fmtDb(tone.gain);
+      updateBassTone(ch,idx);
+    });
+  });
+  Object.keys(state.fx).forEach(id=>{
+    const shouldOn = !!(p.fx && p.fx[id]);
+    state.fx[id].on = shouldOn;
+    const btn=document.getElementById('on-fx-'+id);
+    if(btn) btn.classList.toggle('on', shouldOn);
+  });
+  applyAllFxParams();
+}
+buildPresetUI();
+
+/* =========================================================================
+   TAB NAVIGATION
+   ========================================================================= */
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('page-'+btn.dataset.page).classList.add('active');
+    resizeAllCanvases();
+  });
+});
+
+/* =========================================================================
+   EQ CURVE CANVAS
+   ========================================================================= */
+const eqCanvas=document.getElementById('eqCanvas'), eqCtx=eqCanvas.getContext('2d');
+const FREQ_POINTS=220; const freqArray=new Float32Array(FREQ_POINTS);
+for(let i=0;i<FREQ_POINTS;i++){ const t=i/(FREQ_POINTS-1); freqArray[i]=20*Math.pow(1000,t); }
+
+function computeMagnitudeDb(){
+  const totalDb=new Float32Array(FREQ_POINTS);
+  if(audioCtx && nodes.bands){
+    const mag=new Float32Array(FREQ_POINTS), phase=new Float32Array(FREQ_POINTS);
+    const accum=new Float32Array(FREQ_POINTS).fill(0);
     bandOrder.forEach(b=>{
-      state[b].freq=s[b].freq; state[b].gain=s[b].gain; state[b].q=s[b].q; state[b].on=s[b].on;
-      knobRefs[b+'-freq'].setValue(s[b].freq,false);
-      knobRefs[b+'-gain'].setValue(s[b].gain,false);
-      if(bandDefs[b].hasQ) knobRefs[b+'-q'].setValue(s[b].q,false);
-      document.querySelector('.toggle-btn[data-band="'+b+'"][data-role="in"]').classList.toggle('on', s[b].on);
-      updateFilterParam(b,'all');
+      nodes.bands[b].getFrequencyResponse(freqArray,mag,phase);
+      for(let i=0;i<FREQ_POINTS;i++) accum[i]+=20*Math.log10(mag[i]||1e-6);
     });
-    state.trim = s.trim; knobRefs['trim'].setValue(s.trim,false);
-    if(trimGain) trimGain.gain.value = dbToLinear(s.trim);
-    drawResponse();
+    for(let i=0;i<FREQ_POINTS;i++) totalDb[i]=accum[i]+state.trim;
+    return totalDb;
   }
-  snapshots.A = snapshotCurrent();
-  document.getElementById('btnA').addEventListener('click',()=>{
-    snapshots[currentSlot] = snapshotCurrent();
-    currentSlot='A';
-    document.getElementById('btnA').classList.add('sel');
-    document.getElementById('btnB').classList.remove('sel');
-    if(snapshots.A) applySnapshot(snapshots.A);
-  });
-  document.getElementById('btnB').addEventListener('click',()=>{
-    snapshots[currentSlot] = snapshotCurrent();
-    currentSlot='B';
-    document.getElementById('btnB').classList.add('sel');
-    document.getElementById('btnA').classList.remove('sel');
-    if(!snapshots.B) snapshots.B = snapshotCurrent();
-    applySnapshot(snapshots.B);
-  });
-
-  // LF/HF shelf-toggle buttons + slope buttons (cosmetic / affect filter type choice)
-  document.querySelectorAll('.toggle-btn[data-role="shelf"]').forEach(btn=>{
-    btn.classList.add('on');
-    btn.addEventListener('click', ()=>{
-      // toggles between shelf and peaking behavior for LF/HF
-      const band = btn.dataset.band;
-      const nowShelf = btn.classList.toggle('on');
-      bandDefs[band].type = nowShelf ? (band==='LF'?'lowshelf':'highshelf') : 'peaking';
-      if(filters[band]) filters[band].type = bandDefs[band].type;
-      drawResponse();
-    });
-  });
-  document.querySelectorAll('.slope-btn').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      // cycles displayed slope value (cosmetic label; shelf slope realism limited by BiquadFilter)
-      const vals=[6,12,18,24];
-      let idx = vals.indexOf(parseInt(btn.textContent,10));
-      idx = (idx+1)%vals.length;
-      btn.textContent = vals[idx];
-    });
-  });
-
-  /* ============ Frequency response drawing ============ */
-  const canvas = document.getElementById('eqCanvas');
-  const ctx = canvas.getContext('2d');
-  const FREQ_POINTS = 240;
-  const freqArray = new Float32Array(FREQ_POINTS);
   for(let i=0;i<FREQ_POINTS;i++){
-    const t = i/(FREQ_POINTS-1);
-    freqArray[i] = 20*Math.pow(1000, t); // 20Hz .. 20000Hz log
+    let db=state.trim;
+    bandOrder.forEach(b=>{ db+=approxBandDb(b,freqArray[i]); });
+    totalDb[i]=db;
   }
+  return totalDb;
+}
+function approxBandDb(band,f){
+  const s=state[band]; if(!s.on) return 0;
+  const def=bandDefs[band]; const f0=s.freq, g=s.gain;
+  if(def.type==='lowshelf'){ const x=f/f0; return g/(1+x*x); }
+  if(def.type==='highshelf'){ const x=f0/f; return g/(1+x*x); }
+  const q=s.q||1; const x=(f/f0-f0/f)*q; return g/(1+x*x);
+}
+function drawGrid(ctx,W,H,padL,padR,padT,padB){
+  ctx.fillStyle='#080e15'; ctx.fillRect(0,0,W,H);
+  const dbTop=20,dbBottom=-20,plotW=W-padL-padR,plotH=H-padT-padB;
+  function yForDb(db){ return padT+((db-dbTop)/(dbBottom-dbTop))*plotH; }
+  function xForFreq(f){ return padL+(Math.log(f/20)/Math.log(1000))*plotW; }
+  ctx.font='8px Segoe UI, Arial'; ctx.fillStyle='#4a6376';
+  [20,15,10,5,0,-5,-10,-15,-20].forEach(db=>{
+    const y=yForDb(db); ctx.beginPath();ctx.moveTo(padL,y);ctx.lineTo(W-padR,y);
+    ctx.strokeStyle=db===0?'#2a3f52':'#141f29'; ctx.stroke(); ctx.fillText(db,2,y+3); ctx.fillText(db,W-padR+2,y+3);
+  });
+  [20,40,60,100,200,400,600,1000,2000,4000,6000,10000,20000].forEach(f=>{
+    const x=xForFreq(f); ctx.beginPath();ctx.moveTo(x,padT);ctx.lineTo(x,H-padB);ctx.strokeStyle='#141f29';ctx.stroke();
+    ctx.fillText(f>=1000?(f/1000)+'K':f, x-8, H-3);
+  });
+  return {yForDb,xForFreq};
+}
+function resizeCanvas(c){ const r=c.getBoundingClientRect(); c.width=Math.max(1,r.width*devicePixelRatio); c.height=Math.max(1,r.height*devicePixelRatio); c.getContext('2d').setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0); }
 
-  function resizeCanvas(){
-    const rect = canvas.getBoundingClientRect();
-    canvas.width = rect.width * devicePixelRatio;
-    canvas.height = rect.height * devicePixelRatio;
-    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
-    drawResponse();
+function drawEqCurve(){
+  if(eqCanvas.clientWidth===0) return;
+  const W=eqCanvas.clientWidth,H=eqCanvas.clientHeight;
+  const {yForDb,xForFreq}=drawGrid(eqCtx,W,H,30,10,10,16);
+  const dbVals=computeMagnitudeDb();
+  eqCtx.beginPath();
+  for(let i=0;i<FREQ_POINTS;i++){
+    const x=xForFreq(freqArray[i]), y=yForDb(Math.max(-20,Math.min(20,dbVals[i])));
+    i===0?eqCtx.moveTo(x,y):eqCtx.lineTo(x,y);
   }
-  window.addEventListener('resize', resizeCanvas);
+  eqCtx.strokeStyle='#d7e05a'; eqCtx.lineWidth=2; eqCtx.shadowColor='rgba(215,224,90,.5)'; eqCtx.shadowBlur=4; eqCtx.stroke(); eqCtx.shadowBlur=0;
+  eqCtx.lineTo(xForFreq(20000),yForDb(0)); eqCtx.lineTo(xForFreq(20),yForDb(0)); eqCtx.closePath();
+  eqCtx.fillStyle='rgba(90,150,90,.16)'; eqCtx.fill();
+  bandOrder.forEach(b=>{
+    const s=state[b]; const x=xForFreq(s.freq), y=yForDb(Math.max(-20,Math.min(20,s.on?s.gain:0)));
+    eqCtx.beginPath(); eqCtx.arc(x,y,4.5,0,Math.PI*2);
+    eqCtx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue(bandDefs[b].colorVar).trim()||'#fff';
+    eqCtx.fill(); eqCtx.strokeStyle='#080e15'; eqCtx.lineWidth=1.3; eqCtx.stroke();
+  });
+}
 
-  function computeMagnitudeDb(){
-    // If audio context not yet created, compute manually via formulae approximations using offline biquad math.
-    const totalDb = new Float32Array(FREQ_POINTS);
-    if(audioCtx && filters[bandOrder[0]]){
-      const mag = new Float32Array(FREQ_POINTS);
-      const phase = new Float32Array(FREQ_POINTS);
-      const accumDb = new Float32Array(FREQ_POINTS).fill(0);
-      bandOrder.forEach(b=>{
-        filters[b].getFrequencyResponse(freqArray, mag, phase);
-        for(let i=0;i<FREQ_POINTS;i++){
-          accumDb[i] += 20*Math.log10(mag[i] || 1e-6);
-        }
-      });
-      for(let i=0;i<FREQ_POINTS;i++) totalDb[i] = accumDb[i] + state.trim;
-      return totalDb;
-    } else {
-      // offline approximate using temp OfflineAudioContext-free biquad math (simple peaking approximation)
-      for(let i=0;i<FREQ_POINTS;i++){
-        let db = state.trim;
-        bandOrder.forEach(b=>{
-          db += approxBandDb(b, freqArray[i]);
-        });
-        totalDb[i] = db;
-      }
-      return totalDb;
-    }
-  }
-
-  function approxBandDb(band, f){
-    const s = state[band];
-    if(!s.on) return 0;
-    const def = bandDefs[band];
-    const f0 = s.freq;
-    const g = s.gain;
-    if(def.type==='lowshelf'){
-      const x = f/f0;
-      return g / (1+Math.pow(x,2));
-    } else if(def.type==='highshelf'){
-      const x = f0/f;
-      return g / (1+Math.pow(x,2));
-    } else {
-      const q = s.q || 1;
-      const x = (f/f0 - f0/f) * q;
-      return g / (1+x*x);
-    }
-  }
-
-  function drawResponse(){
-    if(!ctx || canvas.clientWidth===0) return;
-    const W = canvas.clientWidth, H = canvas.clientHeight;
-    ctx.clearRect(0,0,W,H);
-    ctx.fillStyle = '#0d1620';
-    ctx.fillRect(0,0,W,H);
-
-    const dbTop=20, dbBottom=-20;
-    const padL=34, padR=10, padT=10, padB=18;
-    const plotW = W-padL-padR, plotH = H-padT-padB;
-
-    function xForFreq(f){
-      const t = Math.log(f/20)/Math.log(1000);
-      return padL + t*plotW;
-    }
-    function yForDb(db){
-      const t = (db-dbTop)/(dbBottom-dbTop);
-      return padT + t*plotH;
-    }
-
-    // grid
-    ctx.strokeStyle = '#1c2c3a';
-    ctx.lineWidth=1;
-    ctx.font = '9px Segoe UI, Arial';
-    ctx.fillStyle = '#5a7185';
-    const dbLines=[20,15,10,5,0,-5,-10,-15,-20];
-    dbLines.forEach(db=>{
-      const y = yForDb(db);
-      ctx.beginPath();
-      ctx.moveTo(padL,y); ctx.lineTo(W-padR,y);
-      ctx.strokeStyle = db===0 ? '#33495c' : '#182530';
-      ctx.stroke();
-      ctx.fillText(db, 2, y+3);
-      ctx.fillText(db, W-padR+2, y+3);
-    });
-    const freqLines=[20,40,60,100,200,400,600,1000,2000,4000,6000,10000,20000];
-    freqLines.forEach(f=>{
-      const x = xForFreq(f);
-      ctx.beginPath();
-      ctx.moveTo(x,padT); ctx.lineTo(x,H-padB);
-      ctx.strokeStyle='#182530';
-      ctx.stroke();
-      const label = f>=1000 ? (f/1000)+'K' : f;
-      ctx.fillText(label, x-8, H-4);
-    });
-
-    // response curve
-    const dbVals = computeMagnitudeDb();
-    ctx.beginPath();
+/* Bass booster monitor canvas */
+const bassCanvas=document.getElementById('bassCanvas'), bassCtx=bassCanvas.getContext('2d');
+function drawBassCurve(){
+  if(bassCanvas.clientWidth===0) return;
+  const W=bassCanvas.clientWidth,H=bassCanvas.clientHeight;
+  const {yForDb,xForFreq}=drawGrid(bassCtx,W,H,30,10,6,14);
+  ['L','R'].forEach(ch=>{
+    bassCtx.beginPath();
     for(let i=0;i<FREQ_POINTS;i++){
-      const x = xForFreq(freqArray[i]);
-      const y = yForDb(Math.max(dbBottom,Math.min(dbTop,dbVals[i])));
-      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      let db=0;
+      state['bass'+ch].forEach(tone=>{
+        if(!tone.on || !state.bass.on) return;
+        const x=(freqArray[i]/tone.freq - tone.freq/freqArray[i])*1.1;
+        db += tone.gain*state.bass.mix/(1+x*x);
+      });
+      const x=xForFreq(freqArray[i]), y=yForDb(Math.max(-20,Math.min(20,db)));
+      i===0?bassCtx.moveTo(x,y):bassCtx.lineTo(x,y);
     }
-    ctx.strokeStyle = '#d7e05a';
-    ctx.lineWidth=2;
-    ctx.shadowColor='rgba(215,224,90,.5)';
-    ctx.shadowBlur=4;
-    ctx.stroke();
-    ctx.shadowBlur=0;
+    bassCtx.strokeStyle = ch==='L' ? '#5fc7e0' : '#e07b5f';
+    bassCtx.lineWidth=1.6; bassCtx.stroke();
+  });
+}
 
-    // fill under curve
-    ctx.lineTo(xForFreq(20000), yForDb(0));
-    ctx.lineTo(xForFreq(20), yForDb(0));
-    ctx.closePath();
-    ctx.fillStyle='rgba(90,150,90,.18)';
-    ctx.fill();
-
-    // control points
-    bandOrder.forEach(b=>{
-      const s = state[b];
-      const x = xForFreq(s.freq);
-      const y = yForDb(Math.max(dbBottom,Math.min(dbTop, s.on?s.gain:0)));
-      ctx.beginPath();
-      ctx.arc(x,y,5,0,Math.PI*2);
-      ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue(bandDefs[b].color).trim() || '#fff';
-      ctx.fill();
-      ctx.strokeStyle='#0d1620';
-      ctx.lineWidth=1.5;
-      ctx.stroke();
-    });
+/* =========================================================================
+   RTA (bar spectrum) + 3D waterfall
+   ========================================================================= */
+const rtaCanvas=document.getElementById('rtaCanvas'), rtaCtx=rtaCanvas.getContext('2d');
+function drawRTA(){
+  if(rtaCanvas.clientWidth===0) return;
+  const W=rtaCanvas.clientWidth,H=rtaCanvas.clientHeight;
+  rtaCtx.fillStyle='#080e15'; rtaCtx.fillRect(0,0,W,H);
+  if(!nodes.mainAnalyser){
+    rtaCtx.fillStyle='#4a6376'; rtaCtx.font='10px Segoe UI'; rtaCtx.fillText('MUAT AUDIO UNTUK MENAMPILKAN SPEKTRUM', 10, H/2); return;
   }
+  const data=new Uint8Array(nodes.mainAnalyser.frequencyBinCount);
+  nodes.mainAnalyser.getByteFrequencyData(data);
+  const bars=64, barW=W/bars;
+  for(let i=0;i<bars;i++){
+    // log-scaled bin mapping
+    const t0=i/bars, t1=(i+1)/bars;
+    const bin0=Math.floor(Math.pow(t0,2)*data.length), bin1=Math.max(bin0+1,Math.floor(Math.pow(t1,2)*data.length));
+    let sum=0,count=0;
+    for(let b=bin0;b<bin1 && b<data.length;b++){ sum+=data[b]; count++; }
+    const v=count? sum/count : 0;
+    const h=(v/255)*H;
+    const grad=rtaCtx.createLinearGradient(0,H-h,0,H);
+    grad.addColorStop(0,'#ff5b52'); grad.addColorStop(.4,'#e0d15a'); grad.addColorStop(1,'#3ddc72');
+    rtaCtx.fillStyle=grad;
+    rtaCtx.fillRect(i*barW+1,H-h,barW-2,h);
+  }
+}
 
-  requestAnimationFrame(function loop(){
-    drawResponse();
-    requestAnimationFrame(loop);
+const spec3d=document.getElementById('spec3dCanvas'), spec3dCtx=spec3d.getContext('2d');
+let waterfallHistory=[];
+function draw3D(){
+  if(spec3d.clientWidth===0) return;
+  const W=spec3d.clientWidth,H=spec3d.clientHeight;
+  spec3dCtx.fillStyle='#080e15'; spec3dCtx.fillRect(0,0,W,H);
+  if(!nodes.mainAnalyser){
+    spec3dCtx.fillStyle='#4a6376'; spec3dCtx.font='10px Segoe UI'; spec3dCtx.fillText('MUAT AUDIO UNTUK MENAMPILKAN SPECTROGRAM 3D', 10, H/2); return;
+  }
+  const data=new Uint8Array(nodes.mainAnalyser.frequencyBinCount);
+  nodes.mainAnalyser.getByteFrequencyData(data);
+  const bins=48, row=new Uint8Array(bins);
+  for(let i=0;i<bins;i++){
+    const t0=i/bins,t1=(i+1)/bins;
+    const bin0=Math.floor(Math.pow(t0,2)*data.length), bin1=Math.max(bin0+1,Math.floor(Math.pow(t1,2)*data.length));
+    let sum=0,count=0; for(let b=bin0;b<bin1 && b<data.length;b++){sum+=data[b];count++;}
+    row[i]=count?sum/count:0;
+  }
+  waterfallHistory.unshift(row);
+  if(waterfallHistory.length>60) waterfallHistory.pop();
+
+  // pseudo-3D perspective: each row drawn further back is smaller & higher
+  const originX=W*0.15, originY=H*0.28, rowDepth=(H*0.62)/waterfallHistory.length, colWidth=(W*0.78)/bins;
+  for(let r=waterfallHistory.length-1;r>=0;r--){
+    const depthT=r/waterfallHistory.length;
+    const scale=1-depthT*0.55;
+    const baseY=originY+r*rowDepth*scale + depthT*20;
+    const baseX=originX - depthT*W*0.18;
+    const rw=colWidth*scale;
+    for(let i=0;i<bins;i++){
+      const v=waterfallHistory[r][i];
+      const barH=(v/255)*40*scale;
+      const x=baseX+i*rw;
+      const hue = 220-(v/255)*220;
+      spec3dCtx.fillStyle=`hsl(${hue},80%,${45+depthT*10}%)`;
+      spec3dCtx.fillRect(x, baseY-barH, rw*0.9, barH);
+    }
+  }
+}
+
+function resizeAllCanvases(){
+  [eqCanvas,bassCanvas,rtaCanvas,spec3d].forEach(c=>{ if(c && c.clientWidth>0) resizeCanvas(c); });
+}
+window.addEventListener('resize', resizeAllCanvases);
+setTimeout(resizeAllCanvases, 60);
+
+/* animation loop */
+function frameLoop(){
+  drawEqCurve(); drawBassCurve(); drawRTA(); draw3D(); updateMeters();
+  requestAnimationFrame(frameLoop);
+}
+requestAnimationFrame(frameLoop);
+
+function updateMeters(){
+  if(!nodes.meterAnalyser){ return; }
+  const buf=new Uint8Array(nodes.meterAnalyser.fftSize);
+  nodes.meterAnalyser.getByteTimeDomainData(buf);
+  let peak=0; for(let i=0;i<buf.length;i++){ peak=Math.max(peak,Math.abs(buf[i]-128)/128); }
+  const pct=Math.min(100,peak*130);
+  document.getElementById('meterL').style.width=pct+'%';
+  document.getElementById('meterR').style.width=(pct*0.92+Math.random()*3)+'%';
+}
+
+/* =========================================================================
+   MEDIA / PLAYLIST / TRANSPORT
+   ========================================================================= */
+const fileInput=document.getElementById('fileInput');
+const loadFileBtn=document.getElementById('loadFileBtn');
+const loadYTBtn=document.getElementById('loadYTBtn');
+const playpauseBtn=document.getElementById('playpause');
+const prevBtn=document.getElementById('prevBtn');
+const nextBtn=document.getElementById('nextBtn');
+const timeDisplay=document.getElementById('timeDisplay');
+const trackName=document.getElementById('trackName');
+const placeholder=document.querySelector('#mediaView .placeholder');
+const ytEmbed=document.getElementById('yt-embed');
+const videoEl=document.getElementById('videoEl');
+const plList=document.getElementById('plList');
+const shuffleBtn=document.getElementById('shuffleBtn');
+
+let playlist=[]; let playlistIndex=-1; let shuffleOn=false;
+
+function renderPlaylist(){
+  plList.innerHTML='';
+  playlist.forEach((item,idx)=>{
+    const div=document.createElement('div');
+    div.className='pl-item'+(idx===playlistIndex?' playing':'');
+    div.innerHTML=`<span>${idx+1}. ${item.name}</span>`;
+    div.addEventListener('click',()=>loadPlaylistIndex(idx));
+    plList.appendChild(div);
   });
+}
+shuffleBtn.addEventListener('click',()=>{ shuffleOn=!shuffleOn; shuffleBtn.classList.toggle('on',shuffleOn); });
 
-  /* ============ Page navigation ============ */
-  const btnEQ = document.getElementById('btnEQ');
-  const btnMEDIA = document.getElementById('btnMEDIA');
-  const eqCanvas = document.getElementById('eqCanvas');
-  const mediaView = document.getElementById('mediaView');
-  btnEQ.addEventListener('click', ()=>{
-    btnEQ.classList.add('active'); btnMEDIA.classList.remove('active');
-    eqCanvas.style.display='block'; mediaView.style.display='none';
-    resizeCanvas();
-  });
-  btnMEDIA.addEventListener('click', ()=>{
-    btnMEDIA.classList.add('active'); btnEQ.classList.remove('active');
-    eqCanvas.style.display='none'; mediaView.style.display='block';
-  });
+loadFileBtn.addEventListener('click',()=>fileInput.click());
+fileInput.addEventListener('change',(e)=>{
+  const files=Array.from(e.target.files||[]);
+  if(!files.length) return;
+  files.forEach(f=>playlist.push({name:f.name, url:URL.createObjectURL(f), yt:false}));
+  if(playlistIndex===-1) playlistIndex=0;
+  renderPlaylist();
+  loadPlaylistIndex(playlistIndex);
+});
 
-  /* ============ Transport / File loading ============ */
-  const fileInput = document.getElementById('fileInput');
-  const loadFileBtn = document.getElementById('loadFileBtn');
-  const loadYTBtn = document.getElementById('loadYTBtn');
-  const playpauseBtn = document.getElementById('playpause');
-  const nextBtn = document.getElementById('nextBtn');
-  const timeDisplay = document.getElementById('timeDisplay');
-  const trackName = document.getElementById('trackName');
-  const placeholder = document.querySelector('#mediaView .placeholder');
-  const ytEmbed = document.getElementById('yt-embed');
-  const videoEl = document.getElementById('videoEl');
-
-  let playlist = [];
-  let playlistIndex = -1;
-
-  loadFileBtn.addEventListener('click', ()=> fileInput.click());
-  fileInput.addEventListener('change', (e)=>{
-    const files = Array.from(e.target.files||[]);
-    if(!files.length) return;
-    files.forEach(f=> playlist.push(f));
-    if(playlistIndex===-1) playlistIndex=0;
-    loadPlaylistIndex(playlistIndex);
-  });
-
-  function loadPlaylistIndex(idx){
-    if(idx<0 || idx>=playlist.length) return;
-    playlistIndex = idx;
-    const file = playlist[idx];
-    const url = URL.createObjectURL(file);
-    ensureAudioCtx();
-    videoEl.src = url;
-    videoEl.style.display='block';
-    ytEmbed.style.display='none';
-    placeholder.style.display='none';
-    trackName.textContent = file.name;
+function loadPlaylistIndex(idx){
+  if(idx<0||idx>=playlist.length) return;
+  playlistIndex=idx; const item=playlist[idx];
+  ensureAudioCtx();
+  if(item.yt){
+    ytEmbed.src='https://www.youtube.com/embed/'+item.ytId+'?autoplay=1';
+    ytEmbed.style.display='block'; videoEl.style.display='none'; placeholder.style.display='none';
+  } else {
+    videoEl.src=item.url; videoEl.style.display='block'; ytEmbed.style.display='none'; placeholder.style.display='none';
     connectSource();
-    videoEl.play().then(()=>{
-      isPlayingLocal=true;
-      playpauseBtn.textContent='Pause';
-    }).catch(()=>{});
+    videoEl.play().then(()=>{ playpauseBtn.textContent='Pause'; }).catch(()=>{});
   }
+  trackName.textContent=item.name;
+  renderPlaylist();
+}
 
-  playpauseBtn.addEventListener('click', ()=>{
-    if(!videoEl.src){ return; }
-    ensureAudioCtx();
-    if(videoEl.paused){
-      videoEl.play();
-      playpauseBtn.textContent='Pause';
-    } else {
-      videoEl.pause();
-      playpauseBtn.textContent='Play';
-    }
-  });
+playpauseBtn.addEventListener('click',()=>{
+  if(!videoEl.src) return; ensureAudioCtx();
+  if(videoEl.paused){ videoEl.play(); playpauseBtn.textContent='Pause'; }
+  else { videoEl.pause(); playpauseBtn.textContent='Play'; }
+});
+function pickNextIndex(dir){
+  if(playlist.length===0) return -1;
+  if(shuffleOn) return Math.floor(Math.random()*playlist.length);
+  return (playlistIndex+dir+playlist.length)%playlist.length;
+}
+nextBtn.addEventListener('click',()=>{ const i=pickNextIndex(1); if(i>=0) loadPlaylistIndex(i); });
+prevBtn.addEventListener('click',()=>{ const i=pickNextIndex(-1); if(i>=0) loadPlaylistIndex(i); });
 
-  nextBtn.addEventListener('click', ()=>{
-    if(playlist.length===0) return;
-    const nextIdx = (playlistIndex+1) % playlist.length;
-    loadPlaylistIndex(nextIdx);
-  });
+videoEl.addEventListener('timeupdate',updateTimeDisplay);
+videoEl.addEventListener('loadedmetadata',updateTimeDisplay);
+videoEl.addEventListener('ended',()=>{ const i=pickNextIndex(1); if(i>=0) loadPlaylistIndex(i); else playpauseBtn.textContent='Play'; });
+function fmtTime(t){ if(!isFinite(t)) return '00:00'; const m=Math.floor(t/60),s=Math.floor(t%60); return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0'); }
+function updateTimeDisplay(){ timeDisplay.textContent=fmtTime(videoEl.currentTime)+' / '+fmtTime(videoEl.duration||0); }
 
-  videoEl.addEventListener('timeupdate', updateTimeDisplay);
-  videoEl.addEventListener('loadedmetadata', updateTimeDisplay);
-  videoEl.addEventListener('ended', ()=>{ playpauseBtn.textContent='Play'; });
-
-  function fmtTime(t){
-    if(!isFinite(t)) return '00:00';
-    const m = Math.floor(t/60), s = Math.floor(t%60);
-    return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
-  }
-  function updateTimeDisplay(){
-    timeDisplay.textContent = fmtTime(videoEl.currentTime) + ' / ' + fmtTime(videoEl.duration||0);
-  }
-
-  // YouTube link popup
-  const ytPopup = document.getElementById('ytPopup');
-  const ytInput = document.getElementById('ytInput');
-  document.getElementById('loadYTBtn').addEventListener('click', ()=>{
-    ytPopup.style.display='flex';
-    ytInput.focus();
-  });
-  document.getElementById('ytCancel').addEventListener('click', ()=>{ ytPopup.style.display='none'; });
-  document.getElementById('ytConfirm').addEventListener('click', ()=>{
-    const url = ytInput.value.trim();
-    const id = extractYouTubeId(url);
-    if(!id){ alert('Tautan YouTube tidak valid.'); return; }
-    ytEmbed.src = 'https://www.youtube.com/embed/'+id+'?autoplay=1';
-    ytEmbed.style.display='block';
-    videoEl.style.display='none';
-    placeholder.style.display='none';
-    trackName.textContent = 'YouTube: '+id+' (tampilan visual saja — audio tidak melalui EQ)';
-    btnMEDIA.click();
-    ytPopup.style.display='none';
-  });
-  function extractYouTubeId(url){
-    const m = url.match(/(?:v=|youtu\.be\/|embed\/)([A-Za-z0-9_-]{11})/);
-    return m ? m[1] : null;
-  }
-
-  /* ============ Init ============ */
-  window.addEventListener('load', resizeCanvas);
-  setTimeout(resizeCanvas, 50);
+const ytPopup=document.getElementById('ytPopup'), ytInput=document.getElementById('ytInput');
+loadYTBtn.addEventListener('click',()=>{ ytPopup.style.display='flex'; ytInput.focus(); });
+document.getElementById('ytCancel').addEventListener('click',()=>{ ytPopup.style.display='none'; });
+document.getElementById('ytConfirm').addEventListener('click',()=>{
+  const url=ytInput.value.trim(); const id=extractYouTubeId(url);
+  if(!id){ alert('Tautan YouTube tidak valid.'); return; }
+  playlist.push({name:'YouTube: '+id, yt:true, ytId:id});
+  playlistIndex=playlist.length-1;
+  renderPlaylist();
+  loadPlaylistIndex(playlistIndex);
+  document.querySelector('.tab-btn[data-page="media"]').click();
+  ytPopup.style.display='none';
+});
+function extractYouTubeId(url){ const m=url.match(/(?:v=|youtu\.be\/|embed\/)([A-Za-z0-9_-]{11})/); return m?m[1]:null; }
 
 })();
 </script>
 </body>
-            </html>
+                                                                     </html>
