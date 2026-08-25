@@ -1249,6 +1249,45 @@
             width: 30px; height: 30px; border-radius: 50%; object-fit: cover;
         }
 
+        .activity-feed-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            padding: 8px 12px;
+            margin-bottom: 6px;
+            font-size: 0.78rem;
+            color: var(--text-sub);
+        }
+        .activity-feed-row .activity-icon {
+            width: 26px; height: 26px; border-radius: 50%;
+            background: var(--badge-bg); color: var(--accent-gold);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.75rem; flex-shrink: 0;
+        }
+        .activity-feed-time {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            margin-left: auto;
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+
+        .badge-progress-bar-track {
+            background: var(--input-bg);
+            border-radius: 20px;
+            overflow: hidden;
+            height: 10px;
+            border: 1px solid var(--card-border);
+        }
+        .badge-progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #E5A823, #c28b13);
+            transition: width 0.4s ease;
+        }
+
         .glossary-item {
             background: var(--card-bg);
             border: 1px solid var(--card-border);
@@ -1390,6 +1429,16 @@
                     <p id="dailyTipBody">Memuat tips...</p>
                 </div>
             </div>
+
+            <!-- Absen Harian & Streak -->
+            <div class="comment-input-box" style="background: linear-gradient(135deg, rgba(239,68,68,0.1) 0%, var(--card-bg) 100%); border-color: rgba(239,68,68,0.3);">
+                <h3 style="font-size: 0.9rem; margin-bottom: 8px; color: #ef4444;"><i class="fa-solid fa-fire"></i> Absen Harian</h3>
+                <div id="checkinWidget">Memuat...</div>
+            </div>
+
+            <!-- Feed Aktivitas Live -->
+            <div class="section-header"><i class="fa-solid fa-bolt"></i> Aktivitas Terbaru</div>
+            <div id="activityFeedContainer" style="margin-bottom:1.5rem;">Memuat aktivitas...</div>
 
             <!-- Search & Favorit -->
             <div class="search-bar-wrap" style="display:flex; gap:8px;">
@@ -1570,6 +1619,8 @@
                 </div>
             </div>
 
+            <div id="nextBadgeProgress"></div>
+
             <div class="section-header">
                 <i class="fa-solid fa-ranking-star"></i> Papan Peringkat (Top 10 Poin)
             </div>
@@ -1644,6 +1695,22 @@
                 <div style="font-size: 0.8rem; color: var(--text-sub); margin-top: 4px;">Poin Aktivitas: <strong id="profPoints" style="color: #10b981;">0 Poin</strong></div>
                 <div style="font-size: 0.8rem; color: var(--text-sub); margin-top: 6px;">Lencana Aktif:</div>
                 <div id="profBadgesDisplay" style="display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px;"></div>
+            </div>
+
+            <div style="background: rgba(229,168,35,0.08); padding: 10px; border-radius: 8px; margin-bottom: 1rem; border: 1px solid var(--badge-border);">
+                <div style="font-size: 0.8rem; color: var(--accent-gold); font-weight:700; margin-bottom:6px;"><i class="fa-solid fa-share-nodes"></i> Ajak Teman, Dapat Bonus!</div>
+                <div style="font-size: 0.75rem; color: var(--text-sub); margin-bottom:8px;">Bagikan kode ini ke teman. Anda +100 poin, teman +50 poin saat mereka bergabung!</div>
+                <div style="display:flex; gap:6px; margin-bottom:8px;">
+                    <input type="text" id="profReferralCode" class="form-control" readonly style="text-align:center; font-weight:800; letter-spacing:1px;">
+                    <button class="btn-primary btn-secondary" style="width:auto; padding:10px 14px;" onclick="copyReferralCode()"><i class="fa-solid fa-copy"></i></button>
+                </div>
+                <div id="referralRedeemBox">
+                    <div style="font-size:0.75rem; color:var(--text-sub); margin-bottom:6px;">Punya kode referral dari teman?</div>
+                    <div style="display:flex; gap:6px;">
+                        <input type="text" id="referralCodeInput" class="form-control" placeholder="Masukkan kode teman">
+                        <button class="btn-primary" style="width:auto; padding:10px 14px;" onclick="redeemReferralCode()">Pakai</button>
+                    </div>
+                </div>
             </div>
 
             <button class="btn-primary" onclick="saveProfile()">Simpan Umur</button>
@@ -1894,7 +1961,7 @@
     <!-- FIREBASE SDK & CORE ENGINE SCRIPT -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-        import { getDatabase, ref, push, onValue, set, update, remove, get, onDisconnect } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+        import { getDatabase, ref, push, onValue, set, update, remove, get, onDisconnect, query, limitToLast } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
         // Konfigurasi Firebase Anda (API Key resmi dari Firebase Console project faro-hub)
@@ -2182,6 +2249,8 @@
                 renderBadgesTab();
                 renderComments();
                 renderComplaints();
+                renderCheckinWidget();
+                renderQuiz();
             }
         });
 
@@ -2248,6 +2317,8 @@
             userProfile.commentCount = userProfile.commentCount || 0;
             userProfile.complaintCount = userProfile.complaintCount || 0;
             userProfile.ownedBadges = userProfile.ownedBadges || ["b1"];
+            userProfile.referralCode = userProfile.referralCode || generateReferralCode(uid);
+            userProfile.referredBy = userProfile.referredBy || null;
 
             // Email admin resmi otomatis langsung jadi Admin + VIP begitu login Google,
             // tanpa perlu memasukkan passcode admin manual lagi.
@@ -2258,17 +2329,28 @@
                 if (!userProfile.ownedBadges.includes("b20")) userProfile.ownedBadges.push("b20");
             }
 
+            // Daftarkan kode referral agar bisa dicari (sekali saja, aman diulang)
+            set(ref(db, `referralCodes/${userProfile.referralCode}`), uid);
+
             // Daftarkan / perbarui data di daftar Pengguna Terdaftar (real-time count)
-            update(ref(db, `users/${uid}`), {
-                name: userProfile.name,
-                email: userProfile.email,
-                avatar: userProfile.avatar,
-                lastSeen: Date.now()
-            }).catch(() => {
-                set(ref(db, `users/${uid}`), {
-                    name: userProfile.name, email: userProfile.email,
-                    avatar: userProfile.avatar, lastSeen: Date.now()
+            // + deteksi pengguna baru untuk Feed Aktivitas Live
+            const userNodeRef = ref(db, `users/${uid}`);
+            get(userNodeRef).then(existingSnap => {
+                const isNewUser = !existingSnap.exists();
+                update(userNodeRef, {
+                    name: userProfile.name,
+                    email: userProfile.email,
+                    avatar: userProfile.avatar,
+                    lastSeen: Date.now()
+                }).catch(() => {
+                    set(userNodeRef, {
+                        name: userProfile.name, email: userProfile.email,
+                        avatar: userProfile.avatar, lastSeen: Date.now()
+                    });
                 });
+                if (isNewUser) {
+                    pushActivityFeed(`${userProfile.name} baru saja bergabung dengan FARO Triumphantly! 👋`, 'fa-user-plus');
+                }
             });
 
             // Listener Data Lencana & Poin User (Realtime, sinkron lintas perangkat)
@@ -2283,6 +2365,7 @@
                     userProfile.isVip = isOwnerEmail ? true : !!data.isVip;
                     userProfile.isAdmin = isOwnerEmail ? true : !!data.isAdmin;
                     userProfile.age = data.age || userProfile.age;
+                    userProfile.referredBy = data.referredBy || userProfile.referredBy || null;
                     if (isOwnerEmail && !userProfile.ownedBadges.includes("b20")) userProfile.ownedBadges.push("b20");
                 } else {
                     syncUserDataToFirebase();
@@ -2310,6 +2393,7 @@
 
             updateProfileUI();
             renderQuiz();
+            renderCheckinWidget();
         }
 
         function syncUserDataToFirebase() {
@@ -2322,8 +2406,196 @@
                 ownedBadges: userProfile.ownedBadges || ["b1"],
                 isVip: userProfile.isVip || false,
                 isAdmin: userProfile.isAdmin || false,
-                age: userProfile.age || ""
+                age: userProfile.age || "",
+                referredBy: userProfile.referredBy || null
             });
+        }
+
+        // --- SISTEM REFERRAL (ajak teman, bonus poin dua arah) ---
+        function generateReferralCode(uid) {
+            const clean = uid.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+            return 'FARO' + clean.substring(0, 6);
+        }
+
+        window.copyReferralCode = function() {
+            const input = document.getElementById('profReferralCode');
+            if (!input) return;
+            input.select();
+            navigator.clipboard.writeText(input.value).then(() => {
+                alert("Kode referral disalin! Bagikan ke teman Anda.");
+            }).catch(() => {
+                alert("Kode referral Anda: " + input.value);
+            });
+        };
+
+        window.redeemReferralCode = function() {
+            if (!requireLogin("Masuk untuk memakai kode referral.")) return;
+            if (userProfile.referredBy) {
+                alert("Anda sudah pernah memakai kode referral sebelumnya.");
+                return;
+            }
+            const codeInput = document.getElementById('referralCodeInput');
+            const code = (codeInput.value || '').trim().toUpperCase();
+            if (!code) { alert("Masukkan kode referral terlebih dahulu."); return; }
+            if (code === userProfile.referralCode) { alert("Tidak bisa memakai kode referral milik sendiri."); return; }
+
+            get(ref(db, `referralCodes/${code}`)).then(snap => {
+                if (!snap.exists()) { alert("Kode referral tidak ditemukan."); return; }
+                const referrerUid = snap.val();
+                if (referrerUid === userProfile.uid) { alert("Tidak bisa memakai kode referral milik sendiri."); return; }
+
+                userProfile.referredBy = referrerUid;
+                syncUserDataToFirebase();
+                addActivityPoints(50, 'referral');
+
+                get(ref(db, `user_badges/${referrerUid}`)).then(refSnap => {
+                    const refData = refSnap.exists() ? refSnap.val() : {};
+                    update(ref(db, `user_badges/${referrerUid}`), { points: (refData.points || 0) + 100 });
+                    pushNotification(referrerUid, 'referral', `${userProfile.name} bergabung memakai kode referral Anda! +100 Poin 🎉`, 'fa-user-plus');
+                });
+
+                pushActivityFeed(`${userProfile.name} bergabung lewat undangan teman! 🤝`, 'fa-share-nodes');
+                alert("Kode referral berhasil dipakai! +50 poin untuk Anda.");
+                codeInput.value = '';
+                updateProfileUI();
+            }).catch(() => alert("Gagal memverifikasi kode referral."));
+        };
+
+        // --- FEED AKTIVITAS LIVE ---
+        function pushActivityFeed(message, icon) {
+            push(ref(db, 'activityFeed'), { message, icon: icon || 'fa-bolt', createdAt: Date.now() });
+        }
+
+        function timeAgo(timestamp) {
+            const diffSec = Math.floor((Date.now() - timestamp) / 1000);
+            if (diffSec < 60) return 'baru saja';
+            const diffMin = Math.floor(diffSec / 60);
+            if (diffMin < 60) return `${diffMin} menit lalu`;
+            const diffHour = Math.floor(diffMin / 60);
+            if (diffHour < 24) return `${diffHour} jam lalu`;
+            return `${Math.floor(diffHour / 24)} hari lalu`;
+        }
+
+        function renderActivityFeed(items) {
+            const container = document.getElementById('activityFeedContainer');
+            if (!container) return;
+            if (!items || items.length === 0) {
+                container.innerHTML = '<p style="font-size:0.8rem; color:var(--text-muted); text-align:center;">Belum ada aktivitas.</p>';
+                return;
+            }
+            container.innerHTML = items.map(item => `
+                <div class="activity-feed-row">
+                    <div class="activity-icon"><i class="fa-solid ${item.icon || 'fa-bolt'}"></i></div>
+                    <span>${escapeHtml(item.message)}</span>
+                    <span class="activity-feed-time">${timeAgo(item.createdAt || Date.now())}</span>
+                </div>
+            `).join('');
+        }
+
+        onValue(query(ref(db, 'activityFeed'), limitToLast(8)), (snapshot) => {
+            const data = snapshot.val() || {};
+            const items = Object.values(data).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+            renderActivityFeed(items);
+        });
+
+        // --- ABSEN HARIAN & STREAK ---
+        function getYesterdayDateKey() {
+            const d = new Date();
+            d.setDate(d.getDate() - 1);
+            return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+        }
+
+        function renderCheckinWidget() {
+            const box = document.getElementById('checkinWidget');
+            if (!box) return;
+
+            if (!userProfile) {
+                box.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:0.82rem; color:var(--text-sub);">Masuk untuk mulai kumpulkan streak harian Anda.</span>
+                        <button class="btn-primary" style="width:auto; padding:9px 16px;" onclick="promptLogin('Masuk untuk absen harian dan kumpulkan streak.')">Masuk</button>
+                    </div>
+                `;
+                return;
+            }
+
+            get(ref(db, `checkins/${userProfile.uid}`)).then(snap => {
+                const data = snap.exists() ? snap.val() : { lastDateKey: '', streak: 0, totalCheckins: 0 };
+                const today = getTodayDateKey();
+                const alreadyToday = data.lastDateKey === today;
+                box.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <div style="font-size:0.72rem; color:var(--text-muted);">Streak Anda</div>
+                            <div style="font-size:1.25rem; font-weight:800; color:#ef4444;">🔥 ${data.streak || 0} Hari</div>
+                        </div>
+                        <button class="btn-primary ${alreadyToday ? 'btn-secondary' : ''}" style="width:auto; padding:10px 18px;" ${alreadyToday ? 'disabled' : ''} onclick="performCheckin()">
+                            ${alreadyToday ? '✓ Sudah Absen' : 'Absen Sekarang'}
+                        </button>
+                    </div>
+                `;
+            });
+        }
+
+        window.performCheckin = function() {
+            if (!requireLogin("Masuk untuk absen harian dan kumpulkan streak.")) return;
+            const today = getTodayDateKey();
+            const yesterday = getYesterdayDateKey();
+
+            get(ref(db, `checkins/${userProfile.uid}`)).then(snap => {
+                const data = snap.exists() ? snap.val() : { lastDateKey: '', streak: 0, totalCheckins: 0 };
+                if (data.lastDateKey === today) {
+                    alert("Anda sudah absen hari ini. Kembali lagi besok!");
+                    return;
+                }
+                const newStreak = data.lastDateKey === yesterday ? (data.streak || 0) + 1 : 1;
+                const bonus = Math.min(newStreak * 2, 50);
+                const totalPoints = 10 + bonus;
+
+                set(ref(db, `checkins/${userProfile.uid}`), {
+                    lastDateKey: today,
+                    streak: newStreak,
+                    totalCheckins: (data.totalCheckins || 0) + 1
+                }).then(() => {
+                    addActivityPoints(totalPoints, 'checkin');
+                    if (newStreak % 7 === 0) {
+                        pushActivityFeed(`${userProfile.name} mencapai streak ${newStreak} hari berturut-turut! 🔥`, 'fa-fire');
+                    }
+                    alert(`Absen berhasil! +${totalPoints} poin (streak ${newStreak} hari)`);
+                    renderCheckinWidget();
+                });
+            });
+        };
+
+        // --- PROGRESS BAR MENUJU LENCANA BERIKUTNYA ---
+        function renderNextBadgeProgress() {
+            const container = document.getElementById('nextBadgeProgress');
+            if (!container) return;
+            if (!userProfile) { container.innerHTML = ''; return; }
+
+            const locked = SYSTEM_BADGES.filter(b =>
+                !userProfile.ownedBadges.includes(b.id) &&
+                (b.reqType === 'points' || b.reqType === 'comments' || b.reqType === 'complaints')
+            );
+            if (locked.length === 0) { container.innerHTML = ''; return; }
+
+            const next = locked.reduce((min, b) => (b.reqVal < min.reqVal ? b : min), locked[0]);
+            const current = next.reqType === 'points' ? (userProfile.points || 0)
+                : next.reqType === 'comments' ? (userProfile.commentCount || 0)
+                : (userProfile.complaintCount || 0);
+            const pct = Math.min(100, Math.round((current / next.reqVal) * 100));
+
+            container.innerHTML = `
+                <div class="comment-input-box">
+                    <div style="display:flex; justify-content:space-between; font-size:0.82rem; margin-bottom:8px;">
+                        <span>Menuju ${next.icon} <strong>${escapeHtml(next.name)}</strong></span>
+                        <span style="color:var(--accent-gold); font-weight:700;">${current.toLocaleString('id-ID')}/${next.reqVal.toLocaleString('id-ID')}</span>
+                    </div>
+                    <div class="badge-progress-bar-track">
+                        <div class="badge-progress-bar-fill" style="width:${pct}%;"></div>
+                    </div>
+                </div>
+            `;
         }
 
         // --- NOTIFIKASI ---
@@ -2420,6 +2692,7 @@
                 if (rand <= 5) {
                     userProfile.ownedBadges.push("b12");
                     pushNotification(userProfile.uid, 'badge', 'LENCANA LANGKA TERBUKA! Anda mendapatkan "Anak Emas Portal" dari keberuntungan aktivitas Anda!', 'fa-award');
+                    pushActivityFeed(`${userProfile.name} mendapat Lencana Langka "Anak Emas Portal" ✨`, 'fa-award');
                     alert("🎉 LENCANA LANGKA TERBUKA! Anda mendapatkan Lencana 'Anak Emas Portal' dari keberuntungan aktivitas Anda!");
                 }
             }
@@ -2429,6 +2702,7 @@
                 if (rand2 <= 1) {
                     userProfile.ownedBadges.push("b18");
                     pushNotification(userProfile.uid, 'badge', 'LENCANA SANGAT LANGKA TERBUKA! Anda beruntung mendapatkan "Pangeran Komunitas"!', 'fa-award');
+                    pushActivityFeed(`${userProfile.name} mendapat Lencana Sangat Langka "Pangeran Komunitas" 👑`, 'fa-award');
                     alert("👑 LENCANA SANGAT LANGKA TERBUKA! Anda beruntung mendapatkan Lencana 'Pangeran Komunitas'!");
                 }
             }
@@ -2465,6 +2739,10 @@
                 userProfile.ownedBadges.push(badgeId);
                 syncUserDataToFirebase();
                 pushNotification(userProfile.uid, 'badge', `Selamat! Anda membuka Lencana "${badge.name}" 🎉`, 'fa-award');
+                // Lencana level tinggi (>=13) ditampilkan di feed aktivitas biar makin seru
+                if (badge.level >= 13) {
+                    pushActivityFeed(`${userProfile.name} membuka Lencana ${badge.icon} "${badge.name}"! 🎉`, 'fa-award');
+                }
                 alert(`Selamat! Anda berhasil membongkar Lencana ${badge.name}! Benefits: ${badge.benefit}`);
                 updateProfileUI();
                 renderBadgesTab();
@@ -3234,6 +3512,7 @@
             document.getElementById('statBadgesCount').innerText = userProfile ? `${(userProfile.ownedBadges || []).length} / 20` : '- / 20';
 
             renderLeaderboard();
+            renderNextBadgeProgress();
 
             SYSTEM_BADGES.forEach(badge => {
                 const isOwned = userProfile && (userProfile.ownedBadges || []).includes(badge.id);
@@ -3551,6 +3830,20 @@
                         badgesContainer.innerHTML += `<span class="${bObj.bgClass}">${bObj.icon} ${escapeHtml(bObj.name)}</span>`;
                     }
                 });
+            }
+
+            // Kode Referral & Status Redeem
+            const refCodeEl = document.getElementById('profReferralCode');
+            if (refCodeEl) refCodeEl.value = userProfile.referralCode || '';
+            const redeemBox = document.getElementById('referralRedeemBox');
+            if (redeemBox) {
+                redeemBox.innerHTML = userProfile.referredBy
+                    ? '<div style="font-size:0.75rem; color:#22c55e;"><i class="fa-solid fa-circle-check"></i> Kode referral sudah dipakai. Terima kasih!</div>'
+                    : `<div style="font-size:0.75rem; color:var(--text-sub); margin-bottom:6px;">Punya kode referral dari teman?</div>
+                       <div style="display:flex; gap:6px;">
+                           <input type="text" id="referralCodeInput" class="form-control" placeholder="Masukkan kode teman">
+                           <button class="btn-primary" style="width:auto; padding:10px 14px;" onclick="redeemReferralCode()">Pakai</button>
+                       </div>`;
             }
 
             // HARGA VIP DINAMIS (Diatur Admin, real-time)
@@ -4053,6 +4346,7 @@
         renderGlossary();
         renderQuiz();
         renderBadgesTab();
+        renderCheckinWidget();
     </script>
 </body>
     </html>
