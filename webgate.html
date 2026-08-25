@@ -1288,6 +1288,66 @@
             transition: width 0.4s ease;
         }
 
+        .spin-wheel-emoji {
+            font-size: 3.5rem;
+            text-align: center;
+            display: block;
+            margin: 6px 0;
+            transition: transform 2.5s cubic-bezier(0.15, 0.8, 0.25, 1);
+        }
+        .spin-wheel-emoji.spinning {
+            transform: rotate(1800deg);
+        }
+
+        .mission-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--input-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+        }
+        .mission-row.completed {
+            border-color: #22c55e;
+            background: rgba(34,197,94,0.08);
+        }
+        .mission-check {
+            width: 26px; height: 26px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            background: var(--badge-bg); color: var(--accent-gold);
+            flex-shrink: 0; font-size: 0.75rem;
+        }
+        .mission-row.completed .mission-check {
+            background: #22c55e; color: #fff;
+        }
+
+        .poll-option-row {
+            position: relative;
+            background: var(--input-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            overflow: hidden;
+        }
+        .poll-option-fill {
+            position: absolute;
+            top: 0; left: 0; bottom: 0;
+            background: rgba(229,168,35,0.18);
+            z-index: 0;
+            transition: width 0.5s ease;
+        }
+        .poll-option-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.83rem;
+        }
+
         .glossary-item {
             background: var(--card-bg);
             border: 1px solid var(--card-border);
@@ -1642,6 +1702,15 @@
                 </p>
             </div>
 
+            <div class="section-header"><i class="fa-solid fa-dharmachakra"></i> Roda Keberuntungan Harian</div>
+            <div class="comment-input-box" style="text-align:center; background: linear-gradient(135deg, rgba(255,0,127,0.08) 0%, var(--card-bg) 100%);" id="spinWheelContainer">Memuat...</div>
+
+            <div class="section-header"><i class="fa-solid fa-list-check"></i> Misi Mingguan</div>
+            <div class="comment-input-box" id="weeklyMissionsContainer">Memuat misi mingguan...</div>
+
+            <div class="section-header"><i class="fa-solid fa-square-poll-vertical"></i> Polling Komunitas</div>
+            <div class="comment-input-box" id="pollContainer" style="display:none;"></div>
+
             <div class="section-header"><i class="fa-solid fa-circle-question"></i> Kuis Audio Harian</div>
             <div class="comment-input-box" id="quizContainer">Memuat kuis...</div>
 
@@ -1888,6 +1957,21 @@
                 <div id="bgModerationList" style="margin-top:8px;">Memuat...</div>
             </div>
 
+            <!-- KELOLA POLLING KOMUNITAS -->
+            <div class="form-group" style="background: rgba(229,168,35,0.08); padding:10px; border-radius:8px; border:1px solid var(--accent-gold); margin-top:1rem;">
+                <label style="color:var(--accent-gold);"><i class="fa-solid fa-square-poll-vertical"></i> Buat Polling Komunitas Baru</label>
+                <div class="form-group" style="margin-top:8px;">
+                    <label>Pertanyaan Polling</label>
+                    <input type="text" id="newPollQuestion" class="form-control" placeholder="Misal: Modul apa yang paling ditunggu?">
+                </div>
+                <div class="form-group">
+                    <label>Opsi Jawaban (pisahkan dengan enter, minimal 2)</label>
+                    <textarea id="newPollOptions" class="form-control" rows="3" placeholder="Opsi A&#10;Opsi B&#10;Opsi C"></textarea>
+                </div>
+                <button class="btn-primary" onclick="createPoll()">Publikasikan Polling</button>
+                <div id="adminPollStatus" style="margin-top:10px;"></div>
+            </div>
+
             <div class="form-group">
                 <label>Judul Pengumuman</label>
                 <input type="text" id="editAnnoTitle" class="form-control">
@@ -1936,6 +2020,13 @@
                     <option value="research">Riset & Uji Coba (R&D)</option>
                 </select>
             </div>
+
+            <div class="form-group" style="background: rgba(59,130,246,0.08); padding:10px; border-radius:8px; border:1px solid #3b82f6;">
+                <label style="color:#3b82f6;"><i class="fa-solid fa-clock"></i> Jadwalkan Rilis Penuh (Pra-Rilis)</label>
+                <p style="font-size:0.72rem; color:var(--text-sub); margin-bottom:8px;">Kosongkan jika ingin langsung publik sepenuhnya. Kalau diisi, modul tetap bisa dilihat & dibuka pengguna sekarang, tapi ditandai "Pra-Rilis" dengan hitung mundur sampai tanggal yang dipilih.</p>
+                <input type="datetime-local" id="newPublishAt" class="form-control">
+            </div>
+
             <button class="btn-primary" id="btnSaveLink" onclick="saveLink()" style="margin-bottom: 1.5rem;">+ Simpan Link ke Firebase</button>
 
             <h4 style="font-size: 0.95rem; margin-bottom: 10px;">Daftar Modul Link Aktif (Firebase)</h4>
@@ -2120,16 +2211,27 @@
         });
 
         // Listener Jumlah Pengguna Online (Real-time)
+        // Dihitung sebagai "aktif dalam 5 menit terakhir" (bukan hanya koneksi websocket
+        // yang hidup persis detik itu juga) — lebih representatif terhadap penggunaan
+        // nyata, karena tab browser yang dijeda/minimize sebentar tidak langsung dianggap
+        // offline. Ini tetap data ASLI dari aktivitas pengguna, bukan angka rekayasa.
+        const ONLINE_WINDOW_MS = 5 * 60 * 1000; // 5 menit
         onValue(presenceRootRef, (snapshot) => {
-            const count = snapshot.exists() ? Object.keys(snapshot.val()).length : 0;
+            const data = snapshot.val() || {};
+            const now = Date.now();
+            const activeCount = Object.values(data).filter(v => {
+                const lastActive = (v && typeof v === 'object') ? v.lastActive : null;
+                return lastActive && (now - lastActive) <= ONLINE_WINDOW_MS;
+            }).length;
             const el = document.getElementById('onlineCountDisplay');
-            if (el) el.innerText = count;
+            if (el) el.innerText = activeCount;
         });
 
         // PRESENCE BERBASIS SESI: dihitung "online" untuk SIAPAPUN yang sedang aktif
         // membuka web ini, baik sudah login Google maupun masih tamu — bukan hanya
-        // pengguna terdaftar. ID sesi anonim disimpan di sessionStorage per tab/perangkat
-        // dan otomatis hilang dari daftar online saat koneksi terputus (tutup tab dsb).
+        // pengguna terdaftar. ID sesi anonim disimpan di sessionStorage per tab/perangkat.
+        // Heartbeat dikirim berkala selama tab terbuka, dan otomatis dihapus Firebase saat
+        // koneksi benar-benar terputus (tutup tab, mati internet, dsb).
         function getSessionId() {
             let sid = sessionStorage.getItem('faro_session_id');
             if (!sid) {
@@ -2143,11 +2245,26 @@
             const sessionId = getSessionId();
             const myPresenceRef = ref(db, `presence/${sessionId}`);
             const connectedRef = ref(db, '.info/connected');
+
+            function sendHeartbeat() {
+                set(myPresenceRef, { lastActive: Date.now() });
+            }
+
             onValue(connectedRef, (snap) => {
                 if (snap.val() === true) {
                     onDisconnect(myPresenceRef).remove();
-                    set(myPresenceRef, true);
+                    sendHeartbeat();
                 }
+            });
+
+            // Kirim ulang heartbeat tiap 60 detik selama tab aktif
+            setInterval(() => {
+                if (document.visibilityState === 'visible') sendHeartbeat();
+            }, 60000);
+
+            // Kirim heartbeat segera saat tab kembali aktif (kembali dari minimize/tab lain)
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible') sendHeartbeat();
             });
         })();
 
@@ -2251,6 +2368,9 @@
                 renderComplaints();
                 renderCheckinWidget();
                 renderQuiz();
+                renderSpinWheel();
+                renderWeeklyMissions();
+                renderPoll();
             }
         });
 
@@ -2394,6 +2514,9 @@
             updateProfileUI();
             renderQuiz();
             renderCheckinWidget();
+            renderSpinWheel();
+            renderWeeklyMissions();
+            renderPoll();
         }
 
         function syncUserDataToFirebase() {
@@ -2464,6 +2587,13 @@
         // --- FEED AKTIVITAS LIVE ---
         function pushActivityFeed(message, icon) {
             push(ref(db, 'activityFeed'), { message, icon: icon || 'fa-bolt', createdAt: Date.now() });
+        }
+
+        function formatDateID(timestamp) {
+            const d = new Date(timestamp);
+            const bulan = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+            const pad = n => String(n).padStart(2, '0');
+            return `${d.getDate()} ${bulan[d.getMonth()]} ${d.getFullYear()}, ${pad(d.getHours())}:${pad(d.getMinutes())}`;
         }
 
         function timeAgo(timestamp) {
@@ -2558,11 +2688,13 @@
                     totalCheckins: (data.totalCheckins || 0) + 1
                 }).then(() => {
                     addActivityPoints(totalPoints, 'checkin');
+                    incrementWeeklyStat('checkins');
                     if (newStreak % 7 === 0) {
                         pushActivityFeed(`${userProfile.name} mencapai streak ${newStreak} hari berturut-turut! 🔥`, 'fa-fire');
                     }
                     alert(`Absen berhasil! +${totalPoints} poin (streak ${newStreak} hari)`);
                     renderCheckinWidget();
+                    renderWeeklyMissions();
                 });
             });
         };
@@ -2597,6 +2729,230 @@
                 </div>
             `;
         }
+
+        // --- RODA KEBERUNTUNGAN HARIAN ---
+        function renderSpinWheel() {
+            const container = document.getElementById('spinWheelContainer');
+            if (!container) return;
+
+            if (!userProfile) {
+                container.innerHTML = `
+                    <span class="spin-wheel-emoji">🎡</span>
+                    <p style="font-size:0.8rem; color:var(--text-sub); margin-bottom:8px;">Masuk untuk memutar roda keberuntungan harian!</p>
+                    <button class="btn-primary" style="width:auto; padding:10px 20px;" onclick="promptLogin('Masuk untuk memutar roda keberuntungan harian.')">Masuk</button>
+                `;
+                return;
+            }
+
+            get(ref(db, `spinWheel/${userProfile.uid}/${getTodayDateKey()}`)).then(snap => {
+                if (snap.exists()) {
+                    container.innerHTML = `
+                        <span class="spin-wheel-emoji">🎉</span>
+                        <p style="font-size:0.85rem; color:#22c55e;">Anda sudah dapat ${snap.val().reward} poin hari ini. Kembali lagi besok!</p>
+                    `;
+                } else {
+                    container.innerHTML = `
+                        <span class="spin-wheel-emoji" id="wheelEmoji">🎡</span>
+                        <p style="font-size:0.8rem; color:var(--text-sub); margin-bottom:8px;">1x putaran gratis setiap hari!</p>
+                        <button class="btn-primary" style="width:auto; padding:10px 20px;" onclick="spinWheel()">Putar Sekarang</button>
+                    `;
+                }
+            });
+        }
+
+        window.spinWheel = function() {
+            if (!requireLogin("Masuk untuk memutar roda keberuntungan.")) return;
+            const today = getTodayDateKey();
+
+            get(ref(db, `spinWheel/${userProfile.uid}/${today}`)).then(snap => {
+                if (snap.exists()) { alert("Anda sudah memutar roda hari ini. Kembali lagi besok!"); return; }
+
+                const wheelEl = document.getElementById('wheelEmoji');
+                // Hadiah kecil lebih sering muncul, hadiah besar lebih langka (weighted random)
+                const weighted = [5, 5, 10, 10, 15, 15, 20, 20, 25, 30, 50, 100];
+                const reward = weighted[Math.floor(Math.random() * weighted.length)];
+
+                if (wheelEl) wheelEl.classList.add('spinning');
+
+                setTimeout(() => {
+                    set(ref(db, `spinWheel/${userProfile.uid}/${today}`), { reward, spunAt: Date.now() }).then(() => {
+                        addActivityPoints(reward, 'spin');
+                        if (reward >= 50) {
+                            pushActivityFeed(`${userProfile.name} beruntung dapat ${reward} poin dari Roda Keberuntungan! 🎉`, 'fa-dharmachakra');
+                        }
+                        alert(`🎉 Selamat! Anda mendapat ${reward} poin dari Roda Keberuntungan!`);
+                        renderSpinWheel();
+                    });
+                }, 2500);
+            });
+        };
+
+        // --- MISI MINGGUAN ---
+        function getWeekKey() {
+            const d = new Date();
+            const day = d.getDay();
+            const diff = (day === 0 ? -6 : 1) - day; // mundurkan ke hari Senin
+            const monday = new Date(d);
+            monday.setDate(d.getDate() + diff);
+            return `${monday.getFullYear()}-${monday.getMonth()+1}-${monday.getDate()}`;
+        }
+
+        const WEEKLY_MISSIONS = [
+            { id: 'm_comment3', label: 'Komentar/balas 3x minggu ini', type: 'comments', target: 3, reward: 30 },
+            { id: 'm_checkin3', label: 'Absen harian 3 hari minggu ini', type: 'checkins', target: 3, reward: 40 },
+            { id: 'm_quiz2', label: 'Jawab kuis dengan benar 2x minggu ini', type: 'quizCorrect', target: 2, reward: 30 },
+            { id: 'm_complaint1', label: 'Kirim 1 laporan pengaduan minggu ini', type: 'complaints', target: 1, reward: 25 }
+        ];
+
+        function incrementWeeklyStat(field, amount = 1) {
+            if (!userProfile) return;
+            const path = `weeklyStats/${userProfile.uid}/${getWeekKey()}/${field}`;
+            get(ref(db, path)).then(snap => {
+                const current = snap.exists() ? snap.val() : 0;
+                set(ref(db, path), current + amount);
+            });
+        }
+
+        function renderWeeklyMissions() {
+            const container = document.getElementById('weeklyMissionsContainer');
+            if (!container) return;
+
+            if (!userProfile) {
+                container.innerHTML = '<p style="font-size:0.82rem; color:var(--text-sub);">Masuk untuk melihat & mengerjakan misi mingguan Anda.</p>';
+                return;
+            }
+
+            const weekKey = getWeekKey();
+            Promise.all([
+                get(ref(db, `weeklyStats/${userProfile.uid}/${weekKey}`)),
+                get(ref(db, `weeklyMissionsClaimed/${userProfile.uid}/${weekKey}`))
+            ]).then(([statsSnap, claimedSnap]) => {
+                const stats = statsSnap.exists() ? statsSnap.val() : {};
+                const claimed = claimedSnap.exists() ? claimedSnap.val() : {};
+
+                container.innerHTML = WEEKLY_MISSIONS.map(m => {
+                    const progress = stats[m.type] || 0;
+                    const done = progress >= m.target;
+                    const isClaimed = !!claimed[m.id];
+                    return `
+                        <div class="mission-row ${isClaimed ? 'completed' : ''}">
+                            <div class="mission-check"><i class="fa-solid ${isClaimed ? 'fa-check' : 'fa-hourglass-half'}"></i></div>
+                            <div style="flex:1;">
+                                <div style="font-size:0.82rem;">${escapeHtml(m.label)}</div>
+                                <div style="font-size:0.7rem; color:var(--text-muted);">${Math.min(progress, m.target)}/${m.target} — +${m.reward} Poin</div>
+                            </div>
+                            ${!isClaimed && done ? `<button class="btn-primary" style="width:auto; padding:6px 12px; font-size:0.75rem;" onclick="claimMission('${m.id}', ${m.reward})">Klaim</button>` : ''}
+                        </div>
+                    `;
+                }).join('');
+            });
+        }
+
+        window.claimMission = function(missionId, reward) {
+            if (!requireLogin("Masuk untuk mengklaim hadiah misi.")) return;
+            const path = `weeklyMissionsClaimed/${userProfile.uid}/${getWeekKey()}/${missionId}`;
+            get(ref(db, path)).then(snap => {
+                if (snap.exists()) { alert("Misi ini sudah pernah diklaim minggu ini."); return; }
+                set(ref(db, path), true).then(() => {
+                    addActivityPoints(reward, 'mission');
+                    alert(`Misi selesai! +${reward} poin.`);
+                    renderWeeklyMissions();
+                });
+            });
+        };
+
+        // --- POLLING KOMUNITAS ---
+        let currentPollId = null;
+        let currentPollData = null;
+
+        onValue(ref(db, 'activePollId'), (snap) => {
+            currentPollId = snap.exists() ? snap.val() : null;
+            if (currentPollId) {
+                onValue(ref(db, `polls/${currentPollId}`), (pollSnap) => {
+                    currentPollData = pollSnap.exists() ? pollSnap.val() : null;
+                    renderPoll();
+                });
+            } else {
+                currentPollData = null;
+                renderPoll();
+            }
+        });
+
+        function renderPoll() {
+            const container = document.getElementById('pollContainer');
+            if (!container) return;
+            if (!currentPollData) { container.style.display = 'none'; return; }
+            container.style.display = 'block';
+
+            const totalVotes = Object.values(currentPollData.votes || {}).reduce((a, b) => a + b, 0);
+
+            if (!userProfile) {
+                container.innerHTML = `<h4 style="margin-bottom:10px; color:var(--accent-gold);">${escapeHtml(currentPollData.question)}</h4><p style="font-size:0.78rem; color:var(--text-muted);">Masuk untuk memberikan suara.</p>`;
+                return;
+            }
+
+            get(ref(db, `pollVotes/${currentPollId}/${userProfile.uid}`)).then(voteSnap => {
+                const myVote = voteSnap.exists() ? voteSnap.val() : null;
+                let html = `<h4 style="margin-bottom:10px; color:var(--accent-gold);">${escapeHtml(currentPollData.question)}</h4>`;
+
+                currentPollData.options.forEach((opt, idx) => {
+                    const count = (currentPollData.votes && currentPollData.votes[idx]) || 0;
+                    const pct = totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0;
+                    const isMine = myVote === idx;
+                    html += `
+                        <div class="poll-option-row" style="${isMine ? 'border-color:var(--accent-gold);' : ''}" onclick="votePoll(${idx})">
+                            <div class="poll-option-fill" style="width:${myVote !== null ? pct : 0}%;"></div>
+                            <div class="poll-option-content">
+                                <span>${isMine ? '✓ ' : ''}${escapeHtml(opt)}</span>
+                                ${myVote !== null ? `<span>${pct}%</span>` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += `<div style="font-size:0.7rem; color:var(--text-muted); margin-top:6px;">${totalVotes} suara masuk</div>`;
+                container.innerHTML = html;
+            });
+        }
+
+        window.votePoll = function(optionIdx) {
+            if (!requireLogin("Masuk untuk memberikan suara di polling.")) return;
+            if (!currentPollId || !currentPollData) return;
+
+            get(ref(db, `pollVotes/${currentPollId}/${userProfile.uid}`)).then(snap => {
+                if (snap.exists()) { alert("Anda sudah memberikan suara di polling ini."); return; }
+                set(ref(db, `pollVotes/${currentPollId}/${userProfile.uid}`), optionIdx).then(() => {
+                    const currentCount = (currentPollData.votes && currentPollData.votes[optionIdx]) || 0;
+                    update(ref(db, `polls/${currentPollId}/votes`), { [optionIdx]: currentCount + 1 });
+                    addActivityPoints(5, 'poll');
+                });
+            });
+        };
+
+        window.createPoll = function() {
+            if (!requireLogin()) return;
+            if (!userProfile.isAdmin) { alert("Hanya Admin yang bisa membuat polling."); return; }
+
+            const question = document.getElementById('newPollQuestion').value.trim();
+            const rawOptions = document.getElementById('newPollOptions').value.split('\n').map(o => o.trim()).filter(Boolean);
+
+            if (!question || rawOptions.length < 2) {
+                alert("Isi pertanyaan dan minimal 2 opsi jawaban.");
+                return;
+            }
+
+            const votes = {};
+            rawOptions.forEach((_, idx) => votes[idx] = 0);
+
+            push(ref(db, 'polls'), { question, options: rawOptions, votes, active: true, createdAt: Date.now() }).then((res) => {
+                set(ref(db, 'activePollId'), res.key).then(() => {
+                    document.getElementById('adminPollStatus').innerHTML = '<p style="color:#22c55e; font-size:0.8rem;"><i class="fa-solid fa-circle-check"></i> Polling berhasil dipublikasikan!</p>';
+                    document.getElementById('newPollQuestion').value = '';
+                    document.getElementById('newPollOptions').value = '';
+                    pushActivityFeed(`Polling baru sudah dibuka: "${question}" 🗳️`, 'fa-square-poll-vertical');
+                });
+            });
+        };
 
         // --- NOTIFIKASI ---
         function pushNotification(targetUid, type, message, icon) {
@@ -2673,8 +3029,8 @@
         function addActivityPoints(pointsToAdd, activityType) {
             if (!userProfile) return;
             userProfile.points = (userProfile.points || 0) + pointsToAdd;
-            if (activityType === 'comment') userProfile.commentCount = (userProfile.commentCount || 0) + 1;
-            if (activityType === 'complaint') userProfile.complaintCount = (userProfile.complaintCount || 0) + 1;
+            if (activityType === 'comment') { userProfile.commentCount = (userProfile.commentCount || 0) + 1; incrementWeeklyStat('comments'); }
+            if (activityType === 'complaint') { userProfile.complaintCount = (userProfile.complaintCount || 0) + 1; incrementWeeklyStat('complaints'); }
 
             // Uji Keberuntungan Drop Rate Lencana (Drop Rate Check) saat aktif
             checkLuckBadgeDrop();
@@ -3648,11 +4004,13 @@
             set(ref(db, `quizAnswers/${userProfile.uid}/${getTodayDateKey()}`), { correct: isCorrect, answeredAt: Date.now() }).then(() => {
                 if (isCorrect) {
                     addActivityPoints(20, 'quiz');
+                    incrementWeeklyStat('quizCorrect');
                     alert("🎉 Jawaban benar! Anda mendapat 20 poin.");
                 } else {
                     alert("Kurang tepat. Coba lagi besok untuk kuis baru!");
                 }
                 renderQuiz();
+                renderWeeklyMissions();
             });
         };
 
@@ -3780,6 +4138,9 @@
                 renderDailyTip();
                 renderGlossary();
                 renderQuiz();
+                renderSpinWheel();
+                renderWeeklyMissions();
+                renderPoll();
             }
         };
 
@@ -3902,6 +4263,14 @@
                 else if (isApp) badgeHtml = '<span class="badge-app"><i class="fa-solid fa-mobile-screen"></i> Web App</span>';
                 else if (isResearch) badgeHtml = '<span class="badge-rd">Riset</span>';
 
+                const isPrePublish = item.publishAt && item.publishAt > Date.now();
+                if (isPrePublish) {
+                    badgeHtml += '<span class="badge-custom" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8); color:#fff;"><i class="fa-solid fa-clock"></i> Pra-Rilis</span>';
+                }
+                let prePublishNote = isPrePublish
+                    ? `<div style="font-size:0.7rem; color:#3b82f6; margin-top:4px;"><i class="fa-solid fa-hourglass-half"></i> Rilis penuh: ${formatDateID(item.publishAt)}</div>`
+                    : '';
+
                 let priceTagHtml = isVip ? `
                     <div class="vip-price-tag">
                         <span class="price-strike">Rp ${pricingData.originalPrice.toLocaleString('id-ID')}</span>
@@ -3941,6 +4310,7 @@
                     </div>
                     ${galleryHtml}
                     <div class="link-desc">${escapeHtml(item.desc)}</div>
+                    ${prePublishNote}
                     ${priceTagHtml}
                 `;
 
@@ -4231,6 +4601,18 @@
                 document.getElementById('newDesc').value = item.desc;
                 document.getElementById('newCategory').value = item.category;
 
+                // Isi ulang tanggal jadwal pra-rilis jika ada (format datetime-local: YYYY-MM-DDTHH:mm)
+                const publishInput = document.getElementById('newPublishAt');
+                if (publishInput) {
+                    if (item.publishAt) {
+                        const d = new Date(item.publishAt);
+                        const pad = n => String(n).padStart(2, '0');
+                        publishInput.value = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+                    } else {
+                        publishInput.value = '';
+                    }
+                }
+
                 currentEditingImages = item.images ? [...item.images] : (item.image ? [item.image] : []);
                 renderAdminImgPreviews();
 
@@ -4245,6 +4627,8 @@
             const url = document.getElementById('newUrl').value.trim();
             const desc = document.getElementById('newDesc').value.trim();
             const category = document.getElementById('newCategory').value;
+            const publishAtInput = document.getElementById('newPublishAt').value;
+            const publishAt = publishAtInput ? new Date(publishAtInput).getTime() : null;
 
             if(!title || !url) {
                 alert('Nama dan URL wajib diisi!');
@@ -4256,7 +4640,8 @@
                 url,
                 desc: desc || "Tidak ada deskripsi",
                 category,
-                images: [...currentEditingImages]
+                images: [...currentEditingImages],
+                publishAt: publishAt
             };
 
             if (key) {
@@ -4266,7 +4651,7 @@
                 });
             } else {
                 push(linksRef, payload).then(() => {
-                    alert('Modul link baru berhasil ditambahkan!');
+                    alert(publishAt ? 'Modul link ditambahkan dalam status Pra-Rilis!' : 'Modul link baru berhasil ditambahkan!');
                     resetAdminLinkForm();
                 });
             }
@@ -4278,6 +4663,7 @@
             document.getElementById('newUrl').value = '';
             document.getElementById('newDesc').value = '';
             document.getElementById('newImgFile').value = '';
+            document.getElementById('newPublishAt').value = '';
             currentEditingImages = [];
             renderAdminImgPreviews();
             document.getElementById('adminFormTitle').innerText = "Tambah Modul Link Baru";
@@ -4347,6 +4733,8 @@
         renderQuiz();
         renderBadgesTab();
         renderCheckinWidget();
+        renderSpinWheel();
+        renderWeeklyMissions();
     </script>
 </body>
     </html>
