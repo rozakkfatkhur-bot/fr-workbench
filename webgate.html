@@ -62,16 +62,42 @@
             transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
         }
 
+        html {
+            overflow-x: hidden;
+        }
+
         body {
             background-color: var(--bg-color);
             background-image: var(--bg-gradient);
             background-attachment: fixed;
             color: var(--text-main);
             min-height: 100vh;
-            padding: 2rem 1rem;
+            padding: 1.5rem 1rem;
             display: flex;
             flex-direction: column;
             align-items: center;
+            overflow-x: hidden;
+            width: 100%;
+        }
+
+        img { max-width: 100%; }
+
+        /* Pencegahan layout "menceng"/overflow: teks panjang (nama, judul, komentar, URL)
+           dipaksa membungkus (wrap) alih-alih mendorong kotak melebar ke luar layar. */
+        .link-title, .comment-username, .comment-text, .glossary-def, .glossary-term,
+        .badge-card-desc, .badge-card-title, .announcement-content p, .announcement-content h3,
+        .complaint-card h4, .complaint-card p, .brand-title, .comment-desc, .link-desc,
+        .leaderboard-row div, .activity-feed-row span, .mission-row div {
+            overflow-wrap: break-word;
+            word-break: break-word;
+            min-width: 0;
+        }
+
+        /* Baris flex yang berpotensi kepanjangan (banyak badge/tombol) dipaksa boleh
+           membungkus ke baris baru, bukan mendorong keluar container. */
+        .top-bar, .comment-header, .comment-user, .link-title-row, .comment-actions,
+        .leaderboard-row, .complaint-header, .link-header-row {
+            flex-wrap: wrap;
         }
 
         .container {
@@ -1288,6 +1314,182 @@
             transition: width 0.4s ease;
         }
 
+        /* CHIP NAVIGASI CEPAT — lompat langsung ke section, kurangi capek scroll */
+        .quick-nav-row {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            margin-bottom: 1rem;
+        }
+        .quick-nav-chip {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            color: var(--text-sub);
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            white-space: nowrap;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+        .quick-nav-chip:hover {
+            border-color: var(--accent-gold);
+            color: var(--accent-gold);
+        }
+
+        /* KARTU RINGKASAN BERLIPAT (Pengumuman + Tip + Absen) */
+        .summary-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            margin-bottom: 1.2rem;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+        .summary-toggle {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: none;
+            border: none;
+            padding: 0.9rem 1.1rem;
+            color: var(--accent-gold);
+            font-weight: 700;
+            font-size: 0.88rem;
+            cursor: pointer;
+        }
+        .summary-card-body {
+            padding: 0 1.1rem 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .summary-card-body.collapsed {
+            display: none;
+        }
+        .summary-row {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+        .summary-icon {
+            width: 30px; height: 30px; border-radius: 8px;
+            background: var(--input-bg); border: 1px solid var(--card-border);
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0; font-size: 0.9rem;
+        }
+
+        /* TICKER AKTIVITAS 1 BARIS — hemat tempat vertikal */
+        .activity-ticker-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 30px;
+            padding: 8px 14px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+        .activity-ticker-icon {
+            color: var(--accent-gold);
+            flex-shrink: 0;
+        }
+        .activity-ticker-track {
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            font-size: 0.76rem;
+            color: var(--text-sub);
+            position: relative;
+            height: 18px;
+        }
+        .activity-ticker-item {
+            position: absolute;
+            top: 0; left: 0;
+            white-space: nowrap;
+            opacity: 0;
+            animation: ticker-fade 5s infinite;
+        }
+        @keyframes ticker-fade {
+            0%, 4% { opacity: 0; transform: translateY(6px); }
+            8%, 88% { opacity: 1; transform: translateY(0); }
+            92%, 100% { opacity: 0; transform: translateY(-6px); }
+        }
+
+        /* TOMBOL KEMBALI KE ATAS */
+        #backToTopBtn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--accent-gold);
+            color: #06090e;
+            border: none;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.35);
+            font-size: 1rem;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 500;
+        }
+        #backToTopBtn.visible {
+            display: flex;
+        }
+
+        /* MODE HEMAT DATA — sembunyikan foto/galeri berat untuk koneksi lambat */
+        body.data-saver .preview-gallery-container,
+        body.data-saver .comment-media-container,
+        body.data-saver .admin-image-preview-grid {
+            display: none !important;
+        }
+        body.data-saver .comment-card.has-custom-bg {
+            background-image: none !important;
+        }
+        body.data-saver .comment-card.has-custom-bg::before {
+            display: none !important;
+        }
+        #dataSaverBtn.active {
+            color: #10b981;
+            border-color: #10b981;
+        }
+
+        /* KONFETI PERAYAAN LENCANA */
+        #confettiLayer {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 99998;
+            overflow: hidden;
+        }
+        .confetti-piece {
+            position: absolute;
+            top: -20px;
+            width: 8px;
+            height: 14px;
+            opacity: 0.9;
+            animation: confetti-fall linear forwards;
+        }
+        @keyframes confetti-fall {
+            to { transform: translateY(110vh) rotate(540deg); opacity: 0.2; }
+        }
+
+        /* SORT & SEARCH KOMENTAR */
+        .comment-toolbar-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 1rem;
+        }
+
         .spin-wheel-emoji {
             font-size: 3.5rem;
             text-align: center;
@@ -1431,6 +1633,9 @@
             </div>
 
             <div class="top-actions">
+                <button class="theme-toggle icon-btn" id="dataSaverBtn" onclick="toggleDataSaver()" title="Mode Hemat Data — sembunyikan foto/galeri">
+                    <i class="fa-solid fa-gauge-simple"></i>
+                </button>
                 <button class="theme-toggle icon-btn" onclick="openNotifModal()" title="Notifikasi">
                     <i class="fa-solid fa-bell"></i>
                     <span class="notif-badge-count" id="notifCount">0</span>
@@ -1468,37 +1673,47 @@
 
         <!-- TAB 1: PORTAL UTAMA -->
         <div id="tabPortal" class="tab-content active">
-            <!-- Pengumuman -->
-            <div class="announcement-box">
-                <div class="announcement-icon">
-                    <i class="fa-solid fa-bullhorn"></i>
-                </div>
-                <div class="announcement-content">
-                    <h3 id="annoTitle">Info Server & Portal VIP</h3>
-                    <p id="annoBody">Memuat pengumuman...</p>
+            <!-- Chip Navigasi Cepat: langsung lompat ke section, tanpa scroll panjang -->
+            <div class="quick-nav-row">
+                <button class="quick-nav-chip" onclick="jumpToSection('vipLinksContainer')"><i class="fa-solid fa-crown"></i> VIP</button>
+                <button class="quick-nav-chip" onclick="jumpToSection('appLinksContainer')"><i class="fa-solid fa-mobile-screen"></i> Web App</button>
+                <button class="quick-nav-chip" onclick="jumpToSection('mainLinksContainer')"><i class="fa-solid fa-server"></i> Utama</button>
+                <button class="quick-nav-chip" onclick="jumpToSection('researchLinksContainer')"><i class="fa-solid fa-flask"></i> Riset</button>
+            </div>
+
+            <!-- Kartu Ringkasan: Pengumuman + Tip + Absen digabung, bisa dilipat biar hemat scroll -->
+            <div class="summary-card">
+                <button class="summary-toggle" onclick="toggleSummaryCard()">
+                    <span><i class="fa-solid fa-bell"></i> Info Hari Ini</span>
+                    <i class="fa-solid fa-chevron-down" id="summaryToggleIcon"></i>
+                </button>
+                <div id="summaryCardBody" class="summary-card-body">
+                    <div class="summary-row">
+                        <div class="summary-icon" style="color:var(--accent-gold);"><i class="fa-solid fa-bullhorn"></i></div>
+                        <div>
+                            <h3 id="annoTitle" style="font-size:0.85rem; color:var(--accent-gold); margin-bottom:2px;">Info Server & Portal VIP</h3>
+                            <p id="annoBody" style="font-size:0.78rem; color:var(--text-sub);">Memuat pengumuman...</p>
+                        </div>
+                    </div>
+                    <div class="summary-row">
+                        <div class="summary-icon" style="color:#10b981;"><i class="fa-solid fa-lightbulb"></i></div>
+                        <div>
+                            <h3 style="font-size:0.85rem; color:#10b981; margin-bottom:2px;">Tips Audio Hari Ini</h3>
+                            <p id="dailyTipBody" style="font-size:0.78rem; color:var(--text-sub);">Memuat tips...</p>
+                        </div>
+                    </div>
+                    <div class="summary-row" style="align-items:center;">
+                        <div class="summary-icon" style="color:#ef4444;"><i class="fa-solid fa-fire"></i></div>
+                        <div id="checkinWidget" style="flex:1;">Memuat...</div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Tip Harian -->
-            <div class="announcement-box" style="border-left-color:#10b981;">
-                <div class="announcement-icon" style="color:#10b981;">
-                    <i class="fa-solid fa-lightbulb"></i>
-                </div>
-                <div class="announcement-content">
-                    <h3 style="color:#10b981;">Tips Audio Hari Ini</h3>
-                    <p id="dailyTipBody">Memuat tips...</p>
-                </div>
+            <!-- Feed Aktivitas Live: ticker 1 baris, hemat tempat -->
+            <div class="activity-ticker-wrap" id="activityTickerWrap" style="display:none;">
+                <div class="activity-ticker-icon"><i class="fa-solid fa-bolt"></i></div>
+                <div class="activity-ticker-track" id="activityFeedContainer"></div>
             </div>
-
-            <!-- Absen Harian & Streak -->
-            <div class="comment-input-box" style="background: linear-gradient(135deg, rgba(239,68,68,0.1) 0%, var(--card-bg) 100%); border-color: rgba(239,68,68,0.3);">
-                <h3 style="font-size: 0.9rem; margin-bottom: 8px; color: #ef4444;"><i class="fa-solid fa-fire"></i> Absen Harian</h3>
-                <div id="checkinWidget">Memuat...</div>
-            </div>
-
-            <!-- Feed Aktivitas Live -->
-            <div class="section-header"><i class="fa-solid fa-bolt"></i> Aktivitas Terbaru</div>
-            <div id="activityFeedContainer" style="margin-bottom:1.5rem;">Memuat aktivitas...</div>
 
             <!-- Search & Favorit -->
             <div class="search-bar-wrap" style="display:flex; gap:8px;">
@@ -1594,6 +1809,15 @@
                 <div id="mediaPreview-main" class="admin-image-preview-grid" style="margin-top:8px;"></div>
 
                 <button class="btn-primary" onclick="postComment()" style="margin-top:12px;">Kirim Komentar</button>
+            </div>
+
+            <div class="comment-toolbar-row">
+                <input type="text" id="commentSearchInput" class="form-control" placeholder="Cari komentar/nama..." oninput="renderComments()">
+                <select id="commentSortSelect" class="form-control" style="max-width:150px;" onchange="renderComments()">
+                    <option value="newest">Terbaru</option>
+                    <option value="oldest">Terlama</option>
+                    <option value="popular">Terpopuler</option>
+                </select>
             </div>
 
             <div class="comment-list" id="commentContainer">Memuat komentar...</div>
@@ -1766,6 +1990,15 @@
                 <div id="profBadgesDisplay" style="display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px;"></div>
             </div>
 
+            <div style="background: var(--input-bg); padding: 10px; border-radius: 8px; margin-bottom: 1rem; border: 1px solid var(--card-border);">
+                <div style="font-size: 0.8rem; color: var(--text-sub); font-weight:700; margin-bottom:6px;"><i class="fa-solid fa-chart-simple"></i> Rincian Sumber Poin</div>
+                <div id="pointsBreakdownContainer" style="font-size:0.76rem; color:var(--text-sub);"></div>
+            </div>
+
+            <button class="btn-primary btn-secondary" onclick="shareAchievement()" style="margin-bottom:1rem;">
+                <i class="fa-brands fa-whatsapp"></i> Bagikan Pencapaian Saya
+            </button>
+
             <div style="background: rgba(229,168,35,0.08); padding: 10px; border-radius: 8px; margin-bottom: 1rem; border: 1px solid var(--badge-border);">
                 <div style="font-size: 0.8rem; color: var(--accent-gold); font-weight:700; margin-bottom:6px;"><i class="fa-solid fa-share-nodes"></i> Ajak Teman, Dapat Bonus!</div>
                 <div style="font-size: 0.75rem; color: var(--text-sub); margin-bottom:8px;">Bagikan kode ini ke teman. Anda +100 poin, teman +50 poin saat mereka bergabung!</div>
@@ -1794,12 +2027,18 @@
                 <h3><i class="fa-solid fa-bell"></i> Notifikasi</h3>
                 <button class="close-btn" onclick="closeModal('notifModal')">&times;</button>
             </div>
+            <button class="btn-primary btn-secondary" id="browserNotifBtn" onclick="enableBrowserNotif()" style="margin-bottom:10px;">
+                <i class="fa-solid fa-bell"></i> Aktifkan Notifikasi Browser
+            </button>
             <div style="display:flex; justify-content:flex-end; margin-bottom:10px;">
                 <button class="comment-action-btn" onclick="markAllNotifRead()"><i class="fa-solid fa-check-double"></i> Tandai semua dibaca</button>
             </div>
             <div id="notifListContainer">Memuat notifikasi...</div>
         </div>
     </div>
+
+    <!-- LAYER KONFETI PERAYAAN LENCANA -->
+    <div id="confettiLayer"></div>
 
     <!-- MODAL POPUP GATEWAY VIP -->
     <div class="modal-bg" id="vipAccessModal">
@@ -1957,6 +2196,12 @@
                 <div id="bgModerationList" style="margin-top:8px;">Memuat...</div>
             </div>
 
+            <!-- LAPORAN KOMENTAR DARI PENGGUNA -->
+            <div class="form-group" style="background: rgba(239,68,68,0.08); padding:10px; border-radius:8px; border:1px solid #ef4444; margin-top:1rem;">
+                <label style="color:#ef4444;"><i class="fa-solid fa-flag"></i> Laporan Komentar Dari Pengguna</label>
+                <div id="reportedCommentsList" style="margin-top:8px;">Memuat...</div>
+            </div>
+
             <!-- KELOLA POLLING KOMUNITAS -->
             <div class="form-group" style="background: rgba(229,168,35,0.08); padding:10px; border-radius:8px; border:1px solid var(--accent-gold); margin-top:1rem;">
                 <label style="color:var(--accent-gold);"><i class="fa-solid fa-square-poll-vertical"></i> Buat Polling Komunitas Baru</label>
@@ -2033,6 +2278,11 @@
             <div id="adminLinkList">Memuat data dari Firebase...</div>
         </div>
     </div>
+
+    <!-- TOMBOL KEMBALI KE ATAS -->
+    <button id="backToTopBtn" onclick="window.scrollTo({top:0, behavior:'smooth'})" title="Kembali ke atas">
+        <i class="fa-solid fa-arrow-up"></i>
+    </button>
 
     <!-- SECURE APP VIEWER ENGINE -->
     <div id="appViewer">
@@ -2200,6 +2450,8 @@
         const pricingRef = ref(db, "pricing");
         const presenceRootRef = ref(db, "presence");
         const usersRootRef = ref(db, "users");
+        const reportedCommentsRef = ref(db, "reportedComments");
+        let rawReportedCommentsData = {};
 
         // Listener Pengaturan Harga VIP (Real-time, bisa diubah Admin)
         onValue(pricingRef, (snapshot) => {
@@ -2335,6 +2587,14 @@
         onValue(complaintsRef, (snapshot) => {
             rawComplaintsData = snapshot.val() || {};
             renderComplaints();
+        });
+
+        // Listener Laporan Komentar (untuk Admin)
+        onValue(reportedCommentsRef, (snapshot) => {
+            rawReportedCommentsData = snapshot.val() || {};
+            if (document.getElementById('adminModal').style.display === 'flex') {
+                renderReportedComments();
+            }
         });
 
         // --- LOGIN OPSIONAL: pengguna bisa menjelajah portal tanpa login.
@@ -2486,6 +2746,7 @@
                     userProfile.isAdmin = isOwnerEmail ? true : !!data.isAdmin;
                     userProfile.age = data.age || userProfile.age;
                     userProfile.referredBy = data.referredBy || userProfile.referredBy || null;
+                    userProfile.pointsBySource = data.pointsBySource || userProfile.pointsBySource || {};
                     if (isOwnerEmail && !userProfile.ownedBadges.includes("b20")) userProfile.ownedBadges.push("b20");
                 } else {
                     syncUserDataToFirebase();
@@ -2501,6 +2762,7 @@
             const notifRef = ref(db, `notifications/${uid}`);
             onValue(notifRef, (snapshot) => {
                 rawNotifData = snapshot.val() || {};
+                checkForNewNotifications();
                 renderNotifications();
             });
 
@@ -2530,7 +2792,8 @@
                 isVip: userProfile.isVip || false,
                 isAdmin: userProfile.isAdmin || false,
                 age: userProfile.age || "",
-                referredBy: userProfile.referredBy || null
+                referredBy: userProfile.referredBy || null,
+                pointsBySource: userProfile.pointsBySource || {}
             });
         }
 
@@ -2606,26 +2869,69 @@
             return `${Math.floor(diffHour / 24)} hari lalu`;
         }
 
+        // Ticker aktivitas: hanya menampilkan 1 baris teks bergantian (bukan tumpukan
+        // banyak kartu), jauh lebih hemat ruang vertikal di layar mobile.
+        let tickerItems = [];
+        let tickerIndex = 0;
+        let tickerInterval = null;
+
         function renderActivityFeed(items) {
-            const container = document.getElementById('activityFeedContainer');
-            if (!container) return;
-            if (!items || items.length === 0) {
-                container.innerHTML = '<p style="font-size:0.8rem; color:var(--text-muted); text-align:center;">Belum ada aktivitas.</p>';
+            const wrap = document.getElementById('activityTickerWrap');
+            if (!wrap) return;
+            tickerItems = items || [];
+
+            if (tickerInterval) { clearInterval(tickerInterval); tickerInterval = null; }
+
+            if (tickerItems.length === 0) {
+                wrap.style.display = 'none';
                 return;
             }
-            container.innerHTML = items.map(item => `
-                <div class="activity-feed-row">
-                    <div class="activity-icon"><i class="fa-solid ${item.icon || 'fa-bolt'}"></i></div>
-                    <span>${escapeHtml(item.message)}</span>
-                    <span class="activity-feed-time">${timeAgo(item.createdAt || Date.now())}</span>
-                </div>
-            `).join('');
+
+            wrap.style.display = 'flex';
+            tickerIndex = 0;
+            showTickerItem();
+
+            if (tickerItems.length > 1) {
+                tickerInterval = setInterval(() => {
+                    tickerIndex = (tickerIndex + 1) % tickerItems.length;
+                    showTickerItem();
+                }, 4000);
+            }
+        }
+
+        function showTickerItem() {
+            const track = document.getElementById('activityFeedContainer');
+            if (!track || tickerItems.length === 0) return;
+            const item = tickerItems[tickerIndex];
+            track.innerHTML = `<span class="activity-ticker-item">${escapeHtml(item.message)} · ${timeAgo(item.createdAt || Date.now())}</span>`;
         }
 
         onValue(query(ref(db, 'activityFeed'), limitToLast(8)), (snapshot) => {
             const data = snapshot.val() || {};
             const items = Object.values(data).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
             renderActivityFeed(items);
+        });
+
+        // --- NAVIGASI CEPAT & KARTU RINGKASAN BERLIPAT ---
+        window.jumpToSection = function(sectionId) {
+            const el = document.getElementById(sectionId);
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        };
+
+        window.toggleSummaryCard = function() {
+            const body = document.getElementById('summaryCardBody');
+            const icon = document.getElementById('summaryToggleIcon');
+            const collapsed = body.classList.toggle('collapsed');
+            icon.style.transform = collapsed ? 'rotate(-90deg)' : 'rotate(0deg)';
+            localStorage.setItem('faro_summary_collapsed', collapsed ? '1' : '0');
+        };
+
+        // Tombol Kembali ke Atas — muncul otomatis setelah scroll cukup jauh
+        window.addEventListener('scroll', () => {
+            const btn = document.getElementById('backToTopBtn');
+            if (!btn) return;
+            if (window.scrollY > 400) btn.classList.add('visible');
+            else btn.classList.remove('visible');
         });
 
         // --- ABSEN HARIAN & STREAK ---
@@ -3032,6 +3338,10 @@
             if (activityType === 'comment') { userProfile.commentCount = (userProfile.commentCount || 0) + 1; incrementWeeklyStat('comments'); }
             if (activityType === 'complaint') { userProfile.complaintCount = (userProfile.complaintCount || 0) + 1; incrementWeeklyStat('complaints'); }
 
+            // Catat rincian sumber poin (untuk statistik pribadi di profil)
+            userProfile.pointsBySource = userProfile.pointsBySource || {};
+            userProfile.pointsBySource[activityType] = (userProfile.pointsBySource[activityType] || 0) + pointsToAdd;
+
             // Uji Keberuntungan Drop Rate Lencana (Drop Rate Check) saat aktif
             checkLuckBadgeDrop();
 
@@ -3099,6 +3409,7 @@
                 if (badge.level >= 13) {
                     pushActivityFeed(`${userProfile.name} membuka Lencana ${badge.icon} "${badge.name}"! 🎉`, 'fa-award');
                 }
+                triggerConfetti();
                 alert(`Selamat! Anda berhasil membongkar Lencana ${badge.name}! Benefits: ${badge.benefit}`);
                 updateProfileUI();
                 renderBadgesTab();
@@ -3563,6 +3874,68 @@
             }
         };
 
+        // --- LAPORKAN KOMENTAR (moderasi komunitas) ---
+        window.reportComment = function(id) {
+            if (!requireLogin("Masuk untuk melaporkan komentar.")) return;
+            const c = rawCommentsData[id];
+            if (!c) return;
+            if (c.userId === userProfile.uid) { alert("Anda tidak bisa melaporkan komentar sendiri."); return; }
+
+            const reason = prompt("Kenapa Anda melaporkan komentar ini? (contoh: spam, konten tidak pantas, dsb.)");
+            if (!reason || !reason.trim()) return;
+
+            push(reportedCommentsRef, {
+                commentId: id,
+                commentText: c.text || '',
+                commentUserId: c.userId || '',
+                commentUserName: c.userName || 'Pengguna',
+                reporterUid: userProfile.uid,
+                reporterName: userProfile.name,
+                reason: reason.trim(),
+                status: 'pending',
+                createdAt: Date.now()
+            }).then(() => {
+                alert("Laporan terkirim. Terima kasih telah membantu menjaga komunitas!");
+            });
+        };
+
+        function renderReportedComments() {
+            const container = document.getElementById('reportedCommentsList');
+            if (!container) return;
+            const keys = Object.keys(rawReportedCommentsData).filter(k => rawReportedCommentsData[k].status === 'pending');
+
+            if (keys.length === 0) {
+                container.innerHTML = '<p style="font-size:0.78rem; color:var(--text-muted);">Tidak ada laporan komentar yang menunggu tinjauan.</p>';
+                return;
+            }
+
+            container.innerHTML = keys.map(k => {
+                const r = rawReportedCommentsData[k];
+                return `
+                    <div class="admin-item-row" style="flex-direction:column; align-items:stretch; gap:6px;">
+                        <div style="font-size:0.78rem;"><strong>${escapeHtml(r.commentUserName)}</strong> dilaporkan oleh ${escapeHtml(r.reporterName)}</div>
+                        <div style="font-size:0.76rem; color:var(--text-sub); font-style:italic;">"${escapeHtml(r.commentText).substring(0,120)}"</div>
+                        <div style="font-size:0.74rem; color:#ef4444;">Alasan: ${escapeHtml(r.reason)}</div>
+                        <div style="display:flex; gap:8px;">
+                            <button class="comment-action-btn" style="color:#ef4444;" onclick="deleteReportedComment('${k}', '${r.commentId}')"><i class="fa-solid fa-trash"></i> Hapus Komentar</button>
+                            <button class="comment-action-btn" style="color:#22c55e;" onclick="dismissReportedComment('${k}')"><i class="fa-solid fa-check"></i> Abaikan</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        window.deleteReportedComment = function(reportKey, commentId) {
+            if (confirm("Hapus komentar yang dilaporkan ini?")) {
+                remove(ref(db, `comments/${commentId}`));
+                update(ref(db, `reportedComments/${reportKey}`), { status: 'resolved' });
+            }
+        };
+
+        window.dismissReportedComment = function(reportKey) {
+            update(ref(db, `reportedComments/${reportKey}`), { status: 'dismissed' });
+        };
+
         function renderComments() {
             const container = document.getElementById('commentContainer');
             if (!container) return;
@@ -3574,11 +3947,35 @@
                 return;
             }
 
-            const parentComments = commentKeys
+            const searchQuery = (document.getElementById('commentSearchInput')?.value || '').toLowerCase().trim();
+            const sortMode = document.getElementById('commentSortSelect')?.value || 'newest';
+
+            let parentComments = commentKeys
                 .map(key => ({ id: key, ...rawCommentsData[key] }))
                 .filter(c => !c.parentId);
 
+            if (searchQuery) {
+                parentComments = parentComments.filter(c =>
+                    (c.text || '').toLowerCase().includes(searchQuery) ||
+                    (c.userName || '').toLowerCase().includes(searchQuery)
+                );
+            }
+
+            if (sortMode === 'oldest') {
+                parentComments.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+            } else if (sortMode === 'popular') {
+                parentComments.sort((a, b) => (b.likes || 0) - (a.likes || 0));
+            } else {
+                parentComments.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+            }
+
+            // Komentar yang disematkan Admin selalu tampil paling atas
             parentComments.sort((a, b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0));
+
+            if (parentComments.length === 0) {
+                container.innerHTML = '<p style="font-size:0.85rem; color:var(--text-muted); text-align:center;">Tidak ada komentar yang cocok.</p>';
+                return;
+            }
 
             parentComments.forEach(c => {
                 container.appendChild(createCommentCard(c));
@@ -3610,6 +4007,10 @@
             let deleteControl = (isOwnComment || isAdminUser) ? `
                 <button class="comment-action-btn" style="color:#ef4444;" onclick="deleteComment('${c.id}')"><i class="fa-solid fa-trash"></i> Hapus</button>
             ` : '';
+            // Tombol Laporkan hanya untuk komentar orang lain (bukan milik sendiri)
+            let reportControl = (!isOwnComment && userProfile) ? `
+                <button class="comment-action-btn" onclick="reportComment('${c.id}')" title="Laporkan komentar ini"><i class="fa-solid fa-flag"></i></button>
+            ` : '';
 
             // Media: foto (maks 2), stiker emoji, GIF. Tetap dukung komentar lama (mediaUrl tunggal).
             let mediaHtml = '';
@@ -3627,15 +4028,13 @@
             }
 
             // Latar belakang komentar VIP — hanya tampil setelah disetujui Admin
-            let bgStyle = '';
             let bgNote = '';
             if (c.bgUrl && c.bgStatus === 'approved') {
-                bgStyle = `style="background-image:url('${escapeAttr(c.bgUrl)}');"`;
                 card.classList.add('has-custom-bg');
+                card.style.backgroundImage = `url('${c.bgUrl}')`;
             } else if (c.bgUrl && c.bgStatus === 'pending' && userProfile && c.userId === userProfile.uid) {
                 bgNote = `<div style="font-size:0.68rem; color:var(--accent-gold); margin-top:4px;"><i class="fa-solid fa-hourglass-half"></i> Latar belakang menunggu moderasi Admin</div>`;
             }
-            if (bgStyle) card.setAttribute('style', bgStyle.replace('style="', '').replace('"', ''));
 
             card.innerHTML = `
                 <div class="comment-header">
@@ -3655,6 +4054,7 @@
                     <button class="comment-action-btn" onclick="toggleReplyBox('${c.id}')"><i class="fa-solid fa-reply"></i> Balas</button>
                     ${adminControls}
                     ${deleteControl}
+                    ${reportControl}
                 </div>
 
                 <div id="replyBox-${c.id}" style="display:none; margin-top:10px;">
@@ -4086,6 +4486,22 @@
             return String(text).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
         }
 
+        // --- MODE HEMAT DATA ---
+        window.initDataSaver = function() {
+            const isOn = localStorage.getItem('faro_data_saver') === '1';
+            document.body.classList.toggle('data-saver', isOn);
+            const btn = document.getElementById('dataSaverBtn');
+            if (btn) btn.classList.toggle('active', isOn);
+        };
+
+        window.toggleDataSaver = function() {
+            const isOn = document.body.classList.toggle('data-saver');
+            localStorage.setItem('faro_data_saver', isOn ? '1' : '0');
+            const btn = document.getElementById('dataSaverBtn');
+            if (btn) btn.classList.toggle('active', isOn);
+            alert(isOn ? "Mode Hemat Data AKTIF — foto & galeri disembunyikan untuk menghemat kuota." : "Mode Hemat Data dimatikan.");
+        };
+
         // --- MANAJEMEN TEMA & NAVIGATION ---
         window.initTheme = function() {
             const savedTheme = localStorage.getItem('faro_theme') || 'dark';
@@ -4166,6 +4582,96 @@
             if (userProfile) syncUserDataToFirebase();
         }, 20000);
 
+        // --- STATISTIK RINCIAN SUMBER POIN ---
+        const POINTS_SOURCE_LABELS = {
+            comment: 'Komentar & Balasan',
+            complaint: 'Laporan Pengaduan',
+            like: 'Menyukai Komentar',
+            checkin: 'Absen Harian',
+            quiz: 'Kuis Audio',
+            referral: 'Bonus Referral',
+            spin: 'Roda Keberuntungan',
+            mission: 'Misi Mingguan',
+            poll: 'Polling Komunitas'
+        };
+
+        function renderPointsBreakdown() {
+            const container = document.getElementById('pointsBreakdownContainer');
+            if (!container || !userProfile) return;
+            const sources = userProfile.pointsBySource || {};
+            const entries = Object.keys(sources).filter(k => sources[k] > 0).sort((a, b) => sources[b] - sources[a]);
+
+            if (entries.length === 0) {
+                container.innerHTML = '<span style="color:var(--text-muted);">Belum ada aktivitas tercatat.</span>';
+                return;
+            }
+
+            container.innerHTML = entries.map(key => `
+                <div style="display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid var(--card-border);">
+                    <span>${escapeHtml(POINTS_SOURCE_LABELS[key] || key)}</span>
+                    <strong style="color:var(--accent-gold);">${sources[key].toLocaleString('id-ID')} Poin</strong>
+                </div>
+            `).join('');
+        }
+
+        // --- BAGIKAN PENCAPAIAN ---
+        window.shareAchievement = function() {
+            if (!requireLogin("Masuk untuk membagikan pencapaian Anda.")) return;
+            const badgeCount = (userProfile.ownedBadges || []).length;
+            const text = `Saya sudah mengumpulkan ${userProfile.points || 0} Poin dan ${badgeCount} Lencana di FARO Triumphantly! 🎉🏆 Yuk gabung dan pakai kode referral saya: ${userProfile.referralCode}`;
+            const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+            window.open(url, '_blank');
+        };
+
+        // --- NOTIFIKASI BROWSER NATIVE (saat tab tidak fokus) ---
+        window.enableBrowserNotif = function() {
+            if (!('Notification' in window)) {
+                alert("Browser Anda tidak mendukung notifikasi.");
+                return;
+            }
+            Notification.requestPermission().then(permission => {
+                const btn = document.getElementById('browserNotifBtn');
+                if (permission === 'granted') {
+                    if (btn) btn.innerHTML = '<i class="fa-solid fa-circle-check"></i> Notifikasi Browser Aktif';
+                    new Notification('FARO Triumphantly', { body: 'Notifikasi browser berhasil diaktifkan!' });
+                } else {
+                    alert("Izin notifikasi ditolak. Anda bisa mengaktifkannya lagi lewat pengaturan browser.");
+                }
+            });
+        };
+
+        // Deteksi notifikasi baru yang masuk untuk memicu notifikasi native browser
+        let lastSeenNotifKeys = new Set();
+        function checkForNewNotifications() {
+            if (!('Notification' in window) || Notification.permission !== 'granted') return;
+            const currentKeys = Object.keys(rawNotifData);
+            currentKeys.forEach(key => {
+                if (!lastSeenNotifKeys.has(key) && lastSeenNotifKeys.size > 0 && !rawNotifData[key].isRead) {
+                    if (document.visibilityState !== 'visible') {
+                        new Notification('FARO Triumphantly', { body: rawNotifData[key].message });
+                    }
+                }
+            });
+            lastSeenNotifKeys = new Set(currentKeys);
+        }
+
+        // --- KONFETI PERAYAAN LENCANA ---
+        function triggerConfetti() {
+            const layer = document.getElementById('confettiLayer');
+            if (!layer) return;
+            const colors = ['#E5A823', '#ff007f', '#3b82f6', '#22c55e', '#f472b6'];
+            for (let i = 0; i < 60; i++) {
+                const piece = document.createElement('div');
+                piece.className = 'confetti-piece';
+                piece.style.left = Math.random() * 100 + 'vw';
+                piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+                piece.style.animationDuration = (2 + Math.random() * 2) + 's';
+                piece.style.animationDelay = (Math.random() * 0.5) + 's';
+                layer.appendChild(piece);
+                setTimeout(() => piece.remove(), 4500);
+            }
+        }
+
         function updateProfileUI() {
             if (!userProfile) return;
 
@@ -4206,6 +4712,8 @@
                            <button class="btn-primary" style="width:auto; padding:10px 14px;" onclick="redeemReferralCode()">Pakai</button>
                        </div>`;
             }
+
+            renderPointsBreakdown();
 
             // HARGA VIP DINAMIS (Diatur Admin, real-time)
             const vipPrice = getCurrentVipPrice();
@@ -4548,6 +5056,7 @@
             resetAdminLinkForm();
             renderAdminLinkList();
             renderBgModerationList();
+            renderReportedComments();
             document.getElementById('adminModal').style.display = 'flex';
         }
 
@@ -4728,6 +5237,7 @@
         window.closeModal = function(id) { document.getElementById(id).style.display = 'none'; };
 
         initTheme();
+        initDataSaver();
         renderDailyTip();
         renderGlossary();
         renderQuiz();
@@ -4735,6 +5245,14 @@
         renderCheckinWidget();
         renderSpinWheel();
         renderWeeklyMissions();
+
+        // Terapkan preferensi lipat kartu ringkasan dari kunjungan sebelumnya
+        if (localStorage.getItem('faro_summary_collapsed') === '1') {
+            const body = document.getElementById('summaryCardBody');
+            const icon = document.getElementById('summaryToggleIcon');
+            if (body) body.classList.add('collapsed');
+            if (icon) icon.style.transform = 'rotate(-90deg)';
+        }
     </script>
 </body>
-    </html>
+                                                                                                                                         </html>
