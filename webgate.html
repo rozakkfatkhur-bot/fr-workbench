@@ -398,8 +398,42 @@
 
         .link-grid {
             display: flex;
+            flex-direction: row;
+            gap: 12px;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            padding-bottom: 10px;
+            margin: 0 -1rem;
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+        .link-grid::-webkit-scrollbar { height: 5px; }
+        .link-grid::-webkit-scrollbar-thumb { background: var(--card-border); border-radius: 4px; }
+
+        .link-grid .link-card {
+            flex: 0 0 82%;
+            max-width: 300px;
+            scroll-snap-align: start;
+        }
+
+        /* Mode daftar vertikal — dipakai saat sedang mencari/filter favorit,
+           supaya hasil lebih mudah dipindai daripada digeser satu-satu. */
+        .link-grid.list-mode {
             flex-direction: column;
-            gap: 14px;
+            overflow-x: visible;
+            margin: 0;
+            padding: 0;
+        }
+        .link-grid.list-mode .link-card {
+            flex: 1 1 auto;
+            max-width: 100%;
+        }
+
+        .section-hint {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-top: -0.6rem;
+            margin-bottom: 0.8rem;
         }
 
         .link-card {
@@ -1490,6 +1524,49 @@
             margin-bottom: 1rem;
         }
 
+        /* STATISTIK MODUL: ONLINE, POPULARITAS, RATING */
+        .module-stats-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 6px;
+            font-size: 0.72rem;
+            color: var(--text-muted);
+        }
+        .module-online-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(34,197,94,0.12);
+            border: 1px solid rgba(34,197,94,0.35);
+            color: #22c55e;
+            padding: 3px 9px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.7rem;
+        }
+        .dot-online-sm {
+            width: 6px; height: 6px; border-radius: 50%;
+            background: #22c55e;
+            display: inline-block;
+            box-shadow: 0 0 5px #22c55e;
+        }
+        .module-open-count {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .module-rating-stars {
+            display: inline-flex;
+            gap: 2px;
+            color: var(--accent-gold);
+            font-size: 0.72rem;
+        }
+        .module-rating-stars i {
+            cursor: pointer;
+        }
+
         .spin-wheel-emoji {
             font-size: 3.5rem;
             text-align: center;
@@ -1716,8 +1793,14 @@
             </div>
 
             <!-- Search & Favorit -->
-            <div class="search-bar-wrap" style="display:flex; gap:8px;">
-                <input type="text" id="moduleSearchInput" class="form-control" placeholder="Cari modul web..." oninput="renderUI()">
+            <div class="search-bar-wrap" style="display:flex; gap:8px; flex-wrap:wrap;">
+                <input type="text" id="moduleSearchInput" class="form-control" style="flex:1; min-width:140px;" placeholder="Cari modul web..." oninput="renderUI()">
+                <select id="moduleSortSelect" class="form-control" style="max-width:130px;" onchange="renderUI()">
+                    <option value="default">Urutan Default</option>
+                    <option value="popular">Terpopuler</option>
+                    <option value="rating">Rating Tertinggi</option>
+                    <option value="az">Nama A-Z</option>
+                </select>
                 <button class="theme-toggle" id="favFilterBtn" onclick="toggleFavFilter()" style="white-space:nowrap;">
                     <i class="fa-solid fa-star"></i> Favorit
                 </button>
@@ -1737,15 +1820,17 @@
             </div>
 
             <!-- VIP Section -->
-            <div class="section-header">
+            <div class="section-header" id="sectionHeader-vip">
                 <i class="fa-solid fa-crown"></i> Modul Sistem VIP / Premium
             </div>
+            <div class="section-hint" id="sectionHint-vip"><i class="fa-solid fa-arrows-left-right"></i> Geser untuk lihat modul lainnya</div>
             <div class="link-grid" id="vipLinksContainer"></div>
 
             <!-- Aplikasi Web Section -->
-            <div class="section-header">
+            <div class="section-header" id="sectionHeader-app">
                 <i class="fa-solid fa-mobile-screen-button"></i> Aplikasi Web Siap Pakai
             </div>
+            <div class="section-hint" id="sectionHint-app"><i class="fa-solid fa-arrows-left-right"></i> Geser untuk lihat modul lainnya</div>
             <div class="link-grid" id="appLinksContainer"></div>
 
             <!-- WIDGET IKLAN Kedua -->
@@ -1762,15 +1847,17 @@
             </div>
 
             <!-- Main Web Section -->
-            <div class="section-header">
+            <div class="section-header" id="sectionHeader-main">
                 <i class="fa-solid fa-server"></i> Web Sistem Utama
             </div>
+            <div class="section-hint" id="sectionHint-main"><i class="fa-solid fa-arrows-left-right"></i> Geser untuk lihat modul lainnya</div>
             <div class="link-grid" id="mainLinksContainer"></div>
 
             <!-- Research Section -->
-            <div class="section-header">
+            <div class="section-header" id="sectionHeader-research">
                 <i class="fa-solid fa-flask"></i> Status Riset & Uji Coba (R&D)
             </div>
+            <div class="section-hint" id="sectionHint-research"><i class="fa-solid fa-arrows-left-right"></i> Geser untuk lihat modul lainnya</div>
             <div class="link-grid" id="researchLinksContainer"></div>
         </div>
 
@@ -4740,6 +4827,7 @@
             researchContainer.innerHTML = '';
 
             const searchQuery = (document.getElementById('moduleSearchInput')?.value || '').toLowerCase().trim();
+            const sortMode = document.getElementById('moduleSortSelect')?.value || 'default';
             let linkKeys = Object.keys(rawLinksData);
             const vipPrice = getCurrentVipPrice();
 
@@ -4749,6 +4837,29 @@
             if (favFilterActive) {
                 linkKeys = linkKeys.filter(key => !!userFavorites[key]);
             }
+
+            if (sortMode === 'popular') {
+                linkKeys.sort((a, b) => ((moduleStatsData[b] && moduleStatsData[b].opens) || 0) - ((moduleStatsData[a] && moduleStatsData[a].opens) || 0));
+            } else if (sortMode === 'rating') {
+                linkKeys.sort((a, b) => {
+                    const ra = getModuleAvgRating(a);
+                    const rb = getModuleAvgRating(b);
+                    return (rb ? rb.avg : 0) - (ra ? ra.avg : 0);
+                });
+            } else if (sortMode === 'az') {
+                linkKeys.sort((a, b) => (rawLinksData[a].title || '').localeCompare(rawLinksData[b].title || ''));
+            }
+
+            // Mode tampilan: carousel horizontal (default, hemat scroll) vs daftar
+            // vertikal (saat mencari/filter, supaya hasil mudah dipindai).
+            const useListMode = !!(searchQuery || favFilterActive || sortMode !== 'default');
+            [vipContainer, appContainer, mainContainer, researchContainer].forEach(c => {
+                c.classList.toggle('list-mode', useListMode);
+            });
+            ['vip', 'app', 'main', 'research'].forEach(cat => {
+                const hint = document.getElementById(`sectionHint-${cat}`);
+                if (hint) hint.style.display = useListMode ? 'none' : '';
+            });
 
             if (linkKeys.length === 0) {
                 const emptyMsg = `<p style="font-size:0.82rem; color:var(--text-muted); text-align:center; padding:1rem;">Tidak ada modul yang cocok.</p>`;
@@ -4786,6 +4897,32 @@
                     </div>
                 ` : '';
 
+                // Statistik modul: online sekarang, total dibuka, dan rating — dihitung
+                // untuk SEMUA pengunjung termasuk yang belum login/mendaftar.
+                const onlineNow = moduleOnlineCounts[key] || 0;
+                const totalOpens = (moduleStatsData[key] && moduleStatsData[key].opens) || 0;
+                const ratingInfo = getModuleAvgRating(key);
+
+                let onlineBadge = onlineNow > 0
+                    ? `<span class="module-online-badge"><span class="dot-online-sm"></span> ${onlineNow} online</span>`
+                    : '';
+
+                let myRating = (userProfile && moduleRatingsData[key]) ? (moduleRatingsData[key][userProfile.uid] || 0) : 0;
+                let starsHtml = '';
+                for (let s = 1; s <= 5; s++) {
+                    const filled = ratingInfo ? s <= Math.round(ratingInfo.avg) : s <= myRating;
+                    starsHtml += `<i class="fa-${filled ? 'solid' : 'regular'} fa-star" onclick="event.stopPropagation(); rateModule('${key}', ${s});"></i>`;
+                }
+
+                let statsRowHtml = `
+                    <div class="module-stats-row" onclick="event.stopPropagation();">
+                        ${onlineBadge}
+                        <span class="module-open-count"><i class="fa-solid fa-eye"></i> ${totalOpens.toLocaleString('id-ID')} dibuka</span>
+                        <span class="module-rating-stars">${starsHtml}</span>
+                        ${ratingInfo ? `<span style="font-size:0.68rem; color:var(--text-muted);">(${ratingInfo.avg.toFixed(1)} · ${ratingInfo.count})</span>` : ''}
+                    </div>
+                `;
+
                 let imgList = item.images || (item.image ? [item.image] : []);
                 let galleryHtml = '';
 
@@ -4818,6 +4955,7 @@
                     </div>
                     ${galleryHtml}
                     <div class="link-desc">${escapeHtml(item.desc)}</div>
+                    ${statsRowHtml}
                     ${prePublishNote}
                     ${priceTagHtml}
                 `;
@@ -4841,10 +4979,10 @@
                     openVipGateway(item);
                     return;
                 }
-                openSecureApp(item.url, item.title);
+                openSecureApp(item.url, item.title, item.id);
                 return;
             } else {
-                openSecureApp(item.url, item.title);
+                openSecureApp(item.url, item.title, item.id);
             }
         }
 
@@ -4854,7 +4992,7 @@
         // check gagal karena origin blob: bersifat unik/null), sehingga muncul error
         // "YouTube player belum siap". Sekarang iframe langsung diarahkan ke URL
         // aslinya (hanya 1 lapis iframe), jauh lebih kompatibel dengan YouTube API.
-        function openSecureApp(url, title) {
+        function openSecureApp(url, title, moduleId) {
             document.getElementById('viewerTitle').innerHTML = `<i class="fa-solid fa-shield-halved"></i> ${escapeHtml(title)}`;
             currentOpenAppIsMixer = title.toLowerCase().includes('mixer');
 
@@ -4862,13 +5000,96 @@
             frame.src = url;
 
             document.getElementById('appViewer').style.display = 'flex';
+
+            if (moduleId) {
+                startModulePresence(moduleId);
+                incrementModuleOpens(moduleId);
+            }
         }
 
         window.closeAppViewer = function() {
             document.getElementById('innerFrame').src = 'about:blank';
             document.getElementById('appViewer').style.display = 'none';
             currentOpenAppIsMixer = false;
+            stopModulePresence();
         };
+
+        // --- PRESENCE ONLINE PER-MODUL (menghitung SEMUA pengunjung, termasuk tamu) ---
+        let currentModulePresenceRef = null;
+        let moduleHeartbeatInterval = null;
+        let moduleOnlineCounts = {};
+
+        function startModulePresence(moduleId) {
+            stopModulePresence();
+            const sessionId = getSessionId();
+            currentModulePresenceRef = ref(db, `modulePresence/${moduleId}/${sessionId}`);
+            const sendHeartbeat = () => set(currentModulePresenceRef, { lastActive: Date.now() });
+            sendHeartbeat();
+            onDisconnect(currentModulePresenceRef).remove();
+            moduleHeartbeatInterval = setInterval(sendHeartbeat, 30000);
+        }
+
+        function stopModulePresence() {
+            if (currentModulePresenceRef) {
+                remove(currentModulePresenceRef);
+                currentModulePresenceRef = null;
+            }
+            if (moduleHeartbeatInterval) {
+                clearInterval(moduleHeartbeatInterval);
+                moduleHeartbeatInterval = null;
+            }
+        }
+
+        onValue(ref(db, 'modulePresence'), (snapshot) => {
+            const data = snapshot.val() || {};
+            const now = Date.now();
+            const counts = {};
+            Object.keys(data).forEach(moduleId => {
+                const sessions = data[moduleId] || {};
+                const count = Object.values(sessions).filter(v => v && v.lastActive && (now - v.lastActive) <= ONLINE_WINDOW_MS).length;
+                if (count > 0) counts[moduleId] = count;
+            });
+            moduleOnlineCounts = counts;
+            renderUI();
+        });
+
+        // --- STATISTIK POPULARITAS MODUL (dihitung untuk SEMUA pengunjung, termasuk tamu) ---
+        let moduleStatsData = {};
+        onValue(ref(db, 'moduleStats'), (snapshot) => {
+            moduleStatsData = snapshot.val() || {};
+            renderUI();
+        });
+
+        function incrementModuleOpens(moduleId) {
+            const path = `moduleStats/${moduleId}/opens`;
+            get(ref(db, path)).then(snap => {
+                const current = snap.exists() ? snap.val() : 0;
+                set(ref(db, path), current + 1);
+            });
+        }
+
+        // --- RATING MODUL (bintang 1-5, wajib login agar tidak disalahgunakan) ---
+        window.rateModule = function(moduleId, stars) {
+            if (!requireLogin("Masuk untuk memberi rating modul.")) return;
+            set(ref(db, `moduleRatings/${moduleId}/${userProfile.uid}`), stars).then(() => {
+                addActivityPoints(3, 'rating');
+            });
+        };
+
+        let moduleRatingsData = {};
+        onValue(ref(db, 'moduleRatings'), (snapshot) => {
+            moduleRatingsData = snapshot.val() || {};
+            renderUI();
+        });
+
+        function getModuleAvgRating(moduleId) {
+            const ratings = moduleRatingsData[moduleId];
+            if (!ratings) return null;
+            const values = Object.values(ratings);
+            if (values.length === 0) return null;
+            const avg = values.reduce((a, b) => a + b, 0) / values.length;
+            return { avg: avg, count: values.length };
+        }
 
         // BUGFIX: status trial sebelumnya disimpan di localStorage per-perangkat,
         // sehingga pengguna bisa reset trial gratis hanya dengan membersihkan
@@ -4897,7 +5118,7 @@
 
                     if (diffDays <= 7) {
                         closeModal('vipAccessModal');
-                        openSecureApp(item.url, item.title + " (Uji Coba Gratis)");
+                        openSecureApp(item.url, item.title + " (Uji Coba Gratis)", item.id);
                         return;
                     } else {
                         trialBox.innerHTML = `
@@ -4917,7 +5138,7 @@
                 set(ref(db, `trials/${userProfile.uid}/${activeVipItem.id}`), Date.now()).then(() => {
                     alert("Uji Coba Gratis 7 Hari berhasil diaktifkan!");
                     closeModal('vipAccessModal');
-                    openSecureApp(activeVipItem.url, activeVipItem.title + " (Uji Coba Gratis)");
+                    openSecureApp(activeVipItem.url, activeVipItem.title + " (Uji Coba Gratis)", activeVipItem.id);
                 }).catch(err => alert("Gagal mengaktifkan uji coba: " + err.message));
             }
         };
@@ -4931,7 +5152,7 @@
                 closeModal('vipAccessModal');
                 document.getElementById('vipPassInput').value = '';
                 if (activeVipItem) {
-                    openSecureApp(activeVipItem.url, activeVipItem.title);
+                    openSecureApp(activeVipItem.url, activeVipItem.title, activeVipItem.id);
                 }
             } else {
                 alert("Passcode VIP Salah!");
@@ -4987,7 +5208,7 @@
                             alert("Pembayaran Berhasil! Akses VIP Anda telah aktif.");
                             grantVipAccess();
                             pushNotification(userProfile.uid, 'payment', 'Pembayaran VIP Anda berhasil! Akses penuh telah aktif.', 'fa-circle-check');
-                            if (activeVipItem) openSecureApp(activeVipItem.url, activeVipItem.title);
+                            if (activeVipItem) openSecureApp(activeVipItem.url, activeVipItem.title, activeVipItem.id);
                         },
                         onPending: function () { alert("Pembayaran menunggu transfer."); },
                         onError: function () { alert("Pembayaran gagal."); }
@@ -5255,4 +5476,4 @@
         }
     </script>
 </body>
-                                                                                                                                         </html>
+                    </html>
