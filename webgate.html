@@ -60,10 +60,15 @@
             padding: 0;
             font-family: 'Inter', sans-serif;
             transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+            /* BUGFIX MOBILE: mencegah delay tap 300ms & zoom tak sengaja saat double-tap
+               cepat pada tombol/kartu — penyebab umum web terasa "lag"/"buggy" di HP. */
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
         }
 
         html {
             overflow-x: hidden;
+            scroll-behavior: smooth;
         }
 
         body {
@@ -100,6 +105,8 @@
             flex-wrap: wrap;
         }
 
+        /* RESPONSIF DESKTOP: container melebar bertahap di layar besar supaya tidak
+           terasa sempit/kosong seperti sebelumnya (dulu dipaksa max 760px di semua ukuran). */
         .container {
             width: 100%;
             max-width: 760px;
@@ -417,8 +424,10 @@
         }
 
         /* Mode daftar vertikal — dipakai saat sedang mencari/filter favorit,
-           supaya hasil lebih mudah dipindai daripada digeser satu-satu. */
+           supaya hasil lebih mudah dipindai daripada digeser satu-satu.
+           display:flex eksplisit di sini supaya tetap menang atas mode grid desktop. */
         .link-grid.list-mode {
+            display: flex;
             flex-direction: column;
             overflow-x: visible;
             margin: 0;
@@ -747,8 +756,16 @@
             border: 1px solid var(--card-border);
             border-radius: 8px;
             color: var(--text-main);
-            font-size: 0.88rem;
+            /* BUGFIX MOBILE: font-size di bawah 16px memicu Safari iPhone otomatis
+               zoom setiap kolom ini disentuh — terasa seperti bug/glitch. Dikunci 16px
+               khusus saat fokus supaya tidak ke-zoom, tampilan tetap 0.88rem saat idle. */
+            font-size: 16px;
             outline: none;
+            touch-action: manipulation;
+        }
+
+        @media (min-width: 640px) {
+            .form-control { font-size: 0.88rem; }
         }
 
         .form-control:focus {
@@ -1676,6 +1693,116 @@
         .search-bar-wrap {
             margin-bottom: 1rem;
         }
+
+        /* PENGGUNA AKTIF — discovery follow, scroll horizontal ala story */
+        .active-users-scroll {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            padding-bottom: 6px;
+        }
+        .active-user-card {
+            flex: 0 0 auto;
+            width: 74px;
+            text-align: center;
+        }
+        .active-user-card img {
+            width: 54px; height: 54px; border-radius: 50%;
+            object-fit: cover; border: 2px solid var(--accent-gold);
+            margin-bottom: 4px;
+        }
+        .active-user-name {
+            font-size: 0.66rem;
+            color: var(--text-sub);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .follow-btn {
+            font-size: 0.62rem;
+            padding: 3px 8px;
+            border-radius: 12px;
+            border: 1px solid var(--accent-gold);
+            background: none;
+            color: var(--accent-gold);
+            cursor: pointer;
+            margin-top: 3px;
+        }
+        .follow-btn.following {
+            background: var(--accent-gold);
+            color: #06090e;
+        }
+        .follow-btn-inline {
+            font-size: 0.66rem;
+            padding: 2px 10px;
+            border-radius: 12px;
+            border: 1px solid var(--accent-gold);
+            background: none;
+            color: var(--accent-gold);
+            cursor: pointer;
+        }
+        .follow-btn-inline.following {
+            background: var(--accent-gold);
+            color: #06090e;
+        }
+
+        /* ================= MODE KEPADATAN TAMPILAN (Nyaman / Padat) ================= */
+        body.density-compact .link-card { padding: 0.8rem; gap: 8px; }
+        body.density-compact .comment-card { padding: 0.7rem; }
+        body.density-compact .comment-input-box { padding: 0.7rem; }
+        body.density-compact .badge-card-item { padding: 0.7rem; }
+        body.density-compact .section-header { margin: 1.1rem 0 0.6rem; }
+        body.density-compact .container { gap: 0; }
+
+        /* ================= RESPONSIF TABLET & DESKTOP ================= */
+        @media (min-width: 640px) {
+            .container { max-width: 680px; }
+
+            /* Di layar lebar, modul tampil sebagai grid rapi (mirip Play Store)
+               alih-alih carousel geser — carousel tetap dipakai khusus mobile sempit. */
+            .link-grid {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                overflow-x: visible;
+                margin: 0;
+                padding: 0;
+                gap: 14px;
+            }
+            .link-grid .link-card {
+                flex: none;
+                max-width: none;
+            }
+            .section-hint { display: none !important; }
+        }
+
+        @media (min-width: 900px) {
+            body { padding: 2rem 2.5rem; align-items: stretch; }
+            .container { max-width: 1080px; margin: 0 auto; }
+            .link-grid { grid-template-columns: repeat(3, 1fr); }
+            .badge-grid { grid-template-columns: repeat(3, 1fr); }
+            .brand-title { font-size: 2.6rem; }
+            .top-bar { position: sticky; top: 0; z-index: 400; padding: 0.6rem 0; background: var(--bg-color); backdrop-filter: blur(10px); }
+        }
+
+        @media (min-width: 1200px) {
+            .container { max-width: 1280px; }
+            .link-grid { grid-template-columns: repeat(4, 1fr); }
+            .badge-grid { grid-template-columns: repeat(4, 1fr); }
+        }
+
+        /* Kartu modul: transisi & hover lebih halus khas aplikasi profesional */
+        .link-card {
+            transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+        }
+        .link-card:active {
+            transform: scale(0.98);
+        }
+        @media (hover: hover) {
+            .link-card:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 16px 32px rgba(0,0,0,0.3);
+            }
+        }
     </style>
 </head>
 <body>
@@ -1710,16 +1837,12 @@
             </div>
 
             <div class="top-actions">
-                <button class="theme-toggle icon-btn" id="dataSaverBtn" onclick="toggleDataSaver()" title="Mode Hemat Data — sembunyikan foto/galeri">
-                    <i class="fa-solid fa-gauge-simple"></i>
-                </button>
                 <button class="theme-toggle icon-btn" onclick="openNotifModal()" title="Notifikasi">
                     <i class="fa-solid fa-bell"></i>
                     <span class="notif-badge-count" id="notifCount">0</span>
                 </button>
-                <button class="theme-toggle" onclick="toggleTheme()">
-                    <i class="fa-solid fa-moon" id="themeIcon"></i>
-                    <span id="themeText">Mode Gelap</span>
+                <button class="theme-toggle icon-btn" onclick="openSettingsModal()" title="Pengaturan Tampilan">
+                    <i class="fa-solid fa-sliders"></i>
                 </button>
             </div>
         </div>
@@ -1863,6 +1986,12 @@
 
         <!-- TAB 2: HALAMAN KOMENTAR -->
         <div id="tabComments" class="tab-content">
+            <!-- Pengguna Aktif — discovery untuk fitur follow -->
+            <div class="comment-input-box" style="background: linear-gradient(135deg, rgba(255,0,127,0.06) 0%, var(--card-bg) 100%);">
+                <h3 style="font-size: 0.9rem; margin-bottom: 8px; color: #ff007f;"><i class="fa-solid fa-user-group"></i> Pengguna Aktif</h3>
+                <div id="activeUsersContainer" class="active-users-scroll">Memuat...</div>
+            </div>
+
             <div class="comment-input-box">
                 <h3 style="font-size: 0.95rem; margin-bottom: 8px; color: var(--accent-gold);">Tulis Pertanyaan / Komentar</h3>
                 <div class="form-group">
@@ -2052,16 +2181,36 @@
             </div>
 
             <div style="text-align: center; margin-bottom: 1rem;">
-                <img id="profileAvatarPreview" src="https://ui-avatars.com/api/?name=User&background=E5A823&color=000" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-gold); margin-bottom: 8px;">
-                <div style="font-size:0.72rem; color:var(--text-muted);">Foto profil & nama diambil langsung dari akun Google Anda</div>
+                <div style="position:relative; display:inline-block;">
+                    <img id="profileAvatarPreview" src="https://ui-avatars.com/api/?name=User&background=E5A823&color=000" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-gold);">
+                    <label for="avatarUploadInput" style="position:absolute; bottom:0; right:0; width:26px; height:26px; border-radius:50%; background:var(--accent-gold); color:#06090e; display:flex; align-items:center; justify-content:center; cursor:pointer; border:2px solid var(--modal-bg);">
+                        <i class="fa-solid fa-camera" style="font-size:0.7rem;"></i>
+                    </label>
+                    <input type="file" id="avatarUploadInput" accept="image/*" style="display:none;" onchange="handleAvatarUpload(event)">
+                </div>
+                <div style="font-size:0.72rem; color:var(--text-muted); margin-top:6px;">Foto profil bisa diganti bebas. Login tetap pakai akun Google, tapi nama & foto tampilan bisa disesuaikan.</div>
+            </div>
+
+            <div style="display:flex; gap:20px; justify-content:center; margin-bottom:1rem; text-align:center;">
+                <div>
+                    <div style="font-size:1.1rem; font-weight:800; color:var(--accent-gold);" id="profFollowerCount">0</div>
+                    <div style="font-size:0.68rem; color:var(--text-muted);">Pengikut</div>
+                </div>
+                <div>
+                    <div style="font-size:1.1rem; font-weight:800; color:var(--accent-gold);" id="profFollowingCount">0</div>
+                    <div style="font-size:0.68rem; color:var(--text-muted);">Mengikuti</div>
+                </div>
             </div>
 
             <div class="form-group">
-                <label>Nama Pengguna (dari Google)</label>
-                <input type="text" id="profName" class="form-control" readonly>
+                <label>Nama Tampilan (bisa diganti bebas)</label>
+                <div style="display:flex; gap:6px;">
+                    <input type="text" id="profName" class="form-control" placeholder="Nama Anda">
+                    <button class="btn-primary" style="width:auto; padding:10px 14px;" onclick="saveDisplayName()"><i class="fa-solid fa-check"></i></button>
+                </div>
             </div>
             <div class="form-group">
-                <label>Email (dari Google)</label>
+                <label>Email (akun Google, tidak bisa diganti)</label>
                 <input type="text" id="profEmail" class="form-control" readonly>
             </div>
             <div class="form-group">
@@ -2104,6 +2253,45 @@
 
             <button class="btn-primary" onclick="saveProfile()">Simpan Umur</button>
             <button class="btn-primary btn-danger" onclick="logoutUser()" style="margin-top:8px;"><i class="fa-solid fa-right-from-bracket"></i> Keluar Akun</button>
+        </div>
+    </div>
+
+    <!-- MODAL PENGATURAN TAMPILAN -->
+    <div class="modal-bg" id="settingsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-sliders"></i> Pengaturan Tampilan</h3>
+                <button class="close-btn" onclick="closeModal('settingsModal')">&times;</button>
+            </div>
+
+            <div class="form-group">
+                <label>Tema</label>
+                <button class="btn-primary btn-secondary" onclick="toggleTheme()" style="display:flex; justify-content:center; align-items:center; gap:8px;">
+                    <i class="fa-solid fa-moon" id="themeIcon"></i>
+                    <span id="themeText">Mode Gelap</span>
+                </button>
+            </div>
+
+            <div class="form-group">
+                <label>Kepadatan Tampilan</label>
+                <div style="display:flex; gap:8px;">
+                    <button class="btn-primary btn-secondary" id="densityComfortBtn" onclick="setDensityMode('comfortable')" style="flex:1;">
+                        <i class="fa-solid fa-expand"></i> Nyaman
+                    </button>
+                    <button class="btn-primary btn-secondary" id="densityCompactBtn" onclick="setDensityMode('compact')" style="flex:1;">
+                        <i class="fa-solid fa-compress"></i> Padat
+                    </button>
+                </div>
+                <p style="font-size:0.72rem; color:var(--text-muted); margin-top:6px;">Mode Padat menampilkan lebih banyak konten sekaligus dengan jarak antar elemen lebih rapat.</p>
+            </div>
+
+            <div class="form-group">
+                <label>Mode Hemat Data</label>
+                <button class="btn-primary btn-secondary" id="dataSaverBtn" onclick="toggleDataSaver()" style="display:flex; justify-content:center; align-items:center; gap:8px;">
+                    <i class="fa-solid fa-gauge-simple"></i> <span id="dataSaverText">Nonaktif</span>
+                </button>
+                <p style="font-size:0.72rem; color:var(--text-muted); margin-top:6px;">Sembunyikan foto & galeri untuk menghemat kuota di koneksi lambat.</p>
+            </div>
         </div>
     </div>
 
@@ -2709,6 +2897,7 @@
                 userProfile = null;
                 loggedChip.style.display = 'none';
                 guestChip.style.display = 'flex';
+                userFollowing = {};
                 renderUI();
                 renderBadgesTab();
                 renderComments();
@@ -2718,6 +2907,7 @@
                 renderSpinWheel();
                 renderWeeklyMissions();
                 renderPoll();
+                renderActiveUsers();
             }
         });
 
@@ -2860,12 +3050,29 @@
                 renderUI();
             });
 
+            // Listener Following (siapa yang SAYA ikuti)
+            onValue(ref(db, `following/${uid}`), (snapshot) => {
+                userFollowing = snapshot.val() || {};
+                const el = document.getElementById('profFollowingCount');
+                if (el) el.innerText = Object.keys(userFollowing).length;
+                renderFollowButtons();
+                renderActiveUsers();
+            });
+
+            // Listener Followers (siapa yang mengikuti SAYA)
+            onValue(ref(db, `followers/${uid}`), (snapshot) => {
+                const followers = snapshot.val() || {};
+                const el = document.getElementById('profFollowerCount');
+                if (el) el.innerText = Object.keys(followers).length;
+            });
+
             updateProfileUI();
             renderQuiz();
             renderCheckinWidget();
             renderSpinWheel();
             renderWeeklyMissions();
             renderPoll();
+            renderActiveUsers();
         }
 
         function syncUserDataToFirebase() {
@@ -4123,11 +4330,16 @@
                 bgNote = `<div style="font-size:0.68rem; color:var(--accent-gold); margin-top:4px;"><i class="fa-solid fa-hourglass-half"></i> Latar belakang menunggu moderasi Admin</div>`;
             }
 
+            const followBtnHtml = (!isOwnComment && userProfile && c.userId) ? `
+                <button class="follow-btn-inline ${userFollowing[c.userId] ? 'following' : ''}" data-follow-target="${c.userId}" onclick="toggleFollow('${c.userId}', '${escapeAttr(c.userName || 'Pengguna')}')">${userFollowing[c.userId] ? 'Mengikuti' : 'Ikuti'}</button>
+            ` : '';
+
             card.innerHTML = `
                 <div class="comment-header">
                     <div class="comment-user">
                         <img src="${escapeAttr(c.userAvatar)}" alt="Avatar">
                         <span class="comment-username">${escapeHtml(c.userName)}</span>
+                        ${followBtnHtml}
                         ${badgeUserHtml}
                         <span class="badge-level">Lvl ${c.level || 1}</span>
                     </div>
@@ -4574,20 +4786,46 @@
         }
 
         // --- MODE HEMAT DATA ---
+        window.openSettingsModal = function() {
+            document.getElementById('settingsModal').style.display = 'flex';
+        };
+
         window.initDataSaver = function() {
             const isOn = localStorage.getItem('faro_data_saver') === '1';
             document.body.classList.toggle('data-saver', isOn);
             const btn = document.getElementById('dataSaverBtn');
+            const text = document.getElementById('dataSaverText');
             if (btn) btn.classList.toggle('active', isOn);
+            if (text) text.innerText = isOn ? 'Aktif' : 'Nonaktif';
         };
 
         window.toggleDataSaver = function() {
             const isOn = document.body.classList.toggle('data-saver');
             localStorage.setItem('faro_data_saver', isOn ? '1' : '0');
             const btn = document.getElementById('dataSaverBtn');
+            const text = document.getElementById('dataSaverText');
             if (btn) btn.classList.toggle('active', isOn);
-            alert(isOn ? "Mode Hemat Data AKTIF — foto & galeri disembunyikan untuk menghemat kuota." : "Mode Hemat Data dimatikan.");
+            if (text) text.innerText = isOn ? 'Aktif' : 'Nonaktif';
         };
+
+        // --- MODE KEPADATAN TAMPILAN (Nyaman / Padat) ---
+        window.initDensityMode = function() {
+            const mode = localStorage.getItem('faro_density') || 'comfortable';
+            applyDensityMode(mode);
+        };
+
+        window.setDensityMode = function(mode) {
+            localStorage.setItem('faro_density', mode);
+            applyDensityMode(mode);
+        };
+
+        function applyDensityMode(mode) {
+            document.body.classList.toggle('density-compact', mode === 'compact');
+            const comfortBtn = document.getElementById('densityComfortBtn');
+            const compactBtn = document.getElementById('densityCompactBtn');
+            if (comfortBtn) comfortBtn.classList.toggle('btn-secondary', mode !== 'comfortable');
+            if (compactBtn) compactBtn.classList.toggle('btn-secondary', mode !== 'compact');
+        }
 
         // --- MANAJEMEN TEMA & NAVIGATION ---
         window.initTheme = function() {
@@ -4627,6 +4865,7 @@
                 document.querySelectorAll('.tab-btn')[1].classList.add('active');
                 document.getElementById('tabComments').classList.add('active');
                 renderComments();
+                renderActiveUsers();
             } else if (tabName === 'complaints') {
                 document.querySelectorAll('.tab-btn')[2].classList.add('active');
                 document.getElementById('tabComplaints').classList.add('active');
@@ -5245,6 +5484,109 @@
             alert("Profil berhasil diperbarui!");
         };
 
+        // --- UBAH NAMA TAMPILAN & FOTO PROFIL ---
+        // Login tetap wajib pakai akun Google (keamanan & identitas asli tetap terjaga
+        // lewat uid), tapi nama & foto yang TAMPIL ke publik boleh disesuaikan bebas.
+        window.saveDisplayName = function() {
+            if (!userProfile) return;
+            const newName = document.getElementById('profName').value.trim();
+            if (!newName) { alert("Nama tidak boleh kosong."); return; }
+            if (newName.length > 30) { alert("Nama maksimal 30 karakter."); return; }
+            userProfile.name = newName;
+            syncUserDataToFirebase();
+            update(ref(db, `users/${userProfile.uid}`), { name: newName });
+            updateProfileUI();
+            alert("Nama tampilan berhasil diperbarui!");
+        };
+
+        window.handleAvatarUpload = function(e) {
+            if (!userProfile) return;
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = async function(evt) {
+                try {
+                    const compressed = await compressImage(evt.target.result, 400, 0.85);
+                    userProfile.avatar = compressed;
+                    syncUserDataToFirebase();
+                    update(ref(db, `users/${userProfile.uid}`), { avatar: compressed });
+                    updateProfileUI();
+                    alert("Foto profil berhasil diperbarui!");
+                } catch (err) {
+                    alert("Gagal memproses foto. Coba foto lain.");
+                }
+            };
+            reader.readAsDataURL(file);
+        };
+
+        // --- SISTEM FOLLOW (mengikuti pengguna lain, seperti TikTok/Instagram) ---
+        let userFollowing = {};
+
+        window.toggleFollow = function(targetUid, targetName) {
+            if (!requireLogin("Masuk untuk mengikuti pengguna lain.")) return;
+            if (targetUid === userProfile.uid) { alert("Tidak bisa mengikuti diri sendiri."); return; }
+
+            const isFollowing = !!userFollowing[targetUid];
+            const updates = {};
+            if (isFollowing) {
+                updates[`following/${userProfile.uid}/${targetUid}`] = null;
+                updates[`followers/${targetUid}/${userProfile.uid}`] = null;
+            } else {
+                updates[`following/${userProfile.uid}/${targetUid}`] = true;
+                updates[`followers/${targetUid}/${userProfile.uid}`] = true;
+            }
+
+            update(ref(db), updates).then(() => {
+                if (!isFollowing) {
+                    pushNotification(targetUid, 'follow', `${userProfile.name} mulai mengikuti Anda! 👋`, 'fa-user-plus');
+                }
+            });
+        };
+
+        function renderFollowButtons() {
+            document.querySelectorAll('[data-follow-target]').forEach(btn => {
+                const targetUid = btn.getAttribute('data-follow-target');
+                const isFollowing = !!userFollowing[targetUid];
+                btn.classList.toggle('following', isFollowing);
+                btn.innerText = isFollowing ? 'Mengikuti' : 'Ikuti';
+            });
+        }
+
+        // --- DISCOVERY: PENGGUNA AKTIF (untuk fitur follow) ---
+        function renderActiveUsers() {
+            const container = document.getElementById('activeUsersContainer');
+            if (!container) return;
+
+            get(ref(db, 'users')).then(snapshot => {
+                if (!snapshot.exists()) {
+                    container.innerHTML = '<p style="font-size:0.78rem; color:var(--text-muted);">Belum ada pengguna lain.</p>';
+                    return;
+                }
+                const data = snapshot.val();
+                let list = Object.keys(data)
+                    .filter(uid => !userProfile || uid !== userProfile.uid)
+                    .map(uid => ({ uid, ...data[uid] }))
+                    .sort((a, b) => (b.lastSeen || 0) - (a.lastSeen || 0))
+                    .slice(0, 15);
+
+                if (list.length === 0) {
+                    container.innerHTML = '<p style="font-size:0.78rem; color:var(--text-muted);">Belum ada pengguna lain.</p>';
+                    return;
+                }
+
+                container.innerHTML = list.map(u => {
+                    const isFollowing = !!userFollowing[u.uid];
+                    return `
+                        <div class="active-user-card">
+                            <img src="${escapeAttr(u.avatar || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.name || 'User'))}" alt="">
+                            <div class="active-user-name">${escapeHtml(u.name || 'Pengguna')}</div>
+                            <button class="follow-btn ${isFollowing ? 'following' : ''}" data-follow-target="${u.uid}" onclick="toggleFollow('${u.uid}', '${escapeAttr(u.name || 'Pengguna')}')">${isFollowing ? 'Mengikuti' : 'Ikuti'}</button>
+                        </div>
+                    `;
+                }).join('');
+            });
+        }
+
         window.handleLogin = function(e) {
             e.preventDefault();
             if (!userProfile) { alert("Silakan masuk dengan Google terlebih dahulu."); return; }
@@ -5459,6 +5801,7 @@
 
         initTheme();
         initDataSaver();
+        initDensityMode();
         renderDailyTip();
         renderGlossary();
         renderQuiz();
@@ -5476,4 +5819,4 @@
         }
     </script>
 </body>
-                    </html>
+    </html>
