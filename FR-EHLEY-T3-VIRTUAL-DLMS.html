@@ -429,6 +429,24 @@ select{background:var(--lcd-bg1); color:var(--lcd-fg); border:1px solid var(--lc
 .preset-item button{background:transparent; border:1px solid var(--lcd-grid); color:var(--lcd-fg-dim); border-radius:5px; padding:3px 8px; font-size:9px; cursor:pointer; letter-spacing:.5px;}
 .preset-item button:hover{color:var(--lcd-accent); border-color:var(--lcd-accent);}
 
+/* --------- YouTube search panel --------- */
+.yt-search-panel{display:flex; flex-direction:column; gap:7px; padding:8px; margin-top:2px; background:var(--lcd-bg1); border:1px solid var(--lcd-grid); border-radius:8px;}
+.yt-search-note{font-size:9.5px; line-height:1.5; color:var(--lcd-fg-dim); font-family:var(--font-mono);}
+.yt-search-note b{color:var(--lcd-accent);}
+.yt-apikey-row{display:flex; gap:6px;}
+.yt-apikey-row input{flex:1; background:var(--lcd-bg0); border:1px solid var(--lcd-grid); color:var(--lcd-fg); border-radius:6px; padding:7px 9px; font-size:10.5px; font-family:var(--font-mono);}
+.yt-apikey-row button{background:var(--violet); border:none; color:#fff; padding:0 12px; border-radius:6px; font-weight:700; font-size:9.5px; cursor:pointer;}
+.yt-apikey-help{font-size:8.8px; color:var(--lcd-fg-dim); font-family:var(--font-mono);}
+.linklike{color:var(--lcd-accent); text-decoration:underline; cursor:pointer;}
+.yt-search-results{display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:8px; max-height:280px; overflow-y:auto; padding-top:4px;}
+.yt-result-card{background:var(--lcd-bg0); border:1px solid var(--lcd-grid); border-radius:7px; overflow:hidden; cursor:pointer; transition:border-color .15s;}
+.yt-result-card:hover{border-color:var(--lcd-accent);}
+.yt-result-card img{width:100%; aspect-ratio:16/9; object-fit:cover; display:block; background:#000;}
+.yt-result-title{font-size:9.5px; color:var(--lcd-fg); padding:5px 6px 2px; line-height:1.3; font-family:var(--font-ui); font-weight:600;
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;}
+.yt-result-channel{font-size:8.4px; color:var(--lcd-fg-dim); padding:0 6px 6px; font-family:var(--font-mono);}
+.yt-search-status{font-size:9.5px; color:var(--lcd-fg-dim); font-family:var(--font-mono); text-align:center; padding:8px;}
+
 </style>
 </head>
 <body data-theme="dark">
@@ -501,10 +519,25 @@ select{background:var(--lcd-bg1); color:var(--lcd-fg); border:1px solid var(--lc
                 <div class="transport"><span style="font-size:9.5px;color:var(--lcd-fg-dim);font-family:var(--font-mono);">VOL</span><input type="range" id="volSlider" min="0" max="100" value="80"></div>
                 <div class="load-row">
                   <button class="load-btn" id="loadFileBtn">📁 LOAD MP3 / MP4</button>
-                  <button class="load-btn ghost" id="loadYtBtn">▶ LOAD YOUTUBE</button>
+                  <button class="load-btn ghost" id="loadYtBtn">▶ LOAD LINK YT</button>
+                  <button class="load-btn ghost" id="searchYtBtn">🔍 CARI YOUTUBE</button>
                 </div>
                 <div class="yt-input-row" id="ytRow"><input type="text" id="ytUrlInput" placeholder="Tempel tautan YouTube di sini..."><button id="ytGoBtn">MUAT</button></div>
                 <input type="file" id="fileInput" accept="audio/*,video/*,.mp3,.mp4" multiple class="hidden">
+
+                <div class="yt-search-panel hidden" id="ytSearchPanel">
+                  <div class="yt-search-note">Pencarian ini memakai <b>YouTube Data API v3</b> resmi milik Google. Video yang kamu putar tetap lewat player YouTube asli — analyzer/EQ tidak bisa membaca audionya (batas resmi YouTube), tapi suaranya kedengaran normal.</div>
+                  <div class="yt-apikey-row" id="ytApiKeyRow">
+                    <input type="text" id="ytApiKeyInput" placeholder="Tempel YouTube Data API Key kamu di sini...">
+                    <button id="ytApiKeySave">SIMPAN KEY</button>
+                  </div>
+                  <div class="yt-apikey-help">Belum punya key? Buat gratis di <span class="linklike" id="ytApiKeyHelpLink">Google Cloud Console → YouTube Data API v3</span>.</div>
+                  <div class="yt-input-row show" style="margin-top:6px;">
+                    <input type="text" id="ytSearchInput" placeholder="Cari judul lagu / video...">
+                    <button id="ytSearchGoBtn">CARI</button>
+                  </div>
+                  <div id="ytSearchResults" class="yt-search-results"></div>
+                </div>
                 <div class="queue-box">
                   <div class="queue-title">PLAYLIST QUEUE — <span id="nowPlayingLabel">Tidak ada berkas dimuat</span></div>
                   <div id="queueList"></div>
@@ -992,6 +1025,55 @@ function playNext(){ if(!state.playlist.length) return; playIndex((state.current
 function playPrev(){ if(!state.playlist.length) return; playIndex((state.currentIndex-1+state.playlist.length)%state.playlist.length); }
 function extractYouTubeId(url){ const m=url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([A-Za-z0-9_-]{11})/); return m? m[1] : null; }
 
+/* ---------------------------------------------------------------------- */
+/* YouTube search — official YouTube Data API v3 (user-supplied API key). */
+/* Only metadata (title/thumbnail/id) is fetched; playback still goes     */
+/* through the official embedded player — no stream extraction happens.  */
+/* ---------------------------------------------------------------------- */
+function getYtApiKey(){ return localStorage.getItem("frEhleyT3YtApiKey") || ""; }
+function setYtApiKey(k){ localStorage.setItem("frEhleyT3YtApiKey", k); }
+
+async function runYtSearch(query){
+  const resultsEl = $("#ytSearchResults");
+  const key = getYtApiKey();
+  if(!key){ resultsEl.innerHTML = `<div class="yt-search-status">Masukkan dulu YouTube Data API Key kamu di atas, lalu klik SIMPAN KEY.</div>`; return; }
+  if(!query){ return; }
+  resultsEl.innerHTML = `<div class="yt-search-status">Mencari "${query}"…</div>`;
+  try{
+    const url = "https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=12&q="
+      + encodeURIComponent(query) + "&key=" + encodeURIComponent(key);
+    const resp = await fetch(url);
+    const data = await resp.json();
+    if(!resp.ok){
+      const msg = (data && data.error && data.error.message) ? data.error.message : ("HTTP "+resp.status);
+      resultsEl.innerHTML = `<div class="yt-search-status">Gagal mencari: ${msg}</div>`;
+      return;
+    }
+    const items = data.items || [];
+    if(!items.length){ resultsEl.innerHTML = `<div class="yt-search-status">Tidak ada hasil untuk "${query}".</div>`; return; }
+    resultsEl.innerHTML = items.map(it=>{
+      const id = it.id.videoId;
+      const sn = it.snippet;
+      const thumb = (sn.thumbnails && (sn.thumbnails.medium || sn.thumbnails.default) || {}).url || "";
+      return `<div class="yt-result-card" data-ytid="${id}" data-title="${(sn.title||"").replace(/"/g,'&quot;')}">
+        <img src="${thumb}" loading="lazy" alt="">
+        <div class="yt-result-title">${sn.title}</div>
+        <div class="yt-result-channel">${sn.channelTitle||""}</div>
+      </div>`;
+    }).join("");
+    $$(".yt-result-card", resultsEl).forEach(card=>{
+      card.addEventListener("click", ()=>{
+        const id = card.dataset.ytid, title = card.dataset.title || ("YouTube: "+id);
+        addToPlaylist({type:"yt", name:title, ytId:id});
+        if(state.currentIndex<0) playIndex(state.playlist.length-1);
+        flashStatus("Ditambahkan ke antrean: "+title);
+      });
+    });
+  }catch(e){
+    resultsEl.innerHTML = `<div class="yt-search-status">Terjadi kesalahan jaringan saat mencari.</div>`;
+  }
+}
+
 let audioVizRAF;
 function startAudioViz(){
   const cv=$("#audioArtCanvas"); const actx=cv.getContext("2d");
@@ -1326,13 +1408,31 @@ function init(){
 
   $("#fileInput").addEventListener("change",(e)=>{ handleFiles(e.target.files); e.target.value=""; });
   $("#loadFileBtn").addEventListener("click", ()=> $("#fileInput").click());
-  $("#loadYtBtn").addEventListener("click", ()=> $("#ytRow").classList.toggle("show"));
+  $("#loadYtBtn").addEventListener("click", ()=>{ $("#ytSearchPanel").classList.add("hidden"); $("#ytRow").classList.toggle("show"); });
   $("#ytGoBtn").addEventListener("click", ()=>{
     const url = $("#ytUrlInput").value.trim(); const id = extractYouTubeId(url);
     if(!id){ alert("Tautan YouTube tidak valid."); return; }
     addToPlaylist({type:"yt", name:"YouTube: "+id, ytId:id}); $("#ytUrlInput").value="";
     if(state.currentIndex<0) playIndex(state.playlist.length-1);
   });
+
+  $("#searchYtBtn").addEventListener("click", ()=>{
+    $("#ytRow").classList.remove("show");
+    $("#ytSearchPanel").classList.toggle("hidden");
+    const key = getYtApiKey();
+    if(key) $("#ytApiKeyInput").value = key;
+  });
+  $("#ytApiKeySave").addEventListener("click", ()=>{
+    const k = $("#ytApiKeyInput").value.trim();
+    if(!k){ alert("Masukkan API key terlebih dahulu."); return; }
+    setYtApiKey(k);
+    flashStatus("API key tersimpan di perangkat ini.");
+  });
+  $("#ytApiKeyHelpLink").addEventListener("click", ()=>{
+    window.open("https://console.cloud.google.com/apis/library/youtube.googleapis.com", "_blank");
+  });
+  $("#ytSearchGoBtn").addEventListener("click", ()=> runYtSearch($("#ytSearchInput").value.trim()));
+  $("#ytSearchInput").addEventListener("keydown",(e)=>{ if(e.key==="Enter") runYtSearch($("#ytSearchInput").value.trim()); });
 
   $("#playBtn").addEventListener("click", togglePlay);
   $("#nextBtn").addEventListener("click", playNext);
@@ -1353,4 +1453,4 @@ document.addEventListener("DOMContentLoaded", init);
 
 </script>
 </body>
-   </html>
+</html>
