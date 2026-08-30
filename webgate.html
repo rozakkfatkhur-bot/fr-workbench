@@ -1392,6 +1392,77 @@
             border-color: var(--accent-gold);
             color: var(--accent-gold);
         }
+        .quick-nav-chip.active {
+            background: var(--accent-gold);
+            border-color: var(--accent-gold);
+            color: #06090e;
+        }
+
+        /* HERO BANNER MODUL UNGGULAN — mirip banner utama Play Store */
+        .hero-banner-scroll {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            padding-bottom: 6px;
+        }
+        .hero-banner-card {
+            flex: 0 0 90%;
+            max-width: 420px;
+            scroll-snap-align: start;
+            border-radius: 18px;
+            overflow: hidden;
+            position: relative;
+            cursor: pointer;
+            min-height: 160px;
+            background: linear-gradient(135deg, rgba(229,168,35,0.25) 0%, var(--primary-navy) 100%);
+            border: 1px solid var(--badge-border);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 1.1rem;
+            box-shadow: 0 14px 30px rgba(0,0,0,0.35);
+        }
+        .hero-banner-card img.hero-bg-img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.55;
+            z-index: 0;
+        }
+        .hero-banner-card > * {
+            position: relative;
+            z-index: 1;
+        }
+        .hero-featured-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(0,0,0,0.4);
+            color: var(--accent-gold);
+            font-size: 0.66rem;
+            font-weight: 800;
+            padding: 3px 10px;
+            border-radius: 12px;
+            width: fit-content;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .hero-banner-title {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 4px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+        }
+        .hero-banner-desc {
+            font-size: 0.78rem;
+            color: rgba(255,255,255,0.85);
+            text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+        }
 
         /* KARTU RINGKASAN BERLIPAT (Pengumuman + Tip + Absen) */
         .summary-card {
@@ -1873,12 +1944,16 @@
 
         <!-- TAB 1: PORTAL UTAMA -->
         <div id="tabPortal" class="tab-content active">
-            <!-- Chip Navigasi Cepat: langsung lompat ke section, tanpa scroll panjang -->
+            <!-- Hero Banner: Modul Unggulan pilihan Admin (mirip banner utama Play Store) -->
+            <div id="heroFeaturedSection" style="display:none; margin-bottom:1.2rem;"></div>
+
+            <!-- Chip Filter Kategori: klik untuk menampilkan hanya kategori itu -->
             <div class="quick-nav-row">
-                <button class="quick-nav-chip" onclick="jumpToSection('vipLinksContainer')"><i class="fa-solid fa-crown"></i> VIP</button>
-                <button class="quick-nav-chip" onclick="jumpToSection('appLinksContainer')"><i class="fa-solid fa-mobile-screen"></i> Web App</button>
-                <button class="quick-nav-chip" onclick="jumpToSection('mainLinksContainer')"><i class="fa-solid fa-server"></i> Utama</button>
-                <button class="quick-nav-chip" onclick="jumpToSection('researchLinksContainer')"><i class="fa-solid fa-flask"></i> Riset</button>
+                <button class="quick-nav-chip active" id="navChip-all" onclick="filterPortalCategory('all')"><i class="fa-solid fa-grip"></i> Semua</button>
+                <button class="quick-nav-chip" id="navChip-vip" onclick="filterPortalCategory('vip')"><i class="fa-solid fa-crown"></i> VIP</button>
+                <button class="quick-nav-chip" id="navChip-app" onclick="filterPortalCategory('app')"><i class="fa-solid fa-mobile-screen"></i> Web App</button>
+                <button class="quick-nav-chip" id="navChip-main" onclick="filterPortalCategory('main')"><i class="fa-solid fa-server"></i> Utama</button>
+                <button class="quick-nav-chip" id="navChip-research" onclick="filterPortalCategory('research')"><i class="fa-solid fa-flask"></i> Riset</button>
             </div>
 
             <!-- Kartu Ringkasan: Pengumuman + Tip + Absen digabung, bisa dilipat biar hemat scroll -->
@@ -2539,6 +2614,13 @@
                     <option value="main">Web Utama / Siap Pakai</option>
                     <option value="research">Riset & Uji Coba (R&D)</option>
                 </select>
+            </div>
+
+            <div class="form-group" style="background: rgba(229,168,35,0.08); padding:10px; border-radius:8px; border:1px solid var(--accent-gold);">
+                <label style="display:flex; align-items:center; gap:8px; cursor:pointer; color:var(--accent-gold);">
+                    <input type="checkbox" id="newFeatured" style="width:auto;">
+                    <i class="fa-solid fa-star"></i> Jadikan Modul Unggulan (tampil di Banner Utama)
+                </label>
             </div>
 
             <div class="form-group" style="background: rgba(59,130,246,0.08); padding:10px; border-radius:8px; border:1px solid #3b82f6;">
@@ -3206,7 +3288,27 @@
             renderActivityFeed(items);
         });
 
-        // --- NAVIGASI CEPAT & KARTU RINGKASAN BERLIPAT ---
+        // --- FILTER KATEGORI PORTAL & KARTU RINGKASAN BERLIPAT ---
+        let activePortalCategory = 'all';
+
+        window.filterPortalCategory = function(cat) {
+            activePortalCategory = cat;
+            document.querySelectorAll('.quick-nav-chip').forEach(c => c.classList.remove('active'));
+            const chip = document.getElementById(`navChip-${cat}`);
+            if (chip) chip.classList.add('active');
+
+            ['vip', 'app', 'main', 'research'].forEach(key => {
+                const show = (cat === 'all' || cat === key);
+                const header = document.getElementById(`sectionHeader-${key}`);
+                const hint = document.getElementById(`sectionHint-${key}`);
+                const grid = document.getElementById(`${key}LinksContainer`);
+                if (header) header.style.display = show ? '' : 'none';
+                if (hint) hint.style.display = show ? '' : 'none';
+                if (grid) grid.style.display = show ? '' : 'none';
+            });
+        };
+
+        // Dipertahankan untuk kompatibilitas (dipakai beberapa tombol lain untuk lompat halus)
         window.jumpToSection = function(sectionId) {
             const el = document.getElementById(sectionId);
             if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -5053,12 +5155,48 @@
             if (vipBgBtn) vipBgBtn.style.display = (userProfile.isVip || userProfile.isAdmin) ? 'inline-flex' : 'none';
         }
 
+        function renderHeroBanner() {
+            const section = document.getElementById('heroFeaturedSection');
+            if (!section) return;
+
+            const featuredKeys = Object.keys(rawLinksData).filter(k => rawLinksData[k].featured);
+            if (featuredKeys.length === 0) {
+                section.style.display = 'none';
+                section.innerHTML = '';
+                return;
+            }
+
+            section.style.display = 'block';
+            section.innerHTML = `<div class="hero-banner-scroll">${featuredKeys.map(key => {
+                const item = rawLinksData[key];
+                const imgList = item.images || (item.image ? [item.image] : []);
+                const bgImg = imgList[0] ? `<img class="hero-bg-img" src="${escapeAttr(imgList[0])}" alt="">` : '';
+                return `
+                    <div class="hero-banner-card" onclick="handleHeroClick('${key}')">
+                        ${bgImg}
+                        <span class="hero-featured-tag"><i class="fa-solid fa-star"></i> Pilihan Admin</span>
+                        <div class="hero-banner-title">${escapeHtml(item.title)}</div>
+                        <div class="hero-banner-desc">${escapeHtml(item.desc || '')}</div>
+                    </div>
+                `;
+            }).join('')}</div>`;
+        }
+
+        // Wrapper aman untuk klik hero banner — mengambil data lewat key,
+        // bukan menyisipkan JSON mentah ke atribut HTML (rawan rusak oleh tanda kutip).
+        window.handleHeroClick = function(key) {
+            const item = rawLinksData[key];
+            if (item) handleCardClick({ id: key, ...item });
+        };
+
         window.renderUI = function() {
             const vipContainer = document.getElementById('vipLinksContainer');
             const appContainer = document.getElementById('appLinksContainer');
             const mainContainer = document.getElementById('mainLinksContainer');
             const researchContainer = document.getElementById('researchLinksContainer');
             if (!vipContainer) return;
+
+            renderHeroBanner();
 
             vipContainer.innerHTML = '';
             appContainer.innerHTML = '';
@@ -5097,8 +5235,12 @@
             });
             ['vip', 'app', 'main', 'research'].forEach(cat => {
                 const hint = document.getElementById(`sectionHint-${cat}`);
-                if (hint) hint.style.display = useListMode ? 'none' : '';
+                if (hint) hint.style.display = (useListMode || activePortalCategory !== 'all') ? 'none' : '';
             });
+
+            // Terapkan ulang filter kategori chip yang sedang aktif (biar tetap konsisten
+            // walau data modul berubah/di-refresh dari Firebase)
+            filterPortalCategory(activePortalCategory);
 
             if (linkKeys.length === 0) {
                 const emptyMsg = `<p style="font-size:0.82rem; color:var(--text-muted); text-align:center; padding:1rem;">Tidak ada modul yang cocok.</p>`;
@@ -5672,6 +5814,7 @@
                 document.getElementById('newUrl').value = item.url;
                 document.getElementById('newDesc').value = item.desc;
                 document.getElementById('newCategory').value = item.category;
+                document.getElementById('newFeatured').checked = !!item.featured;
 
                 // Isi ulang tanggal jadwal pra-rilis jika ada (format datetime-local: YYYY-MM-DDTHH:mm)
                 const publishInput = document.getElementById('newPublishAt');
@@ -5699,6 +5842,7 @@
             const url = document.getElementById('newUrl').value.trim();
             const desc = document.getElementById('newDesc').value.trim();
             const category = document.getElementById('newCategory').value;
+            const featured = document.getElementById('newFeatured').checked;
             const publishAtInput = document.getElementById('newPublishAt').value;
             const publishAt = publishAtInput ? new Date(publishAtInput).getTime() : null;
 
@@ -5713,7 +5857,8 @@
                 desc: desc || "Tidak ada deskripsi",
                 category,
                 images: [...currentEditingImages],
-                publishAt: publishAt
+                publishAt: publishAt,
+                featured: featured
             };
 
             if (key) {
@@ -5736,6 +5881,7 @@
             document.getElementById('newDesc').value = '';
             document.getElementById('newImgFile').value = '';
             document.getElementById('newPublishAt').value = '';
+            document.getElementById('newFeatured').checked = false;
             currentEditingImages = [];
             renderAdminImgPreviews();
             document.getElementById('adminFormTitle').innerText = "Tambah Modul Link Baru";
@@ -5819,4 +5965,4 @@
         }
     </script>
 </body>
-    </html>
+</html>
