@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FRACCSYLAB — Virtual Audio Rack</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+:root{
+  --void:#101012;
+  --panel:#1d1d20;
+  --panel-2:#26262a;
+  --metal-hi:#5a5a62;
+  --metal-lo:#2b2b2f;
+  --cream:#ddc998;
+  --cream-dark:#3a331f;
+  --cream-panel:#c9b26b;
+  --led-green:#5ee87a;
+  --led-amber:#f0a838;
+  --led-red:#f14747;
+  --accent:#e8934a;
+  --text:#eae7dd;
+  --text-dim:#8f8d8a;
+  --mono:'JetBrains Mono', monospace;
+  --disp:'Rajdhani', sans-serif;
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;background:var(--void);color:var(--text);font-family:var(--disp);}
+body{padding-bottom:60px;}
+button{font-family:var(--disp);cursor:pointer;}
+input[type=file]{display:none;}
+
+.top-bar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 18px;background:linear-gradient(180deg,#2a2a2e,#18181a);
+  border-bottom:2px solid #000;position:sticky;top:0;z-index:20;
+}
+.brand{display:flex;align-items:baseline;gap:10px;}
+.brand-mark{font-size:24px;font-weight:800;letter-spacing:2px;color:var(--cream);text-shadow:0 0 14px rgba(221,201,152,0.35);}
+.brand-sub{font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:1px;}
+.engine-btn{
+  background:linear-gradient(180deg,#3a3a3e,#222224);border:1px solid #000;color:var(--text);
+  padding:10px 16px;border-radius:6px;font-weight:700;font-size:13px;letter-spacing:1px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.08), 0 2px 4px rgba(0,0,0,0.5);
+}
+.engine-btn.active{background:linear-gradient(180deg,#2a5f3a,#173d24);color:var(--led-green);border-color:#0a2213;}
+.engine-btn:disabled{cursor:default;}
+
+.hw-strip{
+  display:flex;align-items:center;gap:3px;padding:8px 18px;background:#151517;border-bottom:1px solid #000;
+  overflow-x:auto;
+}
+.hw-label{font-family:var(--mono);font-size:9px;color:var(--text-dim);margin-right:8px;white-space:nowrap;}
+.hw-led{width:7px;height:16px;border-radius:1px;background:#1c2b1f;flex:0 0 auto;}
+.hw-led.lit{background:var(--led-green);box-shadow:0 0 5px var(--led-green);}
+
+section{padding:16px 18px;}
+.section-title{font-size:13px;letter-spacing:2px;color:var(--cream);font-weight:700;margin-bottom:10px;border-left:3px solid var(--accent);padding-left:8px;}
+
+/* 3D + master */
+.viz-row{display:flex;gap:14px;flex-wrap:wrap;}
+#viz3d{flex:1 1 320px;height:260px;border-radius:10px;overflow:hidden;background:#0b0b0d;border:1px solid #000;box-shadow:0 4px 14px rgba(0,0,0,0.5);}
+.master-box{
+  flex:0 0 150px;background:linear-gradient(180deg,var(--panel-2),var(--panel));border-radius:10px;
+  border:1px solid #000;padding:12px;display:flex;flex-direction:column;align-items:center;gap:8px;
+}
+.master-box .lbl{font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:1px;}
+.fader-track{width:44px;height:170px;display:flex;align-items:center;justify-content:center;}
+input.fader{width:170px;height:44px;transform:rotate(-90deg);accent-color:var(--accent);}
+#masterFader{width:150px;}
+.meter-canvas{border-radius:2px;background:#0c0c0e;border:1px solid #000;}
+
+/* Channel strips */
+#channelStrips{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;}
+.strip{
+  flex:0 0 128px;background:linear-gradient(180deg,var(--panel-2),var(--panel));border:1px solid #000;
+  border-radius:10px;padding:10px 8px;display:flex;flex-direction:column;align-items:center;gap:6px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.04);
+}
+.strip-head{font-weight:700;font-size:13px;color:var(--cream);letter-spacing:1px;}
+.file-btn{width:100%;}
+.file-btn-label{
+  display:block;text-align:center;background:#2e2e32;border:1px solid #000;border-radius:5px;
+  padding:6px 4px;font-size:10px;color:var(--text-dim);letter-spacing:0.5px;
+}
+.file-name{font-family:var(--mono);font-size:8px;color:var(--text-dim);text-align:center;height:22px;overflow:hidden;line-height:1.15;}
+.play-btn{width:34px;height:34px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#454549,#1c1c1f);border:1px solid #000;color:var(--led-green);font-size:12px;}
+.play-btn:disabled{color:var(--text-dim);}
+.eq-row{display:flex;gap:4px;}
+.fader-meter-row{display:flex;gap:6px;align-items:center;}
+.ms-row{display:flex;gap:6px;}
+.ms-btn{
+  width:26px;height:22px;border-radius:4px;border:1px solid #000;background:#2b2b2f;color:var(--text-dim);
+  font-size:10px;font-weight:700;
+}
+.ms-btn.mute.active{background:var(--led-red);color:#2a0808;}
+.ms-btn.solo.active{background:var(--led-amber);color:#3a2000;}
+
+/* Knob */
+.knob-slot{display:flex;flex-direction:column;align-items:center;gap:2px;width:44px;}
+.knob-dial{
+  width:34px;height:34px;border-radius:50%;position:relative;touch-action:none;
+  background:radial-gradient(circle at 35% 30%,var(--metal-hi),var(--metal-lo));
+  border:1px solid #000;box-shadow:0 2px 3px rgba(0,0,0,0.6), inset 0 1px 1px rgba(255,255,255,0.15);
+}
+.knob-indicator{position:absolute;top:3px;left:50%;width:2px;height:12px;background:var(--accent);transform-origin:1px 14px;transform:translateX(-50%) rotate(-135deg);border-radius:1px;}
+.knob-label{font-family:var(--mono);font-size:8px;color:var(--text-dim);letter-spacing:0.5px;}
+.knob-value{font-family:var(--mono);font-size:8px;color:var(--cream);}
+
+/* Effects rack */
+#effectsRack{display:flex;flex-direction:column;gap:10px;}
+.fx-module{
+  background:linear-gradient(180deg,var(--cream-panel),#a88f4d);border:1px solid #4a3f22;border-radius:8px;
+  padding:10px 12px;box-shadow:0 3px 8px rgba(0,0,0,0.4);
+}
+.fx-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.fx-head span{font-weight:700;font-size:12px;color:var(--cream-dark);letter-spacing:0.5px;}
+.fx-power{width:20px;height:20px;border-radius:50%;border:1px solid #4a3f22;background:var(--led-green);color:transparent;box-shadow:0 0 6px var(--led-green);}
+.fx-power.off{background:#5a5240;box-shadow:none;}
+.fx-knobs{display:flex;gap:10px;flex-wrap:wrap;}
+.fx-module .knob-label,.fx-module .knob-value{color:var(--cream-dark);}
+.fx-module .knob-dial{background:radial-gradient(circle at 35% 30%,#eee0b8,#8a7638);}
+.fx-module .knob-indicator{background:#4a3f22;}
+
+/* Patch bay */
+#patchboard{position:relative;background:#141416;border:1px solid #000;border-radius:10px;padding:14px;}
+.jack-row{display:flex;flex-wrap:wrap;gap:8px;position:relative;z-index:2;}
+.jack-row + .jack-row{margin-top:34px;}
+.jack{
+  display:flex;flex-direction:column;align-items:center;gap:3px;background:#232326;border:1px solid #000;
+  border-radius:6px;padding:6px 5px;min-width:58px;
+}
+.jack-dot{width:10px;height:10px;border-radius:50%;background:#3a3a3e;border:1px solid #000;}
+.jack-out .jack-dot{background:#5a4a2c;}
+.jack-in .jack-dot{background:#2c3c4a;}
+.jack.pending .jack-dot{background:var(--accent);box-shadow:0 0 8px var(--accent);}
+.jack-lbl{font-family:var(--mono);font-size:7px;color:var(--text-dim);text-align:center;line-height:1.1;}
+#cableSvg{position:absolute;top:0;left:0;pointer-events:none;z-index:1;}
+.row-caption{font-family:var(--mono);font-size:9px;color:var(--text-dim);letter-spacing:1px;margin-bottom:6px;}
+
+.patch-actions{display:flex;gap:8px;margin:10px 0;}
+.patch-btn{padding:8px 12px;border-radius:6px;border:1px solid #000;background:#2b2b2f;color:var(--text);font-size:11px;}
+.patch-btn.warn{color:var(--led-red);}
+
+#connectionList{display:flex;flex-direction:column;gap:4px;margin-top:10px;max-height:160px;overflow-y:auto;}
+.conn-row{display:flex;align-items:center;gap:8px;background:#1a1a1c;border-radius:5px;padding:5px 8px;font-family:var(--mono);font-size:10px;color:var(--text-dim);}
+.conn-dot{width:8px;height:8px;border-radius:50%;flex:0 0 auto;}
+.conn-remove{margin-left:auto;background:none;border:none;color:var(--led-red);font-size:12px;}
+
+/* YouTube */
+.yt-row{display:flex;gap:8px;flex-wrap:wrap;}
+.yt-row input{flex:1 1 220px;background:#1a1a1c;border:1px solid #000;border-radius:6px;padding:10px;color:var(--text);font-family:var(--mono);font-size:12px;}
+.yt-row button{background:linear-gradient(180deg,#3a3a3e,#222224);border:1px solid #000;border-radius:6px;padding:10px 16px;color:var(--text);font-weight:700;}
+#ytEmbed{width:100%;max-width:360px;aspect-ratio:16/9;margin-top:10px;background:#000;border-radius:8px;overflow:hidden;}
+#ytNote{font-family:var(--mono);font-size:10px;color:var(--text-dim);margin-top:8px;line-height:1.5;}
+
+.footer-note{font-family:var(--mono);font-size:9px;color:var(--text-dim);text-align:center;padding:20px;line-height:1.6;}
+
+@media (max-width:480px){
+  .brand-mark{font-size:19px;}
+  #viz3d{height:200px;}
+}
+
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div class="brand">
+    <span class="brand-mark">FRACCSYLAB</span>
+    <span class="brand-sub">VIRTUAL AUDIO PROCESSING RACK</span>
+  </div>
+  <button class="engine-btn" id="engineBtn">▶ AKTIFKAN MESIN AUDIO</button>
+</div>
+
+<div class="hw-strip">
+  <span class="hw-label">HARDWARE INTERFACE — ASIO FRACCSYLAB DRIVER</span>
+  <div id="hwLeds" style="display:flex;gap:3px;">
+    <!-- 24 LED segments, JS lights them from master level -->
+    <div class="hw-led"></div><div class="hw-led"></div><div class="hw-led"></div><div class="hw-led"></div>
+    <div class="hw-led"></div><div class="hw-led"></div><div class="hw-led"></div><div class="hw-led"></div>
+    <div class="hw-led"></div><div class="hw-led"></div><div class="hw-led"></div><div class="hw-led"></div>
+    <div class="hw-led"></div><div class="hw-led"></div><div class="hw-led"></div><div class="hw-led"></div>
+    <div class="hw-led"></div><div class="hw-led"></div><div class="hw-led"></div><div class="hw-led"></div>
+    <div class="hw-led"></div><div class="hw-led"></div><div class="hw-led"></div><div class="hw-led"></div>
+  </div>
+</div>
+
+<section>
+  <div class="section-title">BIG METER — MASTER OUTPUT</div>
+  <div class="viz-row">
+    <div id="viz3d"></div>
+    <div class="master-box">
+      <div class="lbl">MASTER</div>
+      <div class="fader-track"><input type="range" class="fader" id="masterFader" min="0" max="1.5" step="0.01" value="0.85"></div>
+      <canvas class="meter-canvas" id="masterMeter" width="16" height="150"></canvas>
+      <div class="lbl">L / R</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="section-title">MIXER — CHANNEL STRIPS</div>
+  <div id="channelStrips"></div>
+</section>
+
+<section>
+  <div class="section-title">EFFECTS RACK — REASON-STYLE PROCESSORS</div>
+  <div id="effectsRack"></div>
+</section>
+
+<section>
+  <div class="section-title">PATCH BAY — TATA KABEL &amp; ROUTING</div>
+  <div id="patchboard">
+    <svg id="cableSvg"></svg>
+    <div class="row-caption">OUTPUT</div>
+    <div class="jack-row" id="jacksOut"></div>
+    <div class="row-caption" style="margin-top:26px;">INPUT</div>
+    <div class="jack-row" id="jacksIn"></div>
+  </div>
+  <div class="patch-actions">
+    <button class="patch-btn" id="cancelPendingBtn">Batalkan Kabel</button>
+    <button class="patch-btn warn" id="resetPatchBtn">Reset ke Default</button>
+  </div>
+  <div id="connectionList"></div>
+</section>
+
+<section>
+  <div class="section-title">LOAD DARI YOUTUBE (PRATINJAU)</div>
+  <div class="yt-row">
+    <input type="text" id="ytUrl" placeholder="Tempel tautan YouTube di sini...">
+    <button id="ytLoadBtn">Muat</button>
+  </div>
+  <div id="ytEmbed"></div>
+  <div id="ytNote">Tempel tautan video untuk pratinjau visual di samping mixer.</div>
+</section>
+
+<div class="footer-note">
+  FRACCSYLAB — semua pemrosesan audio berjalan langsung di browser dengan Web Audio API.<br>
+  Putar knob untuk mengatur EQ/kompresi, tarik fader, colok-lepas kabel di Patch Bay untuk mengubah alur sinyal.
+</div>
+
+<script>
+/* =========================================================
+   FRACCSYLAB — Virtual Audio Processing Rack
+   Real Web Audio API engine + patchable cable routing + 3D meter
+   ========================================================= */
+
+const NUM_CHANNELS = 6;
+const AudioCtxClass = window.AudioContext || window.webkitAudioContext;
+
+let ctx = null;
+let engineStarted = false;
+const audio = { jacks: {} };
+const channels = [];
+const state = { connections: [], pendingFrom: null };
+
+const DEFAULT_CONNECTIONS = [
+  ...Array.from({ length: NUM_CHANNELS }, (_, i) => ({ from: `ch${i + 1}-out`, to: 'imager-in' })),
+  { from: 'imager-out', to: 'maximizer-in' },
+  { from: 'maximizer-out', to: 'comp-high-in' },
+  { from: 'comp-high-out', to: 'comp-midhigh-in' },
+  { from: 'comp-midhigh-out', to: 'comp-midlow-in' },
+  { from: 'comp-midlow-out', to: 'comp-low-in' },
+  { from: 'comp-low-out', to: 'mbc-in' },
+  { from: 'mbc-out', to: 'master-in' },
+];
+
+const OUT_JACKS = [
+  ...Array.from({ length: NUM_CHANNELS }, (_, i) => `ch${i + 1}-out`),
+  'imager-out', 'maximizer-out', 'comp-high-out', 'comp-midhigh-out', 'comp-midlow-out', 'comp-low-out', 'mbc-out',
+];
+const IN_JACKS = [
+  'imager-in', 'maximizer-in', 'comp-high-in', 'comp-midhigh-in', 'comp-midlow-in', 'comp-low-in', 'mbc-in', 'master-in',
+];
+
+const JACK_LABELS = {
+  'imager-in': 'IMAGER IN', 'imager-out': 'IMAGER OUT',
+  'maximizer-in': 'MAX IN', 'maximizer-out': 'MAX OUT',
+  'comp-high-in': 'COMP HI IN', 'comp-high-out': 'COMP HI OUT',
+  'comp-midhigh-in': 'COMP M-HI IN', 'comp-midhigh-out': 'COMP M-HI OUT',
+  'comp-midlow-in': 'COMP M-LO IN', 'comp-midlow-out': 'COMP M-LO OUT',
+  'comp-low-in': 'COMP LO IN', 'comp-low-out': 'COMP LO OUT',
+  'mbc-in': 'MBC IN', 'mbc-out': 'MBC OUT',
+  'master-in': 'MASTER IN',
+};
+for (let i = 1; i <= NUM_CHANNELS; i++) JACK_LABELS[`ch${i}-out`] = `CH${i} OUT`;
+
+const CABLE_COLORS = ['#e8934a', '#5ee87a', '#4de3ff', '#f14747', '#d8c896', '#c77dff', '#ff8fb1', '#8ad1ff'];
+
+/* ---------------- Init channel model (UI can exist before engine starts) ---------------- */
+for (let i = 1; i <= NUM_CHANNELS; i++) {
+  channels.push({
+    id: i,
+    fileName: null,
+    mediaEl: null,
+    sourceNode: null,
+    muted: false,
+    solo: false,
+    playing: false,
+  });
+}
+
+/* ---------------- Audio graph ---------------- */
+function initAudioGraph() {
+  if (engineStarted) return;
+  ctx = new AudioCtxClass();
+  engineStarted = true;
+
+  audio.master = {};
+  audio.master.busIn = ctx.createGain();
+  audio.master.meterAnalyser = ctx.createAnalyser();
+  audio.master.meterAnalyser.fftSize = 64;
+  audio.master.scopeAnalyser = ctx.createAnalyser();
+  audio.master.scopeAnalyser.fftSize = 256;
+  audio.master.fader = ctx.createGain();
+  audio.master.fader.gain.value = 0.85;
+
+  audio.master.busIn.connect(audio.master.meterAnalyser);
+  audio.master.busIn.connect(audio.master.scopeAnalyser);
+  audio.master.busIn.connect(audio.master.fader);
+  audio.master.fader.connect(ctx.destination);
+
+  buildImager();
+  buildMaximizer();
+  buildCompressors();
+  buildMasterBusComp();
+
+  audio.jacks['master-in'] = audio.master.busIn;
+
+  channels.forEach(setupChannelAudio);
+
+  DEFAULT_CONNECTIONS.forEach((c) => addConnection(c.from, c.to));
+
+  startMeterLoop();
+  renderPatchbay();
+}
+
+function buildImager() {
+  const imager = {};
+  imager.inNode = ctx.createGain();
+  const splitter = ctx.createChannelSplitter(2);
+  imager.inNode.connect(splitter);
+
+  const midGainL = ctx.createGain(); midGainL.gain.value = 0.5;
+  const midGainR = ctx.createGain(); midGainR.gain.value = 0.5;
+  const midSum = ctx.createGain();
+  splitter.connect(midGainL, 0); splitter.connect(midGainR, 1);
+  midGainL.connect(midSum); midGainR.connect(midSum);
+
+  const sideGainL = ctx.createGain(); sideGainL.gain.value = 0.5;
+  const sideGainRInv = ctx.createGain(); sideGainRInv.gain.value = -0.5;
+  const sideSum = ctx.createGain();
+  splitter.connect(sideGainL, 0); splitter.connect(sideGainRInv, 1);
+  sideGainL.connect(sideSum); sideGainRInv.connect(sideSum);
+
+  imager.widthGain = ctx.createGain(); imager.widthGain.gain.value = 1.0;
+  sideSum.connect(imager.widthGain);
+  const invWidth = ctx.createGain(); invWidth.gain.value = -1;
+  imager.widthGain.connect(invWidth);
+
+  const outL = ctx.createGain();
+  const outR = ctx.createGain();
+  midSum.connect(outL); imager.widthGain.connect(outL);
+  midSum.connect(outR); invWidth.connect(outR);
+
+  const merger = ctx.createChannelMerger(2);
+  outL.connect(merger, 0, 0);
+  outR.connect(merger, 0, 1);
+  imager.outNode = ctx.createGain();
+  merger.connect(imager.outNode);
+
+  imager.bypassed = false;
+  audio.imager = imager;
+  audio.jacks['imager-in'] = imager.inNode;
+  audio.jacks['imager-out'] = imager.outNode;
+}
+
+function updateMaximizerCurve(amount) {
+  const n = 1024;
+  const curve = new Float32Array(n);
+  const k = 1 + amount * 18;
+  for (let i = 0; i < n; i++) {
+    const x = (i / (n - 1)) * 2 - 1;
+    curve[i] = Math.tanh(k * x) / Math.tanh(k);
+  }
+  audio.maximizer.shaper.curve = curve;
+}
+
+function buildMaximizer() {
+  const maximizer = {};
+  maximizer.shaper = ctx.createWaveShaper();
+  maximizer.shaper.oversample = '4x';
+  maximizer.makeup = ctx.createGain();
+  maximizer.makeup.gain.value = 1;
+  maximizer.shaper.connect(maximizer.makeup);
+  maximizer.inNode = maximizer.shaper;
+  maximizer.outNode = maximizer.makeup;
+  maximizer.amount = 0.25;
+  maximizer.bypassed = false;
+  audio.maximizer = maximizer;
+  updateMaximizerCurve(maximizer.amount);
+  audio.jacks['maximizer-in'] = maximizer.inNode;
+  audio.jacks['maximizer-out'] = maximizer.outNode;
+}
+
+function buildCompressors() {
+  audio.comps = {};
+  const names = ['high', 'midhigh', 'midlow', 'low'];
+  names.forEach((name) => {
+    const node = ctx.createDynamicsCompressor();
+    node.threshold.value = -24;
+    node.ratio.value = 4;
+    node.attack.value = 0.01;
+    node.release.value = 0.25;
+    node.knee.value = 6;
+    audio.comps[name] = { node, bypassed: false, savedThreshold: -24, savedRatio: 4 };
+    audio.jacks[`comp-${name}-in`] = node;
+    audio.jacks[`comp-${name}-out`] = node;
+  });
+}
+
+function buildMasterBusComp() {
+  const node = ctx.createDynamicsCompressor();
+  node.threshold.value = -12;
+  node.ratio.value = 3;
+  node.attack.value = 0.005;
+  node.release.value = 0.3;
+  node.knee.value = 3;
+  audio.masterBusComp = { node, bypassed: false, savedThreshold: -12, savedRatio: 3 };
+  audio.jacks['mbc-in'] = node;
+  audio.jacks['mbc-out'] = node;
+}
+
+function setupChannelAudio(ch) {
+  ch.lowEQ = ctx.createBiquadFilter(); ch.lowEQ.type = 'lowshelf'; ch.lowEQ.frequency.value = 200; ch.lowEQ.gain.value = 0;
+  ch.midEQ = ctx.createBiquadFilter(); ch.midEQ.type = 'peaking'; ch.midEQ.frequency.value = 1000; ch.midEQ.Q.value = 1; ch.midEQ.gain.value = 0;
+  ch.highEQ = ctx.createBiquadFilter(); ch.highEQ.type = 'highshelf'; ch.highEQ.frequency.value = 5000; ch.highEQ.gain.value = 0;
+  ch.panNode = ctx.createStereoPanner();
+  ch.gainNode = ctx.createGain(); ch.gainNode.gain.value = 0.85;
+  ch.muteGain = ctx.createGain(); ch.muteGain.gain.value = 1;
+  ch.analyser = ctx.createAnalyser(); ch.analyser.fftSize = 256;
+  ch.outNode = ctx.createGain();
+
+  ch.lowEQ.connect(ch.midEQ);
+  ch.midEQ.connect(ch.highEQ);
+  ch.highEQ.connect(ch.panNode);
+  ch.panNode.connect(ch.gainNode);
+  ch.gainNode.connect(ch.muteGain);
+  ch.muteGain.connect(ch.analyser);
+  ch.analyser.connect(ch.outNode);
+
+  audio.jacks[`ch${ch.id}-out`] = ch.outNode;
+}
+
+function loadFileIntoChannel(ch, file) {
+  if (!engineStarted) return;
+  if (ch.mediaEl) {
+    try { ch.mediaEl.pause(); } catch (e) { /* ignore */ }
+    URL.revokeObjectURL(ch.mediaEl.src);
+  }
+  const el = document.createElement(file.type.startsWith('video') ? 'video' : 'audio');
+  el.src = URL.createObjectURL(file);
+  el.loop = true;
+  el.crossOrigin = 'anonymous';
+  el.style.display = 'none';
+  document.body.appendChild(el);
+  ch.mediaEl = el;
+  ch.fileName = file.name;
+  ch.sourceNode = ctx.createMediaElementSource(el);
+  ch.sourceNode.connect(ch.lowEQ);
+  el.addEventListener('ended', () => { ch.playing = false; updateChannelPlayUI(ch); });
+  el.play().then(() => { ch.playing = true; updateChannelPlayUI(ch); }).catch(() => {});
+  updateChannelFileUI(ch);
+}
+
+function toggleChannelPlay(ch) {
+  if (!ch.mediaEl) return;
+  if (ch.playing) { ch.mediaEl.pause(); ch.playing = false; }
+  else { ch.mediaEl.play(); ch.playing = true; }
+  updateChannelPlayUI(ch);
+}
+
+function applyMuteSolo() {
+  const anySolo = channels.some((c) => c.solo);
+  channels.forEach((c) => {
+    if (!c.muteGain) return;
+    const audible = anySolo ? c.solo && !c.muted : !c.muted;
+    c.muteGain.gain.setTargetAtTime(audible ? 1 : 0, ctx.currentTime, 0.01);
+  });
+}
+
+/* ---------------- Patch bay connection logic ---------------- */
+function addConnection(from, to) {
+  if (!audio.jacks[from] || !audio.jacks[to]) return;
+  const exists = state.connections.some((c) => c.from === from && c.to === to);
+  if (exists) return;
+  audio.jacks[from].connect(audio.jacks[to]);
+  state.connections.push({ from, to });
+  renderPatchbay();
+}
+
+function removeConnection(from, to) {
+  const idx = state.connections.findIndex((c) => c.from === from && c.to === to);
+  if (idx === -1) return;
+  try { audio.jacks[from].disconnect(audio.jacks[to]); } catch (e) { /* ignore */ }
+  state.connections.splice(idx, 1);
+  renderPatchbay();
+}
+
+function resetDefaultPatch() {
+  [...state.connections].forEach((c) => removeConnection(c.from, c.to));
+  DEFAULT_CONNECTIONS.forEach((c) => addConnection(c.from, c.to));
+}
+
+function onJackClick(id, isOutput) {
+  if (isOutput) {
+    state.pendingFrom = state.pendingFrom === id ? null : id;
+    renderPatchbay();
+    return;
+  }
+  if (!state.pendingFrom) return;
+  addConnection(state.pendingFrom, id);
+  state.pendingFrom = null;
+  renderPatchbay();
+}
+
+/* ---------------- Meters ---------------- */
+function startMeterLoop() {
+  const buf = new Uint8Array(128);
+  const masterBuf = new Uint8Array(32);
+  function tick() {
+    requestAnimationFrame(tick);
+    channels.forEach((ch) => {
+      if (!ch.analyser) return;
+      ch.analyser.getByteFrequencyData(buf);
+      let sum = 0; for (let i = 0; i < buf.length; i++) sum += buf[i];
+      const level = sum / buf.length / 255;
+      drawMeter(ch.meterCanvas, level);
+    });
+    if (audio.master && audio.master.meterAnalyser) {
+      audio.master.meterAnalyser.getByteFrequencyData(masterBuf);
+      let sum = 0; for (let i = 0; i < masterBuf.length; i++) sum += masterBuf[i];
+      const level = sum / masterBuf.length / 255;
+      drawMeter(window.masterMeterCanvas, level);
+      drawHardwareLeds(level);
+    }
+  }
+  tick();
+}
+
+function drawMeter(canvas, level) {
+  if (!canvas) return;
+  const c = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+  c.clearRect(0, 0, w, h);
+  c.fillStyle = '#0c0c0e';
+  c.fillRect(0, 0, w, h);
+  const fillH = Math.min(h, level * h * 1.6);
+  const grad = c.createLinearGradient(0, h, 0, 0);
+  grad.addColorStop(0, '#5ee87a');
+  grad.addColorStop(0.7, '#e8c34a');
+  grad.addColorStop(1, '#f14747');
+  c.fillStyle = grad;
+  c.fillRect(0, h - fillH, w, fillH);
+}
+
+function drawHardwareLeds(level) {
+  const leds = document.querySelectorAll('.hw-led');
+  const litCount = Math.round(level * leds.length * 1.3);
+  leds.forEach((led, i) => {
+    led.classList.toggle('lit', i < litCount);
+  });
+}
+
+/* ---------------- UI: Channel strips ---------------- */
+function buildChannelStrips() {
+  const wrap = document.getElementById('channelStrips');
+  channels.forEach((ch) => {
+    const el = document.createElement('div');
+    el.className = 'strip';
+    el.innerHTML = `
+      <div class="strip-head">CH ${ch.id}</div>
+      <label class="file-btn">
+        <input type="file" accept="audio/*,video/mp4,video/*" data-ch="${ch.id}" class="file-input" />
+        <span class="file-btn-label">Muat File</span>
+      </label>
+      <div class="file-name" id="fname-${ch.id}">— belum ada berkas —</div>
+      <button class="play-btn" id="play-${ch.id}" disabled>▶</button>
+      <div class="eq-row">
+        <div class="knob-slot" data-knob="low-${ch.id}"></div>
+        <div class="knob-slot" data-knob="mid-${ch.id}"></div>
+        <div class="knob-slot" data-knob="high-${ch.id}"></div>
+      </div>
+      <div class="knob-slot" data-knob="pan-${ch.id}"></div>
+      <div class="fader-meter-row">
+        <div class="fader-track"><input type="range" class="fader" min="0" max="1.5" step="0.01" value="0.85" id="fader-${ch.id}"></div>
+        <canvas class="meter-canvas" id="meter-${ch.id}" width="10" height="140"></canvas>
+      </div>
+      <div class="ms-row">
+        <button class="ms-btn mute" id="mute-${ch.id}">M</button>
+        <button class="ms-btn solo" id="solo-${ch.id}">S</button>
+      </div>
+    `;
+    wrap.appendChild(el);
+    ch.meterCanvas = el.querySelector(`#meter-${ch.id}`);
+
+    el.querySelector('.file-input').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) loadFileIntoChannel(ch, file);
+    });
+    el.querySelector(`#play-${ch.id}`).addEventListener('click', () => toggleChannelPlay(ch));
+    el.querySelector(`#fader-${ch.id}`).addEventListener('input', (e) => {
+      if (ch.gainNode) ch.gainNode.gain.setTargetAtTime(parseFloat(e.target.value), ctx.currentTime, 0.01);
+    });
+    el.querySelector(`#mute-${ch.id}`).addEventListener('click', (e) => {
+      ch.muted = !ch.muted; e.target.classList.toggle('active', ch.muted); applyMuteSolo();
+    });
+    el.querySelector(`#solo-${ch.id}`).addEventListener('click', (e) => {
+      ch.solo = !ch.solo; e.target.classList.toggle('active', ch.solo); applyMuteSolo();
+    });
+
+    createKnob({ container: el.querySelector(`[data-knob="low-${ch.id}"]`), label: 'LOW', min: -15, max: 15, value: 0, unit: 'dB', onChange: (v) => ch.lowEQ && ch.lowEQ.gain.setTargetAtTime(v, ctx.currentTime, 0.01) });
+    createKnob({ container: el.querySelector(`[data-knob="mid-${ch.id}"]`), label: 'MID', min: -15, max: 15, value: 0, unit: 'dB', onChange: (v) => ch.midEQ && ch.midEQ.gain.setTargetAtTime(v, ctx.currentTime, 0.01) });
+    createKnob({ container: el.querySelector(`[data-knob="high-${ch.id}"]`), label: 'HIGH', min: -15, max: 15, value: 0, unit: 'dB', onChange: (v) => ch.highEQ && ch.highEQ.gain.setTargetAtTime(v, ctx.currentTime, 0.01) });
+    createKnob({ container: el.querySelector(`[data-knob="pan-${ch.id}"]`), label: 'PAN', min: -1, max: 1, value: 0, unit: '', onChange: (v) => ch.panNode && ch.panNode.pan.setTargetAtTime(v, ctx.currentTime, 0.01) });
+  });
+}
+
+function updateChannelFileUI(ch) {
+  const nameEl = document.getElementById(`fname-${ch.id}`);
+  if (nameEl) nameEl.textContent = ch.fileName;
+  const playBtn = document.getElementById(`play-${ch.id}`);
+  if (playBtn) playBtn.disabled = false;
+}
+
+function updateChannelPlayUI(ch) {
+  const playBtn = document.getElementById(`play-${ch.id}`);
+  if (playBtn) playBtn.textContent = ch.playing ? '❚❚' : '▶';
+}
+
+/* ---------------- UI: Generic rotary knob ---------------- */
+function createKnob({ container, label, min, max, value, unit, onChange }) {
+  if (!container) return;
+  container.innerHTML = `
+    <div class="knob-dial"><div class="knob-indicator"></div></div>
+    <div class="knob-label">${label}</div>
+    <div class="knob-value"></div>
+  `;
+  const dial = container.querySelector('.knob-dial');
+  const indicator = container.querySelector('.knob-indicator');
+  const valEl = container.querySelector('.knob-value');
+  let v = value;
+  const range = max - min;
+
+  function render() {
+    const angle = -135 + ((v - min) / range) * 270;
+    indicator.style.transform = `translateX(-50%) rotate(${angle}deg)`;
+    valEl.textContent = (Math.abs(v) < 10 ? v.toFixed(1) : Math.round(v)) + unit;
+  }
+  render();
+
+  let dragging = false, startY = 0, startV = 0;
+  dial.addEventListener('pointerdown', (e) => {
+    dragging = true; startY = e.clientY; startV = v;
+    dial.setPointerCapture(e.pointerId);
+  });
+  dial.addEventListener('pointermove', (e) => {
+    if (!dragging) return;
+    const dy = startY - e.clientY;
+    let nv = startV + (dy / 130) * range;
+    nv = Math.max(min, Math.min(max, nv));
+    v = nv; render(); onChange(v);
+  });
+  dial.addEventListener('pointerup', () => { dragging = false; });
+  dial.addEventListener('pointercancel', () => { dragging = false; });
+  dial.addEventListener('dblclick', () => { v = value; render(); onChange(v); });
+}
+
+/* ---------------- UI: Effects rack ---------------- */
+function buildEffectsRack() {
+  const rack = document.getElementById('effectsRack');
+
+  rack.appendChild(makeModulePanel('MClass Stereo Imager', 'imager', [
+    { label: 'WIDTH', min: 0, max: 2, value: 1, unit: 'x', onChange: (v) => { if (audio.imager) audio.imager.widthGain.gain.setTargetAtTime(v, ctx.currentTime, 0.01); } },
+  ], () => audio.imager));
+
+  rack.appendChild(makeModulePanel('MClass Maximizer', 'maximizer', [
+    { label: 'AMOUNT', min: 0, max: 1, value: 0.25, unit: '', onChange: (v) => { if (audio.maximizer) { audio.maximizer.amount = v; updateMaximizerCurve(v); } } },
+    { label: 'MAKEUP', min: 1, max: 3, value: 1, unit: 'x', onChange: (v) => { if (audio.maximizer) audio.maximizer.makeup.gain.setTargetAtTime(v, ctx.currentTime, 0.01); } },
+  ], () => audio.maximizer));
+
+  const compLabels = { high: 'MClass Compressor — High', midhigh: 'MClass Compressor — Mid-High', midlow: 'MClass Compressor — Mid-Low', low: 'MClass Compressor — Low' };
+  Object.keys(compLabels).forEach((name) => {
+    rack.appendChild(makeModulePanel(compLabels[name], `comp-${name}`, [
+      { label: 'THRESH', min: -60, max: 0, value: -24, unit: 'dB', onChange: (v) => { if (audio.comps) audio.comps[name].node.threshold.setTargetAtTime(v, ctx.currentTime, 0.01); } },
+      { label: 'RATIO', min: 1, max: 20, value: 4, unit: ':1', onChange: (v) => { if (audio.comps) audio.comps[name].node.ratio.setTargetAtTime(v, ctx.currentTime, 0.01); } },
+      { label: 'ATTACK', min: 0.001, max: 0.3, value: 0.01, unit: 's', onChange: (v) => { if (audio.comps) audio.comps[name].node.attack.setTargetAtTime(v, ctx.currentTime, 0.01); } },
+      { label: 'RELEASE', min: 0.02, max: 1, value: 0.25, unit: 's', onChange: (v) => { if (audio.comps) audio.comps[name].node.release.setTargetAtTime(v, ctx.currentTime, 0.01); } },
+    ], () => audio.comps && audio.comps[name]));
+  });
+
+  rack.appendChild(makeModulePanel('Master Bus Compressor', 'mbc', [
+    { label: 'THRESH', min: -60, max: 0, value: -12, unit: 'dB', onChange: (v) => { if (audio.masterBusComp) audio.masterBusComp.node.threshold.setTargetAtTime(v, ctx.currentTime, 0.01); } },
+    { label: 'RATIO', min: 1, max: 20, value: 3, unit: ':1', onChange: (v) => { if (audio.masterBusComp) audio.masterBusComp.node.ratio.setTargetAtTime(v, ctx.currentTime, 0.01); } },
+  ], () => audio.masterBusComp));
+}
+
+function makeModulePanel(title, key, knobDefs, getModule) {
+  const panel = document.createElement('div');
+  panel.className = 'fx-module';
+  panel.innerHTML = `
+    <div class="fx-head">
+      <span>${title}</span>
+      <button class="fx-power" data-key="${key}">●</button>
+    </div>
+    <div class="fx-knobs"></div>
+  `;
+  const knobRow = panel.querySelector('.fx-knobs');
+  knobDefs.forEach((def) => {
+    const slot = document.createElement('div');
+    slot.className = 'knob-slot';
+    knobRow.appendChild(slot);
+    createKnob({ container: slot, ...def });
+  });
+  panel.querySelector('.fx-power').addEventListener('click', (e) => {
+    const mod = getModule();
+    if (!mod) return;
+    mod.bypassed = !mod.bypassed;
+    e.target.classList.toggle('off', mod.bypassed);
+    applyBypass(key, mod);
+  });
+  return panel;
+}
+
+function applyBypass(key, mod) {
+  if (!ctx) return;
+  if (key === 'imager') {
+    audio.imager.widthGain.gain.setTargetAtTime(mod.bypassed ? 1 : audio.imager.widthGain.gain.value, ctx.currentTime, 0.01);
+  } else if (key === 'maximizer') {
+    updateMaximizerCurve(mod.bypassed ? 0 : audio.maximizer.amount);
+  } else if (key.startsWith('comp-')) {
+    const name = key.replace('comp-', '');
+    const c = audio.comps[name];
+    if (mod.bypassed) { c.savedThreshold = c.node.threshold.value; c.savedRatio = c.node.ratio.value; c.node.threshold.setTargetAtTime(0, ctx.currentTime, 0.01); c.node.ratio.setTargetAtTime(1, ctx.currentTime, 0.01); }
+    else { c.node.threshold.setTargetAtTime(c.savedThreshold, ctx.currentTime, 0.01); c.node.ratio.setTargetAtTime(c.savedRatio, ctx.currentTime, 0.01); }
+  } else if (key === 'mbc') {
+    const c = audio.masterBusComp;
+    if (mod.bypassed) { c.savedThreshold = c.node.threshold.value; c.savedRatio = c.node.ratio.value; c.node.threshold.setTargetAtTime(0, ctx.currentTime, 0.01); c.node.ratio.setTargetAtTime(1, ctx.currentTime, 0.01); }
+    else { c.node.threshold.setTargetAtTime(c.savedThreshold, ctx.currentTime, 0.01); c.node.ratio.setTargetAtTime(c.savedRatio, ctx.currentTime, 0.01); }
+  }
+}
+
+/* ---------------- UI: Patch bay ---------------- */
+function buildPatchbayStatic() {
+  const outRow = document.getElementById('jacksOut');
+  const inRow = document.getElementById('jacksIn');
+  OUT_JACKS.forEach((id) => outRow.appendChild(makeJackEl(id, true)));
+  IN_JACKS.forEach((id) => inRow.appendChild(makeJackEl(id, false)));
+}
+
+function makeJackEl(id, isOutput) {
+  const el = document.createElement('button');
+  el.className = 'jack ' + (isOutput ? 'jack-out' : 'jack-in');
+  el.id = `jack-${id}`;
+  el.innerHTML = `<span class="jack-dot"></span><span class="jack-lbl">${JACK_LABELS[id]}</span>`;
+  el.addEventListener('click', () => onJackClick(id, isOutput));
+  return el;
+}
+
+function renderPatchbay() {
+  document.querySelectorAll('.jack').forEach((j) => j.classList.remove('pending'));
+  if (state.pendingFrom) {
+    const j = document.getElementById(`jack-${state.pendingFrom}`);
+    if (j) j.classList.add('pending');
+  }
+  const listEl = document.getElementById('connectionList');
+  listEl.innerHTML = '';
+  state.connections.forEach((c, i) => {
+    const row = document.createElement('div');
+    row.className = 'conn-row';
+    row.innerHTML = `<span class="conn-dot" style="background:${CABLE_COLORS[i % CABLE_COLORS.length]}"></span>
+      <span>${JACK_LABELS[c.from]} → ${JACK_LABELS[c.to]}</span>
+      <button class="conn-remove">✕</button>`;
+    row.querySelector('.conn-remove').addEventListener('click', () => removeConnection(c.from, c.to));
+    listEl.appendChild(row);
+  });
+  drawCables();
+}
+
+function drawCables() {
+  const svg = document.getElementById('cableSvg');
+  const container = document.getElementById('patchboard');
+  if (!svg || !container) return;
+  const crect = container.getBoundingClientRect();
+  svg.setAttribute('width', crect.width);
+  svg.setAttribute('height', crect.height);
+  svg.innerHTML = '';
+  state.connections.forEach((c, i) => {
+    const fromEl = document.getElementById(`jack-${c.from}`);
+    const toEl = document.getElementById(`jack-${c.to}`);
+    if (!fromEl || !toEl) return;
+    const fr = fromEl.getBoundingClientRect();
+    const tr = toEl.getBoundingClientRect();
+    const x1 = fr.left + fr.width / 2 - crect.left;
+    const y1 = fr.top + fr.height / 2 - crect.top;
+    const x2 = tr.left + tr.width / 2 - crect.left;
+    const y2 = tr.top + tr.height / 2 - crect.top;
+    const midY = (y1 + y2) / 2;
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', `M ${x1} ${y1} C ${x1} ${midY + 30}, ${x2} ${midY - 30}, ${x2} ${y2}`);
+    path.setAttribute('stroke', CABLE_COLORS[i % CABLE_COLORS.length]);
+    path.setAttribute('stroke-width', '3');
+    path.setAttribute('fill', 'none');
+    path.setAttribute('opacity', '0.85');
+    svg.appendChild(path);
+  });
+}
+
+/* ---------------- YouTube reference loader (video preview only) ---------------- */
+function loadYoutube() {
+  const input = document.getElementById('ytUrl');
+  const url = input.value.trim();
+  const match = url.match(/(?:youtu\.be\/|v=|shorts\/)([a-zA-Z0-9_-]{11})/);
+  const box = document.getElementById('ytEmbed');
+  const note = document.getElementById('ytNote');
+  if (!match) {
+    note.textContent = 'Tautan YouTube tidak dikenali. Tempel URL video/shorts yang valid.';
+    box.innerHTML = '';
+    return;
+  }
+  box.innerHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${match[1]}" frameborder="0" allow="autoplay" allowfullscreen></iframe>`;
+  note.textContent = 'Video ditampilkan sebagai referensi visual. Audio YouTube tidak bisa ditarik langsung ke mixer di browser (dibatasi kebijakan YouTube & CORS) — unduh sebagai file MP3/MP4 lalu muat lewat "Muat File" di salah satu channel untuk diproses penuh.';
+}
+
+/* ---------------- 3D Visualizer (three.js) ---------------- */
+function start3D() {
+  const container = document.getElementById('viz3d');
+  if (!container || !window.THREE) return;
+  const w = container.clientWidth, h = container.clientHeight;
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x0b0b0d);
+  const camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 100);
+  camera.position.set(0, 6.5, 11);
+  camera.lookAt(0, 0, 0);
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setSize(w, h);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  container.appendChild(renderer.domElement);
+
+  scene.add(new THREE.AmbientLight(0x554433, 0.6));
+  const point = new THREE.PointLight(0xffd9a0, 1.5, 50);
+  point.position.set(5, 8, 5);
+  scene.add(point);
+  const point2 = new THREE.PointLight(0x4de3ff, 0.9, 50);
+  point2.position.set(-6, 4, -4);
+  scene.add(point2);
+
+  const floor = new THREE.Mesh(
+    new THREE.CircleGeometry(6, 64),
+    new THREE.MeshStandardMaterial({ color: 0x1c1c20, metalness: 0.6, roughness: 0.4 })
+  );
+  floor.rotation.x = -Math.PI / 2;
+  floor.position.y = -1.3;
+  scene.add(floor);
+
+  const BARS = 32;
+  const group = new THREE.Group();
+  const bars = [];
+  const barGeo = new THREE.BoxGeometry(0.3, 1, 0.3);
+  for (let i = 0; i < BARS; i++) {
+    const hue = i / BARS;
+    const mat = new THREE.MeshStandardMaterial({
+      color: new THREE.Color().setHSL(0.08 + hue * 0.22, 0.65, 0.5),
+      metalness: 0.7, roughness: 0.25, emissive: 0x110800,
+    });
+    const mesh = new THREE.Mesh(barGeo, mat);
+    const angle = (i / BARS) * Math.PI * 2;
+    const radius = 4;
+    mesh.position.set(Math.cos(angle) * radius, -1.3, Math.sin(angle) * radius);
+    group.add(mesh);
+    bars.push(mesh);
+  }
+  scene.add(group);
+
+  const freqData = new Uint8Array(32);
+  let dragging = false, lastX = 0, rotY = 0.6;
+  renderer.domElement.addEventListener('pointerdown', (e) => { dragging = true; lastX = e.clientX; });
+  window.addEventListener('pointerup', () => { dragging = false; });
+  window.addEventListener('pointermove', (e) => { if (dragging) { rotY += (e.clientX - lastX) * 0.006; lastX = e.clientX; } });
+
+  function animate() {
+    requestAnimationFrame(animate);
+    if (audio.master && audio.master.meterAnalyser) audio.master.meterAnalyser.getByteFrequencyData(freqData);
+    for (let i = 0; i < BARS; i++) {
+      const v = freqData[i] / 255;
+      const targetScale = 0.4 + v * 5.5;
+      bars[i].scale.y += (targetScale - bars[i].scale.y) * 0.25;
+      bars[i].position.y = -1.3 + bars[i].scale.y / 2;
+      bars[i].material.emissiveIntensity = v;
+    }
+    if (!dragging) rotY += 0.0015;
+    group.rotation.y = rotY;
+    point.position.x = Math.sin(Date.now() * 0.0003) * 6;
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  window.addEventListener('resize', () => {
+    const w2 = container.clientWidth, h2 = container.clientHeight;
+    camera.aspect = w2 / h2; camera.updateProjectionMatrix();
+    renderer.setSize(w2, h2);
+  });
+}
+
+/* ---------------- Bootstrap ---------------- */
+function boot() {
+  buildChannelStrips();
+  buildEffectsRack();
+  buildPatchbayStatic();
+  start3D();
+
+  window.masterMeterCanvas = document.getElementById('masterMeter');
+
+  document.getElementById('engineBtn').addEventListener('click', (e) => {
+    initAudioGraph();
+    e.target.textContent = '● ENGINE AKTIF';
+    e.target.classList.add('active');
+    e.target.disabled = true;
+  });
+
+  document.getElementById('masterFader').addEventListener('input', (e) => {
+    if (audio.master) audio.master.fader.gain.setTargetAtTime(parseFloat(e.target.value), ctx.currentTime, 0.01);
+  });
+
+  document.getElementById('resetPatchBtn').addEventListener('click', resetDefaultPatch);
+  document.getElementById('cancelPendingBtn').addEventListener('click', () => { state.pendingFrom = null; renderPatchbay(); });
+  document.getElementById('ytLoadBtn').addEventListener('click', loadYoutube);
+
+  window.addEventListener('resize', drawCables);
+  window.addEventListener('scroll', drawCables, true);
+}
+
+document.addEventListener('DOMContentLoaded', boot);
+
+</script>
+</body>
+</html>
