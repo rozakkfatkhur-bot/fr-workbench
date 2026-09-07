@@ -2,7 +2,11 @@
 <html lang="id" data-theme="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#06090e">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
     <title>FARO TRIUMPHANTLY - Official System Portal</title>
 
     <!-- Fonts Modern & Profesional -->
@@ -64,6 +68,10 @@
                cepat pada tombol/kartu — penyebab umum web terasa "lag"/"buggy" di HP. */
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
+            /* BUGFIX iOS: scroll di dalam kotak (carousel, modal, chat) terasa patah-patah
+               di Safari iPhone tanpa ini. Aman diterapkan global — otomatis diabaikan pada
+               elemen yang memang tidak bisa di-scroll. */
+            -webkit-overflow-scrolling: touch;
         }
 
         html {
@@ -77,7 +85,12 @@
             background-attachment: fixed;
             color: var(--text-main);
             min-height: 100vh;
+            min-height: 100dvh; /* satuan viewport dinamis, lebih akurat di HP modern */
             padding: 1.5rem 1rem;
+            padding-top: max(1.5rem, env(safe-area-inset-top, 0px));
+            padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 0px));
+            padding-left: max(1rem, env(safe-area-inset-left, 0px));
+            padding-right: max(1rem, env(safe-area-inset-right, 0px));
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -1126,10 +1139,14 @@
             margin-top: 4px;
         }
 
+        /* BUGFIX MULTI-DEVICE: "100vh" di Safari iPhone dihitung SEBELUM address bar
+           menyusut, jadi kontennya sering kepotong/ke-scroll aneh di bagian bawah.
+           Solusi yang benar: pakai inset:0 pada elemen fixed (mengikuti viewport nyata
+           secara otomatis), bukan width/height 100vw/100vh. */
         #appViewer {
             display: none;
             position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
+            inset: 0;
             background: #000;
             z-index: 9999;
             flex-direction: column;
@@ -1154,6 +1171,10 @@
             align-items: center;
             justify-content: space-between;
             padding: 0 1rem;
+            padding-top: env(safe-area-inset-top, 0px);
+            padding-left: max(1rem, env(safe-area-inset-left, 0px));
+            padding-right: max(1rem, env(safe-area-inset-right, 0px));
+            height: calc(54px + env(safe-area-inset-top, 0px));
             flex-shrink: 0;
         }
         .admin-dash-title {
@@ -1240,6 +1261,11 @@
             align-items: center;
             justify-content: space-between;
             padding: 0 1rem;
+            padding-top: env(safe-area-inset-top, 0px);
+            padding-left: max(1rem, env(safe-area-inset-left, 0px));
+            padding-right: max(1rem, env(safe-area-inset-right, 0px));
+            height: calc(48px + env(safe-area-inset-top, 0px));
+            flex-shrink: 0;
         }
 
         .viewer-title {
@@ -1249,12 +1275,17 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .viewer-controls {
             display: flex;
             align-items: center;
             gap: 8px;
+            flex-shrink: 0;
         }
 
         .btn-close-viewer {
@@ -1268,11 +1299,28 @@
             font-weight: 600;
         }
 
+        /* BUGFIX MULTI-DEVICE: sebelumnya height:calc(100vh - 48px) — kena bug 100vh
+           Safari iPhone yang sama (iframe bisa kepotong di bawah). flex:1 di dalam
+           #appViewer (flex column) sudah cukup mengisi sisa ruang secara akurat tanpa
+           bergantung pada satuan vh sama sekali. */
         .viewer-frame {
             flex: 1;
             width: 100%;
-            height: calc(100vh - 48px);
             border: none;
+        }
+
+        .viewer-loading-state {
+            position: absolute;
+            inset: 0;
+            top: 48px;
+            background: #000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 1.5rem;
+            z-index: 2;
         }
 
         .qr-card-body { text-align: center; }
@@ -1645,8 +1693,8 @@
         /* TOMBOL KEMBALI KE ATAS */
         #backToTopBtn {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
+            bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+            right: calc(20px + env(safe-area-inset-right, 0px));
             width: 44px;
             height: 44px;
             border-radius: 50%;
@@ -2954,7 +3002,20 @@
                 </button>
             </div>
         </div>
-        <iframe id="innerFrame" class="viewer-frame" src="about:blank" allow="autoplay; encrypted-media; picture-in-picture; fullscreen; clipboard-write" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
+        <div id="viewerLoadingState" class="viewer-loading-state">
+            <div class="ai-msg-typing" style="transform:scale(1.6); margin-bottom:14px;"><span></span><span></span><span></span></div>
+            <p style="font-size:0.85rem; color:var(--text-sub);">Memuat modul...</p>
+            <div id="viewerFallbackBox" style="display:none; margin-top:16px;">
+                <p style="font-size:0.78rem; color:var(--text-muted); max-width:280px; margin-bottom:10px;">Modul belum juga tampil? Bisa jadi situsnya butuh dibuka langsung di tab baru.</p>
+                <button class="btn-primary btn-secondary" id="viewerOpenNewTabBtn" style="width:auto; padding:10px 18px;"><i class="fa-solid fa-up-right-from-square"></i> Buka di Tab Baru</button>
+            </div>
+        </div>
+        <iframe id="innerFrame" class="viewer-frame" src="about:blank"
+            allow="autoplay; encrypted-media; picture-in-picture; fullscreen; clipboard-write; gyroscope; accelerometer; web-share"
+            allowfullscreen
+            referrerpolicy="strict-origin-when-cross-origin"
+            loading="eager"
+            onload="handleViewerFrameLoad()"></iframe>
     </div>
 
     <!-- FIREBASE SDK & CORE ENGINE SCRIPT -->
@@ -3103,25 +3164,59 @@
         // Basis pengetahuan diserap dari data web ini sendiri (portal, glosarium,
         // tips, lencana, harga) — bukan koneksi ke AI eksternal (butuh API key &
         // server terpisah yang tidak tersedia di lingkungan ini).
+        // Basis pengetahuan diperluas mencakup SEMUA fitur di web ini — bukan cuma
+        // sebagian — supaya Asisten jarang perlu lempar ke Admin untuk hal yang
+        // sebenarnya sudah ada jawabannya di portal.
         const AI_FAQ_KNOWLEDGE = [
-            { keywords: ["vip", "cara", "dapat", "beli", "langganan"], answer: "Buat dapat akses VIP, tinggal buka modul yang ada label VIP, nanti muncul pilihan: coba gratis 7 hari, bayar otomatis pakai QRIS/e-wallet, atau pakai passcode kalau Admin sudah kasih ke kamu. Harganya bisa lebih murah lagi kalau kamu punya lencana tertentu lho!" },
-            { keywords: ["harga", "vip", "berapa", "biaya"], answer: "Harga VIP itu dinamis, tergantung lencana yang kamu punya — makin tinggi levelmu, makin murah! Cek langsung di halaman pembayaran buat lihat harga pastinya sekarang." },
-            { keywords: ["poin", "cara", "dapat", "kumpul"], answer: "Poin bisa kamu kumpulin dari: komentar/balas (15 poin), lapor bug (30 poin), absen harian (10-60 poin tergantung streak), jawab kuis harian (20 poin), putar roda keberuntungan (5-100 poin), selesaiin misi mingguan, sampai ajak teman pakai kode referral (+100 poin)!" },
-            { keywords: ["lencana", "badge", "cara", "buka", "dapat"], answer: "Setiap lencana punya syarat beda-beda — ada yang dari poin, ada yang dari jumlah komentar/laporan, dan ada juga yang murni keberuntungan (drop rate acak). Cek tab Lencana buat lihat detail syarat masing-masing, plus progress bar ke lencana berikutnya." },
+            { keywords: ["vip", "cara", "dapat", "beli", "langganan", "akses"], answer: "Buat dapat akses VIP, tinggal buka modul yang ada label VIP, nanti muncul pilihan: coba gratis 7 hari, bayar otomatis pakai QRIS/e-wallet, atau pakai passcode kalau Admin sudah kasih ke kamu. Harganya bisa lebih murah lagi kalau kamu punya lencana tertentu lho!" },
+            { keywords: ["harga", "vip", "berapa", "biaya", "murah", "diskon"], answer: "Harga VIP itu dinamis, tergantung lencana yang kamu punya — makin tinggi levelmu, makin murah! Cek langsung di halaman pembayaran buat lihat harga pastinya sekarang." },
+            { keywords: ["poin", "cara", "dapat", "kumpul", "nambah"], answer: "Poin bisa kamu kumpulin dari: komentar/balas (15 poin), lapor bug (30 poin), absen harian (10-60 poin tergantung streak), jawab kuis harian (20 poin), putar roda keberuntungan (5-100 poin), selesaiin misi mingguan, kasih rating modul (3 poin), vote polling (5 poin), sampai ajak teman pakai kode referral (+100 poin)!" },
+            { keywords: ["poin", "rincian", "sumber", "asal", "darimana"], answer: "Mau lihat poin kamu selama ini datang dari mana aja? Buka modal Profil, di situ ada bagian 'Rincian Sumber Poin' yang mecah semuanya per kategori." },
+            { keywords: ["lencana", "badge", "cara", "buka", "dapat", "syarat"], answer: "Setiap lencana punya syarat beda-beda — ada yang dari poin, ada yang dari jumlah komentar/laporan, dan ada juga yang murni keberuntungan (drop rate acak). Cek tab Lencana buat lihat detail syarat masing-masing, plus progress bar ke lencana berikutnya." },
             { keywords: ["kesayangan", "admin", "lencana"], answer: "Lencana Kesayangan Admin itu spesial — nggak bisa ditukar poin atau dibeli sama sekali. Cuma Admin yang bisa kasih langsung ke pengguna yang menurutnya paling aktif & berdedikasi. Jadi ya, jadilah pengguna yang aktif dan membantu komunitas!" },
-            { keywords: ["referral", "kode", "ajak", "teman"], answer: "Kode referral kamu ada di modal Profil, tinggal disalin dan dibagikan. Kalau ada teman yang pakai kode kamu, kamu dapat +100 poin dan dia dapat +50 poin. Menang-menang!" },
-            { keywords: ["absen", "streak", "harian"], answer: "Absen harian ada di kartu ringkasan halaman utama. Makin panjang streak-nya (absen berturut-turut tanpa putus), makin gede bonus poinnya — maksimal +50 poin per hari di luar 10 poin dasar." },
-            { keywords: ["login", "google", "kenapa", "wajib"], answer: "Login Google itu wajib buat aksi yang butuh identitas — komentar, lapor, klaim lencana, beli VIP, dan lain-lain. Tapi tenang, buat sekadar lihat-lihat modul kamu nggak perlu login kok." },
-            { keywords: ["follow", "ikuti", "pengguna"], answer: "Kamu bisa follow pengguna lain lewat komentar mereka (ada tombol Ikuti di sebelah nama) atau dari bagian Pengguna Aktif di tab Komunitas. Nanti kelihatan di profil kamu berapa Pengikut & yang kamu Ikuti." },
-            { keywords: ["nama", "foto", "profil", "ganti", "ubah"], answer: "Buka modal Profil (klik chip nama kamu di pojok kiri atas), di situ kamu bisa ganti nama tampilan dan foto profil sepuasnya — nggak harus sama persis kayak akun Google kamu." },
-            { keywords: ["mode", "hemat", "data", "kuota"], answer: "Ada Mode Hemat Data di menu Pengaturan (ikon gear di pojok kanan atas) — kalau diaktifkan, semua foto & galeri disembunyikan biar hemat kuota untuk koneksi lambat." },
-            { keywords: ["trial", "coba", "gratis", "vip"], answer: "Setiap modul VIP punya jatah uji coba gratis 7 hari, sekali per akun per modul. Setelah itu baru wajib bayar atau pakai passcode." },
-            { keywords: ["laporan", "pengaduan", "status"], answer: "Laporan yang kamu kirim bisa dicek statusnya di tab Pengaduan — ada label Pending, Diproses, atau Selesai. Kamu juga bakal dapat notifikasi begitu Admin update statusnya." },
-            { keywords: ["misi", "mingguan"], answer: "Misi Mingguan ada di tab Wawasan, reset tiap hari Senin. Selesaikan misinya (komentar, absen, kuis, dll) terus klaim hadiah poinnya manual ya, nggak otomatis." },
-            { keywords: ["kuis", "audio", "jawab"], answer: "Kuis audio ada satu soal baru tiap hari di tab Wawasan. Jawab benar dapat 20 poin, tapi cuma bisa sekali coba per hari." },
-            { keywords: ["latar", "belakang", "komentar", "vip"], answer: "Kalau kamu VIP, kamu bisa pasang foto galeri sendiri jadi latar belakang komentarmu. Tapi harus lewat moderasi Admin dulu sebelum tampil ke publik, ini demi menjaga kenyamanan bersama." },
+            { keywords: ["lencana", "acak", "langka", "beruntung", "drop", "rate"], answer: "Ada 2 lencana langka yang cuma bisa didapat lewat keberuntungan (drop rate acak) saat kamu lagi aktif komentar/lapor — 'Anak Emas Portal' (5%) dan 'Pangeran Komunitas' (1%). Nggak bisa ditukar poin, murni hoki!" },
+            { keywords: ["referral", "kode", "ajak", "teman", "undang"], answer: "Kode referral kamu ada di modal Profil, tinggal disalin dan dibagikan. Kalau ada teman yang pakai kode kamu, kamu dapat +100 poin dan dia dapat +50 poin. Menang-menang!" },
+            { keywords: ["absen", "streak", "harian", "checkin"], answer: "Absen harian ada di kartu ringkasan halaman utama. Makin panjang streak-nya (absen berturut-turut tanpa putus), makin gede bonus poinnya — maksimal +50 poin per hari di luar 10 poin dasar. Putus sehari aja, streak balik ke 1." },
+            { keywords: ["roda", "keberuntungan", "spin", "putar", "undian"], answer: "Roda Keberuntungan ada di tab Wawasan, 1x putaran gratis tiap hari. Hadiahnya poin acak dari 5 sampai 100 — makin besar hadiahnya, makin jarang keluar." },
+            { keywords: ["login", "google", "kenapa", "wajib", "harus"], answer: "Login Google itu wajib buat aksi yang butuh identitas — komentar, lapor, klaim lencana, beli VIP, follow, rating, dan lain-lain. Tapi tenang, buat sekadar lihat-lihat modul kamu nggak perlu login kok, browsing bebas tanpa akun." },
+            { keywords: ["logout", "keluar", "akun"], answer: "Buat logout, buka modal Profil terus scroll ke bawah, ada tombol 'Keluar Akun' warna merah." },
+            { keywords: ["follow", "ikuti", "unfollow", "pengguna"], answer: "Kamu bisa follow pengguna lain lewat komentar mereka (ada tombol Ikuti di sebelah nama) atau dari bagian Pengguna Aktif di tab Komunitas. Klik lagi buat unfollow. Nanti kelihatan di profil kamu berapa Pengikut & yang kamu Ikuti." },
+            { keywords: ["nama", "foto", "profil", "ganti", "ubah", "custom"], answer: "Buka modal Profil (klik chip nama kamu di pojok kiri atas), di situ kamu bisa ganti nama tampilan dan foto profil sepuasnya — nggak harus sama persis kayak akun Google kamu. Login tetap pakai Google, tapi tampilan publikmu bebas kamu atur." },
+            { keywords: ["mode", "hemat", "data", "kuota", "lambat"], answer: "Ada Mode Hemat Data di menu Pengaturan (ikon gear di pojok kanan atas) — kalau diaktifkan, semua foto & galeri disembunyikan biar hemat kuota untuk koneksi lambat." },
+            { keywords: ["mode", "padat", "nyaman", "kepadatan", "tampilan"], answer: "Di menu Pengaturan ada pilihan Mode Kepadatan Tampilan: 'Nyaman' (lega, default) atau 'Padat' (jarak antar elemen lebih rapat biar muat lebih banyak konten sekaligus)." },
+            { keywords: ["tema", "gelap", "terang", "dark", "light", "mode"], answer: "Tema Gelap/Terang bisa diganti dari menu Pengaturan (ikon gear di pojok kanan atas)." },
+            { keywords: ["notifikasi", "browser", "aktifkan", "aktif"], answer: "Buka tab Notifikasi (ikon lonceng), ada tombol 'Aktifkan Notifikasi Browser' — kalau diizinkan, kamu bakal dapat notifikasi asli dari HP/laptop meski tab-nya nggak lagi kebuka." },
+            { keywords: ["trial", "coba", "gratis", "vip", "7", "hari"], answer: "Setiap modul VIP punya jatah uji coba gratis 7 hari, sekali per akun per modul. Setelah itu baru wajib bayar atau pakai passcode." },
+            { keywords: ["laporan", "pengaduan", "status", "bug", "lapor"], answer: "Laporan yang kamu kirim bisa dicek statusnya di tab Pengaduan — ada label Pending, Diproses, atau Selesai. Kamu juga bakal dapat notifikasi begitu Admin update statusnya. Atau kamu bisa langsung bilang ke aku 'mau lapor bug', nanti aku bantu teruskan." },
+            { keywords: ["misi", "mingguan", "klaim"], answer: "Misi Mingguan ada di tab Wawasan, reset tiap hari Senin. Ada 4 misi: komentar 3x, absen 3 hari, kuis benar 2x, dan kirim 1 laporan. Selesaikan misinya terus klaim hadiah poinnya manual ya, nggak otomatis masuk." },
+            { keywords: ["kuis", "audio", "jawab", "soal"], answer: "Kuis audio ada satu soal baru tiap hari di tab Wawasan. Jawab benar dapat 20 poin, tapi cuma bisa sekali coba per hari — soal baru muncul lagi besok." },
+            { keywords: ["latar", "belakang", "komentar", "vip", "background"], answer: "Kalau kamu VIP, kamu bisa pasang foto galeri sendiri jadi latar belakang komentarmu. Tapi harus lewat moderasi Admin dulu sebelum tampil ke publik, ini demi menjaga kenyamanan bersama." },
             { keywords: ["stiker", "emoji", "komentar"], answer: "Ada 100+ stiker emoji yang bisa kamu pakai pas komentar, tinggal klik tombol Stiker di kotak komentar." },
-            { keywords: ["foto", "komentar", "upload", "maksimal"], answer: "Kamu bisa lampirkan maksimal 2 foto per komentar. Kalau mau ganti, hapus salah satu dulu baru upload yang baru." }
+            { keywords: ["gif", "komentar", "url"], answer: "Kamu bisa sisipkan GIF di komentar lewat tombol GIF, tinggal masukkan URL gambar GIF-nya." },
+            { keywords: ["foto", "komentar", "upload", "maksimal", "lampir"], answer: "Kamu bisa lampirkan maksimal 2 foto per komentar. Kalau mau ganti, hapus salah satu dulu baru upload yang baru." },
+            { keywords: ["favorit", "bookmark", "simpan", "modul"], answer: "Klik ikon bintang di pojok kiri atas tiap kartu modul buat simpan ke Favorit. Nanti bisa difilter lewat tombol 'Favorit' di sebelah kolom pencarian." },
+            { keywords: ["cari", "search", "modul", "temukan"], answer: "Ada kolom pencarian modul di tab Portal Utama, tinggal ketik nama modulnya. Bisa juga difilter pakai chip kategori (VIP/Web App/Utama/Riset) atau diurutkan (Terpopuler/Rating/A-Z) lewat dropdown sortir." },
+            { keywords: ["urutkan", "sortir", "terpopuler", "rating", "az"], answer: "Ada dropdown sortir di sebelah kolom pencarian modul — bisa urut berdasarkan Terpopuler (paling sering dibuka), Rating Tertinggi, atau Nama A-Z." },
+            { keywords: ["rating", "bintang", "nilai", "review"], answer: "Tiap modul bisa dikasih rating bintang 1-5, tinggal klik bintangnya di kartu modul. Dapat +3 poin tiap kasih rating." },
+            { keywords: ["online", "berapa", "orang", "ramai"], answer: "Jumlah 'Online Sekarang' dan 'Pengguna Terdaftar' ada di bagian atas halaman utama, dihitung real-time — termasuk yang belum login sekalipun, bukan cuma yang sudah daftar." },
+            { keywords: ["unggulan", "featured", "banner", "pilihan admin"], answer: "Banner besar di paling atas Portal Utama itu modul-modul yang ditandai 'Unggulan' langsung oleh Admin — semacam rekomendasi utama." },
+            { keywords: ["pra-rilis", "pra rilis", "segera", "jadwal", "rilis"], answer: "Kadang ada modul yang ditandai 'Pra-Rilis' dengan hitung mundur — artinya sudah bisa kamu coba sekarang, tapi rilis resminya masih beberapa waktu lagi." },
+            { keywords: ["bagikan", "share", "pencapaian", "whatsapp"], answer: "Ada tombol 'Bagikan Pencapaian Saya' di modal Profil — otomatis bikin pesan WhatsApp berisi poin, lencana, dan kode referral kamu buat dibagikan ke teman." },
+            { keywords: ["peringkat", "leaderboard", "papan", "ranking", "top"], answer: "Papan Peringkat (top 10 poin terbanyak) ada di tab Lencana, diurutkan real-time." },
+            { keywords: ["laporkan", "komentar", "report", "flag"], answer: "Kalau ada komentar orang lain yang menurutmu nggak pantas, klik ikon bendera kecil di komentar itu buat melaporkannya ke Admin." },
+            { keywords: ["hapus", "komentar", "sendiri"], answer: "Kamu bisa hapus komentar milikmu sendiri kapan aja lewat tombol Hapus yang muncul di komentarmu." },
+            { keywords: ["balas", "reply", "komentar"], answer: "Klik tombol 'Balas' di bawah komentar buat menanggapi langsung komentar tertentu." },
+            { keywords: ["suka", "like", "komentar"], answer: "Klik ikon jempol di komentar buat menyukainya, dan itu juga nambah 2 poin buat kamu." },
+            { keywords: ["polling", "vote", "suara", "voting"], answer: "Kalau ada Polling Komunitas aktif, muncul di tab Wawasan. Vote sekali per polling, dapat +5 poin, dan hasilnya kelihatan langsung dalam persentase." },
+            { keywords: ["glosarium", "istilah", "kamus", "belajar", "audio"], answer: "Tab Wawasan punya Glosarium lengkap istilah dunia sound system — dari gain, phantom power, sampai line array. Tinggal ketik di kolom pencarian glosarium." },
+            { keywords: ["tips", "harian", "audio", "sound"], answer: "Ada Tips Audio Hari Ini yang berganti tiap hari, muncul di kartu ringkasan Portal Utama." },
+            { keywords: ["kamu", "siapa", "asisten", "apa itu"], answer: "Aku Asisten FARO — dibuat buat bantu jawab pertanyaan seputar portal ini dan dunia sound system, sekaligus jadi jembatan kalau kamu mau lapor bug atau usul fitur ke Admin. Jawabanku diambil dari data yang ada di web ini." },
+            { keywords: ["hubungi", "kontak", "admin", "chat"], answer: "Cara paling gampang hubungi Admin ya lewat aku — bilang aja masalahnya, nanti aku teruskan. Atau kirim laporan manual lewat tab Pengaduan." },
+            { keywords: ["umur", "usia", "profil", "buat apa"], answer: "Kolom umur di Profil itu opsional, cuma buat pelengkap data — nggak wajib diisi." },
+            { keywords: ["pengumuman", "info", "terbaru"], answer: "Pengumuman terbaru dari Admin muncul di kartu ringkasan paling atas Portal Utama." },
+            { keywords: ["faro", "triumphantly", "apa itu", "web ini"], answer: "FARO TRIUMPHANTLY itu portal hub buat akses modul audio & engineering system, sekaligus komunitas yang punya sistem poin, lencana, dan banyak fitur seru lainnya." },
+            { keywords: ["youtube", "video", "tidak", "muncul", "error", "gagal", "muat"], answer: "Kalau video/modul nggak kunjung muncul, biasanya karena koneksi lambat atau situsnya lagi berat dimuat. Tunggu beberapa detik dulu — kalau masih gagal, biasanya muncul tombol 'Buka di Tab Baru' sebagai jalan keluar. Kalau tetap bermasalah, bilang ke aku aja, nanti aku teruskan ke Admin." },
+            { keywords: ["hp", "iphone", "android", "tablet", "laptop", "device", "perangkat"], answer: "Portal ini didesain buat jalan di HP (Android & iPhone), tablet, sampai laptop/PC — tampilannya otomatis menyesuaikan ukuran layar. Kalau ada tampilan yang aneh di perangkatmu, kasih tau aku ya biar aku laporkan ke Admin." }
         ];
 
         // Jawaban yang "diajarkan" Admin lewat panel admin — prioritas lebih tinggi
@@ -3131,6 +3226,34 @@
         onValue(ref(db, 'aiLearnedAnswers'), (snapshot) => {
             aiLearnedAnswers = snapshot.val() || {};
         });
+
+        // Kamus sinonim: menyamakan berbagai cara orang bertanya (santai, typo umum,
+        // singkatan) ke kata baku yang dipakai di basis pengetahuan — inilah yang
+        // membuat Asisten tidak "kaku" walau pertanyaan tidak persis sama kata-katanya.
+        const AI_SYNONYMS = {
+            "gimana": "cara", "bagaimana": "cara", "gmn": "cara", "gmna": "cara",
+            "berapa": "harga", "duit": "harga", "uang": "harga",
+            "dapetin": "dapat", "dapetnya": "dapat", "dapet": "dapat", "dpt": "dapat",
+            "ngumpulin": "kumpul", "kumpulin": "kumpul",
+            "gmn cara": "cara", "pengen": "mau", "mo": "mau",
+            "beli": "beli", "byr": "bayar", "bayar": "beli",
+            "gratisan": "gratis", "gratis": "trial",
+            "ilang": "hilang", "eror": "error", "ngebug": "bug", "ngebuka": "buka",
+            "gabung": "daftar", "join": "daftar",
+            "sm": "sama", "dgn": "dengan", "tdk": "tidak", "ga": "tidak", "gak": "tidak", "nggak": "tidak",
+            "lg": "lagi", "jg": "juga", "utk": "untuk"
+        };
+
+        // Kata-kata umum yang diabaikan supaya tidak mengganggu skor pencocokan.
+        const AI_STOPWORDS = new Set(["yang", "di", "ke", "dari", "untuk", "dengan", "itu", "ini",
+            "apa", "dong", "sih", "ya", "nya", "kah", "adalah", "saya", "aku", "kamu", "kok",
+            "dan", "atau", "juga", "ada", "lagi", "mau", "bisa", "tolong", "please", "min", "kak"]);
+
+        function normalizeAiText(text) {
+            let normalized = text.toLowerCase().replace(/[^\w\s]/g, ' ');
+            const words = normalized.split(/\s+/).filter(Boolean).map(w => AI_SYNONYMS[w] || w);
+            return words.filter(w => w.length >= 2 && !AI_STOPWORDS.has(w));
+        }
 
         const AI_GREETINGS = [
             "Halo! Aku Asisten FARO 👋 Ada yang bisa dibantu?",
@@ -3198,13 +3321,14 @@
             return row;
         }
 
-        // Pencocokan sederhana berbasis kata kunci — bukan model AI, tapi jujur dan
-        // bisa langsung dipakai. Prioritas: jawaban ajaran Admin > basis pengetahuan statis.
+        // Pencocokan berbasis kata kunci dengan normalisasi & sinonim — bukan model AI
+        // generatif, tapi jauh lebih toleran terhadap variasi cara bertanya dibanding
+        // pencocokan kaku sebelumnya. Prioritas: jawaban ajaran Admin > data web > FAQ statis.
         function findAiAnswer(query) {
             const qLower = query.toLowerCase();
-            const qWords = qLower.split(/\s+/).filter(w => w.length > 2);
+            const qWords = normalizeAiText(query);
 
-            // 1. Cek jawaban yang sudah "diajarkan" Admin
+            // 1. Cek jawaban yang sudah "diajarkan" Admin (prioritas tertinggi)
             let bestLearned = null, bestLearnedScore = 0;
             Object.values(aiLearnedAnswers).forEach(entry => {
                 const score = (entry.keywords || []).filter(k => qLower.includes(k.toLowerCase())).length;
@@ -3216,20 +3340,30 @@
             const glossaryHit = AUDIO_GLOSSARY.find(g => qLower.includes(g.term.toLowerCase()) || g.term.toLowerCase().split(/\s+/).some(w => w.length > 3 && qLower.includes(w)));
             if (glossaryHit) return { answer: `${glossaryHit.term}: ${glossaryHit.def}`, matched: true, source: 'glossary' };
 
-            // 3. Cek syarat lencana spesifik
+            // 3. Cek syarat lencana spesifik (nama lencana disebut langsung)
             const badgeHit = SYSTEM_BADGES.find(b => qLower.includes(b.name.toLowerCase()));
             if (badgeHit) {
                 const reqText = badgeHit.reqType === 'luck' ? `drop rate acak ${badgeHit.reqVal}%` : badgeHit.reqType === 'admin_only' ? 'pemberian khusus dari Admin' : `${badgeHit.reqVal} ${badgeHit.reqType}`;
                 return { answer: `Lencana "${badgeHit.name}" ${badgeHit.icon} syaratnya: ${reqText}. Benefit-nya: ${badgeHit.benefit}.`, matched: true, source: 'badge' };
             }
 
-            // 4. Cek basis pengetahuan FAQ statis
+            // 4. Cek basis pengetahuan FAQ statis — skor dinormalisasi (bukan ambang
+            //    tetap kaku) supaya pertanyaan singkat/beda kata tetap bisa kena.
             let bestFaq = null, bestFaqScore = 0;
             AI_FAQ_KNOWLEDGE.forEach(entry => {
-                const score = entry.keywords.filter(k => qWords.some(w => w.includes(k) || k.includes(w))).length;
-                if (score > bestFaqScore) { bestFaqScore = score; bestFaq = entry; }
+                const normalizedKeywords = entry.keywords.map(k => AI_SYNONYMS[k] || k);
+                const matchedCount = normalizedKeywords.filter(k => qWords.includes(k) || qWords.some(w => w.includes(k) || k.includes(w))).length;
+                if (matchedCount === 0) return;
+                const normalizedScore = matchedCount / normalizedKeywords.length;
+                // Diterima kalau: minimal 2 kata kunci cocok, ATAU proporsi cocoknya tinggi
+                // (misal 1 dari 3 kata kunci di kalimat pendek pengguna).
+                const finalScore = matchedCount + normalizedScore;
+                if ((matchedCount >= 2 || normalizedScore >= 0.34) && finalScore > bestFaqScore) {
+                    bestFaqScore = finalScore;
+                    bestFaq = entry;
+                }
             });
-            if (bestFaq && bestFaqScore >= 2) return { answer: bestFaq.answer, matched: true, source: 'faq' };
+            if (bestFaq) return { answer: bestFaq.answer, matched: true, source: 'faq' };
 
             return { answer: null, matched: false, source: null };
         }
@@ -6034,15 +6168,37 @@
         // seperti ini sering merusak YouTube IFrame Player API (postMessage/origin
         // check gagal karena origin blob: bersifat unik/null), sehingga muncul error
         // "YouTube player belum siap". Sekarang iframe langsung diarahkan ke URL
-        // aslinya (hanya 1 lapis iframe), jauh lebih kompatibel dengan YouTube API.
+        // aslinya (hanya 1 lapis iframe), jauh lebih kompatibel dengan YouTube API —
+        // termasuk video YouTube yang dimuat DI DALAM modul (mis. Mixer X78).
+        //
+        // URL modul tetap dirahasiakan seperti biasa (tidak pernah ditampilkan di teks
+        // atau alamat browser). Tombol "Buka di Tab Baru" HANYA muncul sebagai jalan
+        // keluar manual kalau modul gagal tampil (mis. situs tujuan menolak di-iframe),
+        // dan URL cuma terungkap kalau pengguna sendiri yang mengklik tombol itu.
+        let viewerLoadTimeout = null;
+        let viewerLoadedOnce = false;
+
         function openSecureApp(url, title, moduleId) {
             document.getElementById('viewerTitle').innerHTML = `<i class="fa-solid fa-shield-halved"></i> ${escapeHtml(title)}`;
             currentOpenAppIsMixer = title.toLowerCase().includes('mixer');
 
             const frame = document.getElementById('innerFrame');
-            frame.src = url;
+            const loadingState = document.getElementById('viewerLoadingState');
+            const fallbackBox = document.getElementById('viewerFallbackBox');
+            const openNewTabBtn = document.getElementById('viewerOpenNewTabBtn');
 
+            viewerLoadedOnce = false;
+            loadingState.style.display = 'flex';
+            fallbackBox.style.display = 'none';
+            openNewTabBtn.onclick = () => window.open(url, '_blank', 'noopener,noreferrer');
+
+            frame.src = url;
             document.getElementById('appViewer').style.display = 'flex';
+
+            if (viewerLoadTimeout) clearTimeout(viewerLoadTimeout);
+            viewerLoadTimeout = setTimeout(() => {
+                if (!viewerLoadedOnce) fallbackBox.style.display = 'block';
+            }, 8000);
 
             if (moduleId) {
                 startModulePresence(moduleId);
@@ -6050,9 +6206,19 @@
             }
         }
 
+        window.handleViewerFrameLoad = function() {
+            const frame = document.getElementById('innerFrame');
+            if (!frame || frame.src === 'about:blank') return; // abaikan saat reset ke blank
+            viewerLoadedOnce = true;
+            document.getElementById('viewerLoadingState').style.display = 'none';
+            if (viewerLoadTimeout) { clearTimeout(viewerLoadTimeout); viewerLoadTimeout = null; }
+        };
+
         window.closeAppViewer = function() {
             document.getElementById('innerFrame').src = 'about:blank';
             document.getElementById('appViewer').style.display = 'none';
+            document.getElementById('viewerLoadingState').style.display = 'none';
+            if (viewerLoadTimeout) { clearTimeout(viewerLoadTimeout); viewerLoadTimeout = null; }
             currentOpenAppIsMixer = false;
             stopModulePresence();
         };
