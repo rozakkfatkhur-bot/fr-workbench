@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bengkel Box — Desainer Box Speaker 3D</title>
+<style>
+  :root{
+    --bg:#1c1b19;
+    --panel:#221f1a;
+    --panel-2:#2b2721;
+    --panel-3:#332e26;
+    --line:#3a362e;
+    --wood:#c08552;
+    --wood-dark:#8f6039;
+    --amber:#e8a33d;
+    --text:#ede8df;
+    --muted:#9c958a;
+    --green:#7bae8f;
+    --danger:#d9705a;
+    --mono: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);overflow:hidden;}
+  #app{display:flex;height:100vh;width:100vw;}
+
+  /* ---------- Sidebar ---------- */
+  #sidebar{
+    width:348px;min-width:348px;height:100%;overflow-y:auto;
+    background:var(--panel);border-right:1px solid var(--line);
+    display:flex;flex-direction:column;
+  }
+  #sidebar::-webkit-scrollbar{width:8px;}
+  #sidebar::-webkit-scrollbar-thumb{background:var(--panel-3);border-radius:4px;}
+
+  .brand{
+    padding:18px 18px 14px 18px;border-bottom:1px solid var(--line);
+  }
+  .brand .mark{display:flex;align-items:center;gap:10px;}
+  .brand .mark svg{flex:none;}
+  .brand h1{font-size:15px;margin:0;letter-spacing:0.2px;font-weight:700;color:var(--text);}
+  .brand p{margin:4px 0 0 0;font-size:11.5px;color:var(--muted);line-height:1.4;}
+
+  .section{padding:16px 18px;border-bottom:1px solid var(--line);}
+  .section h2{
+    font-size:11px;margin:0 0 12px 0;color:var(--amber);font-weight:700;
+    letter-spacing:0.3px;
+  }
+  .field{margin-bottom:10px;}
+  .field label{display:block;font-size:11.5px;color:var(--muted);margin-bottom:4px;}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+
+  input[type=number], select{
+    width:100%;background:var(--panel-2);border:1px solid var(--line);color:var(--text);
+    padding:8px 9px;border-radius:6px;font-family:var(--mono);font-size:13px;
+    outline:none;
+  }
+  input[type=number]:focus, select:focus{border-color:var(--amber);}
+  select{font-family:var(--sans);font-size:12.5px;}
+
+  .unit-toggle{display:flex;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;overflow:hidden;}
+  .unit-toggle button{
+    flex:1;background:transparent;border:none;color:var(--muted);padding:7px 0;
+    font-family:var(--mono);font-size:12px;cursor:pointer;
+  }
+  .unit-toggle button.active{background:var(--wood);color:#1c1b19;font-weight:700;}
+
+  .thick-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}
+  .chip{
+    padding:5px 10px;border:1px solid var(--line);border-radius:100px;background:var(--panel-2);
+    color:var(--muted);font-size:11.5px;font-family:var(--mono);cursor:pointer;
+  }
+  .chip.active{background:var(--wood);color:#1c1b19;border-color:var(--wood);font-weight:700;}
+
+  .btn{
+    width:100%;padding:10px 12px;border-radius:7px;border:1px solid var(--line);
+    background:var(--panel-2);color:var(--text);font-size:12.5px;font-weight:600;
+    cursor:pointer;font-family:var(--sans);
+  }
+  .btn:hover{border-color:var(--amber);}
+  .btn.primary{background:var(--wood);color:#1c1b19;border-color:var(--wood);}
+  .btn.primary:hover{background:var(--amber);border-color:var(--amber);}
+  .btn.ghost{background:transparent;}
+  .btn.small{padding:6px 10px;font-size:11.5px;width:auto;}
+
+  .speaker-add{display:flex;gap:8px;}
+  .speaker-add select{flex:1;}
+
+  .spk-card{
+    background:var(--panel-2);border:1px solid var(--line);border-radius:8px;
+    padding:10px 11px;margin-bottom:9px;
+  }
+  .spk-card .spk-head{
+    display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;
+  }
+  .spk-card .spk-head .tag{
+    font-family:var(--mono);font-size:12px;font-weight:700;color:var(--amber);
+  }
+  .spk-card .spk-head .del{
+    background:none;border:none;color:var(--muted);cursor:pointer;font-size:15px;line-height:1;
+    padding:2px 5px;
+  }
+  .spk-card .spk-head .del:hover{color:var(--danger);}
+  .spk-card .hint{font-size:10.5px;color:var(--muted);margin-top:4px;}
+
+  .info-line{display:flex;justify-content:space-between;font-size:12px;padding:5px 0;color:var(--muted);border-bottom:1px dashed var(--line);}
+  .info-line:last-child{border-bottom:none;}
+  .info-line b{color:var(--text);font-family:var(--mono);font-weight:600;}
+
+  .empty-note{font-size:11.5px;color:var(--muted);text-align:center;padding:10px 4px;border:1px dashed var(--line);border-radius:8px;}
+
+  /* ---------- Viewport ---------- */
+  #viewport{flex:1;position:relative;background:radial-gradient(ellipse at 50% 30%, #24221d 0%, #171613 75%);}
+  #canvas-host{position:absolute;inset:0;}
+  #canvas-host canvas{display:block;width:100%;height:100%;cursor:grab;}
+  #canvas-host canvas:active{cursor:grabbing;}
+
+  .hud{position:absolute;pointer-events:none;font-family:var(--mono);}
+  .hud-dims{
+    top:16px;left:16px;position:absolute;background:rgba(28,27,25,0.72);
+    border:1px solid var(--line);border-radius:9px;padding:11px 14px;backdrop-filter:blur(6px);
+  }
+  .hud-dims .d-row{display:flex;gap:10px;font-size:12.5px;color:var(--text);margin-bottom:3px;}
+  .hud-dims .d-row span.k{color:var(--muted);width:58px;display:inline-block;}
+  .hud-dims .d-row:last-child{margin-bottom:0;}
+
+  .hud-hint{
+    bottom:14px;left:50%;transform:translateX(-50%);position:absolute;
+    font-size:11px;color:var(--muted);background:rgba(28,27,25,0.6);
+    padding:6px 12px;border-radius:100px;border:1px solid var(--line);
+  }
+
+  .hud-topbar{
+    top:16px;right:16px;position:absolute;display:flex;gap:8px;pointer-events:auto;
+  }
+  .icon-btn{
+    background:rgba(28,27,25,0.72);border:1px solid var(--line);color:var(--text);
+    width:36px;height:36px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+    backdrop-filter:blur(6px);
+  }
+  .icon-btn:hover{border-color:var(--amber);}
+
+  /* ---------- Export modal ---------- */
+  #export-modal{
+    position:fixed;inset:0;background:rgba(10,9,8,0.78);display:none;
+    align-items:center;justify-content:center;z-index:50;padding:24px;
+  }
+  #export-modal.show{display:flex;}
+  .export-box{
+    background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    max-width:820px;width:100%;max-height:86vh;overflow-y:auto;padding:22px;
+  }
+  .export-box h3{margin:0 0 4px 0;font-size:16px;}
+  .export-box p.sub{margin:0 0 16px 0;color:var(--muted);font-size:12.5px;}
+  .export-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+  .export-item{background:var(--panel-2);border:1px solid var(--line);border-radius:10px;overflow:hidden;}
+  .export-item img{width:100%;display:block;background:#111;}
+  .export-item .cap{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;}
+  .export-item .cap span{font-size:11.5px;color:var(--muted);}
+  .export-item .cap a{font-size:11px;color:var(--amber);text-decoration:none;font-weight:700;}
+  .export-actions{display:flex;gap:10px;margin-top:18px;}
+  .export-close{position:absolute;}
+  @media (max-width:720px){
+    .export-grid{grid-template-columns:1fr 1fr;}
+    #sidebar{width:300px;min-width:300px;}
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div id="sidebar">
+    <div class="brand">
+      <div class="mark">
+        <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
+          <rect x="2" y="2" width="22" height="22" rx="3" stroke="#c08552" stroke-width="2"/>
+          <circle cx="13" cy="13" r="6.2" stroke="#e8a33d" stroke-width="2"/>
+          <circle cx="13" cy="13" r="1.6" fill="#e8a33d"/>
+        </svg>
+        <div>
+          <h1>Bengkel Box</h1>
+        </div>
+      </div>
+      <p>Desainer box speaker 3D — ukuran nyata dalam milimeter, bukan simulasi kira-kira.</p>
+    </div>
+
+    <div class="section">
+      <h2>SATUAN UKURAN</h2>
+      <div class="unit-toggle">
+        <button id="unit-mm" class="active">MM</button>
+        <button id="unit-cm">CM</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>DIMENSI BOX (LUAR)</h2>
+      <div class="field">
+        <label>Panjang — P (kedalaman depan-belakang)</label>
+        <input type="number" id="dim-P" value="400" min="20" step="1">
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label>Lebar — L (kiri-kanan)</label>
+          <input type="number" id="dim-L" value="300" min="20" step="1">
+        </div>
+        <div class="field">
+          <label>Tinggi — T (atas-bawah)</label>
+          <input type="number" id="dim-T" value="250" min="20" step="1">
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>TEBAL TRIPLEK / MULTIPLEK</h2>
+      <div class="thick-chips" id="thick-chips">
+        <div class="chip" data-v="9">9mm</div>
+        <div class="chip" data-v="12">12mm</div>
+        <div class="chip active" data-v="15">15mm</div>
+        <div class="chip" data-v="18">18mm</div>
+        <div class="chip" data-v="25">25mm</div>
+      </div>
+      <div class="field">
+        <label>Atau ketebalan custom (mm)</label>
+        <input type="number" id="dim-th" value="15" min="3" max="60" step="0.5">
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>TAMBAH DRIVER SPEAKER</h2>
+      <div class="speaker-add">
+        <select id="spk-size"></select>
+        <select id="spk-panel">
+          <option value="front">Depan</option>
+          <option value="back">Belakang</option>
+          <option value="top">Atas</option>
+          <option value="bottom">Bawah</option>
+          <option value="left">Kiri</option>
+          <option value="right">Kanan</option>
+        </select>
+      </div>
+      <button class="btn primary" style="margin-top:8px" id="btn-add-spk">+ Tambah Speaker</button>
+    </div>
+
+    <div class="section" id="spk-list-section">
+      <h2>DAFTAR SPEAKER TERPASANG</h2>
+      <div id="spk-list"><div class="empty-note">Belum ada speaker. Tambahkan dari panel di atas.</div></div>
+    </div>
+
+    <div class="section">
+      <h2>RINGKASAN DESAIN</h2>
+      <div class="info-line"><span>Dimensi luar</span><b id="info-outer">—</b></div>
+      <div class="info-line"><span>Dimensi dalam (rongga)</span><b id="info-inner">—</b></div>
+      <div class="info-line"><span>Volume internal</span><b id="info-vol">—</b></div>
+      <div class="info-line"><span>Jumlah driver</span><b id="info-count">—</b></div>
+    </div>
+
+    <div class="section" style="border-bottom:none;">
+      <h2>EKSPOR DESAIN</h2>
+      <button class="btn ghost" id="btn-reset-view" style="margin-bottom:8px;">Reset Tampilan</button>
+      <button class="btn primary" id="btn-export">📸 Ambil Foto 3D (Semua Sudut)</button>
+    </div>
+  </div>
+
+  <div id="viewport">
+    <div id="canvas-host"></div>
+    <div class="hud hud-dims">
+      <div class="d-row"><span class="k">Panjang</span><span id="hud-P">—</span></div>
+      <div class="d-row"><span class="k">Lebar</span><span id="hud-L">—</span></div>
+      <div class="d-row"><span class="k">Tinggi</span><span id="hud-T">—</span></div>
+      <div class="d-row"><span class="k">Tebal</span><span id="hud-th">—</span></div>
+    </div>
+    <div class="hud hud-hint">Seret untuk memutar • Scroll untuk zoom</div>
+  </div>
+
+</div>
+
+<div id="export-modal">
+  <div class="export-box">
+    <h3>Foto 3D Desain</h3>
+    <p class="sub">Setiap sudut diambil sesuai ukuran box yang sedang kamu desain. Klik unduh pada tiap foto, atau unduh semua sekaligus.</p>
+    <div class="export-grid" id="export-grid"></div>
+    <div class="export-actions">
+      <button class="btn primary" id="btn-download-all">Unduh Semua Foto</button>
+      <button class="btn ghost" id="btn-close-export">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+
+  // ===================== DATA =====================
+  var SPEAKER_SIZES = [
+    {inch:"3",    label:'3"',    cutout:72},
+    {inch:"4",    label:'4"',    cutout:95},
+    {inch:"5",    label:'5"',    cutout:120},
+    {inch:"5.25", label:'5.25"', cutout:126},
+    {inch:"6",    label:'6"',    cutout:145},
+    {inch:"6.5",  label:'6.5"',  cutout:152},
+    {inch:"8",    label:'8"',    cutout:186},
+    {inch:"10",   label:'10"',   cutout:235},
+    {inch:"12",   label:'12"',   cutout:285},
+    {inch:"15",   label:'15"',   cutout:345},
+    {inch:"18",   label:'18"',   cutout:410},
+    {inch:"21",   label:'21"',   cutout:475}
+  ];
+  var PANEL_LABEL = {front:"Depan",back:"Belakang",top:"Atas",bottom:"Bawah",left:"Kiri",right:"Kanan"};
+
+  // ===================== STATE (semua mm) =====================
+  var state = {
+    unit: 'mm',
+    P: 400, L: 300, T: 250, th: 15,
+    speakers: [] // {id, inch, label, cutout(mm), panel, ox(mm), oy(mm), dia(mm)}
+  };
+  var nextId = 1;
+
+  function u2mm(v){ return state.unit==='mm' ? v : v*10; }
+  function mm2u(v){ return state.unit==='mm' ? v : v/10; }
+  function fmt(v){ return (Math.round(v*100)/100).toString(); }
+
+  // ===================== BUILD UI: speaker size dropdown =====================
+  var spkSizeSel = document.getElementById('spk-size');
+  SPEAKER_SIZES.forEach(function(s,i){
+    var o = document.createElement('option');
+    o.value = i; o.textContent = s.label + ' (lubang ~' + s.cutout + 'mm)';
+    spkSizeSel.appendChild(o);
+  });
+
+  // ===================== SIDEBAR: dimension inputs =====================
+  var $P = document.getElementById('dim-P');
+  var $L = document.getElementById('dim-L');
+  var $T = document.getElementById('dim-T');
+  var $th = document.getElementById('dim-th');
+
+  function refreshDimInputs(){
+    $P.value = fmt(mm2u(state.P));
+    $L.value = fmt(mm2u(state.L));
+    $T.value = fmt(mm2u(state.T));
+    $th.value = fmt(mm2u(state.th));
+  }
+  [$P,$L,$T].forEach(function(el,idx){
+    el.addEventListener('input', function(){
+      var key = ['P','L','T'][idx];
+      var v = parseFloat(el.value)||0;
+      state[key] = Math.max(20, u2mm(v));
+      rebuild();
+    });
+  });
+  $th.addEventListener('input', function(){
+    var v = parseFloat($th.value)||0;
+    state.th = Math.max(3, u2mm(v));
+    document.querySelectorAll('.chip').forEach(function(c){c.classList.remove('active');});
+    rebuild();
+  });
+  document.querySelectorAll('.chip').forEach(function(chip){
+    chip.addEventListener('click', function(){
+      document.querySelectorAll('.chip').forEach(function(c){c.classList.remove('active');});
+      chip.classList.add('active');
+      state.th = parseFloat(chip.getAttribute('data-v'));
+      refreshDimInputs();
+      rebuild();
+    });
+  });
+
+  document.getElementById('unit-mm').addEventListener('click', function(){ setUnit('mm'); });
+  document.getElementById('unit-cm').addEventListener('click', function(){ setUnit('cm'); });
+  function setUnit(u){
+    state.unit = u;
+    document.getElementById('unit-mm').classList.toggle('active', u==='mm');
+    document.getElementById('unit-cm').classList.toggle('active', u==='cm');
+    refreshDimInputs();
+    renderSpeakerList();
+    updateHUD();
+  }
+
+  // ===================== Speaker list logic =====================
+  document.getElementById('btn-add-spk').addEventListener('click', function(){
+    var idx = parseInt(spkSizeSel.value||0,10);
+    var s = SPEAKER_SIZES[idx];
+    var panel = document.getElementById('spk-panel').value;
+    state.speakers.push({
+      id: nextId++,
+      inch: s.inch, label: s.label, cutout: s.cutout,
+      panel: panel, ox: 0, oy: 0, dia: s.cutout
+    });
+    renderSpeakerList();
+    rebuild();
+  });
+
+  function axisLabels(panel){
+    if(panel==='front' || panel==='back') return {h:'Offset Kiri↔Kanan', v:'Offset Bawah↔Atas'};
+    if(panel==='top' || panel==='bottom') return {h:'Offset Kiri↔Kanan', v:'Offset Depan↔Belakang'};
+    return {h:'Offset Depan↔Belakang', v:'Offset Bawah↔Atas'};
+  }
+
+  function renderSpeakerList(){
+    var host = document.getElementById('spk-list');
+    if(state.speakers.length===0){
+      host.innerHTML = '<div class="empty-note">Belum ada speaker. Tambahkan dari panel di atas.</div>';
+      document.getElementById('info-count').textContent = '0';
+      return;
+    }
+    host.innerHTML = '';
+    state.speakers.forEach(function(sp, i){
+      var lbl = axisLabels(sp.panel);
+      var card = document.createElement('div');
+      card.className = 'spk-card';
+      card.innerHTML =
+        '<div class="spk-head">'+
+          '<span class="tag">#'+(i+1)+' — '+sp.label+' · '+PANEL_LABEL[sp.panel]+'</span>'+
+          '<button class="del" data-id="'+sp.id+'">✕</button>'+
+        '</div>'+
+        '<div class="row2">'+
+          '<div class="field" style="margin-bottom:6px;"><label>'+lbl.h+'</label>'+
+            '<input type="number" step="1" class="f-ox" data-id="'+sp.id+'" value="'+fmt(mm2u(sp.ox))+'"></div>'+
+          '<div class="field" style="margin-bottom:6px;"><label>'+lbl.v+'</label>'+
+            '<input type="number" step="1" class="f-oy" data-id="'+sp.id+'" value="'+fmt(mm2u(sp.oy))+'"></div>'+
+        '</div>'+
+        '<div class="field" style="margin-bottom:0;"><label>Diameter lubang potong</label>'+
+          '<input type="number" step="1" class="f-dia" data-id="'+sp.id+'" value="'+fmt(mm2u(sp.dia))+'"></div>'+
+        '<div class="hint">Offset dihitung dari titik tengah panel '+PANEL_LABEL[sp.panel].toLowerCase()+'.</div>';
+      host.appendChild(card);
+    });
+    document.getElementById('info-count').textContent = state.speakers.length;
+
+    host.querySelectorAll('.del').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var id = parseInt(btn.getAttribute('data-id'),10);
+        state.speakers = state.speakers.filter(function(s){return s.id!==id;});
+        renderSpeakerList(); rebuild();
+      });
+    });
+    host.querySelectorAll('.f-ox').forEach(function(inp){
+      inp.addEventListener('input', function(){
+        var id = parseInt(inp.getAttribute('data-id'),10);
+        var sp = state.speakers.find(function(s){return s.id===id;});
+        sp.ox = u2mm(parseFloat(inp.value)||0); rebuild();
+      });
+    });
+    host.querySelectorAll('.f-oy').forEach(function(inp){
+      inp.addEventListener('input', function(){
+        var id = parseInt(inp.getAttribute('data-id'),10);
+        var sp = state.speakers.find(function(s){return s.id===id;});
+        sp.oy = u2mm(parseFloat(inp.value)||0); rebuild();
+      });
+    });
+    host.querySelectorAll('.f-dia').forEach(function(inp){
+      inp.addEventListener('input', function(){
+        var id = parseInt(inp.getAttribute('data-id'),10);
+        var sp = state.speakers.find(function(s){return s.id===id;});
+        sp.dia = Math.max(10, u2mm(parseFloat(inp.value)||0)); rebuild();
+      });
+    });
+  }
+
+  // ===================== THREE.JS SETUP =====================
+  var host = document.getElementById('canvas-host');
+  var scene = new THREE.Scene();
+  var camera = new THREE.PerspectiveCamera(42, 1, 1, 5000);
+  var renderer = new THREE.WebGLRenderer({antialias:true, preserveDrawingBuffer:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, 2));
+  host.appendChild(renderer.domElement);
+
+  scene.add(new THREE.HemisphereLight(0xfff2e0, 0x201a12, 0.65));
+  var key = new THREE.DirectionalLight(0xfff4e6, 0.95);
+  key.position.set(1, 1.4, 1.2); scene.add(key);
+  var fill = new THREE.DirectionalLight(0xdce8ff, 0.35);
+  fill.position.set(-1.2, 0.5, -0.8); scene.add(fill);
+  var rim = new THREE.DirectionalLight(0xffe2b8, 0.4);
+  rim.position.set(-0.6, 1, -1.4); scene.add(rim);
+
+  var SCALE = 0.1; // 1 three.js unit = 10mm (1cm)
+  var boxGroup = new THREE.Group();
+  scene.add(boxGroup);
+  var grid = null;
+
+  // ---- orbit-style manual controls ----
+  var target = new THREE.Vector3(0,0,0);
+  var azimuth = Math.PI*0.28, polar = Math.PI*0.36, radius = 90;
+  var dragging=false, lastX=0, lastY=0;
+
+  function updateCamera(){
+    var p = Math.max(0.12, Math.min(Math.PI-0.12, polar));
+    camera.position.set(
+      target.x + radius*Math.sin(p)*Math.sin(azimuth),
+      target.y + radius*Math.cos(p),
+      target.z + radius*Math.sin(p)*Math.cos(azimuth)
+    );
+    camera.lookAt(target);
+  }
+  var canvasEl = renderer.domElement;
+  canvasEl.addEventListener('pointerdown', function(e){ dragging=true; lastX=e.clientX; lastY=e.clientY; canvasEl.setPointerCapture(e.pointerId); });
+  canvasEl.addEventListener('pointermove', function(e){
+    if(!dragging) return;
+    var dx = e.clientX-lastX, dy = e.clientY-lastY;
+    azimuth -= dx*0.007; polar -= dy*0.007;
+    lastX=e.clientX; lastY=e.clientY;
+    updateCamera();
+  });
+  window.addEventListener('pointerup', function(){ dragging=false; });
+  canvasEl.addEventListener('wheel', function(e){
+    e.preventDefault();
+    radius *= (1 + e.deltaY*0.001);
+    radius = Math.max(15, Math.min(600, radius));
+    updateCamera();
+  }, {passive:false});
+
+  document.getElementById('btn-reset-view').addEventListener('click', function(){
+    fitCameraToBox(); updateCamera();
+  });
+
+  function fitCameraToBox(){
+    var maxDim = Math.max(state.P, state.L, state.T) * SCALE;
+    radius = maxDim * 2.4;
+    azimuth = Math.PI*0.28; polar = Math.PI*0.36;
+  }
+
+  // ---- panel mesh builder ----
+  function makePanelMesh(w, h, th, holes, mat){
+    var shape = new THREE.Shape();
+    shape.moveTo(-w/2,-h/2); shape.lineTo(w/2,-h/2); shape.lineTo(w/2,h/2); shape.lineTo(-w/2,h/2); shape.closePath();
+    holes.forEach(function(hl){
+      var p = new THREE.Path();
+      p.absarc(hl.x, hl.y, hl.r, 0, Math.PI*2, false);
+      shape.holes.push(p);
+    });
+    var geo = new THREE.ExtrudeGeometry(shape, {depth: th, bevelEnabled:false, curveSegments:32});
+    return new THREE.Mesh(geo, mat);
+  }
+
+  function makeDriverGroup(radiusScene){
+    var g = new THREE.Group();
+    var basketMat = new THREE.MeshStandardMaterial({color:0x232323, roughness:0.6, metalness:0.3});
+    var coneMat = new THREE.MeshStandardMaterial({color:0x111111, roughness:0.8, metalness:0.1});
+    var basket = new THREE.Mesh(new THREE.CylinderGeometry(radiusScene*0.98, radiusScene, radiusScene*0.14, 32), basketMat);
+    basket.rotation.x = Math.PI/2;
+    basket.position.z = radiusScene*0.07;
+    var cone = new THREE.Mesh(new THREE.ConeGeometry(radiusScene*0.72, radiusScene*0.5, 32, 1, true), coneMat);
+    cone.rotation.x = -Math.PI/2;
+    cone.position.z = radiusScene*0.16;
+    var dust = new THREE.Mesh(new THREE.SphereGeometry(radiusScene*0.16,16,16, 0, Math.PI*2, 0, Math.PI/2), new THREE.MeshStandardMaterial({color:0x3a3a3a,roughness:0.5}));
+    dust.rotation.x = Math.PI;
+    dust.position.z = radiusScene*0.03;
+    g.add(basket); g.add(cone); g.add(dust);
+    return g;
+  }
+
+  function rebuild(){
+    while(boxGroup.children.length) boxGroup.remove(boxGroup.children[0]);
+
+    var P = state.P*SCALE, L = state.L*SCALE, T = state.T*SCALE, th = state.th*SCALE;
+    th = Math.min(th, Math.min(P,L,T)/2 - 0.05);
+
+    var woodMat = new THREE.MeshStandardMaterial({color:0xc08552, roughness:0.82, metalness:0.04});
+
+    function holesFor(panelKey){
+      return state.speakers.filter(function(s){return s.panel===panelKey;}).map(function(s){
+        return {x:(s.ox*SCALE), y:(s.oy*SCALE), r:(s.dia*SCALE)/2};
+      });
+    }
+
+    // FRONT
+    var front = makePanelMesh(L, T, th, holesFor('front'), woodMat);
+    front.position.set(0,0, P/2 - th);
+    boxGroup.add(front);
+    holesFor('front').forEach(function(h){
+      var d = makeDriverGroup(h.r);
+      d.position.set(h.x, h.y, P/2 + 0.02);
+      boxGroup.add(d);
+    });
+
+    // BACK
+    var back = makePanelMesh(L, T, th, holesFor('back'), woodMat);
+    back.rotation.y = Math.PI;
+    back.position.set(0,0, -P/2 + th);
+    boxGroup.add(back);
+    holesFor('back').forEach(function(h){
+      var d = makeDriverGroup(h.r);
+      d.position.set(-h.x, h.y, -P/2 - 0.02);
+      d.rotation.y = Math.PI;
+      boxGroup.add(d);
+    });
+
+    // TOP
+    var top = makePanelMesh(L, P-2*th, th, holesFor('top'), woodMat);
+    top.rotation.x = -Math.PI/2;
+    top.position.set(0, T/2 - th, 0);
+    boxGroup.add(top);
+
+    // BOTTOM
+    var bottom = makePanelMesh(L, P-2*th, th, holesFor('bottom'), woodMat);
+    bottom.rotation.x = Math.PI/2;
+    bottom.position.set(0, -T/2 + th, 0);
+    boxGroup.add(bottom);
+
+    // LEFT
+    var left = makePanelMesh(P-2*th, T-2*th, th, holesFor('left'), woodMat);
+    left.rotation.y = -Math.PI/2;
+    left.position.set(-L/2 + th, 0, 0);
+    boxGroup.add(left);
+
+    // RIGHT
+    var right = makePanelMesh(P-2*th, T-2*th, th, holesFor('right'), woodMat);
+    right.rotation.y = Math.PI/2;
+    right.position.set(L/2 - th, 0, 0);
+    boxGroup.add(right);
+
+    // ground reference grid
+    if(grid) scene.remove(grid);
+    var gsize = Math.max(P,L,T)*4;
+    grid = new THREE.GridHelper(gsize, 24, 0x4a4436, 0x2a271f);
+    grid.position.y = -T/2 - 0.02;
+    scene.add(grid);
+
+    updateHUD();
+    updateInfo();
+  }
+
+  function updateHUD(){
+    document.getElementById('hud-P').textContent = fmt(mm2u(state.P)) + ' ' + state.unit;
+    document.getElementById('hud-L').textContent = fmt(mm2u(state.L)) + ' ' + state.unit;
+    document.getElementById('hud-T').textContent = fmt(mm2u(state.T)) + ' ' + state.unit;
+    document.getElementById('hud-th').textContent = fmt(mm2u(state.th)) + ' ' + state.unit;
+  }
+
+  function updateInfo(){
+    document.getElementById('info-outer').textContent = fmt(mm2u(state.L))+' × '+fmt(mm2u(state.P))+' × '+fmt(mm2u(state.T))+' '+state.unit;
+    var iL = Math.max(0, state.L-2*state.th), iP = Math.max(0, state.P-2*state.th), iT = Math.max(0, state.T-2*state.th);
+    document.getElementById('info-inner').textContent = fmt(mm2u(iL))+' × '+fmt(mm2u(iP))+' × '+fmt(mm2u(iT))+' '+state.unit;
+    var literVol = (iL*iP*iT)/1000000;
+    document.getElementById('info-vol').textContent = fmt(literVol) + ' liter';
+  }
+
+  // ===================== RESIZE =====================
+  function resize(){
+    var w = host.clientWidth, h = host.clientHeight;
+    renderer.setSize(w, h, false);
+    camera.aspect = w/h;
+    camera.updateProjectionMatrix();
+  }
+  window.addEventListener('resize', resize);
+
+  // ===================== RENDER LOOP =====================
+  function loop(){
+    renderer.render(scene, camera);
+    requestAnimationFrame(loop);
+  }
+
+  // ===================== EXPORT =====================
+  var exportCam = new THREE.PerspectiveCamera(40, 4/3, 1, 5000);
+  function snapshot(w,h, pos, lookAt){
+    renderer.setSize(w,h,false);
+    exportCam.aspect = w/h; exportCam.updateProjectionMatrix();
+    exportCam.position.copy(pos);
+    exportCam.lookAt(lookAt);
+    renderer.render(scene, exportCam);
+    var data = renderer.domElement.toDataURL('image/png');
+    resize(); // restore normal viewport size for interactive camera
+    return data;
+  }
+
+  document.getElementById('btn-export').addEventListener('click', function(){
+    var P = state.P*SCALE, L = state.L*SCALE, T = state.T*SCALE;
+    var d = Math.max(P,L,T)*2.3;
+    var views = [
+      {name:'Perspektif 3D', pos:new THREE.Vector3(d*0.72,d*0.56,d*0.85)},
+      {name:'Tampak Depan',  pos:new THREE.Vector3(0,0,d)},
+      {name:'Tampak Belakang', pos:new THREE.Vector3(0,0,-d)},
+      {name:'Tampak Kiri', pos:new THREE.Vector3(-d,0,0)},
+      {name:'Tampak Kanan', pos:new THREE.Vector3(d,0,0)},
+      {name:'Tampak Atas', pos:new THREE.Vector3(0.001,d,0.001)}
+    ];
+    var target0 = new THREE.Vector3(0,0,0);
+    var grid_el = document.getElementById('export-grid');
+    grid_el.innerHTML = '';
+    var images = [];
+    views.forEach(function(v){
+      var data = snapshot(1024, 768, v.pos, target0);
+      images.push({name:v.name, data:data});
+      var item = document.createElement('div');
+      item.className = 'export-item';
+      item.innerHTML = '<img src="'+data+'"><div class="cap"><span>'+v.name+'</span><a download="box-speaker-'+v.name.replace(/\s+/g,'-').toLowerCase()+'.png" href="'+data+'">Unduh</a></div>';
+      grid_el.appendChild(item);
+    });
+    document.getElementById('export-modal').classList.add('show');
+
+    document.getElementById('btn-download-all').onclick = function(){
+      images.forEach(function(im, i){
+        setTimeout(function(){
+          var a = document.createElement('a');
+          a.href = im.data;
+          a.download = 'box-speaker-'+im.name.replace(/\s+/g,'-').toLowerCase()+'.png';
+          document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        }, i*250);
+      });
+    };
+  });
+  document.getElementById('btn-close-export').addEventListener('click', function(){
+    document.getElementById('export-modal').classList.remove('show');
+  });
+
+  // ===================== INIT =====================
+  refreshDimInputs();
+  renderSpeakerList();
+  resize();
+  fitCameraToBox();
+  updateCamera();
+  rebuild();
+  loop();
+
+})();
+</script>
+</body>
+</html>
