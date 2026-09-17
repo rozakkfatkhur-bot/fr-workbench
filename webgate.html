@@ -1468,8 +1468,53 @@
             flex-shrink: 0;
         }
         .leaderboard-row img {
-            width: 30px; height: 30px; border-radius: 50%; object-fit: cover;
+            width: 30px; height: 30px; border-radius: 50%; object-fit: cover; flex-shrink: 0;
         }
+
+        /* PODIUM TOP 3 PAPAN PERINGKAT */
+        .podium-row {
+            display: flex;
+            align-items: flex-end;
+            gap: 8px;
+            margin-bottom: 1rem;
+        }
+        .podium-slot {
+            flex: 1;
+            min-width: 0;
+            text-align: center;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 14px 14px 0 0;
+            padding: 1rem 0.5rem 0.8rem;
+            position: relative;
+        }
+        .podium-slot.empty { visibility: hidden; }
+        .podium-slot.rank-1 { padding-top: 1.4rem; border-color: var(--accent-gold); background: linear-gradient(180deg, rgba(229,168,35,0.15) 0%, var(--card-bg) 100%); }
+        .podium-slot.rank-2 { border-color: #94a3b8; }
+        .podium-slot.rank-3 { border-color: #c2703d; }
+        .podium-medal { font-size: 1.6rem; margin-bottom: 4px; }
+        .podium-slot.rank-1 .podium-medal { font-size: 2rem; }
+        .podium-avatar {
+            width: 52px; height: 52px; border-radius: 50%; object-fit: cover;
+            border: 2px solid var(--accent-gold); margin-bottom: 6px;
+        }
+        .podium-slot.rank-1 .podium-avatar { width: 66px; height: 66px; }
+        .podium-name {
+            font-size: 0.75rem; font-weight: 700; color: var(--text-main);
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .podium-points {
+            font-size: 0.7rem; color: var(--accent-gold); font-weight: 700; margin-top: 2px;
+        }
+        .podium-meta {
+            font-size: 0.62rem; color: var(--text-muted); margin-top: 1px;
+        }
+        .podium-bar {
+            height: 6px; margin-top: 8px; border-radius: 3px;
+            background: linear-gradient(90deg, var(--accent-gold), #c28b13);
+        }
+        .podium-slot.rank-2 .podium-bar { background: linear-gradient(90deg, #94a3b8, #64748b); height: 4px; }
+        .podium-slot.rank-3 .podium-bar { background: linear-gradient(90deg, #c2703d, #92501f); height: 4px; }
 
         .activity-feed-row {
             display: flex;
@@ -1713,6 +1758,63 @@
             display: flex;
         }
 
+        /* GELEMBUNG ASISTEN AI MENGAMBANG */
+        .ai-floating-bubble {
+            position: fixed;
+            bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+            right: calc(20px + env(safe-area-inset-right, 0px));
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-gold), #c28b13);
+            color: #06090e;
+            border: none;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+            font-size: 1.3rem;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 600;
+        }
+        .ai-floating-bubble.visible { display: flex; }
+        .ai-floating-bubble .notif-badge-count {
+            display: flex !important;
+            top: -2px; right: -2px;
+        }
+
+        .ai-bubble-panel {
+            position: fixed;
+            bottom: calc(136px + env(safe-area-inset-bottom, 0px));
+            right: calc(20px + env(safe-area-inset-right, 0px));
+            width: min(340px, calc(100vw - 40px));
+            height: min(460px, 60vh);
+            background: var(--modal-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            z-index: 601;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .ai-bubble-panel.open { display: flex; }
+        .ai-bubble-header {
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--card-border);
+            padding: 12px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 700;
+            color: var(--accent-gold);
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+        .ai-bubble-header button {
+            background: none; border: none; color: var(--text-sub); cursor: pointer; font-size: 0.9rem;
+        }
+
         /* MODE HEMAT DATA — sembunyikan foto/galeri berat untuk koneksi lambat */
         body.data-saver .preview-gallery-container,
         body.data-saver .comment-media-container,
@@ -1748,6 +1850,33 @@
         }
         @keyframes confetti-fall {
             to { transform: translateY(110vh) rotate(540deg); opacity: 0.2; }
+        }
+
+        /* TOAST PENGINGAT ISTIRAHAT MALAM */
+        .late-night-toast {
+            position: fixed;
+            bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+            left: 50%;
+            transform: translateX(-50%) translateY(30px);
+            width: calc(100% - 40px);
+            max-width: 380px;
+            background: var(--modal-bg);
+            border: 1px solid var(--accent-gold);
+            border-radius: 14px;
+            padding: 12px 14px;
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            z-index: 99996;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .late-night-toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+            pointer-events: auto;
         }
 
         /* SORT & SEARCH KOMENTAR */
@@ -2435,7 +2564,7 @@
             <div id="nextBadgeProgress"></div>
 
             <div class="section-header">
-                <i class="fa-solid fa-ranking-star"></i> Papan Peringkat (Top 10 Poin)
+                <i class="fa-solid fa-ranking-star"></i> Papan Peringkat — <span id="currentSeasonLabelPublic">Season 1</span>
             </div>
             <div id="leaderboardContainer">Memuat papan peringkat...</div>
 
@@ -2467,11 +2596,17 @@
             <div class="section-header"><i class="fa-solid fa-circle-question"></i> Kuis Audio Harian</div>
             <div class="comment-input-box" id="quizContainer">Memuat kuis...</div>
 
+            <div class="section-header"><i class="fa-solid fa-chalkboard-user"></i> Bantu Ajari Asisten FARO</div>
+            <div class="comment-input-box" style="background: linear-gradient(135deg, rgba(16,185,129,0.08) 0%, var(--card-bg) 100%);" id="teachAiContainer">Memuat...</div>
+
             <div class="section-header"><i class="fa-solid fa-book"></i> Glosarium Istilah Audio</div>
             <div class="search-bar-wrap">
                 <input type="text" id="glossarySearchInput" class="form-control" placeholder="Cari istilah (misal: gain, phantom power)..." oninput="renderGlossary()">
             </div>
             <div id="glossaryContainer"></div>
+
+            <div class="section-header"><i class="fa-solid fa-map"></i> Panduan Lengkap Portal FARO</div>
+            <div id="siteGuideContainer"></div>
         </div>
 
         <!-- TAB 6: ASISTEN FARO (AI Chatbot + Jembatan ke Admin) -->
@@ -2624,6 +2759,14 @@
                 </button>
                 <p style="font-size:0.72rem; color:var(--text-muted); margin-top:6px;">Sembunyikan foto & galeri untuk menghemat kuota di koneksi lambat.</p>
             </div>
+
+            <div class="form-group">
+                <label>Gelembung Asisten AI</label>
+                <button class="btn-primary btn-secondary" id="aiBubbleToggleBtn" onclick="toggleAiBubbleSetting()" style="display:flex; justify-content:center; align-items:center; gap:8px;">
+                    <i class="fa-solid fa-robot"></i> <span>Aktif/Nonaktifkan</span>
+                </button>
+                <p style="font-size:0.72rem; color:var(--text-muted); margin-top:6px;">Tampilkan gelembung Asisten FARO yang mengambang di semua halaman biar gampang ditanya kapan aja.</p>
+            </div>
         </div>
     </div>
 
@@ -2646,6 +2789,30 @@
 
     <!-- LAYER KONFETI PERAYAAN LENCANA -->
     <div id="confettiLayer"></div>
+
+    <!-- MODAL WAJIB UPLOAD FOTO PROFIL -->
+    <div class="modal-bg" id="mandatoryAvatarModal">
+        <div class="modal" style="text-align:center;">
+            <h3 style="color:var(--accent-gold); margin-bottom:8px;"><i class="fa-solid fa-camera-retro"></i> Lengkapi Foto Profil</h3>
+            <p style="font-size:0.82rem; color:var(--text-sub); margin-bottom:1rem;">Sebelum lanjut, unggah dulu foto profil pilihanmu sendiri ya — biar makin personal dan gampang dikenali di komunitas.</p>
+            <img id="mandatoryAvatarPreview" src="https://ui-avatars.com/api/?name=User&background=E5A823&color=000" style="width:90px; height:90px; border-radius:50%; object-fit:cover; border:2px solid var(--accent-gold); margin-bottom:1rem;">
+            <label for="mandatoryAvatarInput" class="btn-primary" style="cursor:pointer; display:block;">
+                <i class="fa-solid fa-upload"></i> Pilih Foto dari Galeri
+            </label>
+            <input type="file" id="mandatoryAvatarInput" accept="image/*" style="display:none;" onchange="handleMandatoryAvatarUpload(event)">
+            <button class="btn-primary" id="btnSaveMandatoryAvatar" onclick="saveMandatoryAvatar()" style="margin-top:10px;" disabled>Simpan & Lanjutkan</button>
+        </div>
+    </div>
+
+    <!-- TOAST PENGINGAT ISTIRAHAT MALAM (dari Asisten FARO) -->
+    <div id="lateNightReminderToast" class="late-night-toast">
+        <div class="ai-msg-avatar" style="width:36px; height:36px; flex-shrink:0;"><i class="fa-solid fa-robot"></i></div>
+        <div style="flex:1; min-width:0;">
+            <div style="font-weight:700; font-size:0.8rem; color:var(--accent-gold); margin-bottom:2px;">Asisten FARO</div>
+            <div id="lateNightReminderText" style="font-size:0.8rem; color:var(--text-main);"></div>
+        </div>
+        <button onclick="dismissLateNightReminder()" style="background:none; border:none; color:var(--text-muted); font-size:1.1rem; cursor:pointer; flex-shrink:0;">&times;</button>
+    </div>
 
     <!-- MODAL POPUP GATEWAY VIP -->
     <div class="modal-bg" id="vipAccessModal">
@@ -2901,6 +3068,14 @@
                     </div>
                     <button class="btn-primary" onclick="grantBadgeByAdmin()" style="background: linear-gradient(135deg, #ff007f 0%, #7928ca 100%);">Anugerahkan Lencana Ke Pengguna</button>
                 </div>
+
+                <div class="form-group" style="background: rgba(229,168,35,0.08); padding:12px; border-radius:10px; border:1px solid var(--accent-gold); margin-top:1.2rem;">
+                    <label style="color:var(--accent-gold);"><i class="fa-solid fa-trophy"></i> Manajemen Season — <span id="currentSeasonLabel">Season 1</span></label>
+                    <p style="font-size:0.74rem; color:var(--text-sub); margin:8px 0;">Mengakhiri Season akan mereset POIN semua pengguna (non-Admin) ke 0 supaya kompetisi tetap segar. Lencana, level, dan status VIP yang sudah dimiliki TIDAK akan hilang. Top 3 saat ini otomatis dapat lencana musiman permanen + bonus poin modal awal Season berikutnya sebagai kompensasi.</p>
+                    <button class="btn-primary btn-secondary" onclick="previewSeasonEnd()"><i class="fa-solid fa-eye"></i> Pratinjau Top 3 Saat Ini</button>
+                    <div id="seasonPreviewBox" style="margin:10px 0;"></div>
+                    <button class="btn-primary" onclick="endSeasonAndReward()" style="background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);"><i class="fa-solid fa-flag-checkered"></i> Akhiri Season & Mulai Season Baru</button>
+                </div>
             </div>
 
             <!-- ===== MODERASI ===== -->
@@ -2929,6 +3104,9 @@
                         <textarea id="aiTeachAnswer" class="form-control" rows="2" placeholder="Jawaban yang akan diberikan Asisten..."></textarea>
                     </div>
                     <button class="btn-primary" onclick="teachAiAnswer()">Simpan Jawaban Baru</button>
+
+                    <h4 style="font-size:0.85rem; margin:1rem 0 6px; color:#22c55e;">Jawaban Ajaran Pengguna (Perlu Ditinjau)</h4>
+                    <div id="aiUserTaughtList">Memuat...</div>
 
                     <h4 style="font-size:0.85rem; margin:1rem 0 6px; color:var(--accent-gold);">Pertanyaan Belum Terjawab (7 hari terakhir)</h4>
                     <div id="aiUnansweredList">Memuat...</div>
@@ -2989,6 +3167,25 @@
     <button id="backToTopBtn" onclick="window.scrollTo({top:0, behavior:'smooth'})" title="Kembali ke atas">
         <i class="fa-solid fa-arrow-up"></i>
     </button>
+
+    <!-- GELEMBUNG ASISTEN AI MENGAMBANG -->
+    <button id="aiFloatingBubble" class="ai-floating-bubble" onclick="toggleAiBubblePopup()" title="Asisten FARO">
+        <i class="fa-solid fa-robot"></i>
+        <span class="notif-badge-count" id="aiBubbleUnreadDot" style="display:none;"></span>
+    </button>
+
+    <div id="aiBubblePanel" class="ai-bubble-panel">
+        <div class="ai-bubble-header">
+            <span><i class="fa-solid fa-robot"></i> Asisten FARO</span>
+            <button onclick="toggleAiBubblePopup()"><i class="fa-solid fa-chevron-down"></i></button>
+        </div>
+        <div class="ai-chat-window" id="aiChatWindowBubble" style="height:auto; flex:1; border-radius:0;"></div>
+        <div class="ai-quick-questions" id="aiQuickQuestionsBubble" style="padding:6px 10px;"></div>
+        <div style="display:flex; gap:8px; padding:10px;">
+            <input type="text" id="aiChatInputBubble" class="form-control" placeholder="Tulis pesan..." onkeypress="if(event.key==='Enter'){sendAiMessageBubble();}">
+            <button class="btn-primary" style="width:auto; padding:0 16px;" onclick="sendAiMessageBubble()"><i class="fa-solid fa-paper-plane"></i></button>
+        </div>
+    </div>
 
     <!-- SECURE APP VIEWER ENGINE -->
     <div id="appViewer">
@@ -3063,6 +3260,27 @@
             { id: "b19", level: 19, name: "Duta Besar FARO", icon: "🏛️", reqType: "points", reqVal: 20000, desc: "Sangat sulit! Mengumpulkan 20.000 Poin Aktivitas berdedikasi.", benefit: "Akses Seluruh Web VIP Tanpa Batas", bgClass: "badge-vip" },
             { id: "b20", level: 20, name: "Kesayangan Admin", icon: "❤️", reqType: "admin_only", reqVal: 999999, desc: "SANGAT SUSAH & TIDAK BISA DITUKAR DENGAN VIP! Hanya diberikan oleh Admin bagi pengguna yang sangat berdedikasi aktif berkomentar, membantu bug, & antusias memakai web.", benefit: "Diskon VIP Fantastis + Seluruh Fitur VIP!", bgClass: "badge-custom badge-kesayangan" }
         ];
+
+        // --- LENCANA MUSIMAN (SEASON BADGES) ---
+        // Berbeda dari 20 lencana tetap di atas, lencana musiman dibuat DINAMIS oleh
+        // Admin tiap kali sebuah Season berakhir (lihat endSeasonAndReward()), lalu
+        // disimpan di Firebase supaya bisa dikenali & dirender di manapun lencana
+        // biasa dirender (profil, komentar, tab Lencana) — makanya semua kode yang
+        // dulu langsung memanggil SYSTEM_BADGES.find(...) diganti ke getBadgeDef(...)
+        // yang mengecek KEDUANYA (lencana tetap + lencana musiman).
+        let seasonBadgeDefs = {};
+        onValue(ref(db, 'seasonBadgeDefs'), (snapshot) => {
+            seasonBadgeDefs = snapshot.val() || {};
+            renderBadgesTab();
+        });
+
+        function getBadgeDef(id) {
+            return SYSTEM_BADGES.find(b => b.id === id) || seasonBadgeDefs[id] || null;
+        }
+
+        function getAllBadgeDefs() {
+            return [...SYSTEM_BADGES, ...Object.values(seasonBadgeDefs)];
+        }
 
         const initialDefaultAnno = {
             title: "Info Server & Portal VIP",
@@ -3276,49 +3494,84 @@
         let aiAskedInsightThisSession = false;
 
         window.initAiChat = function() {
-            if (aiChatHistory.length > 0) return; // sudah pernah dibuka sesi ini
-            const greeting = AI_GREETINGS[Math.floor(Math.random() * AI_GREETINGS.length)];
-            appendAiMessage('assistant', greeting);
-            renderAiQuickQuestions();
+            if (aiChatHistory.length === 0) {
+                const greeting = AI_GREETINGS[Math.floor(Math.random() * AI_GREETINGS.length)];
+                appendAiMessage('assistant', greeting);
+                renderAiQuickQuestions();
+                return;
+            }
+            // BUGFIX: kalau percakapan sudah dimulai duluan lewat gelembung (atau
+            // sebaliknya), jendela yang baru dibuka ini masih kosong — riwayatnya
+            // perlu diputar ulang ke sini juga supaya kedua tampilan tetap sinkron.
+            const tabWindow = document.getElementById('aiChatWindow');
+            if (tabWindow && tabWindow.children.length === 0) {
+                aiChatHistory.forEach(m => renderAiMessageRow(m.role, m.text, true));
+                renderAiQuickQuestions();
+            }
         };
 
         function renderAiQuickQuestions() {
-            const wrap = document.getElementById('aiQuickQuestions');
-            if (!wrap) return;
             const suggestions = ["Cara dapat VIP?", "Cara kumpulin poin?", "Mau lapor bug", "Usul fitur baru", "Apa itu phantom power?"];
-            wrap.innerHTML = suggestions.map(s => `<button class="ai-quick-chip" onclick="askQuickQuestion('${s.replace(/'/g, "\\'")}')">${escapeHtml(s)}</button>`).join('');
+            const html = suggestions.map(s => `<button class="ai-quick-chip" onclick="askQuickQuestion('${s.replace(/'/g, "\\'")}')">${escapeHtml(s)}</button>`).join('');
+            ['aiQuickQuestions', 'aiQuickQuestionsBubble'].forEach(id => {
+                const wrap = document.getElementById(id);
+                if (wrap) wrap.innerHTML = html;
+            });
         }
 
         window.askQuickQuestion = function(text) {
-            document.getElementById('aiChatInput').value = text;
+            const input = document.getElementById('aiChatInput');
+            if (input) input.value = text;
             sendAiMessage();
         };
 
+        // Menampilkan pesan ke SEMUA jendela chat yang sedang ada di DOM (tab Asisten
+        // & gelembung mengambang) sekaligus, supaya riwayatnya selalu sinkron di
+        // manapun pengguna membukanya.
         function appendAiMessage(role, html, isHtml) {
             aiChatHistory.push({ role, text: html });
-            const window_ = document.getElementById('aiChatWindow');
-            if (!window_) return;
-            const row = document.createElement('div');
-            row.className = `ai-msg-row ${role === 'user' ? 'from-user' : ''}`;
-            row.innerHTML = `
-                <div class="ai-msg-avatar"><i class="fa-solid ${role === 'user' ? 'fa-user' : 'fa-robot'}"></i></div>
-                <div class="ai-msg-bubble">${isHtml ? html : escapeHtml(html)}</div>
-            `;
-            window_.appendChild(row);
-            window_.scrollTop = window_.scrollHeight;
-            return row;
+            return renderAiMessageRow(role, html, isHtml);
+        }
+
+        function renderAiMessageRow(role, html, isHtml) {
+            const rows = [];
+            ['aiChatWindow', 'aiChatWindowBubble'].forEach(containerId => {
+                const container = document.getElementById(containerId);
+                if (!container) return;
+                const row = document.createElement('div');
+                row.className = `ai-msg-row ${role === 'user' ? 'from-user' : ''}`;
+                row.innerHTML = `
+                    <div class="ai-msg-avatar"><i class="fa-solid ${role === 'user' ? 'fa-user' : 'fa-robot'}"></i></div>
+                    <div class="ai-msg-bubble">${isHtml ? html : escapeHtml(html)}</div>
+                `;
+                container.appendChild(row);
+                container.scrollTop = container.scrollHeight;
+                rows.push(row);
+            });
+
+            // Kalau gelembung sedang tertutup saat ada balasan baru, tandai titik merah
+            const bubblePanel = document.getElementById('aiBubblePanel');
+            const dot = document.getElementById('aiBubbleUnreadDot');
+            if (role === 'assistant' && dot && bubblePanel && !bubblePanel.classList.contains('open')) {
+                dot.style.display = 'flex';
+            }
+
+            return rows;
         }
 
         function showAiTyping() {
-            const window_ = document.getElementById('aiChatWindow');
-            if (!window_) return null;
-            const row = document.createElement('div');
-            row.className = 'ai-msg-row';
-            row.id = 'aiTypingRow';
-            row.innerHTML = `<div class="ai-msg-avatar"><i class="fa-solid fa-robot"></i></div><div class="ai-msg-bubble"><span class="ai-msg-typing"><span></span><span></span><span></span></span></div>`;
-            window_.appendChild(row);
-            window_.scrollTop = window_.scrollHeight;
-            return row;
+            const rows = [];
+            ['aiChatWindow', 'aiChatWindowBubble'].forEach(containerId => {
+                const container = document.getElementById(containerId);
+                if (!container) return;
+                const row = document.createElement('div');
+                row.className = 'ai-msg-row ai-typing-row';
+                row.innerHTML = `<div class="ai-msg-avatar"><i class="fa-solid fa-robot"></i></div><div class="ai-msg-bubble"><span class="ai-msg-typing"><span></span><span></span><span></span></span></div>`;
+                container.appendChild(row);
+                container.scrollTop = container.scrollHeight;
+                rows.push(row);
+            });
+            return rows;
         }
 
         // Pencocokan berbasis kata kunci dengan normalisasi & sinonim — bukan model AI
@@ -3340,10 +3593,10 @@
             const glossaryHit = AUDIO_GLOSSARY.find(g => qLower.includes(g.term.toLowerCase()) || g.term.toLowerCase().split(/\s+/).some(w => w.length > 3 && qLower.includes(w)));
             if (glossaryHit) return { answer: `${glossaryHit.term}: ${glossaryHit.def}`, matched: true, source: 'glossary' };
 
-            // 3. Cek syarat lencana spesifik (nama lencana disebut langsung)
-            const badgeHit = SYSTEM_BADGES.find(b => qLower.includes(b.name.toLowerCase()));
+            // 3. Cek syarat lencana spesifik (nama lencana disebut langsung, termasuk musiman)
+            const badgeHit = getAllBadgeDefs().find(b => qLower.includes(b.name.toLowerCase()));
             if (badgeHit) {
-                const reqText = badgeHit.reqType === 'luck' ? `drop rate acak ${badgeHit.reqVal}%` : badgeHit.reqType === 'admin_only' ? 'pemberian khusus dari Admin' : `${badgeHit.reqVal} ${badgeHit.reqType}`;
+                const reqText = badgeHit.reqType === 'luck' ? `drop rate acak ${badgeHit.reqVal}%` : badgeHit.reqType === 'admin_only' || badgeHit.reqType === 'season' ? 'pemberian khusus dari Admin' : `${badgeHit.reqVal} ${badgeHit.reqType}`;
                 return { answer: `Lencana "${badgeHit.name}" ${badgeHit.icon} syaratnya: ${reqText}. Benefit-nya: ${badgeHit.benefit}.`, matched: true, source: 'badge' };
             }
 
@@ -3382,6 +3635,22 @@
             const text = input.value.trim();
             if (!text) return;
             input.value = '';
+            const bubbleInput = document.getElementById('aiChatInputBubble');
+            if (bubbleInput) bubbleInput.value = '';
+            processAiMessage(text);
+        };
+
+        window.sendAiMessageBubble = function() {
+            const input = document.getElementById('aiChatInputBubble');
+            const text = input.value.trim();
+            if (!text) return;
+            input.value = '';
+            const tabInput = document.getElementById('aiChatInput');
+            if (tabInput) tabInput.value = '';
+            processAiMessage(text);
+        };
+
+        function processAiMessage(text) {
             appendAiMessage('user', text);
 
             // Lanjutkan alur lapor ke Admin kalau sedang berjalan
@@ -3393,12 +3662,12 @@
             const reportIntent = detectReportIntent(text);
             if (reportIntent) {
                 aiReportFlow = { step: 1, category: reportIntent, title: '' };
+                showAiTyping();
                 setTimeout(() => {
                     hideAiTyping();
                     const label = reportIntent === 'bug' ? 'bug/masalah' : 'usulan fitur';
                     appendAiMessage('assistant', `Oke, aku bantu teruskan ${label} ini ke Admin. Judul singkatnya apa ya?`);
                 }, 600);
-                showAiTyping();
                 return;
             }
 
@@ -3413,23 +3682,67 @@
                     appendAiMessage('assistant', prefix + result.answer);
                 } else {
                     const fallback = AI_FALLBACK_PREFIXES[Math.floor(Math.random() * AI_FALLBACK_PREFIXES.length)];
-                    const row = appendAiMessage('assistant', `${fallback} Mau aku teruskan pertanyaan ini ke Admin biar dijawabin langsung?`);
-                    const btn = document.createElement('button');
-                    btn.className = 'ai-escalate-btn';
-                    btn.innerText = 'Ya, teruskan ke Admin';
-                    btn.onclick = () => escalateToAdmin(text);
-                    row.querySelector('.ai-msg-bubble').appendChild(document.createElement('br'));
-                    row.querySelector('.ai-msg-bubble').appendChild(btn);
+                    const rows = appendAiMessage('assistant', `${fallback} Mau aku teruskan pertanyaan ini ke Admin biar dijawabin langsung?`);
+                    rows.forEach(row => {
+                        const btn = document.createElement('button');
+                        btn.className = 'ai-escalate-btn';
+                        btn.innerText = 'Ya, teruskan ke Admin';
+                        btn.onclick = () => escalateToAdmin(text);
+                        const bubbleEl = row.querySelector('.ai-msg-bubble');
+                        bubbleEl.appendChild(document.createElement('br'));
+                        bubbleEl.appendChild(btn);
+                    });
                 }
 
                 maybeAskInsightQuestion();
             }, 700 + Math.random() * 500);
-        };
+        }
 
         function hideAiTyping() {
-            const row = document.getElementById('aiTypingRow');
-            if (row) row.remove();
+            document.querySelectorAll('.ai-typing-row').forEach(row => row.remove());
         }
+
+        // --- GELEMBUNG ASISTEN AI MENGAMBANG (aktif/nonaktif dari Pengaturan) ---
+        window.toggleAiBubbleSetting = function() {
+            const isOn = document.getElementById('aiBubbleToggleBtn').classList.toggle('active');
+            localStorage.setItem('faro_ai_bubble', isOn ? '1' : '0');
+            applyAiBubbleVisibility(isOn);
+        };
+
+        function applyAiBubbleVisibility(isOn) {
+            const bubble = document.getElementById('aiFloatingBubble');
+            if (bubble) bubble.classList.toggle('visible', isOn);
+            if (!isOn) {
+                document.getElementById('aiBubblePanel').classList.remove('open');
+            }
+        }
+
+        window.initAiBubbleSetting = function() {
+            const isOn = localStorage.getItem('faro_ai_bubble') !== '0'; // default AKTIF
+            const btn = document.getElementById('aiBubbleToggleBtn');
+            if (btn) btn.classList.toggle('active', isOn);
+            applyAiBubbleVisibility(isOn);
+        };
+
+        window.toggleAiBubblePopup = function() {
+            const panel = document.getElementById('aiBubblePanel');
+            const isOpening = !panel.classList.contains('open');
+            panel.classList.toggle('open');
+
+            if (isOpening) {
+                document.getElementById('aiBubbleUnreadDot').style.display = 'none';
+                if (aiChatHistory.length === 0) {
+                    initAiChat();
+                } else {
+                    // Salin ulang riwayat percakapan yang sudah ada ke jendela gelembung
+                    const bubbleWindow = document.getElementById('aiChatWindowBubble');
+                    if (bubbleWindow && bubbleWindow.children.length === 0) {
+                        aiChatHistory.forEach(m => renderAiMessageRow(m.role, m.text, true));
+                        renderAiQuickQuestions();
+                    }
+                }
+            }
+        };
 
         function continueReportFlow(text) {
             showAiTyping();
@@ -3495,6 +3808,135 @@
                 document.getElementById('aiTeachKeywords').value = '';
                 document.getElementById('aiTeachAnswer').value = '';
             });
+        };
+
+        // --- BANTU AJARI ASISTEN FARO (crowdsource dari pengguna, tab Wawasan) ---
+        // Asisten menemukan pertanyaan yang pernah gagal dijawab, lalu pengguna LAIN
+        // diminta membantu menjawabnya secara bebas (bukan pilihan ganda). Jawaban
+        // masuk antrian tinjauan Admin dulu sebelum resmi jadi pengetahuan Asisten —
+        // ini yang menjaga kualitas sekaligus memberi poin wajar (bukan berlebihan).
+        let currentTeachAiItem = null;
+
+        function renderTeachAiCard() {
+            const container = document.getElementById('teachAiContainer');
+            if (!container) return;
+
+            if (!userProfile) {
+                container.innerHTML = '<p style="font-size:0.82rem; color:var(--text-sub);">Masuk untuk membantu mengajari Asisten FARO dan dapat poin.</p>';
+                return;
+            }
+
+            container.innerHTML = '<p style="font-size:0.8rem; color:var(--text-muted);">Mencari pertanyaan yang butuh bantuan...</p>';
+
+            get(ref(db, 'aiChatLogs')).then(snapshot => {
+                if (!snapshot.exists()) {
+                    container.innerHTML = '<p style="font-size:0.82rem; color:var(--text-muted);">Belum ada pertanyaan yang perlu dibantu jawab. Asisten lagi pintar-pintarnya!</p>';
+                    return;
+                }
+                const data = snapshot.val();
+                const unanswered = Object.keys(data)
+                    .map(k => ({ id: k, ...data[k] }))
+                    .filter(log => !log.matched && log.userId !== userProfile.uid && log.question && log.question.length >= 5);
+
+                if (unanswered.length === 0) {
+                    container.innerHTML = '<p style="font-size:0.82rem; color:var(--text-muted);">Belum ada pertanyaan yang perlu dibantu jawab saat ini. Coba lagi nanti ya!</p>';
+                    return;
+                }
+
+                currentTeachAiItem = unanswered[Math.floor(Math.random() * unanswered.length)];
+                container.innerHTML = `
+                    <div class="teach-ai-card">
+                        <p style="font-size:0.78rem; color:var(--text-muted);">Ada pengguna lain pernah bertanya ke Asisten, tapi Asisten belum tahu jawabannya. Bisa bantu jawab pakai kata-katamu sendiri?</p>
+                        <div style="background:var(--input-bg); padding:10px; border-radius:8px; font-size:0.85rem; font-style:italic;">"${escapeHtml(currentTeachAiItem.question)}"</div>
+                        <textarea id="teachAiAnswerInput" class="form-control" rows="2" placeholder="Tulis jawabanmu di sini..."></textarea>
+                        <button class="btn-primary" onclick="submitAiTeaching()">Kirim Jawaban (+15 Poin)</button>
+                    </div>
+                `;
+            }).catch(() => {
+                container.innerHTML = '<p style="font-size:0.82rem; color:var(--text-muted);">Gagal memuat, coba lagi nanti.</p>';
+            });
+        }
+
+        window.submitAiTeaching = function() {
+            if (!requireLogin("Masuk untuk membantu mengajari Asisten FARO.")) return;
+            if (!currentTeachAiItem) return;
+            const answer = document.getElementById('teachAiAnswerInput').value.trim();
+            if (!answer) { alert('Tulis jawabannya dulu ya.'); return; }
+            if (answer.length < 10) { alert('Jawabannya kependekan, coba jelaskan sedikit lebih lengkap.'); return; }
+
+            const keywords = normalizeAiText(currentTeachAiItem.question).slice(0, 6);
+
+            push(ref(db, 'aiUserTaughtAnswers'), {
+                question: currentTeachAiItem.question,
+                answer,
+                keywords,
+                submittedBy: userProfile.uid,
+                submittedByName: userProfile.name,
+                status: 'pending',
+                createdAt: Date.now()
+            }).then(() => {
+                addActivityPoints(15, 'teachAi');
+                alert('Makasih udah bantu ngajarin Asisten FARO! +15 poin buat kamu. Jawabanmu ditinjau Admin dulu sebelum resmi dipakai.');
+                currentTeachAiItem = null;
+                renderTeachAiCard();
+            }).catch(() => alert('Gagal mengirim jawaban, coba lagi.'));
+        };
+
+        // --- ADMIN: TINJAU JAWABAN AJARAN PENGGUNA ---
+        function renderAiUserTaughtList() {
+            const container = document.getElementById('aiUserTaughtList');
+            if (!container) return;
+            get(ref(db, 'aiUserTaughtAnswers')).then(snapshot => {
+                if (!snapshot.exists()) {
+                    container.innerHTML = '<p style="font-size:0.76rem; color:var(--text-muted);">Belum ada jawaban dari pengguna yang perlu ditinjau.</p>';
+                    return;
+                }
+                const data = snapshot.val();
+                const pending = Object.keys(data)
+                    .map(k => ({ id: k, ...data[k] }))
+                    .filter(x => x.status === 'pending')
+                    .sort((a, b) => b.createdAt - a.createdAt);
+
+                if (pending.length === 0) {
+                    container.innerHTML = '<p style="font-size:0.76rem; color:var(--text-muted);">Tidak ada yang perlu ditinjau. Semua sudah diproses!</p>';
+                    return;
+                }
+
+                container.innerHTML = pending.map(item => `
+                    <div class="admin-item-row" style="flex-direction:column; align-items:stretch; gap:6px;">
+                        <div style="font-size:0.72rem; color:var(--text-muted);">Pertanyaan: "${escapeHtml(item.question)}"</div>
+                        <div style="font-size:0.8rem;">Jawaban dari <strong>${escapeHtml(item.submittedByName)}</strong>: "${escapeHtml(item.answer)}"</div>
+                        <div style="display:flex; gap:8px;">
+                            <button class="comment-action-btn" style="color:#22c55e;" onclick="approveAiTeaching('${item.id}')"><i class="fa-solid fa-check"></i> Setujui</button>
+                            <button class="comment-action-btn" style="color:#ef4444;" onclick="rejectAiTeaching('${item.id}')"><i class="fa-solid fa-xmark"></i> Tolak</button>
+                        </div>
+                    </div>
+                `).join('');
+            });
+        }
+
+        window.approveAiTeaching = function(id) {
+            get(ref(db, `aiUserTaughtAnswers/${id}`)).then(snap => {
+                if (!snap.exists()) return;
+                const item = snap.val();
+                push(ref(db, 'aiLearnedAnswers'), {
+                    keywords: item.keywords || [],
+                    answer: item.answer,
+                    addedAt: Date.now(),
+                    source: 'user',
+                    contributedBy: item.submittedByName || ''
+                }).then(() => {
+                    update(ref(db, `aiUserTaughtAnswers/${id}`), { status: 'approved' });
+                    if (item.submittedBy) {
+                        pushNotification(item.submittedBy, 'ai', 'Jawaban yang kamu ajarkan ke Asisten FARO sudah disetujui Admin! Makasih sudah membantu 🎉', 'fa-robot');
+                    }
+                    renderAiUserTaughtList();
+                });
+            });
+        };
+
+        window.rejectAiTeaching = function(id) {
+            update(ref(db, `aiUserTaughtAnswers/${id}`), { status: 'rejected' }).then(() => renderAiUserTaughtList());
         };
 
         function renderAiUnansweredList() {
@@ -3898,6 +4340,7 @@
                     userProfile.age = data.age || userProfile.age;
                     userProfile.referredBy = data.referredBy || userProfile.referredBy || null;
                     userProfile.pointsBySource = data.pointsBySource || userProfile.pointsBySource || {};
+                    userProfile.avatarUploaded = data.avatarUploaded || false;
                     if (isOwnerEmail && !userProfile.ownedBadges.includes("b20")) userProfile.ownedBadges.push("b20");
                 } else {
                     syncUserDataToFirebase();
@@ -3905,9 +4348,11 @@
                 updateProfileUI();
                 renderBadgesTab();
                 renderUI();
+                checkMandatoryAvatarUpload();
             });
 
             if (isOwnerEmail) syncUserDataToFirebase();
+            maybeShowLateNightReminder();
 
             // Listener Notifikasi Real-time
             const notifRef = ref(db, `notifications/${uid}`);
@@ -3951,8 +4396,14 @@
 
         function syncUserDataToFirebase() {
             if (!userProfile || !userProfile.uid) return;
+            // BUGFIX: field avatar sebelumnya tidak pernah ikut disimpan di node
+            // user_badges — padahal Papan Peringkat membaca foto profil dari situ,
+            // makanya foto di leaderboard tidak pernah muncul. Sekarang disertakan.
+            // activeTimeSeconds juga baru disertakan supaya Level pengguna lain bisa
+            // dihitung dari luar (dibutuhkan Papan Peringkat).
             set(ref(db, `user_badges/${userProfile.uid}`), {
                 name: userProfile.name,
+                avatar: userProfile.avatar || '',
                 points: userProfile.points || 0,
                 commentCount: userProfile.commentCount || 0,
                 complaintCount: userProfile.complaintCount || 0,
@@ -3961,7 +4412,9 @@
                 isAdmin: userProfile.isAdmin || false,
                 age: userProfile.age || "",
                 referredBy: userProfile.referredBy || null,
-                pointsBySource: userProfile.pointsBySource || {}
+                pointsBySource: userProfile.pointsBySource || {},
+                activeTimeSeconds: userProfile.activeTimeSeconds || 0,
+                avatarUploaded: userProfile.avatarUploaded || false
             });
         }
 
@@ -4564,7 +5017,7 @@
 
         window.claimOrUnlockBadge = function(badgeId) {
             if (!requireLogin("Masuk untuk mengklaim lencana Anda.")) return;
-            const badge = SYSTEM_BADGES.find(b => b.id === badgeId);
+            const badge = getBadgeDef(badgeId);
             if (!badge) return;
 
             if (userProfile.ownedBadges.includes(badgeId)) {
@@ -4574,6 +5027,11 @@
 
             if (badge.reqType === 'admin_only') {
                 alert("Lencana 'Kesayangan Admin' SANGAT SUSAH dan TIDAK BISA DITUKAR DENGAN POIN/VIP! Anda harus aktif berkontribusi, berkomentar, & membantu pengaduan agar Admin memberikan lencana ini secara khusus.");
+                return;
+            }
+
+            if (badge.reqType === 'season') {
+                alert(`Lencana "${badge.name}" adalah hadiah khusus akhir Season yang sudah lewat — hanya diberikan otomatis ke Top 3 saat itu, tidak bisa diklaim manual lagi.`);
                 return;
             }
 
@@ -5017,20 +5475,22 @@
             addActivityPoints(2, 'like');
         };
 
-        // Kembalikan hanya lencana level tertinggi (non-b20) + lencana Kesayangan Admin (b20)
-        // jika dimiliki, bukan seluruh koleksi lencana — supaya tampilan komentar rapi & jelas.
+        // Kembalikan lencana musiman (selalu, karena prestise) + lencana level
+        // tertinggi (non-b20) + lencana Kesayangan Admin (b20) jika dimiliki —
+        // bukan seluruh koleksi lencana, supaya tampilan komentar rapi & jelas.
         function getDisplayBadges(badgesArr) {
             if (!badgesArr || !Array.isArray(badgesArr)) return [];
-            const owned = badgesArr.map(id => SYSTEM_BADGES.find(b => b.id === id)).filter(Boolean);
-            const normal = owned.filter(b => b.id !== 'b20');
+            const owned = badgesArr.map(id => getBadgeDef(id)).filter(Boolean);
+            const seasonBadges = owned.filter(b => b.reqType === 'season');
+            const normal = owned.filter(b => b.id !== 'b20' && b.reqType !== 'season');
             const hasKesayangan = owned.some(b => b.id === 'b20');
-            let result = [];
+            let result = [...seasonBadges];
             if (normal.length > 0) {
                 const highest = normal.reduce((max, b) => (b.level > max.level ? b : max), normal[0]);
                 result.push(highest);
             }
             if (hasKesayangan) {
-                result.push(SYSTEM_BADGES.find(b => b.id === 'b20'));
+                result.push(getBadgeDef('b20'));
             }
             return result;
         }
@@ -5463,12 +5923,13 @@
             renderLeaderboard();
             renderNextBadgeProgress();
 
-            SYSTEM_BADGES.forEach(badge => {
+            function renderOneBadgeCard(badge) {
                 const isOwned = userProfile && (userProfile.ownedBadges || []).includes(badge.id);
                 const isKesayangan = badge.id === "b20";
+                const isSeason = badge.reqType === 'season';
 
                 const card = document.createElement('div');
-                card.className = `badge-card-item ${isOwned ? 'owned' : ''} ${isKesayangan ? 'special' : ''}`;
+                card.className = `badge-card-item ${isOwned ? 'owned' : ''} ${isKesayangan || isSeason ? 'special' : ''}`;
 
                 let statusBtnText = "Tukar Lencana";
                 let btnDisabled = false;
@@ -5479,13 +5940,15 @@
                 } else if (badge.reqType === 'admin_only') {
                     statusBtnText = "🔒 Khusus Admin";
                 } else if (badge.reqType === 'luck') {
-                    // BUGFIX: sebelumnya tombol lencana acak tetap berlabel "Tukar Lencana"
-                    // walau tidak bisa ditukar manual sama sekali.
                     statusBtnText = "🎲 Acak Otomatis";
+                } else if (isSeason) {
+                    statusBtnText = "🏆 Hadiah Season Lalu";
+                    btnDisabled = true;
                 }
 
                 const reqLabel = badge.reqType === 'luck' ? `Drop Rate ${badge.reqVal}%` :
                                   badge.reqType === 'admin_only' ? 'Pemberian Khusus Admin' :
+                                  isSeason ? 'Top 3 Season (sudah berakhir)' :
                                   `${badge.reqVal} ${badge.reqType.toUpperCase()}`;
 
                 card.innerHTML = `
@@ -5497,15 +5960,34 @@
                     <div class="badge-card-desc">${escapeHtml(badge.desc)}</div>
                     <div class="badge-card-benefit"><i class="fa-solid fa-gift"></i> ${escapeHtml(badge.benefit)}</div>
                     <div class="badge-req-tag">Syarat: ${reqLabel}</div>
-                    <button class="btn-primary ${isOwned ? 'btn-secondary' : ''}" style="margin-top:6px; font-size:0.75rem; padding:6px;" ${btnDisabled ? 'disabled' : ''} onclick="claimOrUnlockBadge('${badge.id}')">
+                    <button class="btn-primary ${isOwned || isSeason ? 'btn-secondary' : ''}" style="margin-top:6px; font-size:0.75rem; padding:6px;" ${btnDisabled ? 'disabled' : ''} onclick="claimOrUnlockBadge('${badge.id}')">
                         ${statusBtnText}
                     </button>
                 `;
                 container.appendChild(card);
-            });
+            }
+
+            SYSTEM_BADGES.forEach(renderOneBadgeCard);
+
+            // Lencana musiman (hadiah Top 3 akhir Season) — hanya muncul kalau
+            // sudah pernah ada Season yang diakhiri Admin.
+            const seasonBadgeList = Object.values(seasonBadgeDefs);
+            if (seasonBadgeList.length > 0) {
+                const seasonHeader = document.createElement('div');
+                seasonHeader.className = 'section-header';
+                seasonHeader.style.gridColumn = '1 / -1';
+                seasonHeader.innerHTML = '<i class="fa-solid fa-trophy"></i> Lencana Musiman (Hadiah Season Lalu)';
+                container.appendChild(seasonHeader);
+                seasonBadgeList.forEach(renderOneBadgeCard);
+            }
         }
 
         // --- PAPAN PERINGKAT (LEADERBOARD) ---
+        function calculateLevelFromSeconds(seconds) {
+            const totalHours = (seconds || 0) / 3600;
+            return Math.floor(totalHours / 168) + 1;
+        }
+
         function renderLeaderboard() {
             const container = document.getElementById('leaderboardContainer');
             if (!container) return;
@@ -5515,24 +5997,187 @@
                     return;
                 }
                 const data = snapshot.val();
-                const list = Object.keys(data).map(uid => ({ uid, ...data[uid] }))
-                    .sort((a, b) => (b.points || 0) - (a.points || 0))
+                // Peringkat dihitung dari kombinasi Poin + Level + jumlah Lencana (bukan
+                // poin doang) — Admin tidak diikutsertakan biar adil buat pengguna biasa.
+                const list = Object.keys(data)
+                    .map(uid => ({ uid, ...data[uid] }))
+                    .filter(u => !u.isAdmin)
+                    .map(u => {
+                        const level = calculateLevelFromSeconds(u.activeTimeSeconds);
+                        const badgeCount = (u.ownedBadges || []).length;
+                        const score = (u.points || 0) + (badgeCount * 75) + (level * 40);
+                        return { ...u, level, badgeCount, score };
+                    })
+                    .sort((a, b) => b.score - a.score)
                     .slice(0, 10);
 
-                container.innerHTML = list.map((u, idx) => `
+                if (list.length === 0) {
+                    container.innerHTML = '<p style="font-size:0.8rem; color:var(--text-muted);">Belum ada data peringkat.</p>';
+                    return;
+                }
+
+                const top3 = list.slice(0, 3);
+                const rest = list.slice(3);
+                const medals = ['🥇', '🥈', '🥉'];
+                const podiumOrder = [1, 0, 2]; // tampil: 2nd - 1st - 3rd, ala podium
+
+                let podiumHtml = '<p style="font-size:0.7rem; color:var(--text-muted); margin-bottom:8px;">Peringkat dihitung dari kombinasi Poin, Level & jumlah Lencana (Admin tidak diikutsertakan).</p><div class="podium-row">';
+                podiumOrder.forEach(idx => {
+                    const u = top3[idx];
+                    if (!u) { podiumHtml += '<div class="podium-slot empty"></div>'; return; }
+                    podiumHtml += `
+                        <div class="podium-slot rank-${idx + 1}">
+                            <div class="podium-medal">${medals[idx]}</div>
+                            <img src="${escapeAttr(u.avatar || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.name || 'User') + '&background=E5A823&color=000')}" alt="" class="podium-avatar">
+                            <div class="podium-name">${escapeHtml(u.name || 'Pengguna FARO')}</div>
+                            <div class="podium-points">${(u.points || 0).toLocaleString('id-ID')} Poin</div>
+                            <div class="podium-meta">Lvl ${u.level} · ${u.badgeCount} Lencana</div>
+                            <div class="podium-bar"></div>
+                        </div>
+                    `;
+                });
+                podiumHtml += '</div>';
+
+                let restHtml = rest.map((u, i) => `
                     <div class="leaderboard-row">
-                        <div class="leaderboard-rank">${idx + 1}</div>
-                        <img src="${escapeAttr(u.avatar || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.name || 'User'))}" alt="">
-                        <div style="flex:1;">
+                        <div class="leaderboard-rank">${i + 4}</div>
+                        <img src="${escapeAttr(u.avatar || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.name || 'User') + '&background=E5A823&color=000')}" alt="">
+                        <div style="flex:1; min-width:0;">
                             <div style="font-size:0.82rem; font-weight:700;">${escapeHtml(u.name || 'Pengguna FARO')}</div>
+                            <div style="font-size:0.68rem; color:var(--text-muted);">Lvl ${u.level} · ${u.badgeCount} Lencana</div>
                         </div>
                         <div style="color:var(--accent-gold); font-weight:700; font-size:0.82rem;">${(u.points || 0).toLocaleString('id-ID')} Poin</div>
                     </div>
-                `).join('') || '<p style="font-size:0.8rem; color:var(--text-muted);">Belum ada data peringkat.</p>';
+                `).join('');
+
+                container.innerHTML = podiumHtml + restHtml;
             }).catch(() => {
                 container.innerHTML = '<p style="font-size:0.8rem; color:var(--text-muted);">Gagal memuat papan peringkat.</p>';
             });
         }
+
+        // ==================== SISTEM SEASON (reset musim berkala) ====================
+        // Dipicu manual oleh Admin. Poin (yang dipakai untuk peringkat) di-reset ke 0
+        // untuk SEMUA pengguna non-Admin supaya kompetisi tetap segar — tapi lencana,
+        // level, dan status VIP yang sudah dimiliki TIDAK ikut hilang/berkurang, jadi
+        // member VIP tidak dirugikan sama sekali. Top 3 sebelum reset dapat lencana
+        // musiman eksklusif (permanen, tidak hilang lagi) + bonus poin awal season
+        // baru sebagai kompensasi — bukan diskon/akses VIP gratis, supaya ekonomi VIP
+        // Admin tidak ikut terganggu.
+        let currentSeasonNumber = 1;
+        onValue(ref(db, 'meta/currentSeason'), (snapshot) => {
+            currentSeasonNumber = snapshot.exists() ? snapshot.val() : 1;
+            ['currentSeasonLabel', 'currentSeasonLabelPublic'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.innerText = `Season ${currentSeasonNumber}`;
+            });
+        });
+
+        const SEASON_COMPENSATION = [500, 300, 150]; // poin awal season baru untuk peringkat 1, 2, 3
+
+        window.previewSeasonEnd = function() {
+            const box = document.getElementById('seasonPreviewBox');
+            if (box) box.innerHTML = 'Menghitung Top 3 saat ini...';
+
+            get(ref(db, 'user_badges')).then(snapshot => {
+                const data = snapshot.val() || {};
+                const list = Object.keys(data)
+                    .map(uid => ({ uid, ...data[uid] }))
+                    .filter(u => !u.isAdmin)
+                    .map(u => {
+                        const level = calculateLevelFromSeconds(u.activeTimeSeconds);
+                        const badgeCount = (u.ownedBadges || []).length;
+                        const score = (u.points || 0) + (badgeCount * 75) + (level * 40);
+                        return { ...u, level, badgeCount, score };
+                    })
+                    .sort((a, b) => b.score - a.score)
+                    .slice(0, 3);
+
+                if (!box) return;
+                if (list.length === 0) {
+                    box.innerHTML = '<p style="font-size:0.8rem; color:var(--text-muted);">Belum ada data pengguna untuk dihitung.</p>';
+                    return;
+                }
+                const medals = ['🥇', '🥈', '🥉'];
+                box.innerHTML = list.map((u, i) => `
+                    <div style="display:flex; align-items:center; gap:8px; padding:6px 0;">
+                        <span style="font-size:1.1rem;">${medals[i]}</span>
+                        <span style="flex:1; font-size:0.82rem;">${escapeHtml(u.name || 'Pengguna')}</span>
+                        <span style="font-size:0.75rem; color:var(--accent-gold);">Skor ${Math.round(u.score).toLocaleString('id-ID')}</span>
+                    </div>
+                `).join('') + `<p style="font-size:0.7rem; color:var(--text-muted); margin-top:6px;">Kalau Season diakhiri sekarang, Top 3 di atas dapat lencana musiman + bonus poin (${SEASON_COMPENSATION.join('/')}) untuk Season ${currentSeasonNumber + 1}.</p>`;
+            });
+        };
+
+        window.endSeasonAndReward = function() {
+            if (!userProfile || !userProfile.isAdmin) { alert("Hanya Admin yang bisa mengakhiri Season."); return; }
+            if (!confirm(`Yakin ingin mengakhiri Season ${currentSeasonNumber}? Poin SEMUA pengguna (non-Admin) akan direset ke 0, dan Top 3 akan dapat lencana musiman + bonus poin. Lencana & status VIP yang sudah dimiliki TIDAK akan hilang. Tindakan ini tidak bisa dibatalkan.`)) return;
+
+            get(ref(db, 'user_badges')).then(snapshot => {
+                const data = snapshot.val() || {};
+                const list = Object.keys(data)
+                    .map(uid => ({ uid, ...data[uid] }))
+                    .filter(u => !u.isAdmin)
+                    .map(u => {
+                        const level = calculateLevelFromSeconds(u.activeTimeSeconds);
+                        const badgeCount = (u.ownedBadges || []).length;
+                        const score = (u.points || 0) + (badgeCount * 75) + (level * 40);
+                        return { ...u, level, badgeCount, score };
+                    })
+                    .sort((a, b) => b.score - a.score);
+
+                const top3 = list.slice(0, 3);
+                const endedSeasonNum = currentSeasonNumber;
+                const newSeasonNum = currentSeasonNumber + 1;
+                const seasonLabels = [
+                    { suffix: 'champion', name: `Juara Season ${endedSeasonNum}`, icon: '🏆', bgClass: 'badge-custom badge-kesayangan' },
+                    { suffix: 'runnerup', name: `Runner-up Season ${endedSeasonNum}`, icon: '🥈', bgClass: 'badge-vip' },
+                    { suffix: 'third', name: `Peringkat 3 Season ${endedSeasonNum}`, icon: '🥉', bgClass: 'badge-vip' }
+                ];
+
+                const updates = {};
+                const seasonWinners = [];
+
+                // 1. Reset poin SEMUA pengguna non-Admin (lencana/level/VIP tidak disentuh)
+                list.forEach(u => {
+                    updates[`user_badges/${u.uid}/points`] = 0;
+                    updates[`user_badges/${u.uid}/pointsBySource`] = {};
+                });
+
+                // 2. Beri lencana musiman + kompensasi poin awal ke Top 3
+                top3.forEach((u, i) => {
+                    const badgeId = `s${endedSeasonNum}_${seasonLabels[i].suffix}`;
+                    updates[`seasonBadgeDefs/${badgeId}`] = {
+                        id: badgeId,
+                        level: 21 + i,
+                        name: seasonLabels[i].name,
+                        icon: seasonLabels[i].icon,
+                        reqType: 'season',
+                        reqVal: 0,
+                        desc: `Hadiah eksklusif untuk peringkat #${i + 1} di akhir Season ${endedSeasonNum}. Lencana permanen, tidak bisa didapat lagi setelah Season ini berakhir.`,
+                        benefit: `Bonus ${SEASON_COMPENSATION[i]} Poin awal Season ${newSeasonNum} + pengakuan permanen di profil`,
+                        bgClass: seasonLabels[i].bgClass
+                    };
+                    const newBadgeList = [...(u.ownedBadges || []), badgeId];
+                    updates[`user_badges/${u.uid}/ownedBadges`] = newBadgeList;
+                    updates[`user_badges/${u.uid}/points`] = SEASON_COMPENSATION[i]; // kompensasi jadi modal awal season baru
+                    seasonWinners.push({ uid: u.uid, name: u.name, avatar: u.avatar || '', score: u.score, rank: i + 1 });
+                });
+
+                // 3. Catat riwayat Season & majukan nomor Season
+                updates[`seasons/${endedSeasonNum}`] = { number: endedSeasonNum, endedAt: Date.now(), top3: seasonWinners };
+                updates[`meta/currentSeason`] = newSeasonNum;
+
+                update(ref(db), updates).then(() => {
+                    top3.forEach((u, i) => {
+                        pushNotification(u.uid, 'season', `Season ${endedSeasonNum} berakhir! Kamu finish di peringkat #${i + 1} 🎉 Dapat lencana musiman "${seasonLabels[i].name}" + ${SEASON_COMPENSATION[i]} poin modal awal Season ${newSeasonNum}.`, 'fa-trophy');
+                    });
+                    pushActivityFeed(`Season ${endedSeasonNum} telah berakhir! Selamat kepada Top 3 🏆 Season ${newSeasonNum} dimulai sekarang.`, 'fa-trophy');
+                    alert(`Season ${endedSeasonNum} berhasil diakhiri. Season ${newSeasonNum} dimulai! Top 3 sudah dapat lencana musiman & bonus poin.`);
+                    document.getElementById('seasonPreviewBox').innerHTML = '';
+                });
+            });
+        };
 
         // --- TIPS AUDIO HARIAN ---
         function renderDailyTip() {
@@ -5626,7 +6271,7 @@
             if (!userProfile) return;
             const targetInput = document.getElementById('adminGrantUserId').value.trim();
             const badgeId = document.getElementById('adminGrantBadgeSelect').value;
-            const badgeObj = SYSTEM_BADGES.find(b => b.id === badgeId);
+            const badgeObj = getBadgeDef(badgeId);
 
             if (!targetInput) {
                 alert("Masukkan UID Pengguna atau ketik 'diri saya' terlebih dahulu!");
@@ -5777,6 +6422,8 @@
                 renderSpinWheel();
                 renderWeeklyMissions();
                 renderPoll();
+                renderSiteGuide();
+                renderTeachAiCard();
             } else if (tabName === 'asisten') {
                 document.querySelectorAll('.tab-btn')[5].classList.add('active');
                 document.getElementById('tabAsisten').classList.add('active');
@@ -5916,7 +6563,7 @@
             if (badgesContainer) {
                 badgesContainer.innerHTML = '';
                 (userProfile.ownedBadges || []).forEach(bId => {
-                    const bObj = SYSTEM_BADGES.find(b => b.id === bId);
+                    const bObj = getBadgeDef(bId);
                     if (bObj) {
                         badgesContainer.innerHTML += `<span class="${bObj.bgClass}">${bObj.icon} ${escapeHtml(bObj.name)}</span>`;
                     }
@@ -6478,6 +7125,7 @@
                 try {
                     const compressed = await compressImage(evt.target.result, 400, 0.85);
                     userProfile.avatar = compressed;
+                    userProfile.avatarUploaded = true;
                     syncUserDataToFirebase();
                     update(ref(db, `users/${userProfile.uid}`), { avatar: compressed });
                     updateProfileUI();
@@ -6487,6 +7135,75 @@
                 }
             };
             reader.readAsDataURL(file);
+        };
+
+        // --- WAJIB UPLOAD FOTO PROFIL (sekali saja, saat pertama kali pakai akun) ---
+        let mandatoryAvatarPending = null;
+
+        function checkMandatoryAvatarUpload() {
+            if (!userProfile) return;
+            const modal = document.getElementById('mandatoryAvatarModal');
+            if (!modal) return;
+            if (!userProfile.avatarUploaded) {
+                modal.style.display = 'flex';
+            } else {
+                modal.style.display = 'none';
+            }
+        }
+
+        window.handleMandatoryAvatarUpload = function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = async function(evt) {
+                try {
+                    mandatoryAvatarPending = await compressImage(evt.target.result, 400, 0.85);
+                    document.getElementById('mandatoryAvatarPreview').src = mandatoryAvatarPending;
+                    document.getElementById('btnSaveMandatoryAvatar').disabled = false;
+                } catch (err) {
+                    alert("Gagal memproses foto. Coba foto lain.");
+                }
+            };
+            reader.readAsDataURL(file);
+        };
+
+        window.saveMandatoryAvatar = function() {
+            if (!userProfile || !mandatoryAvatarPending) return;
+            userProfile.avatar = mandatoryAvatarPending;
+            userProfile.avatarUploaded = true;
+            syncUserDataToFirebase();
+            update(ref(db, `users/${userProfile.uid}`), { avatar: mandatoryAvatarPending });
+            updateProfileUI();
+            document.getElementById('mandatoryAvatarModal').style.display = 'none';
+            mandatoryAvatarPending = null;
+        };
+
+        // --- PENGINGAT ISTIRAHAT MALAM (dari Asisten FARO, khusus non-Admin) ---
+        function maybeShowLateNightReminder() {
+            if (!userProfile || userProfile.isAdmin) return;
+            if (sessionStorage.getItem('faro_late_reminder_shown')) return;
+            const hour = new Date().getHours();
+            if (hour >= 22 || hour < 5) {
+                sessionStorage.setItem('faro_late_reminder_shown', '1');
+                const messages = [
+                    `Hai ${userProfile.name}, udah lewat jam 10 malam nih 🌙 Jangan lupa istirahat ya, kesehatan lebih penting dari main terus.`,
+                    `${userProfile.name}, malam sudah larut lho. Sempatkan istirahat ya biar besok tetap fit! 😴`,
+                    `Eh ${userProfile.name}, ini udah larut malam. Aku cuma mau ingetin — jangan lupa tidur ya! 🌙`
+                ];
+                const msg = messages[Math.floor(Math.random() * messages.length)];
+                setTimeout(() => {
+                    document.getElementById('lateNightReminderText').innerText = msg;
+                    const toast = document.getElementById('lateNightReminderToast');
+                    toast.style.display = 'flex';
+                    setTimeout(() => toast.classList.add('show'), 50);
+                    setTimeout(() => window.dismissLateNightReminder(), 12000);
+                }, 2000);
+            }
+        }
+
+        window.dismissLateNightReminder = function() {
+            const toast = document.getElementById('lateNightReminderToast');
+            toast.classList.remove('show');
         };
 
         // --- SISTEM FOLLOW (mengikuti pengguna lain, seperti TikTok/Instagram) ---
@@ -6592,6 +7309,7 @@
             renderReportedComments();
             renderAiUnansweredList();
             renderAiInsightsList();
+            renderAiUserTaughtList();
             document.getElementById('adminModal').style.display = 'flex';
             switchAdminSection('overview');
         }
@@ -6609,7 +7327,7 @@
             if (section === 'overview') renderAdminOverview();
             else if (section === 'modules') renderAdminLinkList();
             else if (section === 'moderation') { renderBgModerationList(); renderReportedComments(); }
-            else if (section === 'ai') { renderAiUnansweredList(); renderAiInsightsList(); }
+            else if (section === 'ai') { renderAiUnansweredList(); renderAiInsightsList(); renderAiUserTaughtList(); }
         };
 
         // --- STATISTIK RINGKASAN DASHBOARD (mirip overview YouTube Studio) ---
@@ -6822,6 +7540,7 @@
         initTheme();
         initDataSaver();
         initDensityMode();
+        initAiBubbleSetting();
         renderDailyTip();
         renderGlossary();
         renderQuiz();
