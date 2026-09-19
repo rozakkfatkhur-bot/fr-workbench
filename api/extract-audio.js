@@ -1,7 +1,6 @@
 // File: api/extract-audio.js
 
 export default async function handler(req, res) {
-  // 1. Set Header CORS Wajib untuk Web Audio API
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -10,43 +9,21 @@ export default async function handler(req, res) {
     'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
   );
 
-  // Handshake Preflight Browser
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
 
-  // 2. Handling Stream Proxy (GET)
-  if (req.method === 'GET') {
-    const { streamUrl } = req.query;
-    if (!streamUrl) return res.status(400).send('Stream URL tidak ditemukan.');
-
-    try {
-      const mediaResponse = await fetch(decodeURIComponent(streamUrl), {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
-        }
-      });
-
-      res.setHeader('Content-Type', mediaResponse.headers.get('content-type') || 'video/mp4');
-
-      const arrayBuffer = await mediaResponse.arrayBuffer();
-      return res.status(200).send(Buffer.from(arrayBuffer));
-    } catch (err) {
-      return res.status(500).send('Gagal melakukan streaming media.');
-    }
-  }
-
-  // 3. Handling Extract Link (POST)
   if (req.method === 'POST') {
     const { url } = req.body;
-    if (!url) return res.status(400).json({ error: 'URL YouTube wajib diisi.' });
+    if (!url) return res.status(400).json({ error: 'URL YouTube diperlukan' });
 
     try {
       const response = await fetch('https://api.cobalt.tools/api/json', {
         method: 'POST',
         headers: {
           'Accept': 'application/json',
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
         },
         body: JSON.stringify({
           url: url,
@@ -56,18 +33,46 @@ export default async function handler(req, res) {
       });
 
       const data = await response.json();
-      const directUrl = data.url || (data.picker && data.picker[0] ? data.picker[0].url : null);
+      console.log("Cobalt Raw Response:", data); // Intip respon asli di Log Vercel
 
-      if (!directUrl) {
-        return res.status(500).json({ error: 'Gagal mengekstrak URL dari Cobalt.' });
+      // Ekstrak URL baik dari data.url maupun data.picker
+      let directUrl = null;
+      if (data.url) {
+        directUrl = data.url;
+      } else if (data.picker && data.picker.length > 0) {
+        directUrl = data.picker[0].url;
       }
 
-      // Kirim URL yang sudah dibungkus proxy serverless kamu sendiri
+      if (!directUrl) {
+        return res.status(500).json({ 
+          error: 'Gagal ekstrak URL dari Cobalt', 
+          details: data 
+        });
+      }
+
+      // Bungkus ke proxy internal Vercel
       const proxiedStreamUrl = `/api/extract-audio?streamUrl=${encodeURIComponent(directUrl)}`;
       return res.status(200).json({ streamUrl: proxiedStreamUrl });
 
     } catch (error) {
-      return res.status(500).json({ error: 'Terjadi kesalahan pada server.', details: error.message });
+      console.error("Server Error:", error);
+      return res.status(500).json({ error: 'Terjadi kesalahan server', details: error.message });
+    }
+  }
+
+  // GET Handler untuk Proxy Streaming
+  if (req.method === 'GET') {
+    const { streamUrl } = req.query;
+    if (!streamUrl) return res.status(400).send('Stream URL tidak ada');
+
+    try {
+      const mediaResponse = await fetch(decodeURIComponent(streamUrl));
+      res.setHeader('Content-Type', mediaResponse.headers.get('content-type') || 'video/mp4');
+      
+      const arrayBuffer = await mediaResponse.arrayBuffer();
+      return res.status(200).send(Buffer.from(arrayBuffer));
+    } catch (err) {
+      return res.status(500).send('Proxy streaming gagal');
     }
   }
 
