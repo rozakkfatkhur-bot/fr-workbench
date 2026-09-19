@@ -250,21 +250,7 @@
 
   const audioElement = document.getElementById('ytAudioPlayer');
 
-  // 1. Helper Sanitasi Link YouTube
-  function cleanYouTubeUrl(url) {
-    if (!url) return '';
-    
-    // Extract Video ID dari berbagai format URL (youtu.be, embed, watch?v=, dll)
-    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-    const match = url.match(regExp);
-
-    if (match && match[2].length === 11) {
-      return `https://www.youtube.com/watch?v=${match[2]}`;
-    }
-    return url;
-  }
-
-  // 2. Inisialisasi Audio Processing (DSP Node)
+  // 1. Inisialisasi Audio Processing (DSP Node)
   function initAudioDSP() {
     if (isDSPConnected) return;
 
@@ -298,53 +284,81 @@
     console.log("Web Audio API DSP successfully connected.");
   }
 
-  // 3. Load & Stream Audio dari YouTube API
+  // 2. Ekstrak Stream Audio Client-Side via Piped API
   async function loadYouTubeAudio(youtubeUrl) {
     try {
-      const cleanedUrl = cleanYouTubeUrl(youtubeUrl);
-      console.log("Loading Cleaned URL:", cleanedUrl);
+      // 1. Ekstrak Video ID
+      const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+      const match = youtubeUrl.match(regExp);
+      const videoId = (match && match[2].length === 11) ? match[2] : null;
 
-      const response = await fetch('/api/extract-audio', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: cleanedUrl })
-      });
-
-      const data = await response.json();
-
-      if (data.streamUrl) {
-        audioElement.crossOrigin = "anonymous";
-        audioElement.src = data.streamUrl;
-
-        if (!isDSPConnected) {
-          initAudioDSP();
-        }
-
-        if (audioCtx && audioCtx.state === 'suspended') {
-          await audioCtx.resume();
-        }
-
-        updateDSP(); // Terapkan parameter EQ/Gain yang sedang aktif
-        await audioElement.play();
-      } else {
-        console.error("Backend Error Detail:", data);
-        alert(`Gagal ekstrak: ${data.error || 'Stream URL tidak ditemukan'}`);
+      if (!videoId) {
+        alert("Link YouTube tidak valid!");
+        return;
       }
+
+      // 2. Panggil API Piped langsung dari Client/Browser (Bypass Blokir IP Vercel)
+      const instances = [
+        `https://pipedapi.kavin.rocks/streams/${videoId}`,
+        `https://api.piped.private.coffee/streams/${videoId}`,
+        `https://pipedapi.mha.fi/streams/${videoId}`
+      ];
+
+      let directStreamUrl = null;
+
+      for (const endpoint of instances) {
+        try {
+          const res = await fetch(endpoint);
+          if (res.ok) {
+            const data = await res.json();
+            // Cari audio stream dengan format mp4/m4a/webm
+            const stream = data.audioStreams.find(s => s.mimeType.includes('mp4') || s.mimeType.includes('webm')) 
+                         || data.audioStreams[0];
+            
+            if (stream && stream.url) {
+              directStreamUrl = stream.url;
+              break;
+            }
+          }
+        } catch (e) {
+          continue;
+        }
+      }
+
+      if (!directStreamUrl) {
+        alert("Gagal mengambil stream, coba link lagu lain.");
+        return;
+      }
+
+      // 3. Putar di Player & Hubungkan ke DSP Web DLMS
+      audioElement.crossOrigin = "anonymous";
+      audioElement.src = directStreamUrl;
+
+      if (!isDSPConnected) {
+        initAudioDSP();
+      }
+
+      if (audioCtx && audioCtx.state === 'suspended') {
+        await audioCtx.resume();
+      }
+
+      updateDSP(); // Terapkan parameter fader EQ & Gain saat ini
+      await audioElement.play();
+
     } catch (err) {
-      console.error("Error connection:", err);
-      alert("Terjadi kesalahan koneksi ke server.");
+      console.error("Error Client Stream:", err);
+      alert("Terjadi kesalahan saat memuat audio.");
     }
   }
 
-  // 4. Kontrol Playlist & Playback
+  // 3. Kontrol Playlist & Playback
   function tambahKePlaylist() {
     const input = document.getElementById('ytUrlInput');
     const rawUrl = input.value.trim();
 
     if (!rawUrl) return;
 
-    const cleanedUrl = cleanYouTubeUrl(rawUrl);
-    playlist.push(cleanedUrl);
+    playlist.push(rawUrl);
     input.value = '';
     renderPlaylist();
 
@@ -360,7 +374,7 @@
     playlist.forEach((url, index) => {
       const li = document.createElement('li');
       li.className = index === currentIndex ? 'active' : '';
-      li.innerHTML = `<span>Track #${index + 1}</span> <small>${url.substring(0, 30)}...</small>`;
+      li.innerHTML = `<span>Track #${index + 1}</span> <small>${url.substring(0, 28)}...</small>`;
       li.onclick = () => playTrack(index);
       ul.appendChild(li);
     });
@@ -404,14 +418,14 @@
     nextTrack();
   };
 
-  // 5. Update Parameter DSP Real-time
+  // 4. Update Parameter DSP Real-time
   function updateDSP() {
     const lowVal = parseFloat(document.getElementById('eqLow').value);
     const midVal = parseFloat(document.getElementById('eqMid').value);
     const highVal = parseFloat(document.getElementById('eqHigh').value);
     const gainVal = parseFloat(document.getElementById('masterGain').value);
 
-    // Update Label UI
+    // Update Display Label UI
     document.getElementById('valLow').innerText = lowVal + " dB";
     document.getElementById('valMid').innerText = midVal + " dB";
     document.getElementById('valHigh').innerText = highVal + " dB";
@@ -419,7 +433,7 @@
     const dBGain = gainVal === 0 ? "-∞" : (20 * Math.log10(gainVal)).toFixed(1);
     document.getElementById('valGain').innerText = dBGain + " dB";
 
-    // Terapkan ke Web Audio Node
+    // Terapkan ke BiquadFilterNode & GainNode
     if (isDSPConnected) {
       lowFilter.gain.value = lowVal;
       midFilter.gain.value = midVal;
