@@ -1,1440 +1,412 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FR AUDIO DLMS Processing Matrix v300++ OMEGA PRO ULTRA</title>
-    <style>
-        :root {
-            --bg-dark: #0f111a;
-            --panel-bg: #1a1d29;
-            --panel-border: #2a2f45;
-            --accent-green: #00ff88;
-            --accent-blue: #00d9ff;
-            --accent-yellow: #ffb700;
-            --accent-red: #ff3366;
-            --text-main: #e2e8f0;
-            --text-dim: #8a94a6;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            user-select: none;
-        }
-
-        body {
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            padding: 10px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            min-height: 100vh;
-        }
-
-        header {
-            background: linear-gradient(180deg, #242938 0%, #171a24 100%);
-            border: 1px solid var(--panel-border);
-            border-radius: 6px;
-            padding: 8px 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-            flex-shrink: 0;
-        }
-
-        .brand-title h1 {
-            font-size: 1.1rem;
-            color: #fff;
-            letter-spacing: 1px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .brand-title h1 span {
-            color: var(--accent-blue);
-            font-size: 0.7rem;
-            background: rgba(0, 217, 255, 0.1);
-            padding: 2px 6px;
-            border-radius: 4px;
-            border: 1px solid var(--accent-blue);
-        }
-
-        .master-controls {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-
-        .btn {
-            background: #252a3a;
-            color: var(--text-main);
-            border: 1px solid var(--panel-border);
-            padding: 6px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.75rem;
-            transition: all 0.2s ease;
-        }
-
-        .btn:hover {
-            background: #32384e;
-            border-color: var(--accent-blue);
-        }
-
-        .btn-panic {
-            background: rgba(255, 51, 102, 0.2);
-            color: var(--accent-red);
-            border-color: var(--accent-red);
-        }
-
-        .btn-panic:hover, .btn-panic.active {
-            background: var(--accent-red);
-            color: #fff;
-            box-shadow: 0 0 15px rgba(255, 51, 102, 0.5);
-        }
-
-        .btn-active {
-            background: var(--accent-green) !important;
-            color: #000 !important;
-        }
-
-        .main-grid {
-            display: grid;
-            grid-template-columns: 320px 1fr;
-            gap: 10px;
-            flex: 1;
-        }
-
-        .panel {
-            background: var(--panel-bg);
-            border: 1px solid var(--panel-border);
-            border-radius: 6px;
-            padding: 10px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            overflow: hidden;
-        }
-
-        .panel-title {
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--accent-blue);
-            border-bottom: 1px solid var(--panel-border);
-            padding-bottom: 4px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .input-selector-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .control-group {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        label {
-            font-size: 0.65rem;
-            color: var(--text-dim);
-            text-transform: uppercase;
-        }
-
-        select, input[type="file"], input[type="text"] {
-            background: #12141d;
-            border: 1px solid var(--panel-border);
-            color: var(--text-main);
-            padding: 5px;
-            border-radius: 4px;
-            outline: none;
-            width: 100%;
-            font-size: 0.75rem;
-        }
-
-        /* Direct Input Box Styles */
-        .num-input-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 2px;
-            background: #0d0e14;
-            border: 1px solid var(--panel-border);
-            border-radius: 3px;
-            padding: 1px 4px;
-            width: 78px;
-            flex-shrink: 0;
-        }
-
-        .num-input-wrapper input[type="number"] {
-            width: 100%;
-            background: transparent;
-            border: none;
-            color: var(--accent-yellow);
-            font-family: monospace;
-            font-size: 0.68rem;
-            text-align: right;
-            outline: none;
-            -moz-appearance: textfield;
-        }
-
-        .num-input-wrapper input[type="number"]::-webkit-outer-spin-button,
-        .num-input-wrapper input[type="number"]::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-
-        .num-input-wrapper span {
-            font-size: 0.55rem;
-            color: var(--text-dim);
-            font-family: monospace;
-        }
-
-        .media-display-container {
-            position: relative;
-            width: 100%;
-            height: 110px;
-            background: #000;
-            border: 1px solid var(--panel-border);
-            border-radius: 4px;
-            overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        #video-player, #yt-iframe {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-        }
-
-        .display-placeholder {
-            color: var(--text-dim);
-            font-size: 0.7rem;
-            text-align: center;
-            padding: 6px;
-        }
-
-        .transport-deck {
-            background: #12141d;
-            border: 1px solid var(--panel-border);
-            border-radius: 4px;
-            padding: 6px;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .transport-buttons {
-            display: flex;
-            justify-content: space-between;
-            gap: 4px;
-        }
-
-        .btn-transport {
-            flex: 1;
-            padding: 4px;
-            font-size: 0.65rem;
-            background: #1e2333;
-            border: 1px solid var(--panel-border);
-            color: var(--text-main);
-            border-radius: 3px;
-            cursor: pointer;
-            text-align: center;
-        }
-
-        .btn-transport:hover {
-            border-color: var(--accent-blue);
-            color: var(--accent-blue);
-        }
-
-        .playlist-box {
-            max-height: 70px;
-            overflow-y: auto;
-            background: #0a0b10;
-            border: 1px solid var(--panel-border);
-            border-radius: 4px;
-            padding: 4px;
-        }
-
-        .playlist-item {
-            font-size: 0.65rem;
-            padding: 2px 4px;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            cursor: pointer;
-            color: var(--text-dim);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .playlist-item:hover, .playlist-item.active {
-            color: var(--accent-green);
-            background: rgba(0, 255, 136, 0.1);
-        }
-
-        .visualizer-container {
-            position: relative;
-            width: 100%;
-            height: 140px;
-            background: #0a0b10;
-            border: 1px solid var(--panel-border);
-            border-radius: 4px;
-            overflow: hidden;
-        }
-
-        canvas {
-            width: 100%;
-            height: 100%;
-        }
-
-        .channels-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            flex: 1;
-        }
-
-        .channel-card {
-            background: #141722;
-            border: 1px solid var(--panel-border);
-            border-radius: 4px;
-            padding: 8px;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .channel-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-weight: bold;
-            font-size: 0.75rem;
-            padding-bottom: 4px;
-            border-bottom: 1px solid var(--panel-border);
-        }
-
-        .channel-header.ch-l { color: var(--accent-green); }
-        .channel-header.ch-r { color: var(--accent-blue); }
-
-        .dsp-module {
-            background: #1a1d29;
-            padding: 4px 6px;
-            border-radius: 4px;
-            border: 1px solid rgba(255,255,255,0.03);
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-
-        .dsp-module-title {
-            font-size: 0.6rem;
-            color: var(--text-dim);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .slider-row {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        input[type="range"] {
-            flex: 1;
-            height: 4px;
-            accent-color: var(--accent-blue);
-            cursor: pointer;
-        }
-
-        .module-vu-wrapper {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-            padding: 2px 4px;
-            background: #0d0f17;
-            border-radius: 3px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .vu-row {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .vu-label {
-            font-size: 0.55rem;
-            font-weight: bold;
-            width: 10px;
-            font-family: monospace;
-        }
-
-        .vu-label.l { color: var(--accent-green); }
-        .vu-label.r { color: var(--accent-blue); }
-
-        .meter-bar-container {
-            flex: 1;
-            height: 4px;
-            background: #050608;
-            border-radius: 2px;
-            overflow: hidden;
-            border: 1px solid #1f2433;
-            position: relative;
-        }
-
-        .meter-bar-fill {
-            height: 100%;
-            width: 0%;
-            background: linear-gradient(90deg, var(--accent-green) 60%, var(--accent-yellow) 85%, var(--accent-red) 100%);
-            transition: width 0.04s ease;
-        }
-
-        .gr-bar-fill {
-            height: 100%;
-            width: 0%;
-            background: var(--accent-red);
-            transition: width 0.04s ease;
-        }
-
-        .matrix-toggle-group {
-            display: flex;
-            gap: 4px;
-            flex-wrap: wrap;
-        }
-
-        .matrix-btn {
-            font-size: 0.6rem;
-            padding: 2px 4px;
-            border-radius: 3px;
-            border: 1px solid var(--panel-border);
-            background: #10121a;
-            color: var(--text-dim);
-            cursor: pointer;
-        }
-
-        .matrix-btn.active {
-            background: var(--accent-blue);
-            color: #000;
-            border-color: var(--accent-blue);
-        }
-
-        .rta-legend {
-            position: absolute;
-            top: 4px;
-            right: 4px;
-            display: flex;
-            gap: 8px;
-            background: rgba(10, 11, 16, 0.8);
-            padding: 2px 6px;
-            border-radius: 3px;
-            border: 1px solid var(--panel-border);
-            font-size: 0.55rem;
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 3px;
-        }
-
-        .legend-box {
-            width: 8px;
-            height: 8px;
-            border-radius: 2px;
-        }
-
-        @media (max-width: 1024px) {
-            .main-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        @media (orientation: landscape) and (max-height: 500px) {
-            body {
-                padding: 4px;
-                gap: 4px;
-                height: 100vh;
-                overflow: hidden;
-            }
-
-            header {
-                padding: 3px 8px;
-            }
-
-            header h1 {
-                font-size: 0.85rem;
-            }
-
-            .main-grid {
-                grid-template-columns: 240px 1fr;
-                gap: 6px;
-                height: calc(100vh - 45px);
-            }
-
-            .panel {
-                padding: 6px;
-                gap: 4px;
-            }
-
-            .media-display-container {
-                height: 60px;
-            }
-
-            .visualizer-container {
-                height: 80px;
-            }
-
-            .playlist-box {
-                max-height: 40px;
-            }
-
-            .dsp-module {
-                padding: 2px 4px;
-                gap: 1px;
-            }
-
-            .channels-container {
-                gap: 4px;
-            }
-
-            .channel-card {
-                padding: 4px;
-                gap: 3px;
-            }
-
-            select, input[type="file"], input[type="text"], .btn {
-                padding: 2px 4px;
-                font-size: 0.65rem;
-            }
-
-            .btn-transport {
-                padding: 2px;
-                font-size: 0.55rem;
-            }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Web DLMS - YouTube Audio DSP Processor</title>
+  <style>
+    :root {
+      --bg-dark: #12181b;
+      --panel-bg: #1e262c;
+      --accent-green: #00e676;
+      --accent-blue: #00e5ff;
+      --text-color: #e0e6ed;
+      --border-color: #2a353d;
+    }
+
+    body {
+      margin: 0;
+      padding: 20px;
+      background-color: var(--bg-dark);
+      color: var(--text-color);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .dlms-container {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .panel {
+      background: var(--panel-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    }
+
+    h2, h3 {
+      margin-top: 0;
+      color: var(--accent-green);
+      font-size: 1.1rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* Video Player & Playlist Section */
+    .video-container {
+      width: 100%;
+      background: #000;
+      border-radius: 6px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+
+    video {
+      width: 100%;
+      height: 180px;
+      display: block;
+      object-fit: contain;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      background: #141a1f;
+      border: 1px solid var(--border-color);
+      color: #fff;
+      padding: 8px;
+      border-radius: 4px;
+    }
+
+    button {
+      background: #2c3842;
+      color: #fff;
+      border: 1px solid var(--border-color);
+      padding: 8px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      background: var(--accent-green);
+      color: #000;
+    }
+
+    .playlist {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      max-height: 150px;
+      overflow-y: auto;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+    }
+
+    .playlist li {
+      padding: 8px;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .playlist li.active {
+      background: #2a3b47;
+      color: var(--accent-blue);
+      font-weight: bold;
+    }
+
+    .controls-row {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin: 12px 0;
+    }
+
+    /* DSP Controls Section */
+    .dsp-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+
+    .fader-card {
+      background: #151c21;
+      padding: 12px;
+      border-radius: 6px;
+      text-align: center;
+      border: 1px solid var(--border-color);
+    }
+
+    .fader-card label {
+      display: block;
+      font-size: 0.8rem;
+      margin-bottom: 8px;
+      color: var(--accent-blue);
+    }
+
+    .fader-card input[type="range"] {
+      writing-mode: bt-lr;
+      appearance: slider-vertical;
+      width: 100%;
+      height: 160px;
+      background: #2a353d;
+    }
+
+    .val-display {
+      font-size: 0.8rem;
+      margin-top: 8px;
+      display: block;
+      color: #aaa;
+    }
+  </style>
 </head>
 <body>
 
-    <!-- Header System Rack -->
-    <header>
-        <div class="brand-title">
-            <h1>FR AUDIO <span>DLMS MATRIX v300++ OMEGA PRO ULTRA</span></h1>
-        </div>
-        <div class="master-controls">
-            <button id="btn-power" class="btn btn-active">ENGINE ONLINE</button>
-            <button id="btn-panic" class="btn btn-panic">EMERGENCY MUTE</button>
-        </div>
-    </header>
-
-    <div class="main-grid">
-        <!-- Sidebar Controls & Input Selection -->
-        <div class="panel">
-            <div class="panel-title">System Source Matrix</div>
-            
-            <div class="input-selector-group">
-                <div class="control-group">
-                    <label>Audio Source Input</label>
-                    <select id="audio-source-select">
-                        <option value="media">Media Player (MP3 / MP4 / URL / YouTube)</option>
-                        <option value="testtone">Test Tone Generator</option>
-                        <option value="mic">Live Input (Mic / Tab Capture)</option>
-                    </select>
-                </div>
-
-                <!-- Display Deck Screen -->
-                <div class="media-display-container">
-                    <video id="video-player" style="display: none;" playsinline></video>
-                    <iframe id="yt-iframe" style="display: none;" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                    <div id="display-placeholder" class="display-placeholder">
-                        <span>MEDIA DISPLAY MONITOR<br><small style="color:var(--text-dim)">Upload / Load URL Direct / Link YouTube</small></span>
-                    </div>
-                </div>
-
-                <!-- Media Controls Deck -->
-                <div id="source-media-group" class="control-group">
-                    <label>Direct Audio/Video URL (MP3/MP4/HLS)</label>
-                    <div style="display: flex; gap: 4px; margin-bottom: 4px;">
-                        <input type="text" id="direct-url-input" placeholder="https://domain.com/audio.mp3">
-                        <button id="btn-load-direct" class="btn" style="padding: 0 8px;">LOAD</button>
-                    </div>
-
-                    <label>YouTube Video Link</label>
-                    <div style="display: flex; gap: 4px; margin-bottom: 4px;">
-                        <input type="text" id="yt-url-input" placeholder="https://www.youtube.com/watch?v=...">
-                        <button id="btn-load-yt" class="btn" style="padding: 0 8px;">LOAD</button>
-                    </div>
-
-                    <label>Upload File MP3 / MP4</label>
-                    <input type="file" id="media-file-input" accept="audio/*,video/*" multiple>
-
-                    <!-- Transport Control Deck -->
-                    <div class="transport-deck" style="margin-top: 4px;">
-                        <div class="transport-buttons">
-                            <button id="btn-prev" class="btn-transport">⏮ PREV</button>
-                            <button id="btn-play" class="btn-transport">▶ PLAY</button>
-                            <button id="btn-pause" class="btn-transport">⏸ PAUSE</button>
-                            <button id="btn-next" class="btn-transport">NEXT ⏭</button>
-                        </div>
-                        <div class="slider-row">
-                            <label style="font-size: 0.6rem;">SPEED</label>
-                            <input type="range" id="playback-speed" min="0.5" max="1.5" step="0.05" value="1.0">
-                            <div class="num-input-wrapper">
-                                <input type="number" id="playback-speed-num" min="0.5" max="1.5" step="0.05" value="1.0">
-                                <span>x</span>
-                            </div>
-                        </div>
-                        <!-- Playlist Rack -->
-                        <div class="playlist-box" id="playlist-rack">
-                            <div class="playlist-item">Daftar putar kosong...</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Test Tone Settings -->
-                <div id="source-testtone-group" class="control-group" style="display: none;">
-                    <label>Tone Type</label>
-                    <select id="tone-type-select">
-                        <option value="sine">Sine Wave 1kHz</option>
-                        <option value="pink">Pink Noise (Acoustic Test)</option>
-                        <option value="white">White Noise</option>
-                    </select>
-                </div>
-
-                <!-- Mic & Tab Capture Settings -->
-                <div id="source-mic-group" class="control-group" style="display: none; gap: 6px;">
-                    <button id="btn-mic-start" class="btn">🎙️ Capture Mic Input</button>
-                    <button id="btn-tab-capture" class="btn" style="border-color: var(--accent-blue); color: var(--accent-blue);">🔗 Capture Audio Tab System</button>
-                </div>
-            </div>
-
-            <div class="panel-title" style="margin-top: 4px;">Global Signal Matrix</div>
-            <div class="control-group">
-                <label>Master Output Gain</label>
-                <div class="slider-row">
-                    <input type="range" id="master-gain" min="0" max="150" value="100">
-                    <div class="num-input-wrapper" style="width: 85px;">
-                        <input type="number" id="master-gain-num" min="0" max="150" value="100">
-                        <span>%</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Main DSP Section -->
-        <div class="panel">
-            <div class="panel-title">
-                <span>RTA Spectrum & Crossover Curve Analyzer</span>
-                <span style="font-size: 0.6rem; color: var(--accent-green);">64-Bit Cascaded 24dB Engine</span>
-            </div>
-
-            <!-- Canvas Spectrum & Crossover Curve Visualizer -->
-            <div class="visualizer-container">
-                <canvas id="rta-canvas"></canvas>
-                <div class="rta-legend">
-                    <div class="legend-item"><div class="legend-box" style="background:var(--accent-green);"></div> Ch L</div>
-                    <div class="legend-item"><div class="legend-box" style="background:var(--accent-blue);"></div> Ch R</div>
-                    <div class="legend-item"><div class="legend-box" style="background:#00ff88; border: 1px dashed #fff;"></div> Cut L</div>
-                    <div class="legend-item"><div class="legend-box" style="background:#00d9ff; border: 1px dashed #fff;"></div> Cut R</div>
-                </div>
-            </div>
-
-            <!-- Processing Channels -->
-            <div class="channels-container">
-                
-                <!-- CHANNEL LEFT (CH1) -->
-                <div class="channel-card">
-                    <div class="channel-header ch-l">
-                        <span>CHANNEL L (LEFT)</span>
-                        <button class="btn" id="mute-l" style="padding: 1px 6px; font-size: 0.6rem;">MUTE</button>
-                    </div>
-
-                    <!-- Matrix Bypass Controls -->
-                    <div class="matrix-toggle-group">
-                        <button class="matrix-btn active" onclick="toggleDualMatrix(this, 'l', 'hpf')">HPF</button>
-                        <button class="matrix-btn active" onclick="toggleDualMatrix(this, 'l', 'lpf')">LPF</button>
-                        <button class="matrix-btn active" onclick="toggleDualMatrix(this, 'l', 'peq')">PEQ</button>
-                        <button class="matrix-btn active" onclick="toggleDualMatrix(this, 'l', 'limiter')">LIMITER</button>
-                    </div>
-
-                    <!-- HPF Cut (Mulai 10 Hz) -->
-                    <div class="dsp-module">
-                        <div class="dsp-module-title"><span>HIGH PASS FILTER (HPF 24dB)</span></div>
-                        <div class="slider-row">
-                            <input type="range" id="hpf-freq-l" min="10" max="2000" value="30">
-                            <div class="num-input-wrapper">
-                                <input type="number" id="hpf-freq-l-num" min="10" max="2000" value="30">
-                                <span>Hz</span>
-                            </div>
-                        </div>
-                        <div class="module-vu-wrapper">
-                            <div class="vu-row"><span class="vu-label l">L</span><div class="meter-bar-container"><div id="hpf-vu-l" class="meter-bar-fill"></div></div></div>
-                        </div>
-                    </div>
-
-                    <!-- LPF Cut -->
-                    <div class="dsp-module">
-                        <div class="dsp-module-title"><span>LOW PASS FILTER (LPF 24dB)</span></div>
-                        <div class="slider-row">
-                            <input type="range" id="lpf-freq-l" min="500" max="20000" value="18000">
-                            <div class="num-input-wrapper">
-                                <input type="number" id="lpf-freq-l-num" min="500" max="20000" value="18000">
-                                <span>Hz</span>
-                            </div>
-                        </div>
-                        <div class="module-vu-wrapper">
-                            <div class="vu-row"><span class="vu-label l">L</span><div class="meter-bar-container"><div id="lpf-vu-l" class="meter-bar-fill"></div></div></div>
-                        </div>
-                    </div>
-
-                    <!-- PEQ Bell -->
-                    <div class="dsp-module">
-                        <div class="dsp-module-title"><span>PEQ BOOST/CUT (FREQ / GAIN)</span></div>
-                        <div class="slider-row">
-                            <input type="range" id="peq-freq-l" min="10" max="18000" value="1000">
-                            <div class="num-input-wrapper">
-                                <input type="number" id="peq-freq-l-num" min="10" max="18000" value="1000">
-                                <span>Hz</span>
-                            </div>
-                        </div>
-                        <div class="slider-row">
-                            <input type="range" id="peq-gain-l" min="-15" max="15" value="0">
-                            <div class="num-input-wrapper">
-                                <input type="number" id="peq-gain-l-num" min="-15" max="15" value="0">
-                                <span>dB</span>
-                            </div>
-                        </div>
-                        <div class="module-vu-wrapper">
-                            <div class="vu-row"><span class="vu-label l">L</span><div class="meter-bar-container"><div id="peq-vu-l" class="meter-bar-fill"></div></div></div>
-                        </div>
-                    </div>
-
-                    <!-- Peak Limiter -->
-                    <div class="dsp-module">
-                        <div class="dsp-module-title"><span>LIMITER THRESHOLD</span></div>
-                        <div class="slider-row">
-                            <input type="range" id="limiter-thresh-l" min="-30" max="0" value="-3">
-                            <div class="num-input-wrapper">
-                                <input type="number" id="limiter-thresh-l-num" min="-30" max="0" value="-3">
-                                <span>dB</span>
-                            </div>
-                        </div>
-                        <div class="module-vu-wrapper">
-                            <div class="vu-row"><span class="vu-label l">L</span><div class="meter-bar-container"><div id="limiter-vu-l" class="meter-bar-fill"></div></div></div>
-                        </div>
-                    </div>
-
-                    <!-- VU & GR Master Meter Left -->
-                    <div class="dsp-module">
-                        <div class="dsp-module-title"><span>OUTPUT VU / GAIN REDUCTION</span></div>
-                        <div class="module-vu-wrapper">
-                            <div class="vu-row"><span class="vu-label l">VU</span><div class="meter-bar-container"><div id="vu-meter-l" class="meter-bar-fill"></div></div></div>
-                            <div class="vu-row"><span class="vu-label l" style="color:var(--accent-red)">GR</span><div class="meter-bar-container"><div id="gr-meter-l" class="gr-bar-fill"></div></div></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- CHANNEL RIGHT (CH2) -->
-                <div class="channel-card">
-                    <div class="channel-header ch-r">
-                        <span>CHANNEL R (RIGHT)</span>
-                        <button class="btn" id="mute-r" style="padding: 1px 6px; font-size: 0.6rem;">MUTE</button>
-                    </div>
-
-                    <!-- Matrix Bypass Controls -->
-                    <div class="matrix-toggle-group">
-                        <button class="matrix-btn active" onclick="toggleDualMatrix(this, 'r', 'hpf')">HPF</button>
-                        <button class="matrix-btn active" onclick="toggleDualMatrix(this, 'r', 'lpf')">LPF</button>
-                        <button class="matrix-btn active" onclick="toggleDualMatrix(this, 'r', 'peq')">PEQ</button>
-                        <button class="matrix-btn active" onclick="toggleDualMatrix(this, 'r', 'limiter')">LIMITER</button>
-                    </div>
-
-                    <!-- HPF Cut (Mulai 10 Hz) -->
-                    <div class="dsp-module">
-                        <div class="dsp-module-title"><span>HIGH PASS FILTER (HPF 24dB)</span></div>
-                        <div class="slider-row">
-                            <input type="range" id="hpf-freq-r" min="10" max="2000" value="30">
-                            <div class="num-input-wrapper">
-                                <input type="number" id="hpf-freq-r-num" min="10" max="2000" value="30">
-                                <span>Hz</span>
-                            </div>
-                        </div>
-                        <div class="module-vu-wrapper">
-                            <div class="vu-row"><span class="vu-label r">R</span><div class="meter-bar-container"><div id="hpf-vu-r" class="meter-bar-fill"></div></div></div>
-                        </div>
-                    </div>
-
-                    <!-- LPF Cut -->
-                    <div class="dsp-module">
-                        <div class="dsp-module-title"><span>LOW PASS FILTER (LPF 24dB)</span></div>
-                        <div class="slider-row">
-                            <input type="range" id="lpf-freq-r" min="500" max="20000" value="18000">
-                            <div class="num-input-wrapper">
-                                <input type="number" id="lpf-freq-r-num" min="500" max="20000" value="18000">
-                                <span>Hz</span>
-                            </div>
-                        </div>
-                        <div class="module-vu-wrapper">
-                            <div class="vu-row"><span class="vu-label r">R</span><div class="meter-bar-container"><div id="lpf-vu-r" class="meter-bar-fill"></div></div></div>
-                        </div>
-                    </div>
-
-                    <!-- PEQ Bell -->
-                    <div class="dsp-module">
-                        <div class="dsp-module-title"><span>PEQ BOOST/CUT (FREQ / GAIN)</span></div>
-                        <div class="slider-row">
-                            <input type="range" id="peq-freq-r" min="10" max="18000" value="1000">
-                            <div class="num-input-wrapper">
-                                <input type="number" id="peq-freq-r-num" min="10" max="18000" value="1000">
-                                <span>Hz</span>
-                            </div>
-                        </div>
-                        <div class="slider-row">
-                            <input type="range" id="peq-gain-r" min="-15" max="15" value="0">
-                            <div class="num-input-wrapper">
-                                <input type="number" id="peq-gain-r-num" min="-15" max="15" value="0">
-                                <span>dB</span>
-                            </div>
-                        </div>
-                        <div class="module-vu-wrapper">
-                            <div class="vu-row"><span class="vu-label r">R</span><div class="meter-bar-container"><div id="peq-vu-r" class="meter-bar-fill"></div></div></div>
-                        </div>
-                    </div>
-
-                    <!-- Peak Limiter -->
-                    <div class="dsp-module">
-                        <div class="dsp-module-title"><span>LIMITER THRESHOLD</span></div>
-                        <div class="slider-row">
-                            <input type="range" id="limiter-thresh-r" min="-30" max="0" value="-3">
-                            <div class="num-input-wrapper">
-                                <input type="number" id="limiter-thresh-r-num" min="-30" max="0" value="-3">
-                                <span>dB</span>
-                            </div>
-                        </div>
-                        <div class="module-vu-wrapper">
-                            <div class="vu-row"><span class="vu-label r">R</span><div class="meter-bar-container"><div id="limiter-vu-r" class="meter-bar-fill"></div></div></div>
-                        </div>
-                    </div>
-
-                    <!-- VU & GR Master Meter Right -->
-                    <div class="dsp-module">
-                        <div class="dsp-module-title"><span>OUTPUT VU / GAIN REDUCTION</span></div>
-                        <div class="module-vu-wrapper">
-                            <div class="vu-row"><span class="vu-label r">VU</span><div class="meter-bar-container"><div id="vu-meter-r" class="meter-bar-fill"></div></div></div>
-                            <div class="vu-row"><span class="vu-label r" style="color:var(--accent-red)">GR</span><div class="meter-bar-container"><div id="gr-meter-r" class="gr-bar-fill"></div></div></div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </div>
+<div class="dlms-container">
+  <!-- Panel Kiri: Source & Playlist -->
+  <div class="panel">
+    <h2>YouTube Source</h2>
+    
+    <div class="video-container">
+      <!-- Video Element berperan sebagai media element source -->
+      <video id="ytAudioPlayer" controls crossorigin="anonymous"></video>
     </div>
 
-    <!-- Web Audio API Core Engine & Media Controller -->
-    <script>
-        let audioCtx;
-        let isEmergencyMute = false;
+    <div class="input-group">
+      <input type="text" id="ytUrlInput" placeholder="Masukkan Link YouTube..." />
+      <button onclick="tambahKePlaylist()">Load</button>
+    </div>
 
-        // Routing Nodes
-        let sourceNode = null;
-        let mediaElementSource = null;
-        let channelSplitter;
-        let channelMerger;
-        let masterGainNode;
+    <div class="controls-row">
+      <button onclick="prevTrack()">⏮ Prev</button>
+      <button onclick="togglePlay()">⏯ Play/Pause</button>
+      <button onclick="nextTrack()">Next ⏭</button>
+    </div>
 
-        // Cascaded Dual Biquad Nodes (24dB/Oct)
-        let hpfL1, hpfL2, lpfL1, lpfL2, peqL, limiterL, gainL, analyserL;
-        let hpfR1, hpfR2, lpfR1, lpfR2, peqR, limiterR, gainR, analyserR;
+    <h3>Playlist Queue</h3>
+    <ul class="playlist" id="playlistUI"></ul>
+  </div>
 
-        // Module Analyser Nodes
-        let hpfAnaL, lpfAnaL, peqAnaL, limiterAnaL;
-        let hpfAnaR, lpfAnaR, peqAnaR, limiterAnaR;
+  <!-- Panel Kanan: DLMS Audio Processing (DSP) -->
+  <div class="panel">
+    <h2>DLMS DSP Audio Processing</h2>
+    <p style="font-size: 0.85rem; color: #888;">
+      Sinyal audio dari YouTube diproses secara penuh melalui node <code>BiquadFilterNode</code> dan <code>GainNode</code> Web Audio API.
+    </p>
 
-        // Oscillators & Generators
-        let toneOsc = null;
-        let noiseNode = null;
+    <div class="dsp-grid">
+      <!-- High Pass Filter / Bass -->
+      <div class="fader-card">
+        <label>LOW (100Hz)</label>
+        <input type="range" id="eqLow" min="-12" max="12" value="0" step="0.5" oninput="updateDSP()">
+        <span class="val-display" id="valLow">0 dB</span>
+      </div>
 
-        // Media Playlist Array State
-        let playlist = [];
-        let currentTrackIndex = -1;
+      <!-- Mid Filter -->
+      <div class="fader-card">
+        <label>MID (1kHz)</label>
+        <input type="range" id="eqMid" min="-12" max="12" value="0" step="0.5" oninput="updateDSP()">
+        <span class="val-display" id="valMid">0 dB</span>
+      </div>
 
-        // State Bypasses
-        const bypassState = {
-            l: { hpf: false, lpf: false, peq: false, limiter: false, mute: false },
-            r: { hpf: false, lpf: false, peq: false, limiter: false, mute: false }
-        };
+      <!-- High Filter / Treble -->
+      <div class="fader-card">
+        <label>HIGH (10kHz)</label>
+        <input type="range" id="eqHigh" min="-12" max="12" value="0" step="0.5" oninput="updateDSP()">
+        <span class="val-display" id="valHigh">0 dB</span>
+      </div>
 
-        function initEngine() {
-            if (audioCtx) return;
+      <!-- Main Gain / Master Volume -->
+      <div class="fader-card">
+        <label>MASTER GAIN</label>
+        <input type="range" id="masterGain" min="0" max="1.5" value="1" step="0.05" oninput="updateDSP()">
+        <span class="val-display" id="valGain">0 dB</span>
+      </div>
+    </div>
+  </div>
+</div>
 
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            audioCtx = new AudioContext();
+<script>
+  // State Management
+  let playlist = [];
+  let currentIndex = -1;
 
-            channelSplitter = audioCtx.createChannelSplitter(2);
-            channelMerger = audioCtx.createChannelMerger(2);
-            masterGainNode = audioCtx.createGain();
+  // Web Audio API Context & Nodes
+  let audioCtx = null;
+  let trackSource = null;
+  let lowFilter = null;
+  let midFilter = null;
+  let highFilter = null;
+  let gainNode = null;
+  let isDSPConnected = false;
 
-            const createAna = () => {
-                const a = audioCtx.createAnalyser();
-                a.fftSize = 256;
-                return a;
-            };
+  const audioElement = document.getElementById('ytAudioPlayer');
 
-            hpfAnaL = createAna(); lpfAnaL = createAna(); peqAnaL = createAna(); limiterAnaL = createAna();
-            hpfAnaR = createAna(); lpfAnaR = createAna(); peqAnaR = createAna(); limiterAnaR = createAna();
+  // 1. Inisialisasi Jalur Audio Processing (DSP)
+  function initAudioDSP() {
+    if (isDSPConnected) return;
 
-            // --- CASCADED DSP LEFT (24dB Slope) ---
-            hpfL1 = audioCtx.createBiquadFilter(); hpfL1.type = 'highpass'; hpfL1.frequency.value = 30; hpfL1.Q.value = 0.707;
-            hpfL2 = audioCtx.createBiquadFilter(); hpfL2.type = 'highpass'; hpfL2.frequency.value = 30; hpfL2.Q.value = 0.707;
+    // Buat AudioContext baru saat ada gestur interaksi
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-            lpfL1 = audioCtx.createBiquadFilter(); lpfL1.type = 'lowpass'; lpfL1.frequency.value = 18000; lpfL1.Q.value = 0.707;
-            lpfL2 = audioCtx.createBiquadFilter(); lpfL2.type = 'lowpass'; lpfL2.frequency.value = 18000; lpfL2.Q.value = 0.707;
+    // Buat media element source dari tag <video>
+    trackSource = audioCtx.createMediaElementSource(audioElement);
 
-            peqL = audioCtx.createBiquadFilter(); peqL.type = 'peaking'; peqL.frequency.value = 1000; peqL.gain.value = 0; peqL.Q.value = 1.4;
-            limiterL = audioCtx.createDynamicsCompressor(); limiterL.threshold.value = -3; limiterL.knee.value = 0; limiterL.ratio.value = 20; limiterL.attack.value = 0.003; limiterL.release.value = 0.1;
-            gainL = audioCtx.createGain();
-            analyserL = audioCtx.createAnalyser(); analyserL.fftSize = 1024;
+    // Buat Equalizer & Gain Nodes
+    lowFilter = audioCtx.createBiquadFilter();
+    lowFilter.type = "lowshelf";
+    lowFilter.frequency.value = 100;
 
-            channelSplitter.connect(hpfL1, 0);
-            hpfL1.connect(hpfL2);
-            hpfL2.connect(hpfAnaL);
-            hpfL2.connect(lpfL1);
-            lpfL1.connect(lpfL2);
-            lpfL2.connect(lpfAnaL);
-            lpfL2.connect(peqL);
-            peqL.connect(peqAnaL);
-            peqL.connect(limiterL);
-            limiterL.connect(limiterAnaL);
-            limiterL.connect(gainL);
-            gainL.connect(analyserL);
-            analyserL.connect(channelMerger, 0, 0);
+    midFilter = audioCtx.createBiquadFilter();
+    midFilter.type = "peaking";
+    midFilter.frequency.value = 1000;
+    midFilter.Q.value = 1;
 
-            // --- CASCADED DSP RIGHT (24dB Slope) ---
-            hpfR1 = audioCtx.createBiquadFilter(); hpfR1.type = 'highpass'; hpfR1.frequency.value = 30; hpfR1.Q.value = 0.707;
-            hpfR2 = audioCtx.createBiquadFilter(); hpfR2.type = 'highpass'; hpfR2.frequency.value = 30; hpfR2.Q.value = 0.707;
+    highFilter = audioCtx.createBiquadFilter();
+    highFilter.type = "highshelf";
+    highFilter.frequency.value = 10000;
 
-            lpfR1 = audioCtx.createBiquadFilter(); lpfR1.type = 'lowpass'; lpfR1.frequency.value = 18000; lpfR1.Q.value = 0.707;
-            lpfR2 = audioCtx.createBiquadFilter(); lpfR2.type = 'lowpass'; lpfR2.frequency.value = 18000; lpfR2.Q.value = 0.707;
+    gainNode = audioCtx.createGain();
 
-            peqR = audioCtx.createBiquadFilter(); peqR.type = 'peaking'; peqR.frequency.value = 1000; peqR.gain.value = 0; peqR.Q.value = 1.4;
-            limiterR = audioCtx.createDynamicsCompressor(); limiterR.threshold.value = -3; limiterR.knee.value = 0; limiterR.ratio.value = 20; limiterR.attack.value = 0.003; limiterR.release.value = 0.1;
-            gainR = audioCtx.createGain();
-            analyserR = audioCtx.createAnalyser(); analyserR.fftSize = 1024;
+    // Hubungkan Node (Source -> Low -> Mid -> High -> Gain -> Output Speakers)
+    trackSource
+      .connect(lowFilter)
+      .connect(midFilter)
+      .connect(highFilter)
+      .connect(gainNode)
+      .connect(audioCtx.destination);
 
-            channelSplitter.connect(hpfR1, 1);
-            hpfR1.connect(hpfR2);
-            hpfR2.connect(hpfAnaR);
-            hpfR2.connect(lpfR1);
-            lpfR1.connect(lpfR2);
-            lpfR2.connect(lpfAnaR);
-            lpfR2.connect(peqR);
-            peqR.connect(peqAnaR);
-            peqR.connect(limiterR);
-            limiterR.connect(limiterAnaR);
-            limiterR.connect(gainR);
-            gainR.connect(analyserR);
-            analyserR.connect(channelMerger, 0, 1);
+    isDSPConnected = true;
+    console.log("Web Audio API DSP successfully connected to YouTube stream.");
+  }
 
-            channelMerger.connect(masterGainNode);
-            masterGainNode.connect(audioCtx.destination);
+  // 2. Fungsi Load Stream Audio dari API backend
+  async function loadYouTubeAudio(youtubeUrl) {
+    try {
+      // Mengambil stream URL via backend extractor
+      const response = await fetch('/api/extract-audio', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: youtubeUrl })
+      });
 
-            const videoEl = document.getElementById('video-player');
-            videoEl.crossOrigin = "anonymous";
-            mediaElementSource = audioCtx.createMediaElementSource(videoEl);
-            mediaElementSource.connect(channelSplitter);
+      const data = await response.json();
 
-            switchSourceInput('media');
-            requestAnimationFrame(renderRTAAndMeters);
+      if (data.streamUrl) {
+        audioElement.crossOrigin = "anonymous";
+        audioElement.src = data.streamUrl;
+
+        // Pastikan AudioContext diinisialisasi & aktif
+        if (!isDSPConnected) {
+          initAudioDSP();
+        }
+        if (audioCtx && audioCtx.state === 'suspended') {
+          await audioCtx.resume();
         }
 
-        function switchSourceInput(type) {
-            if (!audioCtx) return;
+        await audioElement.play();
+      } else {
+        alert("Gagal mengambil stream audio/video dari URL YouTube!");
+      }
+    } catch (err) {
+      console.error("Error loading stream:", err);
+      alert("Terjadi kesalahan koneksi ke server extraction API.");
+    }
+  }
+
+  // 3. Manajemen Playlist & Kontrol Player
+  function tambahKePlaylist() {
+    const input = document.getElementById('ytUrlInput');
+    const url = input.value.trim();
+
+    if (!url) return;
+
+    playlist.push(url);
+    input.value = '';
+    renderPlaylist();
+
+    // Jika belum ada lagu yang diputar, langsung putar lagu pertama
+    if (currentIndex === -1) {
+      playTrack(0);
+    }
+  }
+
+  function renderPlaylist() {
+    const ul = document.getElementById('playlistUI');
+    ul.innerHTML = '';
+
+    playlist.forEach((url, index) => {
+      const li = document.createElement('li');
+      li.className = index === currentIndex ? 'active' : '';
+      li.innerHTML = `<span>Track #${index + 1}</span> <small>${url.substring(0, 25)}...</small>`;
+      li.onclick = () => playTrack(index);
+      ul.appendChild(li);
+    });
+  }
+
+  function playTrack(index) {
+    if (index >= 0 && index < playlist.length) {
+      currentIndex = index;
+      renderPlaylist();
+      loadYouTubeAudio(playlist[currentIndex]);
+    }
+  }
+
+  function togglePlay() {
+    if (!audioElement.src) return;
+    if (audioElement.paused) {
+      if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+      audioElement.play();
+    } else {
+      audioElement.pause();
+    }
+  }
+
+  function nextTrack() {
+    if (currentIndex + 1 < playlist.length) {
+      playTrack(currentIndex + 1);
+    }
+  }
+
+  function prevTrack() {
+    if (currentIndex - 1 >= 0) {
+      playTrack(currentIndex - 1);
+    }
+  }
+
+  // Otomatis lanjut ke track berikutnya ketika video/audio selesai
+  audioElement.onended = () => {
+    nextTrack();
+  };
+
+  // 4. Update Parameter DSP (Equalizer & Master Gain) Real-time
+  function updateDSP() {
+    const lowVal = parseFloat(document.getElementById('eqLow').value);
+    const midVal = parseFloat(document.getElementById('eqMid').value);
+    const highVal = parseFloat(document.getElementById('eqHigh').value);
+    const gainVal = parseFloat(document.getElementById('masterGain').value);
+
+    // Update Label UI
+    document.getElementById('valLow').innerText = lowVal + " dB";
+    document.getElementById('valMid').innerText = midVal + " dB";
+    document.getElementById('valHigh').innerText = highVal + " dB";
+    
+    // Konversi gain linear ke dB untuk tampilan UI
+    const dBGain = (20 * Math.log10(gainVal)).toFixed(1);
+    document.getElementById('valGain').innerText = (gainVal === 0 ? "-∞" : dBGain) + " dB";
+
+    // terapkan ke node Web Audio API jika sudah aktif
+    if (isDSPConnected) {
+      lowFilter.gain.value = lowVal;
+      midFilter.gain.value = midVal;
+      highFilter.gain.value = highVal;
+      gainNode.gain.value = gainVal;
+    }
+  }
+</script>
 
-            if (sourceNode) { try { sourceNode.disconnect(); } catch(e){} }
-            if (toneOsc) { try { toneOsc.stop(); toneOsc.disconnect(); } catch(e){} toneOsc = null; }
-            if (noiseNode) { try { noiseNode.stop(); noiseNode.disconnect(); } catch(e){} noiseNode = null; }
-
-            if (type === 'testtone') {
-                const toneType = document.getElementById('tone-type-select').value;
-                if (toneType === 'sine') {
-                    toneOsc = audioCtx.createOscillator();
-                    toneOsc.type = 'sine';
-                    toneOsc.frequency.value = 1000;
-                    toneOsc.connect(channelSplitter);
-                    toneOsc.start();
-                } else {
-                    const bufferSize = audioCtx.sampleRate * 2;
-                    const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-                    const output = noiseBuffer.getChannelData(0);
-
-                    let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
-                    for (let i = 0; i < bufferSize; i++) {
-                        const white = Math.random() * 2 - 1;
-                        if (toneType === 'pink') {
-                            b0 = 0.99886 * b0 + white * 0.0555179;
-                            b1 = 0.99332 * b1 + white * 0.0750759;
-                            b2 = 0.96900 * b2 + white * 0.1538520;
-                            b3 = 0.86650 * b3 + white * 0.3104856;
-                            b4 = 0.55000 * b4 + white * 0.5329522;
-                            b5 = -0.7616 * b5 - white * 0.0168980;
-                            output[i] = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362;
-                            output[i] *= 0.11;
-                            b6 = white * 0.115926;
-                        } else {
-                            output[i] = white * 0.2;
-                        }
-                    }
-                    noiseNode = audioCtx.createBufferSource();
-                    noiseNode.buffer = noiseBuffer;
-                    noiseNode.loop = true;
-                    noiseNode.connect(channelSplitter);
-                    noiseNode.start();
-                }
-            }
-        }
-
-        async function captureTabAudio() {
-            if (!audioCtx) initEngine();
-            try {
-                const stream = await navigator.mediaDevices.getDisplayMedia({
-                    video: true,
-                    audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
-                });
-
-                if (stream.getAudioTracks().length === 0) {
-                    alert("Kamu belum memilih/mengcentang 'Share tab audio'!");
-                    stream.getTracks().forEach(t => t.stop());
-                    return;
-                }
-
-                if (sourceNode) sourceNode.disconnect();
-                sourceNode = audioCtx.createMediaStreamSource(stream);
-                sourceNode.connect(channelSplitter);
-
-                const videoEl = document.getElementById('video-player');
-                const placeholder = document.getElementById('display-placeholder');
-                const ytIframe = document.getElementById('yt-iframe');
-                
-                ytIframe.style.display = 'none';
-                placeholder.style.display = 'none';
-                videoEl.style.display = 'block';
-                videoEl.srcObject = stream;
-                videoEl.play();
-            } catch (err) {
-                alert("Gagal menghubungkan Audio Tab: " + err.message);
-            }
-        }
-
-        function playTrack(index) {
-            if (index < 0 || index >= playlist.length) return;
-            currentTrackIndex = index;
-            const track = playlist[index];
-
-            const videoEl = document.getElementById('video-player');
-            const ytIframe = document.getElementById('yt-iframe');
-            const placeholder = document.getElementById('display-placeholder');
-
-            updatePlaylistUI();
-
-            if (track.type === 'file' || track.type === 'direct_url') {
-                ytIframe.style.display = 'none';
-                ytIframe.src = '';
-                placeholder.style.display = 'none';
-                videoEl.style.display = 'block';
-
-                videoEl.src = track.url;
-                videoEl.playbackRate = parseFloat(document.getElementById('playback-speed').value);
-                if (audioCtx) audioCtx.resume();
-                videoEl.play().catch(e => console.log("Autoplay ditolak atau perlu interaksi:", e));
-            } else if (track.type === 'youtube') {
-                videoEl.pause();
-                videoEl.style.display = 'none';
-                placeholder.style.display = 'none';
-                ytIframe.style.display = 'block';
-
-                ytIframe.src = `https://www.youtube.com/embed/${track.ytId}?autoplay=1&enablejsapi=1`;
-            }
-        }
-
-        function updatePlaylistUI() {
-            const rack = document.getElementById('playlist-rack');
-            if (playlist.length === 0) {
-                rack.innerHTML = '<div class="playlist-item">Daftar putar kosong...</div>';
-                return;
-            }
-            rack.innerHTML = '';
-            playlist.forEach((item, idx) => {
-                const div = document.createElement('div');
-                div.className = `playlist-item ${idx === currentTrackIndex ? 'active' : ''}`;
-                div.innerText = `${idx + 1}. [${item.type.toUpperCase()}] ${item.title}`;
-                div.onclick = () => playTrack(idx);
-                rack.appendChild(div);
-            });
-        }
-
-        function extractYouTubeID(url) {
-            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-            const match = url.match(regExp);
-            return (match && match[2].length === 11) ? match[2] : null;
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-
-            document.getElementById('btn-power').addEventListener('click', () => {
-                initEngine();
-                if (audioCtx.state === 'suspended') audioCtx.resume();
-            });
-
-            document.getElementById('btn-panic').addEventListener('click', function() {
-                isEmergencyMute = !isEmergencyMute;
-                this.classList.toggle('active', isEmergencyMute);
-                if (masterGainNode) {
-                    masterGainNode.gain.setTargetAtTime(isEmergencyMute ? 0 : (document.getElementById('master-gain').value / 100), audioCtx.currentTime, 0.01);
-                }
-            });
-
-            document.getElementById('audio-source-select').addEventListener('change', (e) => {
-                const val = e.target.value;
-                document.getElementById('source-media-group').style.display = val === 'media' ? 'flex' : 'none';
-                document.getElementById('source-testtone-group').style.display = val === 'testtone' ? 'flex' : 'none';
-                document.getElementById('source-mic-group').style.display = val === 'mic' ? 'flex' : 'none';
-                switchSourceInput(val);
-            });
-
-            document.getElementById('tone-type-select').addEventListener('change', () => switchSourceInput('testtone'));
-
-            document.getElementById('btn-load-direct').addEventListener('click', () => {
-                if (!audioCtx) initEngine();
-                const directInput = document.getElementById('direct-url-input');
-                const urlVal = directInput.value.trim();
-                if (urlVal) {
-                    const filename = urlVal.substring(urlVal.lastIndexOf('/') + 1) || 'Direct Audio Stream';
-                    playlist.push({
-                        type: 'direct_url',
-                        title: filename,
-                        url: urlVal
-                    });
-                    directInput.value = '';
-                    if (currentTrackIndex === -1 && playlist.length > 0) {
-                        playTrack(playlist.length - 1);
-                    } else {
-                        updatePlaylistUI();
-                    }
-                } else {
-                    alert('Masukkan URL Audio / Video direct yang valid!');
-                }
-            });
-
-            document.getElementById('media-file-input').addEventListener('change', (e) => {
-                if (!audioCtx) initEngine();
-                const files = Array.from(e.target.files);
-                files.forEach(file => {
-                    playlist.push({
-                        type: 'file',
-                        title: file.name,
-                        url: URL.createObjectURL(file)
-                    });
-                });
-                if (currentTrackIndex === -1 && playlist.length > 0) {
-                    playTrack(0);
-                } else {
-                    updatePlaylistUI();
-                }
-            });
-
-            document.getElementById('btn-load-yt').addEventListener('click', () => {
-                if (!audioCtx) initEngine();
-                const urlInput = document.getElementById('yt-url-input');
-                const ytId = extractYouTubeID(urlInput.value);
-                if (ytId) {
-                    playlist.push({
-                        type: 'youtube',
-                        title: `YouTube Video (${ytId})`,
-                        ytId: ytId
-                    });
-                    urlInput.value = '';
-                    if (currentTrackIndex === -1 && playlist.length > 0) {
-                        playTrack(playlist.length - 1);
-                    } else {
-                        updatePlaylistUI();
-                    }
-                } else {
-                    alert('URL YouTube tidak valid!');
-                }
-            });
-
-            document.getElementById('btn-play').addEventListener('click', () => {
-                if (!audioCtx) initEngine();
-                if (audioCtx.state === 'suspended') audioCtx.resume();
-                const videoEl = document.getElementById('video-player');
-                if (currentTrackIndex !== -1 && (playlist[currentTrackIndex].type === 'file' || playlist[currentTrackIndex].type === 'direct_url')) {
-                    videoEl.play();
-                }
-            });
-
-            document.getElementById('btn-pause').addEventListener('click', () => {
-                const videoEl = document.getElementById('video-player');
-                videoEl.pause();
-            });
-
-            document.getElementById('btn-next').addEventListener('click', () => {
-                if (playlist.length > 0) playTrack((currentTrackIndex + 1) % playlist.length);
-            });
-
-            document.getElementById('btn-prev').addEventListener('click', () => {
-                if (playlist.length > 0) playTrack((currentTrackIndex - 1 + playlist.length) % playlist.length);
-            });
-
-            bindDualControls('playback-speed', 'playback-speed-num', (speed) => {
-                const videoEl = document.getElementById('video-player');
-                videoEl.playbackRate = speed;
-            });
-
-            document.getElementById('video-player').addEventListener('ended', () => {
-                if (playlist.length > 0) playTrack((currentTrackIndex + 1) % playlist.length);
-            });
-
-            document.getElementById('btn-mic-start').addEventListener('click', async () => {
-                if (!audioCtx) initEngine();
-                try {
-                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-                    sourceNode = audioCtx.createMediaStreamSource(stream);
-                    sourceNode.connect(channelSplitter);
-                } catch (err) {
-                    alert('Gagal mengakses mikrofon: ' + err.message);
-                }
-            });
-
-            document.getElementById('btn-tab-capture').addEventListener('click', () => captureTabAudio());
-
-            bindDualControls('master-gain', 'master-gain-num', (valPercent) => {
-                const val = valPercent / 100;
-                if (masterGainNode && !isEmergencyMute) {
-                    masterGainNode.gain.setTargetAtTime(val, audioCtx.currentTime, 0.01);
-                }
-            });
-
-            // Dual Cascade Filter Bindings dengan Input Angka (Two-Way Synced)
-            bindDualControls('hpf-freq-l', 'hpf-freq-l-num', (v) => { if (hpfL1) { hpfL1.frequency.value = v; hpfL2.frequency.value = v; } });
-            bindDualControls('lpf-freq-l', 'lpf-freq-l-num', (v) => { if (lpfL1) { lpfL1.frequency.value = v; lpfL2.frequency.value = v; } });
-            bindDualControls('peq-freq-l', 'peq-freq-l-num', (v) => { if (peqL) peqL.frequency.value = v; });
-            bindDualControls('peq-gain-l', 'peq-gain-l-num', (v) => { if (peqL) peqL.gain.value = v; });
-            bindDualControls('limiter-thresh-l', 'limiter-thresh-l-num', (v) => { if (limiterL) limiterL.threshold.value = v; });
-
-            bindDualControls('hpf-freq-r', 'hpf-freq-r-num', (v) => { if (hpfR1) { hpfR1.frequency.value = v; hpfR2.frequency.value = v; } });
-            bindDualControls('lpf-freq-r', 'lpf-freq-r-num', (v) => { if (lpfR1) { lpfR1.frequency.value = v; lpfR2.frequency.value = v; } });
-            bindDualControls('peq-freq-r', 'peq-freq-r-num', (v) => { if (peqR) peqR.frequency.value = v; });
-            bindDualControls('peq-gain-r', 'peq-gain-r-num', (v) => { if (peqR) peqR.gain.value = v; });
-            bindDualControls('limiter-thresh-r', 'limiter-thresh-r-num', (v) => { if (limiterR) limiterR.threshold.value = v; });
-
-            document.getElementById('mute-l').addEventListener('click', function() {
-                bypassState.l.mute = !bypassState.l.mute;
-                this.classList.toggle('btn-active', bypassState.l.mute);
-                if (gainL) gainL.gain.setTargetAtTime(bypassState.l.mute ? 0 : 1, audioCtx.currentTime, 0.01);
-            });
-
-            document.getElementById('mute-r').addEventListener('click', function() {
-                bypassState.r.mute = !bypassState.r.mute;
-                this.classList.toggle('btn-active', bypassState.r.mute);
-                if (gainR) gainR.gain.setTargetAtTime(bypassState.r.mute ? 0 : 1, audioCtx.currentTime, 0.01);
-            });
-        });
-
-        // Function Binding 2-Arah untuk Slider dan Kotak Input Angka Direct
-        function bindDualControls(sliderId, numberId, callback) {
-            const slider = document.getElementById(sliderId);
-            const number = document.getElementById(numberId);
-
-            slider.addEventListener('input', (e) => {
-                const val = parseFloat(e.target.value);
-                number.value = val;
-                if (audioCtx) callback(val);
-            });
-
-            number.addEventListener('input', (e) => {
-                let val = parseFloat(e.target.value);
-                if (isNaN(val)) return;
-                
-                const min = parseFloat(slider.min);
-                const max = parseFloat(slider.max);
-                
-                if (val < min) val = min;
-                if (val > max) val = max;
-                
-                slider.value = val;
-                if (audioCtx) callback(val);
-            });
-
-            number.addEventListener('blur', () => {
-                if (number.value === '' || isNaN(parseFloat(number.value))) {
-                    number.value = slider.value;
-                }
-            });
-        }
-
-        function toggleDualMatrix(btn, ch, module) {
-            bypassState[ch][module] = !bypassState[ch][module];
-            btn.classList.toggle('active', !bypassState[ch][module]);
-
-            if (module === 'hpf') {
-                const h1 = ch === 'l' ? hpfL1 : hpfR1;
-                const h2 = ch === 'l' ? hpfL2 : hpfR2;
-                const val = bypassState[ch].hpf ? 10 : parseFloat(document.getElementById(`hpf-freq-${ch}`).value);
-                if (h1 && h2) { h1.frequency.value = val; h2.frequency.value = val; }
-            } else if (module === 'lpf') {
-                const l1 = ch === 'l' ? lpfL1 : lpfR1;
-                const l2 = ch === 'l' ? lpfL2 : lpfR2;
-                const val = bypassState[ch].lpf ? 22000 : parseFloat(document.getElementById(`lpf-freq-${ch}`).value);
-                if (l1 && l2) { l1.frequency.value = val; l2.frequency.value = val; }
-            } else if (module === 'peq') {
-                const p = ch === 'l' ? peqL : peqR;
-                if (p) p.gain.value = bypassState[ch].peq ? 0 : parseFloat(document.getElementById(`peq-gain-${ch}`).value);
-            }
-        }
-
-        function calcModuleLevel(analyser) {
-            if (!analyser) return 0;
-            const data = new Uint8Array(analyser.frequencyBinCount);
-            analyser.getByteFrequencyData(data);
-            let sum = 0;
-            for (let i = 0; i < data.length; i++) sum += data[i];
-            return (sum / data.length) / 255 * 100;
-        }
-
-        function drawCrossoverCurve(ctx, width, height, ch) {
-            const isL = ch === 'l';
-            const hpfFreq = bypassState[ch].hpf ? 10 : parseFloat(document.getElementById(`hpf-freq-${ch}`).value);
-            const lpfFreq = bypassState[ch].lpf ? 22000 : parseFloat(document.getElementById(`lpf-freq-${ch}`).value);
-            const peqFreq = parseFloat(document.getElementById(`peq-freq-${ch}`).value);
-            const peqGain = bypassState[ch].peq ? 0 : parseFloat(document.getElementById(`peq-gain-${ch}`).value);
-
-            ctx.beginPath();
-            ctx.lineWidth = 1.5;
-            ctx.strokeStyle = isL ? '#00ff88' : '#00d9ff';
-            ctx.setLineDash([3, 2]);
-
-            for (let x = 0; x < width; x++) {
-                // Skala Logaritmik dimulai dari 10 Hz
-                const freq = 10 * Math.pow(2000, x / width);
-                
-                let hpfGainDb = 0;
-                if (freq < hpfFreq) {
-                    hpfGainDb = 24 * Math.log2(freq / hpfFreq);
-                }
-
-                let lpfGainDb = 0;
-                if (freq > lpfFreq) {
-                    lpfGainDb = 24 * Math.log2(lpfFreq / freq);
-                }
-
-                let peqGainDb = 0;
-                const octaveDiff = Math.abs(Math.log2(freq / peqFreq));
-                if (octaveDiff < 1) {
-                    peqGainDb = peqGain * (1 - octaveDiff);
-                }
-
-                const totalGainDb = Math.max(-60, hpfGainDb + lpfGainDb + peqGainDb);
-                const y = height / 2 - (totalGainDb / 40) * (height / 2);
-
-                if (x === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
-            }
-
-            ctx.stroke();
-            ctx.setLineDash([]);
-        }
-
-        function renderRTAAndMeters() {
-            const canvas = document.getElementById('rta-canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = canvas.clientWidth;
-            canvas.height = canvas.clientHeight;
-
-            const bufferLength = analyserL ? analyserL.frequencyBinCount : 0;
-            const dataArrayL = new Uint8Array(bufferLength);
-            const dataArrayR = new Uint8Array(bufferLength);
-
-            function draw() {
-                requestAnimationFrame(draw);
-
-                if (analyserL) analyserL.getByteFrequencyData(dataArrayL);
-                if (analyserR) analyserR.getByteFrequencyData(dataArrayR);
-
-                ctx.fillStyle = '#0a0b10';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                // Garis Grid Logaritmik RTA (10Hz, 100Hz, 1kHz, 10kHz)
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
-                ctx.lineWidth = 1;
-                for (let f = 10; f <= 20000; f *= 10) {
-                    const x = (Math.log10(f / 10) / 3.3) * canvas.width;
-                    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
-                }
-
-                if (bufferLength > 0) {
-                    const barWidth = (canvas.width / bufferLength) * 2.5;
-                    let x = 0;
-
-                    for (let i = 0; i < bufferLength; i++) {
-                        const barHeightL = (dataArrayL[i] / 255) * canvas.height;
-                        const barHeightR = (dataArrayR[i] / 255) * canvas.height;
-
-                        ctx.fillStyle = 'rgba(0, 255, 136, 0.35)';
-                        ctx.fillRect(x, canvas.height - barHeightL, barWidth, barHeightL);
-
-                        ctx.fillStyle = 'rgba(0, 217, 255, 0.3)';
-                        ctx.fillRect(x, canvas.height - barHeightR, barWidth, barHeightR);
-
-                        x += barWidth + 1;
-                    }
-                }
-
-                drawCrossoverCurve(ctx, canvas.width, canvas.height, 'l');
-                drawCrossoverCurve(ctx, canvas.width, canvas.height, 'r');
-
-                document.getElementById('hpf-vu-l').style.width = calcModuleLevel(hpfAnaL) + '%';
-                document.getElementById('hpf-vu-r').style.width = calcModuleLevel(hpfAnaR) + '%';
-                document.getElementById('lpf-vu-l').style.width = calcModuleLevel(lpfAnaL) + '%';
-                document.getElementById('lpf-vu-r').style.width = calcModuleLevel(lpfAnaR) + '%';
-                document.getElementById('peq-vu-l').style.width = calcModuleLevel(peqAnaL) + '%';
-                document.getElementById('peq-vu-r').style.width = calcModuleLevel(peqAnaR) + '%';
-                document.getElementById('limiter-vu-l').style.width = calcModuleLevel(limiterAnaL) + '%';
-                document.getElementById('limiter-vu-r').style.width = calcModuleLevel(limiterAnaR) + '%';
-
-                let sumL = 0, sumR = 0;
-                for (let i = 0; i < bufferLength; i++) {
-                    sumL += dataArrayL[i];
-                    sumR += dataArrayR[i];
-                }
-                const vuL = bufferLength > 0 ? (sumL / bufferLength) / 255 * 100 : 0;
-                const vuR = bufferLength > 0 ? (sumR / bufferLength) / 255 * 100 : 0;
-
-                document.getElementById('vu-meter-l').style.width = vuL + '%';
-                document.getElementById('vu-meter-r').style.width = vuR + '%';
-
-                const grL = limiterL ? Math.max(0, (limiterL.reduction || 0) * -3) : 0;
-                const grR = limiterR ? Math.max(0, (limiterR.reduction || 0) * -3) : 0;
-                document.getElementById('gr-meter-l').style.width = Math.min(100, grL * 10) + '%';
-                document.getElementById('gr-meter-r').style.width = Math.min(100, grR * 10) + '%';
-            }
-
-            draw();
-        }
-    </script>
 </body>
 </html>
