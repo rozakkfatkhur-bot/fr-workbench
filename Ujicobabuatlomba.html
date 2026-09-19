@@ -284,76 +284,22 @@
     console.log("Web Audio API DSP successfully connected.");
   }
 
-  // Helper Sanitasi & Ekstrak Video ID
-  function getYouTubeVideoId(url) {
-    if (!url) return null;
-    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-    const match = url.match(regExp);
-    return (match && match[2].length === 11) ? match[2] : null;
-  }
-
-  // 2. Ekstrak Stream Audio (Hybrid: Client API -> Serverless Fallback)
+  // 2. Ekstrak Stream Audio via Backend Termux (Localhost:5000)
   async function loadYouTubeAudio(youtubeUrl) {
-    const videoId = getYouTubeVideoId(youtubeUrl);
-    if (!videoId) {
-      alert("Link YouTube tidak valid!");
-      return;
-    }
+    try {
+      const response = await fetch('http://localhost:5000/api/extract-audio', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: youtubeUrl })
+      });
 
-    let directStreamUrl = null;
+      const data = await response.json();
 
-    // Tahap A: Coba beberapa endpoint Public Piped API langsung dari Browser
-    const clientEndpoints = [
-      `https://pipedapi.kavin.rocks/streams/${videoId}`,
-      `https://api.piped.private.coffee/streams/${videoId}`,
-      `https://pipedapi.mha.fi/streams/${videoId}`,
-      `https://pipedapi.astrobot.me/streams/${videoId}`
-    ];
+      if (data.streamUrl) {
+        audioElement.crossOrigin = "anonymous"; // Wajib buat Web Audio API
+        audioElement.src = data.streamUrl;
 
-    for (const endpoint of clientEndpoints) {
-      try {
-        const res = await fetch(endpoint, { signal: AbortSignal.timeout(3500) });
-        if (res.ok) {
-          const data = await res.json();
-          const stream = data.audioStreams?.find(s => s.mimeType.includes('mp4') || s.mimeType.includes('webm')) 
-                       || data.audioStreams?.[0];
-          
-          if (stream && stream.url) {
-            directStreamUrl = stream.url;
-            console.log("Stream berhasil dimuat dari Client Endpoint:", endpoint);
-            break;
-          }
-        }
-      } catch (e) {
-        continue;
-      }
-    }
-
-    // Tahap B: Jika Client API gagal/timeout, fallback ke Vercel Serverless Proxy
-    if (!directStreamUrl) {
-      console.warn("Client Endpoints gagal, beralih ke Serverless Proxy Vercel...");
-      try {
-        const response = await fetch('/api/extract-audio', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url: `https://www.youtube.com/watch?v=${videoId}` })
-        });
-
-        const data = await response.json();
-        if (data.streamUrl) {
-          directStreamUrl = data.streamUrl;
-        }
-      } catch (err) {
-        console.error("Error loading via Vercel proxy:", err);
-      }
-    }
-
-    // Tahap C: Playback dan Hubungkan ke AudioContext DSP
-    if (directStreamUrl) {
-      try {
-        audioElement.crossOrigin = "anonymous";
-        audioElement.src = directStreamUrl;
-
+        // Hubungkan ke DSP Web Audio API jika belum terhubung
         if (!isDSPConnected) {
           initAudioDSP();
         }
@@ -364,12 +310,12 @@
 
         updateDSP();
         await audioElement.play();
-      } catch (playErr) {
-        console.error("Playback Error:", playErr);
-        alert("Gagal memutar audio stream.");
+      } else {
+        alert("Gagal ambil audio dari YouTube!");
       }
-    } else {
-      alert("Gagal memuat stream: Semua server extractor sedang sibuk. Silakan coba lagu/link lain.");
+    } catch (err) {
+      console.error("Error backend Termux:", err);
+      alert("Gagal terhubung ke backend Termux!");
     }
   }
 
