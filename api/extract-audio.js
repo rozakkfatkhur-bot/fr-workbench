@@ -13,9 +13,13 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
+  // A. POST METHOD: Ekstrak Stream dari Link YouTube
   if (req.method === 'POST') {
-    const { url } = req.body;
+    let { url } = req.body;
     if (!url) return res.status(400).json({ error: 'URL YouTube diperlukan' });
+
+    // Hapus query tracking seperti ?si=... jika terbawa
+    url = url.split('&si=')[0].split('?si=')[0];
 
     try {
       const response = await fetch('https://api.cobalt.tools/api/json', {
@@ -33,9 +37,7 @@ export default async function handler(req, res) {
       });
 
       const data = await response.json();
-      console.log("Cobalt Raw Response:", data); // Intip respon asli di Log Vercel
 
-      // Ekstrak URL baik dari data.url maupun data.picker
       let directUrl = null;
       if (data.url) {
         directUrl = data.url;
@@ -45,25 +47,24 @@ export default async function handler(req, res) {
 
       if (!directUrl) {
         return res.status(500).json({ 
-          error: 'Gagal ekstrak URL dari Cobalt', 
-          details: data 
+          error: 'Cobalt gagal ekstrak link.', 
+          cobaltResponse: data 
         });
       }
 
-      // Bungkus ke proxy internal Vercel
+      // Bungkus dengan proxy serverless Vercel kamu
       const proxiedStreamUrl = `/api/extract-audio?streamUrl=${encodeURIComponent(directUrl)}`;
       return res.status(200).json({ streamUrl: proxiedStreamUrl });
 
     } catch (error) {
-      console.error("Server Error:", error);
-      return res.status(500).json({ error: 'Terjadi kesalahan server', details: error.message });
+      return res.status(500).json({ error: 'Kesalahan Server', details: error.message });
     }
   }
 
-  // GET Handler untuk Proxy Streaming
+  // B. GET METHOD: Stream Proxy agar Bebas Blokir CORS
   if (req.method === 'GET') {
     const { streamUrl } = req.query;
-    if (!streamUrl) return res.status(400).send('Stream URL tidak ada');
+    if (!streamUrl) return res.status(400).send('Stream URL tidak ditemukan');
 
     try {
       const mediaResponse = await fetch(decodeURIComponent(streamUrl));
