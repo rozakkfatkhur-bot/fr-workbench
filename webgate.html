@@ -3303,6 +3303,12 @@
         // userProfile hanya terisi SETELAH login Google berhasil (auth wajib)
         let userProfile = null;
         let firebaseUser = null;
+        // BUGFIX KRITIS: penanda ini baru jadi true SETELAH data asli dari Firebase
+        // (user_badges/{uid}) benar-benar termuat sekali. Sinkron otomatis (timer
+        // berkala) wajib menunggu penanda ini sebelum diizinkan menulis apapun —
+        // supaya tidak ada sinkron yang jalan pakai data default/kosong lalu menimpa
+        // data asli yang belum sempat termuat (terutama di koneksi lambat).
+        let userDataLoaded = false;
 
         let currentEditingImages = [];
         let activeVipItem = null;
@@ -4197,6 +4203,7 @@
 
             if (user) {
                 firebaseUser = user;
+                userDataLoaded = false;
                 initUserData(user);
                 loggedChip.style.display = 'flex';
                 guestChip.style.display = 'none';
@@ -4211,6 +4218,7 @@
             } else {
                 firebaseUser = null;
                 userProfile = null;
+                userDataLoaded = false;
                 loggedChip.style.display = 'none';
                 guestChip.style.display = 'flex';
                 userFollowing = {};
@@ -4341,17 +4349,39 @@
                     userProfile.referredBy = data.referredBy || userProfile.referredBy || null;
                     userProfile.pointsBySource = data.pointsBySource || userProfile.pointsBySource || {};
                     userProfile.avatarUploaded = data.avatarUploaded || false;
-                    if (isOwnerEmail && !userProfile.ownedBadges.includes("b20")) userProfile.ownedBadges.push("b20");
+                    userProfile.activeTimeSeconds = data.activeTimeSeconds || userProfile.activeTimeSeconds || 0;
+                    if (isOwnerEmail && !userProfile.ownedBadges.includes("b20")) {
+                        userProfile.ownedBadges.push("b20");
+                        syncUserDataToFirebase(); // simpan penambahan badge b20 saja, data lain sudah termuat asli
+                    }
                 } else {
+                    // BUGFIX KRITIS: baris ini SATU-SATUNYA tempat yang boleh menulis data
+                    // default — dan hanya kalau datanya memang belum pernah ada sama sekali
+                    // (akun benar-benar baru). Sebelumnya ada JUGA panggilan
+                    // syncUserDataToFirebase() di luar listener ini yang berjalan SEBELUM
+                    // data asli sempat termuat dari Firebase — akibatnya poin, komentar,
+                    // lencana, dan status foto profil pengguna yang SUDAH ADA datanya malah
+                    // ketimpa balik ke nilai default setiap kali login/reload. Itu sudah
+                    // dihapus total (lihat catatan di bawah).
                     syncUserDataToFirebase();
                 }
+                userDataLoaded = true;
                 updateProfileUI();
                 renderBadgesTab();
                 renderUI();
                 checkMandatoryAvatarUpload();
             });
 
-            if (isOwnerEmail) syncUserDataToFirebase();
+            // BUGFIX KRITIS: baris `if (isOwnerEmail) syncUserDataToFirebase();` yang
+            // dulu ada di sini SUDAH DIHAPUS. Baris itu jalan sinkron tepat setelah
+            // listener di atas didaftarkan — TIDAK menunggu data asli dari Firebase
+            // benar-benar termuat dulu. Karena syncUserDataToFirebase() menimpa
+            // SELURUH data (bukan gabung), setiap kali Admin login/reload halaman,
+            // data asli (poin, jumlah komentar, daftar lencana, status upload foto)
+            // langsung tertimpa nilai default kosong. Ini penyebab laporan "semuanya
+            // kereset" dan "popup upload foto muncul lagi terus". Penambahan badge b20
+            // untuk Admin kini ditangani di DALAM listener (baris di atas), setelah
+            // data asli benar-benar termuat, jadi aman.
             maybeShowLateNightReminder();
 
             // Listener Notifikasi Real-time
@@ -6450,7 +6480,7 @@
 
         // Simpan progres poin waktu-aktif ke Firebase setiap 20 detik (bukan setiap detik, hemat kuota)
         setInterval(() => {
-            if (userProfile) syncUserDataToFirebase();
+            if (userProfile && userDataLoaded) syncUserDataToFirebase();
         }, 20000);
 
         // --- STATISTIK RINCIAN SUMBER POIN ---
