@@ -1,6 +1,7 @@
 // File: api/extract-audio.js
 
 export default async function handler(req, res) {
+  // Set Header CORS
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -13,61 +14,95 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
-  // A. POST METHOD: Ekstrak Stream dari Link YouTube
+  // A. POST METHOD: Ekstrak Stream
   if (req.method === 'POST') {
     let { url } = req.body;
     if (!url) return res.status(400).json({ error: 'URL YouTube diperlukan' });
 
-    // Hapus query tracking seperti ?si=... jika terbawa
-    url = url.split('&si=')[0].split('?si=')[0];
+    // 1. Dapatkan Video ID dari URL
+    const videoIdMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:.*v=|.*\/v\/|.*\/embed\/))([^?&"#]+)/);
+    const videoId = videoIdMatch ? videoIdMatch[1] : null;
 
+    if (!videoId) {
+      return res.status(400).json({ error: 'Format link YouTube tidak valid' });
+    }
+
+    const cleanUrl = `https://www.youtube.com/watch?v=${videoId}`;
+    let directUrl = null;
+
+    // METODE 1: Coba via Cobalt API
     try {
-      const response = await fetch('https://api.cobalt.tools/api/json', {
+      const cobaltRes = await fetch('https://api.cobalt.tools/api/json', {
         method: 'POST',
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
+          'User-Agent': 'Mozilla/5.0'
         },
         body: JSON.stringify({
-          url: url,
+          url: cleanUrl,
           downloadMode: 'auto',
-          videoQuality: '480'
+          videoQuality: '360'
         })
       });
 
-      const data = await response.json();
-
-      let directUrl = null;
-      if (data.url) {
-        directUrl = data.url;
-      } else if (data.picker && data.picker.length > 0) {
-        directUrl = data.picker[0].url;
+      const cobaltData = await cobaltRes.json();
+      if (cobaltData.url) {
+        directUrl = cobaltData.url;
+      } else if (cobaltData.picker && cobaltData.picker.length > 0) {
+        directUrl = cobaltData.picker[0].url;
       }
-
-      if (!directUrl) {
-        return res.status(500).json({ 
-          error: 'Cobalt gagal ekstrak link.', 
-          cobaltResponse: data 
-        });
-      }
-
-      // Bungkus dengan proxy serverless Vercel kamu
-      const proxiedStreamUrl = `/api/extract-audio?streamUrl=${encodeURIComponent(directUrl)}`;
-      return res.status(200).json({ streamUrl: proxiedStreamUrl });
-
-    } catch (error) {
-      return res.status(500).json({ error: 'Kesalahan Server', details: error.message });
+    } catch (e) {
+      console.warn("Cobalt API failed, trying fallback...");
     }
+
+    // METODE 2: Fallback ke Public Invidious Instance jika Cobalt gagal
+    if (!directUrl) {
+      const invidiousInstances = [
+        'https://invidious.nerdvpn.de',
+        'https://inv.tux.pizza',
+        'https://vid.puffyan.us'
+      ];
+
+      for (const instance of invidiousInstances) {
+        try {
+          const invRes = await fetch(`${instance}/api/v1/videos/${videoId}`);
+          if (invRes.ok) {
+            const invData = await invRes.json();
+            // Cari format video + audio gabungan (progressive formats)
+            const format = invData.formatStreams.find(f => f.qualityL === '360p' || f.qualityL === '720p') || invData.formatStreams[0];
+            if (format && format.url) {
+              directUrl = format.url;
+              break;
+            }
+          }
+        } catch (e) {
+          continue;
+        }
+      }
+    }
+
+    if (!directUrl) {
+      return res.status(500).json({ 
+        error: 'Semua server extractor sibuk. Coba gunakan link YouTube lain atau coba beberapa saat lagi.' 
+      });
+    }
+
+    // Bungkus direct URL ke Proxy internal Vercel
+    const proxiedStreamUrl = `/api/extract-audio?streamUrl=${encodeURIComponent(directUrl)}`;
+    return res.status(200).json({ streamUrl: proxiedStreamUrl });
   }
 
-  // B. GET METHOD: Stream Proxy agar Bebas Blokir CORS
+  // B. GET METHOD: Proxy Streaming (Menembus CORS)
   if (req.method === 'GET') {
     const { streamUrl } = req.query;
     if (!streamUrl) return res.status(400).send('Stream URL tidak ditemukan');
 
     try {
-      const mediaResponse = await fetch(decodeURIComponent(streamUrl));
+      const mediaResponse = await fetch(decodeURIComponent(streamUrl), {
+        headers: { 'User-Agent': 'Mozilla/5.0' }
+      });
+
       res.setHeader('Content-Type', mediaResponse.headers.get('content-type') || 'video/mp4');
       
       const arrayBuffer = await mediaResponse.arrayBuffer();
