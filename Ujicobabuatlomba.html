@@ -151,7 +151,6 @@
       color: var(--accent-blue);
     }
 
-    /* Cross-browser Vertical Range Slider Fix */
     .fader-card input[type="range"] {
       writing-mode: vertical-lr;
       direction: rtl;
@@ -251,17 +250,27 @@
 
   const audioElement = document.getElementById('ytAudioPlayer');
 
-  // 1. Inisialisasi Jalur Audio Processing (DSP)
+  // 1. Helper Sanitasi Link YouTube
+  function cleanYouTubeUrl(url) {
+    if (!url) return '';
+    
+    // Extract Video ID dari berbagai format URL (youtu.be, embed, watch?v=, dll)
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+    const match = url.match(regExp);
+
+    if (match && match[2].length === 11) {
+      return `https://www.youtube.com/watch?v=${match[2]}`;
+    }
+    return url;
+  }
+
+  // 2. Inisialisasi Audio Processing (DSP Node)
   function initAudioDSP() {
     if (isDSPConnected) return;
 
-    // Buat AudioContext baru saat ada gestur interaksi
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-    // Buat media element source dari tag <video>
     trackSource = audioCtx.createMediaElementSource(audioElement);
 
-    // Buat Equalizer & Gain Nodes
     lowFilter = audioCtx.createBiquadFilter();
     lowFilter.type = "lowshelf";
     lowFilter.frequency.value = 100;
@@ -277,7 +286,7 @@
 
     gainNode = audioCtx.createGain();
 
-    // Hubungkan Node (Source -> Low -> Mid -> High -> Gain -> Output Speakers)
+    // Rantai Audio: Source -> Low -> Mid -> High -> Gain -> Speakers
     trackSource
       .connect(lowFilter)
       .connect(midFilter)
@@ -289,52 +298,53 @@
     console.log("Web Audio API DSP successfully connected.");
   }
 
-  // 2. Fungsi Load Stream Audio dari API backend
+  // 3. Load & Stream Audio dari YouTube API
   async function loadYouTubeAudio(youtubeUrl) {
     try {
+      const cleanedUrl = cleanYouTubeUrl(youtubeUrl);
+      console.log("Loading Cleaned URL:", cleanedUrl);
+
       const response = await fetch('/api/extract-audio', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: youtubeUrl })
+        body: JSON.stringify({ url: cleanedUrl })
       });
 
       const data = await response.json();
 
       if (data.streamUrl) {
-        // Bebaskan CORS untuk memproses audio via Web Audio API
         audioElement.crossOrigin = "anonymous";
         audioElement.src = data.streamUrl;
 
-        // Inisialisasi & Resume AudioContext
         if (!isDSPConnected) {
           initAudioDSP();
         }
-        
+
         if (audioCtx && audioCtx.state === 'suspended') {
           await audioCtx.resume();
         }
 
-        // Terapkan nilai fader slider saat lagu baru dimulai
-        updateDSP();
-
+        updateDSP(); // Terapkan parameter EQ/Gain yang sedang aktif
         await audioElement.play();
       } else {
-        alert("Gagal mengambil stream audio/video dari URL YouTube!");
+        console.error("Backend Error Detail:", data);
+        alert(`Gagal ekstrak: ${data.error || 'Stream URL tidak ditemukan'}`);
       }
     } catch (err) {
-      console.error("Error loading stream:", err);
-      alert("Terjadi kesalahan koneksi ke server extraction API.");
+      console.error("Error connection:", err);
+      alert("Terjadi kesalahan koneksi ke server.");
     }
   }
 
-  // 3. Manajemen Playlist & Kontrol Player
+  // 4. Kontrol Playlist & Playback
   function tambahKePlaylist() {
     const input = document.getElementById('ytUrlInput');
-    const url = input.value.trim();
+    const rawUrl = input.value.trim();
 
-    if (!url) return;
+    if (!rawUrl) return;
 
-    playlist.push(url);
+    const cleanedUrl = cleanYouTubeUrl(rawUrl);
+    playlist.push(cleanedUrl);
     input.value = '';
     renderPlaylist();
 
@@ -350,7 +360,7 @@
     playlist.forEach((url, index) => {
       const li = document.createElement('li');
       li.className = index === currentIndex ? 'active' : '';
-      li.innerHTML = `<span>Track #${index + 1}</span> <small>${url.substring(0, 25)}...</small>`;
+      li.innerHTML = `<span>Track #${index + 1}</span> <small>${url.substring(0, 30)}...</small>`;
       li.onclick = () => playTrack(index);
       ul.appendChild(li);
     });
@@ -394,7 +404,7 @@
     nextTrack();
   };
 
-  // 4. Update Parameter DSP (Equalizer & Master Gain) Real-time
+  // 5. Update Parameter DSP Real-time
   function updateDSP() {
     const lowVal = parseFloat(document.getElementById('eqLow').value);
     const midVal = parseFloat(document.getElementById('eqMid').value);
@@ -406,11 +416,10 @@
     document.getElementById('valMid').innerText = midVal + " dB";
     document.getElementById('valHigh').innerText = highVal + " dB";
     
-    // Konversi gain linear ke dB untuk tampilan UI
     const dBGain = gainVal === 0 ? "-∞" : (20 * Math.log10(gainVal)).toFixed(1);
     document.getElementById('valGain').innerText = dBGain + " dB";
 
-    // Terapkan ke node Web Audio API
+    // Terapkan ke Web Audio Node
     if (isDSPConnected) {
       lowFilter.gain.value = lowVal;
       midFilter.gain.value = midVal;
