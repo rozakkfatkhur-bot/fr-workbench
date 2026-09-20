@@ -15,16 +15,18 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
 
       - name: Setup Java JDK
         uses: actions/setup-java@v4
         with:
-          distribution: 'zulu'
+          distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Set Android SDK Path
+        run: |
+          echo "ANDROID_HOME=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
+          echo "PATH=$PATH:$ANDROID_SDK_ROOT/tools:$ANDROID_SDK_ROOT/platform-tools" >> $GITHUB_ENV
 
       - name: Install Cordova
         run: npm install -g cordova
@@ -38,6 +40,13 @@ jobs:
           
           if [ -f www/FR-EHLEY-T3-VIRTUAL-DLMS.html ]; then
             cp www/FR-EHLEY-T3-VIRTUAL-DLMS.html www/index.html
+          elif [ -f www/index.html ]; then
+            echo "index.html ditemukan"
+          else
+            FIRST_HTML=$(ls www/*.html | head -n 1)
+            if [ -n "$FIRST_HTML" ]; then
+              cp "$FIRST_HTML" www/index.html
+            fi
           fi
 
           cordova platform add android@12.0.0
