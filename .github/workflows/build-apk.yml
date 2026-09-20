@@ -1,0 +1,55 @@
+name: Build Android APK
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Setup Java JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v2
+
+      - name: Prepare Web Directory & Capacitor
+        run: |
+          mkdir -p www
+          cp FR-EHLEY-T3-VIRTUAL-DLMS.html www/index.html
+          npm init -y
+          npm install @capacitor/core @capacitor/cli @capacitor/android
+          npx cap init "FR EHLEY T3 DLMS" "com.faro.frehley" --web-dir www
+          npx cap add android
+
+      - name: Configure Android WebView Permissions (Allow CORS & Mixed Content)
+        run: |
+          # Mengizinkan akses jaringan & CORS di tingkat WebView Android
+          sed -i 's/<\/application>/  <uses-permission android:name="android.permission.INTERNET" \/>\n<\/application>/g' android/app/src/main/AndroidManifest.xml
+
+      - name: Build APK with Gradle
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: FR-EHLEY-T3-DLMS-APK
+          path: android/app/build/outputs/apk/debug/app-debug.apk
