@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YT Transmitter Dual Display Pro</title>
+    <!-- PeerJS & QRCode Library -->
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        :root {
+            --bg: #09090b;
+            --card: #141419;
+            --accent: #8b5cf6;
+            --text: #f3f4f6;
+            --muted: #9ca3af;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); padding: 12px; display: flex; justify-content: center; }
+        .container { width: 100%; max-width: 600px; }
+
+        .card { background: var(--card); padding: 16px; border-radius: 14px; border: 1px solid #27272a; margin-bottom: 12px; box-shadow: 0 4px 18px rgba(0,0,0,0.4); }
+        h2, h3, h4 { margin-bottom: 8px; font-weight: 600; }
+
+        .btn { width: 100%; padding: 11px; border-radius: 8px; border: none; background: var(--accent); color: #fff; font-weight: bold; font-size: 14px; cursor: pointer; transition: 0.2s; margin-top: 6px; }
+        .btn:active { transform: scale(0.98); }
+        .btn-secondary { background: #27272a; color: var(--text); }
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .btn-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+
+        input, select { width: 100%; padding: 11px; border-radius: 8px; border: 1px solid #3f3f46; background: #000; color: #fff; font-size: 13px; margin-top: 5px; outline: none; }
+        input:focus { border-color: var(--accent); }
+
+        .code-display { font-family: monospace; font-size: 22px; font-weight: bold; color: #a78bfa; letter-spacing: 2px; text-align: center; padding: 10px; background: #000; border-radius: 8px; border: 2px dashed var(--accent); margin: 8px 0; }
+
+        .status-badge { text-align: center; padding: 6px; border-radius: 6px; font-weight: bold; font-size: 12px; margin-top: 6px; }
+        .status-badge.off { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid var(--danger); }
+        .status-badge.on { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid var(--success); }
+
+        /* Dual Display Panels */
+        .display-box { background: #000; border-radius: 10px; overflow: hidden; border: 1px solid #333; position: relative; margin-top: 8px; }
+        .display-title { position: absolute; top: 6px; left: 8px; z-index: 10; background: rgba(0,0,0,0.7); padding: 3px 8px; border-radius: 4px; font-size: 10px; color: var(--accent); font-weight: bold; }
+        
+        .video-wrapper { width: 100%; aspect-ratio: 16/9; }
+        iframe { width: 100%; height: 100%; border: none; }
+
+        /* List Queue */
+        .queue-list { max-height: 120px; overflow-y: auto; margin-top: 8px; background: #000; border-radius: 6px; padding: 4px; }
+        .queue-item { padding: 6px 8px; font-size: 11px; border-bottom: 1px solid #1f1f23; display: flex; justify-content: space-between; align-items: center; }
+
+        /* VU Meter */
+        .vu-container { display: flex; gap: 6px; height: 12px; margin: 10px 0; background: #000; padding: 2px; border-radius: 4px; }
+        .vu-channel { flex: 1; display: flex; gap: 2px; }
+        .vu-led { flex: 1; background: #18181b; border-radius: 1px; }
+        .vu-led.green.active { background: #10b981; }
+        .vu-led.yellow.active { background: #f59e0b; }
+        .vu-led.red.active { background: #ef4444; }
+
+        #qrcode { display: flex; justify-content: center; margin: 10px 0; padding: 8px; background: #fff; border-radius: 8px; width: fit-content; margin-left: auto; margin-right: auto; }
+        .hidden { display: none !important; }
+        .time-text { font-size: 11px; color: var(--muted); display: flex; justify-content: space-between; margin-top: 2px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- SELECT MODE PAGE -->
+    <div id="page-select" class="card" style="text-align: center; margin-top: 30px;">
+        <h2>YT Transmitter Dual Display</h2>
+        <p style="color: var(--muted); font-size: 13px; margin-bottom: 15px;">Sistem Transmitter Dual Display Real-Time</p>
+        <button class="btn" onclick="switchPage('controller')">📱 HP 1 (Controller Dual Display)</button>
+        <button class="btn btn-secondary" onclick="switchPage('player')" style="margin-top: 8px;">📺 HP 2 (Player Audio / Receiver)</button>
+    </div>
+
+    <!-- PAGE 1: CONTROLLER DUAL DISPLAY (HP 1) -->
+    <div id="page-controller" class="hidden">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <button class="btn btn-secondary" onclick="resetApp()" style="width: auto; padding: 6px 12px; margin: 0;">← Mode</button>
+            <select id="themeSelect" onchange="changeTheme(this.value)" style="width: auto; padding: 4px 8px; margin:0;">
+                <option value="purple">💜 Theme Purple</option>
+                <option value="cyber">💙 Cyberpunk</option>
+                <option value="gold">💛 Audio Gold</option>
+                <option value="matrix">💚 Matrix Green</option>
+            </select>
+        </div>
+        
+        <!-- Connection Box -->
+        <div class="card">
+            <h3>1. Sambungkan HP 2</h3>
+            <div style="display: flex; gap: 6px;">
+                <input type="text" id="inputTargetId" placeholder="Masukkan Kode Unik HP 2" style="margin: 0;">
+                <button class="btn" onclick="connectToPlayer()" style="width: 100px; margin: 0;">Hubungkan</button>
+            </div>
+            <div id="statusController" class="status-badge off">Belum Terhubung</div>
+        </div>
+
+        <!-- DISPLAY 1: MONITOR YOUTUBE SANG LAGU DIPUTAR -->
+        <div class="card">
+            <h3>DISPLAY 1: Mini Monitor Sync (Video Aktif)</h3>
+            <div class="display-box">
+                <div class="display-title">LIVE DISPLAY 1</div>
+                <div class="video-wrapper">
+                    <div id="preview-yt-player"></div>
+                </div>
+            </div>
+            <p style="font-size: 12px; margin-top: 8px;">Lagu Aktif: <b id="indTrack">-</b></p>
+            
+            <!-- Live Seek & Time -->
+            <input type="range" id="seekBar" min="0" max="100" value="0" oninput="seekTo(this.value)">
+            <div class="time-text">
+                <span id="currTime">00:00</span>
+                <span id="durTime">00:00</span>
+            </div>
+
+            <!-- VU Meter -->
+            <div class="vu-container">
+                <div class="vu-channel" id="vu-left"></div>
+                <div class="vu-channel" id="vu-right"></div>
+            </div>
+
+            <!-- Controls -->
+            <div class="btn-grid-4">
+                <button class="btn" onclick="sendCommand('play')">▶</button>
+                <button class="btn btn-secondary" onclick="sendCommand('pause')">⏸</button>
+                <button id="btnMute" class="btn btn-secondary" onclick="toggleMute()">🔊</button>
+                <button id="btnLoop" class="btn btn-secondary" onclick="toggleLoop()">🔁</button>
+            </div>
+
+            <!-- Master Volume -->
+            <div style="margin-top: 10px; text-align: center;">
+                <label style="font-size: 12px;">Master Volume: <b id="volValueText">100</b>%</label>
+                <input type="range" id="volSlider" min="0" max="100" value="100" oninput="updateVolume(this.value)">
+            </div>
+        </div>
+
+        <!-- DISPLAY 2: WORKSPACE BEBAS PENCARIAN & PLAYLIST -->
+        <div class="card">
+            <h3>DISPLAY 2: Workspace Bebas (Pencarian & Antrean)</h3>
+            <p style="font-size: 11px; color: var(--muted);">Bebas cari lagu baru tanpa mengganggu pemutaran di Display 1</p>
+            
+            <input type="text" id="inputYtUrl" placeholder="Tempel Link YT / Ketik Judul Lagu">
+            <div class="btn-grid" style="margin-top: 5px;">
+                <button class="btn" onclick="sendSong()">🚀 Putar Langsung</button>
+                <button class="btn btn-secondary" onclick="addToQueue()">➕ Tambah Antrean</button>
+            </div>
+
+            <!-- Daftar Antrean (Queue) -->
+            <h4 style="margin-top: 12px; font-size: 12px; color: var(--muted);">Daftar Antrean (Queue):</h4>
+            <div id="queueList" class="queue-list"></div>
+            <div class="btn-grid" style="margin-top: 5px;">
+                <button class="btn btn-secondary" onclick="exportQueue()" style="font-size: 11px; padding: 6px;">💾 Ekspor Queue</button>
+                <button class="btn btn-secondary" onclick="importQueue()" style="font-size: 11px; padding: 6px;">📂 Impor Queue</button>
+            </div>
+        </div>
+
+        <!-- Fitur Tambahan & Parameter Audio -->
+        <div class="card">
+            <h4>Pengaturan Lanjutan & Audio Control</h4>
+            <div class="btn-grid">
+                <div>
+                    <label style="font-size: 11px; color: var(--muted);">Speed Rate:</label>
+                    <select onchange="sendSpeed(this.value)">
+                        <option value="1">1.0x Normal</option>
+                        <option value="0.75">0.75x</option>
+                        <option value="1.25">1.25x Fast</option>
+                        <option value="1.5">1.5x Fast</option>
+                        <option value="2">2.0x Double</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size: 11px; color: var(--muted);">Sleep Timer:</label>
+                    <select onchange="setSleepTimer(this.value)">
+                        <option value="0">OFF</option>
+                        <option value="15">15 Menit</option>
+                        <option value="30">30 Menit</option>
+                        <option value="60">60 Menit</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- A/B Loop Section -->
+            <div class="btn-grid" style="margin-top: 8px;">
+                <button class="btn btn-secondary" onclick="setABLoop('A')" style="font-size: 11px;">Set Loop A (<span id="loopAVal">--</span>)</button>
+                <button class="btn btn-secondary" onclick="setABLoop('B')" style="font-size: 11px;">Set Loop B (<span id="loopBVal">--</span>)</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE 2: PLAYER (HP 2) -->
+    <div id="page-player" class="hidden">
+        <button class="btn btn-secondary" onclick="resetApp()" style="margin-bottom: 10px;">← Pilih Mode</button>
+
+        <div class="card" style="text-align: center;">
+            <h3>Kode Unik HP 2</h3>
+            <p style="color: var(--muted); font-size: 12px;">Scan QR / Masukkan Kode di HP 1:</p>
+            <div id="displayMyCode" class="code-display">Membuat Kode...</div>
+            <div id="qrcode"></div>
+            <div id="statusPlayer" class="status-badge off">Menunggu HP 1...</div>
+        </div>
+
+        <div class="card">
+            <h3>Layar Audio YouTube (HP 2)</h3>
+            <div class="display-box">
+                <div class="video-wrapper">
+                    <div id="main-yt-player"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- YouTube IFrame API -->
+<script src="https://www.youtube.com/iframe_api"></script>
+
+<script>
+    let peer = null;
+    let conn = null;
+    let mainPlayer = null;
+    let previewPlayer = null;
+    let songQueue = [];
+    let isMuted = false;
+    let isLoop = false;
+    let vuInterval = null;
+    let loopA = null, loopB = null;
+    let sleepTimerTimeout = null;
+
+    function buildVUMeter() {
+        ['vu-left', 'vu-right'].forEach(id => {
+            const el = document.getElementById(id);
+            if(!el) return;
+            el.innerHTML = '';
+            for (let i = 0; i < 10; i++) {
+                const led = document.createElement('div');
+                let colorClass = i < 6 ? 'green' : (i < 8 ? 'yellow' : 'red');
+                led.className = `vu-led ${colorClass}`;
+                el.appendChild(led);
+            }
+        });
+    }
+
+    function switchPage(role) {
+        document.getElementById('page-select').classList.add('hidden');
+        if (role === 'controller') {
+            document.getElementById('page-controller').classList.remove('hidden');
+            buildVUMeter();
+            initPeerController();
+        } else if (role === 'player') {
+            document.getElementById('page-player').classList.remove('hidden');
+            initPeerPlayer();
+        }
+    }
+
+    function resetApp() {
+        if(peer) peer.destroy();
+        location.reload();
+    }
+
+    /* CONTROLLER LOGIC (HP 1) */
+    function initPeerController() {
+        peer = new Peer();
+    }
+
+    function connectToPlayer() {
+        const targetId = document.getElementById('inputTargetId').value.trim();
+        if (!targetId) return alert('Masukkan Kode HP 2!');
+
+        conn = peer.connect(targetId);
+
+        conn.on('open', () => {
+            const status = document.getElementById('statusController');
+            status.innerText = "TERHUBUNG KE HP 2";
+            status.className = "status-badge on";
+        });
+
+        conn.on('data', (data) => {
+            if (data.type === 'state') {
+                if (data.title) document.getElementById('indTrack').innerText = data.title;
+                if (data.state === 'PLAYING') startVUMeter();
+                else stopVUMeter();
+            }
+            if (data.type === 'timeUpdate') {
+                updateTimeUI(data.currentTime, data.duration);
+                checkABLoop(data.currentTime);
+            }
+            if (data.type === 'ended') {
+                playNextInQueue();
+            }
+        });
+
+        conn.on('close', () => {
+            document.getElementById('statusController').className = "status-badge off";
+            stopVUMeter();
+        });
+    }
+
+    function extractVideoID(url) {
+        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+        const match = url.match(regExp);
+        return (match && match[2].length === 11) ? match[2] : url;
+    }
+
+    function sendSong(customId) {
+        const rawUrl = customId || document.getElementById('inputYtUrl').value;
+        const videoId = extractVideoID(rawUrl);
+        if(!videoId) return;
+
+        if (conn && conn.open) {
+            conn.send({ type: 'load', videoId: videoId });
+        }
+        // Sync Display 1 preview
+        if (previewPlayer && previewPlayer.loadVideoById) {
+            previewPlayer.loadVideoById(videoId);
+            previewPlayer.mute(); // Display 1 dibungkam agar suara hanya dari HP 2
+        }
+    }
+
+    function addToQueue() {
+        const rawUrl = document.getElementById('inputYtUrl').value;
+        const videoId = extractVideoID(rawUrl);
+        if(!videoId) return;
+        
+        songQueue.push(videoId);
+        renderQueue();
+        document.getElementById('inputYtUrl').value = '';
+    }
+
+    function renderQueue() {
+        const qEl = document.getElementById('queueList');
+        qEl.innerHTML = songQueue.map((item, idx) => `
+            <div class="queue-item">
+                <span>${idx+1}. ID: ${item}</span>
+                <button onclick="removeQueue(${idx})" style="background:none; border:none; color:var(--danger); cursor:pointer;">✖</button>
+            </div>
+        `).join('');
+    }
+
+    function removeQueue(idx) {
+        songQueue.splice(idx, 1);
+        renderQueue();
+    }
+
+    function playNextInQueue() {
+        if(songQueue.length > 0) {
+            const nextSong = songQueue.shift();
+            renderQueue();
+            sendSong(nextSong);
+        }
+    }
+
+    function sendCommand(cmd) {
+        if (conn && conn.open) conn.send({ type: 'control', command: cmd });
+        if (previewPlayer) {
+            if(cmd === 'play') previewPlayer.playVideo();
+            if(cmd === 'pause') previewPlayer.pauseVideo();
+        }
+    }
+
+    function updateVolume(val) {
+        document.getElementById('volValueText').innerText = val;
+        if (conn && conn.open) conn.send({ type: 'volume', value: val });
+    }
+
+    function toggleMute() {
+        isMuted = !isMuted;
+        document.getElementById('btnMute').innerText = isMuted ? '🔇' : '🔊';
+        if (conn && conn.open) conn.send({ type: 'mute', value: isMuted });
+    }
+
+    function toggleLoop() {
+        isLoop = !isLoop;
+        document.getElementById('btnLoop').style.background = isLoop ? 'var(--accent)' : '#27272a';
+        if (conn && conn.open) conn.send({ type: 'loop', value: isLoop });
+    }
+
+    function seekTo(val) {
+        if (conn && conn.open) conn.send({ type: 'seek', percent: val });
+    }
+
+    function sendSpeed(speed) {
+        if (conn && conn.open) conn.send({ type: 'speed', value: speed });
+    }
+
+    function setSleepTimer(minutes) {
+        clearTimeout(sleepTimerTimeout);
+        if(minutes > 0) {
+            sleepTimerTimeout = setTimeout(() => {
+                sendCommand('pause');
+                alert('Sleep Timer Aktif: Musik Diberhentikan');
+            }, minutes * 60000);
+        }
+    }
+
+    function setABLoop(point) {
+        const curr = parseFloat(document.getElementById('seekBar').getAttribute('data-curr') || 0);
+        if(point === 'A') { loopA = curr; document.getElementById('loopAVal').innerText = Math.floor(curr)+'s'; }
+        if(point === 'B') { loopB = curr; document.getElementById('loopBVal').innerText = Math.floor(curr)+'s'; }
+    }
+
+    function checkABLoop(currTime) {
+        if(loopA !== null && loopB !== null && currTime >= loopB) {
+            if (conn && conn.open) conn.send({ type: 'seekSec', seconds: loopA });
+        }
+    }
+
+    function exportQueue() {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(songQueue));
+        const dlAnchor = document.createElement('a');
+        dlAnchor.setAttribute("href", dataStr);
+        dlAnchor.setAttribute("download", "queue_playlist.json");
+        dlAnchor.click();
+    }
+
+    function importQueue() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.onchange = e => {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.readAsText(file,'UTF-8');
+            reader.onload = readerEvent => {
+                songQueue = JSON.parse(readerEvent.target.result);
+                renderQueue();
+            }
+        }
+        input.click();
+    }
+
+    function changeTheme(theme) {
+        const root = document.documentElement;
+        if(theme === 'cyber') { root.style.setProperty('--accent', '#06b6d4'); }
+        else if(theme === 'gold') { root.style.setProperty('--accent', '#f59e0b'); }
+        else if(theme === 'matrix') { root.style.setProperty('--accent', '#10b981'); }
+        else { root.style.setProperty('--accent', '#8b5cf6'); }
+    }
+
+    function startVUMeter() {
+        if (vuInterval) return;
+        vuInterval = setInterval(() => {
+            ['vu-left', 'vu-right'].forEach(id => {
+                const leds = document.getElementById(id).children;
+                const level = Math.floor(Math.random() * 11);
+                for (let i = 0; i < leds.length; i++) {
+                    if (i < level) leds[i].classList.add('active');
+                    else leds[i].classList.remove('active');
+                }
+            });
+        }, 100);
+    }
+
+    function stopVUMeter() {
+        clearInterval(vuInterval);
+        vuInterval = null;
+        ['vu-left', 'vu-right'].forEach(id => {
+            const leds = document.getElementById(id).children;
+            for (let i = 0; i < leds.length; i++) leds[i].classList.remove('active');
+        });
+    }
+
+    function updateTimeUI(curr, dur) {
+        if(!dur) return;
+        document.getElementById('seekBar').value = (curr / dur) * 100;
+        document.getElementById('seekBar').setAttribute('data-curr', curr);
+        document.getElementById('currTime').innerText = formatTime(curr);
+        document.getElementById('durTime').innerText = formatTime(dur);
+    }
+
+    function formatTime(sec) {
+        let m = Math.floor(sec / 60);
+        let s = Math.floor(sec % 60);
+        return `${m < 10 ? '0':''}${m}:${s < 10 ? '0':''}${s}`;
+    }
+
+    /* PLAYER LOGIC (HP 2) */
+    function initPeerPlayer() {
+        peer = new Peer();
+
+        peer.on('open', (id) => {
+            document.getElementById('displayMyCode').innerText = id;
+            document.getElementById('qrcode').innerHTML = '';
+            new QRCode(document.getElementById("qrcode"), { text: id, width: 110, height: 110 });
+        });
+
+        peer.on('connection', (c) => {
+            conn = c;
+            document.getElementById('statusPlayer').innerText = "HP 1 Terhubung!";
+            document.getElementById('statusPlayer').className = "status-badge on";
+
+            conn.on('data', (data) => handleRemoteCommand(data));
+        });
+
+        setInterval(() => {
+            if (mainPlayer && mainPlayer.getCurrentTime && conn && conn.open) {
+                conn.send({
+                    type: 'timeUpdate',
+                    currentTime: mainPlayer.getCurrentTime(),
+                    duration: mainPlayer.getDuration()
+                });
+            }
+        }, 1000);
+    }
+
+    function onYouTubeIframeAPIReady() {
+        // Display 1 Preview Player (HP 1)
+        previewPlayer = new YT.Player('preview-yt-player', {
+            videoId: '',
+            playerVars: { 'autoplay': 0, 'controls': 0, 'mute': 1 }
+        });
+
+        // Main Player (HP 2)
+        mainPlayer = new YT.Player('main-yt-player', {
+            videoId: '',
+            playerVars: { 'autoplay': 1, 'controls': 1 },
+            events: { 'onStateChange': onPlayerStateChange }
+        });
+    }
+
+    function handleRemoteCommand(data) {
+        if (!mainPlayer) return;
+
+        if (data.type === 'load') mainPlayer.loadVideoById(data.videoId);
+        if (data.type === 'control') {
+            if (data.command === 'play') mainPlayer.playVideo();
+            if (data.command === 'pause') mainPlayer.pauseVideo();
+        }
+        if (data.type === 'volume') mainPlayer.setVolume(data.value);
+        if (data.type === 'mute') data.value ? mainPlayer.mute() : mainPlayer.unMute();
+        if (data.type === 'speed') mainPlayer.setPlaybackRate(parseFloat(data.value));
+        if (data.type === 'seek') {
+            let dur = mainPlayer.getDuration();
+            mainPlayer.seekTo((data.percent / 100) * dur, true);
+        }
+        if (data.type === 'seekSec') mainPlayer.seekTo(data.seconds, true);
+    }
+
+    function onPlayerStateChange(event) {
+        if (conn && conn.open) {
+            let stateText = 'STOPPED';
+            if (event.data == YT.PlayerState.PLAYING) stateText = 'PLAYING';
+            if (event.data == YT.PlayerState.PAUSED) stateText = 'PAUSED';
+            
+            if (event.data == YT.PlayerState.ENDED) {
+                conn.send({ type: 'ended' });
+            }
+
+            let videoData = mainPlayer.getVideoData();
+            conn.send({
+                type: 'state',
+                state: stateText,
+                title: videoData ? videoData.title : ''
+            });
+        }
+    }
+
+    // Keyboard Shortcuts (HP 1)
+    window.addEventListener('keydown', (e) => {
+        if(document.activeElement.tagName === 'INPUT') return;
+        if(e.code === 'Space') { e.preventDefault(); sendCommand('play'); }
+        if(e.code === 'ArrowLeft') { seekTo(Math.max(0, parseFloat(document.getElementById('seekBar').value) - 5)); }
+        if(e.code === 'ArrowRight') { seekTo(Math.min(100, parseFloat(document.getElementById('seekBar').value) + 5)); }
+    });
+</script>
+
+</body>
+</html>
