@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FR AUDIO — The Violet and White Essence of Sound</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- jsPDF CDN untuk Cetak PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brandViolet: '#2E0854',
+                        brandAccent: '#8B5CF6',
+                        brandLight: '#F5F3FF'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col justify-between">
+
+    <!-- NAVBAR -->
+    <nav class="bg-brandViolet text-white sticky top-0 z-50 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
+            <div class="cursor-pointer" onclick="switchTab('home')">
+                <h1 className="text-xl sm:text-2xl font-black tracking-wider text-purple-200">FR AUDIO</h1>
+                <p class="text-[10px] sm:text-xs text-purple-300 tracking-widest italic">The Violet and White Essence of Sound</p>
+            </div>
+            <div class="flex items-center space-x-3 sm:space-x-4">
+                <button onclick="switchTab('home')" class="text-sm hover:text-purple-300 font-medium hidden sm:inline">Beranda</button>
+                <button onclick="switchTab('booking')" class="bg-brandAccent hover:bg-purple-600 text-white text-xs sm:text-sm font-bold px-4 py-2 rounded-lg shadow transition">Sewa Online</button>
+                <button onclick="openAdminAuth()" class="border border-purple-400 hover:bg-purple-900 text-purple-200 text-xs px-3 py-1.5 rounded-lg">Admin</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- CONTENT CONTAINER -->
+    <main class="flex-grow">
+        
+        <!-- ==================== HOME SECTION ==================== -->
+        <section id="sec-home" class="max-w-7xl mx-auto px-4 py-8 space-y-12">
+            <!-- Hero Banner -->
+            <div class="bg-gradient-to-br from-brandViolet via-purple-900 to-indigo-950 text-white rounded-3xl p-8 sm:p-12 shadow-2xl relative overflow-hidden">
+                <div class="relative z-10 max-w-2xl">
+                    <span class="inline-block bg-purple-500/30 text-purple-200 text-xs font-semibold px-3 py-1 rounded-full mb-3 border border-purple-400/30">Professional Audio System</span>
+                    <h2 class="text-3xl sm:text-5xl font-extrabold leading-tight mb-4">Sewa Sound System Online Tanpa Ribet</h2>
+                    <p class="text-purple-100 text-sm sm:text-base mb-6 leading-relaxed">Sistem penataan suara kelas profesional dengan kejernihan maksimal untuk Konser, Live Dangdut, Hajatan, Pengajian, Kesenian, dan Acara Resmi.</p>
+                    <button onclick="switchTab('booking')" class="bg-white text-brandViolet font-extrabold px-8 py-3.5 rounded-xl shadow-lg hover:bg-purple-100 transition transform hover:-translate-y-0.5">Pesan Jadwal Sekarang</button>
+                </div>
+            </div>
+
+            <!-- Profile & History -->
+            <div class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-purple-100">
+                <h3 class="text-2xl font-bold text-brandViolet mb-3 border-b pb-2 border-purple-100">Profil & Komitmen FR AUDIO</h3>
+                <p class="text-slate-600 leading-relaxed text-sm sm:text-base">
+                    <strong>FR AUDIO — The Violet and White Essence of Sound</strong> adalah unit penyedia jasa rental tata suara profesional. Kami mengombinasikan komponen driver berdaya tinggi, subwoofer punchy, serta manajemen DSP/DLMS presisi untuk menghasilkan kestabilan suara terbaik di setiap lokasi acara.
+                </p>
+            </div>
+
+            <!-- Catalog Showcase -->
+            <div>
+                <h3 class="text-2xl font-bold text-brandViolet mb-6">Pilihan Paket Sound System</h3>
+                <div id="catalog-container" class="grid md:grid-cols-2 gap-6"></div>
+            </div>
+        </section>
+
+        <!-- ==================== BOOKING FORM SECTION ==================== -->
+        <section id="sec-booking" class="hidden max-w-3xl mx-auto px-4 py-8">
+            <div class="bg-white rounded-2xl p-6 sm:p-8 shadow-md border border-purple-100">
+                <h2 class="text-2xl font-bold text-brandViolet mb-1">Formulir Pemesanan Sound</h2>
+                <p class="text-xs text-slate-500 mb-6">Isi detail acara kamu di bawah ini untuk langsung kalkulasi total biaya sewa.</p>
+
+                <form id="bookingForm" onsubmit="handleBookingSubmit(event)" class="space-y-5">
+                    <!-- Step 1: Identity -->
+                    <div class="bg-brandLight p-4 rounded-xl space-y-3">
+                        <h4 class="font-bold text-sm text-brandViolet">1. Identitas Penyewa / Grup</h4>
+                        <div class="grid sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="text-xs font-semibold text-slate-600">Nama Penyewa / Grup *</label>
+                                <input type="text" id="renter_name" required placeholder="Contoh: Orkes Mahkota / Bpk. Faro" class="w-full text-sm border rounded-lg p-2.5 mt-1 focus:ring-2 focus:ring-brandAccent outline-none">
+                            </div>
+                            <div>
+                                <label class="text-xs font-semibold text-slate-600">Nomor WhatsApp *</label>
+                                <input type="tel" id="phone_number" required placeholder="08123456789" class="w-full text-sm border rounded-lg p-2.5 mt-1 focus:ring-2 focus:ring-brandAccent outline-none">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Date & Event Type -->
+                    <div class="bg-brandLight p-4 rounded-xl space-y-3">
+                        <h4 class="font-bold text-sm text-brandViolet">2. Detail Acara & Tanggal</h4>
+                        <div class="grid sm:grid-cols-3 gap-3">
+                            <div>
+                                <label class="text-xs font-semibold text-slate-600">Tanggal Mulai *</label>
+                                <input type="date" id="start_date" required onchange="calculateTotal()" class="w-full text-sm border rounded-lg p-2.5 mt-1 focus:ring-2 focus:ring-brandAccent outline-none">
+                            </div>
+                            <div>
+                                <label class="text-xs font-semibold text-slate-600">Tanggal Selesai *</label>
+                                <input type="date" id="end_date" required onchange="calculateTotal()" class="w-full text-sm border rounded-lg p-2.5 mt-1 focus:ring-2 focus:ring-brandAccent outline-none">
+                            </div>
+                            <div>
+                                <label class="text-xs font-semibold text-slate-600">Jam Mulai (Khusus Resmi)</label>
+                                <input type="time" id="start_time" class="w-full text-sm border rounded-lg p-2.5 mt-1 focus:ring-2 focus:ring-brandAccent outline-none">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="text-xs font-semibold text-slate-600">Jenis Acara *</label>
+                            <select id="event_type" required onchange="toggleCustomEvent(this.value)" class="w-full text-sm border rounded-lg p-2.5 mt-1 focus:ring-2 focus:ring-brandAccent outline-none">
+                                <option value="Dangdut / Orgen Tunggal">Live Performance (Dangdut / Orgen Tunggal)</option>
+                                <option value="Kesenian / Pengajian / Sholawatan">Kesenian Daerah / Pengajian / Khotmil Qur'an</option>
+                                <option value="Hajatan Non-Live (MC & Backsound)">Hajatan Non-Live (Cuma MC & Backsound)</option>
+                                <option value="Acara Resmi / Rapat / Upacara">Acara Resmi / Rapat / Upacara</option>
+                                <option value="Event Cosplay / Festival">Event / Cosplay / Festival</option>
+                                <option value="Lainnya">Acara Lainnya (Tulis Sendiri)</option>
+                            </select>
+                            <input type="text" id="custom_event_name" placeholder="Sebutkan jenis acaramu..." class="hidden w-full text-sm border rounded-lg p-2.5 mt-2 focus:ring-2 focus:ring-brandAccent outline-none">
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Location -->
+                    <div class="bg-brandLight p-4 rounded-xl space-y-3">
+                        <h4 class="font-bold text-sm text-brandViolet">3. Lokasi Acara</h4>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                            <input type="text" id="prov" placeholder="Provinsi" value="Jawa Tengah" required class="text-sm border rounded-lg p-2.5">
+                            <input type="text" id="kab" placeholder="Kabupaten/Kota" value="Temanggung" required class="text-sm border rounded-lg p-2.5">
+                            <input type="text" id="kec" placeholder="Kecamatan" required class="text-sm border rounded-lg p-2.5 col-span-2 sm:col-span-1">
+                        </div>
+                        <div class="grid sm:grid-cols-2 gap-3">
+                            <input type="text" id="des" placeholder="Desa / Kelurahan" required class="text-sm border rounded-lg p-2.5">
+                            <input type="text" id="dus" placeholder="Dusun / RT / RW" required class="text-sm border rounded-lg p-2.5">
+                        </div>
+                    </div>
+
+                    <!-- Step 4: Package Selection -->
+                    <div class="bg-brandLight p-4 rounded-xl space-y-3">
+                        <h4 class="font-bold text-sm text-brandViolet">4. Pilih Paket Sound</h4>
+                        <select id="package_select" required onchange="calculateTotal()" class="w-full text-sm border rounded-lg p-2.5 focus:ring-2 focus:ring-brandAccent outline-none">
+                            <option value="">-- Pilih Paket Sound System --</option>
+                        </select>
+                    </div>
+
+                    <!-- Step 5: Cost Calculation Breakdown -->
+                    <div id="checkout_box" class="bg-purple-900 text-white p-5 rounded-xl space-y-2 text-sm">
+                        <h4 class="font-bold border-b border-purple-700 pb-2 text-purple-200">Estimasi Rincian Checkout:</h4>
+                        <div class="flex justify-between"><span>Sewa Paket (<span id="txt_days">0</span> Hari):</span> <span id="txt_pkg_cost">Rp 0</span></div>
+                        <div class="flex justify-between text-purple-300 text-xs"><span>Diskon Promo Paket:</span> <span id="txt_discount">- Rp 0</span></div>
+                        <div class="flex justify-between text-xs"><span>Biaya Kru Operasional:</span> <span id="txt_crew_cost">Rp 0</span></div>
+                        <div class="flex justify-between text-xs"><span>Biaya Genset & BBM:</span> <span id="txt_genset_cost">Rp 0</span></div>
+                        <div class="flex justify-between text-xs"><span>Estimasi Transportasi Logistik:</span> <span id="txt_trans_cost">Rp 0</span></div>
+                        <div class="border-t border-purple-700 pt-2 flex justify-between font-extrabold text-base text-yellow-300">
+                            <span>TOTAL BAYAR:</span>
+                            <span id="txt_grand_total">Rp 0</span>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full bg-brandViolet hover:bg-purple-900 text-white font-bold py-3.5 rounded-xl shadow-lg transition">Konfirmasi & Sewa Sekarang</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- ==================== ADMIN DASHBOARD ==================== -->
+        <section id="sec-admin" class="hidden max-w-7xl mx-auto px-4 py-8 space-y-8">
+            <div class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border">
+                <div>
+                    <h2 class="text-xl font-bold text-brandViolet">Panel Admin FR AUDIO</h2>
+                    <p class="text-xs text-slate-500">Log masuk sebagai: <span class="font-bold text-purple-700">rozakkfatkhur@gmail.com</span></p>
+                </div>
+                <button onclick="logoutAdmin()" class="bg-red-50 text-red-600 hover:bg-red-100 text-xs font-bold px-3 py-2 rounded-lg border border-red-200">Logout Admin</button>
+            </div>
+
+            <!-- Admin Tabs Navigation -->
+            <div class="flex space-x-2 border-b">
+                <button onclick="switchAdminSubTab('bookings')" id="atab-bookings" class="px-4 py-2 text-sm font-bold border-b-2 border-brandViolet text-brandViolet">Daftar Acara Masuk</button>
+                <button onclick="switchAdminSubTab('packages')" id="atab-packages" class="px-4 py-2 text-sm font-bold text-slate-500">Kelola Paket & Diskon</button>
+                <button onclick="switchAdminSubTab('settings')" id="atab-settings" class="px-4 py-2 text-sm font-bold text-slate-500">Setting Biaya Operasional</button>
+            </div>
+
+            <!-- Admin Sub-Tab: Bookings List -->
+            <div id="asub-bookings" class="bg-white rounded-xl shadow-sm border overflow-hidden">
+                <div class="p-4 bg-slate-50 border-b flex justify-between items-center">
+                    <h3 class="font-bold text-sm text-slate-700">Daftar Reservasi Pelanggan</h3>
+                    <span class="text-xs text-slate-500">Bisa di-ekspor langsung ke PDF</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-brandViolet text-white text-xs">
+                                <th class="p-3">Kode</th>
+                                <th class="p-3">Penyewa / Grup</th>
+                                <th class="p-3">Acara & Waktu</th>
+                                <th class="p-3">Alamat Detail</th>
+                                <th class="p-3">Paket</th>
+                                <th class="p-3">Total (Rp)</th>
+                                <th class="p-3 text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-booking-tbody" class="text-xs divide-y"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Admin Sub-Tab: Manage Packages -->
+            <div id="asub-packages" class="hidden space-y-6">
+                <div class="bg-white p-6 rounded-xl shadow-sm border space-y-4">
+                    <h3 class="font-bold text-brandViolet border-b pb-2">Tambah / Edit Paket Sound System</h3>
+                    <form onsubmit="savePackage(event)" class="grid sm:grid-cols-2 gap-4 text-xs">
+                        <input type="text" id="m_pkg_name" placeholder="Nama Paket (misal: Paket Konser Medium)" required class="border p-2 rounded">
+                        <input type="number" id="m_pkg_price" placeholder="Harga Dasar Per Hari (Rp)" required class="border p-2 rounded">
+                        <input type="number" id="m_pkg_sub_count" placeholder="Jumlah Sub" required class="border p-2 rounded">
+                        <input type="number" id="m_pkg_sub_inch" placeholder="Ukuran Sub (Inch)" required class="border p-2 rounded">
+                        <input type="text" id="m_pkg_middle" placeholder="Spesifikasi Middle" required class="border p-2 rounded">
+                        <input type="text" id="m_pkg_mixer" placeholder="Spesifikasi Mixer" required class="border p-2 rounded">
+                        <input type="number" id="m_pkg_discount" placeholder="Diskon Promo Paket (Rp)" value="0" class="border p-2 rounded">
+                        <input type="text" id="m_pkg_extra" placeholder="Aksesori / Aksesori Tambahan" class="border p-2 rounded col-span-2">
+                        <button type="submit" class="col-span-2 bg-brandViolet text-white font-bold py-2.5 rounded-lg">Simpan Paket Ke System</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Admin Sub-Tab: Operational Costs Settings -->
+            <div id="asub-settings" class="hidden">
+                <div class="bg-white p-6 rounded-xl shadow-sm border max-w-xl space-y-4">
+                    <h3 class="font-bold text-brandViolet border-b pb-2">Pengaturan Tarif Operasional Standar</h3>
+                    <form onsubmit="saveOpSettings(event)" class="space-y-3 text-xs">
+                        <div>
+                            <label class="font-semibold text-slate-600">Biaya Kru Per Hari (Rp)</label>
+                            <input type="number" id="set_crew" required class="w-full border p-2 rounded mt-1">
+                        </div>
+                        <div>
+                            <label class="font-semibold text-slate-600">Biaya Sewa Genset Internal (Rp)</label>
+                            <input type="number" id="set_genset" required class="w-full border p-2 rounded mt-1">
+                        </div>
+                        <div>
+                            <label class="font-semibold text-slate-600">Biaya BBM (Solar/Bensin) (Rp)</label>
+                            <input type="number" id="set_fuel" required class="w-full border p-2 rounded mt-1">
+                        </div>
+                        <div>
+                            <label class="font-semibold text-slate-600">Biaya Transportasi Logistik Standar (Rp)</label>
+                            <input type="number" id="set_trans" required class="w-full border p-2 rounded mt-1">
+                        </div>
+                        <button type="submit" class="w-full bg-brandAccent text-white font-bold py-2.5 rounded-lg">Update Setting Operasional</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-brandViolet text-purple-300 py-6 text-center text-xs border-t border-purple-900 mt-12">
+        <p class="font-bold text-white mb-1">FR AUDIO — The Violet and White Essence of Sound</p>
+        <p>© 2026 FR AUDIO System. All rights reserved.</p>
+    </footer>
+
+    <!-- MODAL LOGIN ADMIN -->
+    <div id="adminModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl relative">
+            <button onclick="closeAdminAuth()" class="absolute top-3 right-3 text-slate-400 hover:text-slate-600">✕</button>
+            <h3 class="text-lg font-bold text-brandViolet mb-1">Login Panel Admin</h3>
+            <p class="text-xs text-slate-500 mb-4">Masuk untuk mengelola jadwal & ekspor PDF.</p>
+            <form onsubmit="handleAdminLogin(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="font-bold text-slate-600">Email Admin</label>
+                    <input type="email" id="login_email" value="rozakkfatkhur@gmail.com" required class="w-full border p-2.5 rounded-lg mt-1 outline-none">
+                </div>
+                <div>
+                    <label class="font-bold text-slate-600">Password</label>
+                    <input type="password" id="login_pass" value="faro124578" required class="w-full border p-2.5 rounded-lg mt-1 outline-none">
+                </div>
+                <button type="submit" class="w-full bg-brandViolet text-white font-bold py-2.5 rounded-lg hover:bg-purple-900">Masuk Dashboard</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- SCRIPT LOGIC (LOCALSTORAGE ENGINE) -->
+    <script>
+        // INIT DEFAULT DATA STORAGE IF EMPTY
+        if (!localStorage.getItem('fraudio_packages')) {
+            const defaultPackages = [
+                { id: 1, name: 'Paket Small Event', sub_count: 2, sub_inch: 18, middle: '2 Box Middle 10"', mixer: 'Analog Mixer 12 Channel', extra: '2 Mic Wireless, DLMS', price: 1500000, discount: 0 },
+                { id: 2, name: 'Paket Medium Concert', sub_count: 4, sub_inch: 18, middle: '4 Box Double Middle 10"', mixer: 'Digital Mixer 32 Channel', extra: 'DLMS 2-in 4-out, Rigging, Stage Monitor', price: 3500000, discount: 200000 }
+            ];
+            localStorage.setItem('fraudio_packages', JSON.stringify(defaultPackages));
+        }
+
+        if (!localStorage.getItem('fraudio_settings')) {
+            const defaultSettings = { crew: 200000, genset: 500000, fuel: 300000, trans: 150000 };
+            localStorage.setItem('fraudio_settings', JSON.stringify(defaultSettings));
+        }
+
+        if (!localStorage.getItem('fraudio_bookings')) {
+            localStorage.setItem('fraudio_bookings', JSON.stringify([]));
+        }
+
+        let isAdminLoggedIn = false;
+
+        // UI TAB SWITCHER
+        function switchTab(tab) {
+            document.getElementById('sec-home').classList.add('hidden');
+            document.getElementById('sec-booking').classList.add('hidden');
+            document.getElementById('sec-admin').classList.add('hidden');
+
+            if (tab === 'home') {
+                document.getElementById('sec-home').classList.remove('hidden');
+                renderCatalog();
+            } else if (tab === 'booking') {
+                document.getElementById('sec-booking').classList.remove('hidden');
+                populatePackageDropdown();
+            } else if (tab === 'admin') {
+                if (!isAdminLoggedIn) {
+                    openAdminAuth();
+                } else {
+                    document.getElementById('sec-admin').classList.remove('hidden');
+                    renderAdminBookings();
+                    loadOpSettingsToForm();
+                }
+            }
+        }
+
+        function switchAdminSubTab(subTab) {
+            document.getElementById('asub-bookings').classList.add('hidden');
+            document.getElementById('asub-packages').classList.add('hidden');
+            document.getElementById('asub-settings').classList.add('hidden');
+
+            document.getElementById('atab-bookings').className = "px-4 py-2 text-sm font-bold text-slate-500";
+            document.getElementById('atab-packages').className = "px-4 py-2 text-sm font-bold text-slate-500";
+            document.getElementById('atab-settings').className = "px-4 py-2 text-sm font-bold text-slate-500";
+
+            if (subTab === 'bookings') {
+                document.getElementById('asub-bookings').classList.remove('hidden');
+                document.getElementById('atab-bookings').className = "px-4 py-2 text-sm font-bold border-b-2 border-brandViolet text-brandViolet";
+                renderAdminBookings();
+            } else if (subTab === 'packages') {
+                document.getElementById('asub-packages').classList.remove('hidden');
+                document.getElementById('atab-packages').className = "px-4 py-2 text-sm font-bold border-b-2 border-brandViolet text-brandViolet";
+            } else if (subTab === 'settings') {
+                document.getElementById('asub-settings').classList.remove('hidden');
+                document.getElementById('atab-settings').className = "px-4 py-2 text-sm font-bold border-b-2 border-brandViolet text-brandViolet";
+            }
+        }
+
+        // RENDER CATALOG HOME
+        function renderCatalog() {
+            const pkgs = JSON.parse(localStorage.getItem('fraudio_packages'));
+            const container = document.getElementById('catalog-container');
+            container.innerHTML = '';
+
+            pkgs.forEach(p => {
+                const card = document.createElement('div');
+                card.className = "bg-white p-6 rounded-2xl shadow-sm border-l-4 border-brandAccent flex flex-col justify-between";
+                card.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-start">
+                            <h4 class="text-xl font-bold text-slate-800">${p.name}</h4>
+                            ${p.discount > 0 ? `<span class="bg-red-100 text-red-600 text-[10px] font-bold px-2 py-1 rounded">Hemat Rp ${p.discount.toLocaleString('id-ID')}</span>` : ''}
+                        </div>
+                        <ul class="text-xs text-slate-600 my-4 space-y-1.5">
+                            <li>🔊 <strong>Subwoofer:</strong> ${p.sub_count} Sub (${p.sub_inch} Inch)</li>
+                            <li>📢 <strong>Middle:</strong> ${p.middle}</li>
+                            <li>🎛️ <strong>Mixer:</strong> ${p.mixer}</li>
+                            <li>⚙️ <strong>Aksesori:</strong> ${p.extra}</li>
+                        </ul>
+                    </div>
+                    <div class="pt-4 border-t flex justify-between items-center">
+                        <div>
+                            <p class="text-[10px] text-slate-400">Harga per Hari:</p>
+                            <p class="text-lg font-black text-brandViolet">Rp ${Number(p.price - p.discount).toLocaleString('id-ID')}</p>
+                        </div>
+                        <button onclick="selectPackageAndBook(${p.id})" class="bg-brandViolet text-white font-bold px-4 py-2 rounded-lg text-xs hover:bg-purple-900 transition">Pilih Paket</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function populatePackageDropdown() {
+            const pkgs = JSON.parse(localStorage.getItem('fraudio_packages'));
+            const select = document.getElementById('package_select');
+            select.innerHTML = '<option value="">-- Pilih Paket Sound System --</option>';
+            pkgs.forEach(p => {
+                select.innerHTML += `<option value="${p.id}">${p.name} - Rp ${(p.price - p.discount).toLocaleString('id-ID')}/hari</option>`;
+            });
+        }
+
+        function selectPackageAndBook(id) {
+            switchTab('booking');
+            document.getElementById('package_select').value = id;
+            calculateTotal();
+        }
+
+        function toggleCustomEvent(val) {
+            const input = document.getElementById('custom_event_name');
+            if (val === 'Lainnya') {
+                input.classList.remove('hidden');
+                input.required = true;
+            } else {
+                input.classList.add('hidden');
+                input.required = false;
+            }
+        }
+
+        // LIVE CHECKOUT CALCULATOR
+        function calculateTotal() {
+            const start = document.getElementById('start_date').value;
+            const end = document.getElementById('end_date').value;
+            const pkgId = document.getElementById('package_select').value;
+
+            if (!start || !end || !pkgId) return;
+
+            const d1 = new Date(start);
+            const d2 = new Date(end);
+            const days = Math.ceil((d2 - d1) / (1000 * 60 * 60 * 24)) + 1;
+
+            if (days <= 0) {
+                alert('Tanggal selesai tidak boleh lebih awal dari tanggal mulai!');
+                document.getElementById('end_date').value = '';
+                return;
+            }
+
+            const pkgs = JSON.parse(localStorage.getItem('fraudio_packages'));
+            const selectedPkg = pkgs.find(p => p.id == pkgId);
+            const settings = JSON.parse(localStorage.getItem('fraudio_settings'));
+
+            const pkgCost = selectedPkg.price * days;
+            const discountTotal = selectedPkg.discount * days;
+            const crewCost = settings.crew * days;
+            const gensetCost = settings.genset + settings.fuel;
+            const transCost = settings.trans;
+
+            const grandTotal = (pkgCost - discountTotal) + crewCost + gensetCost + transCost;
+
+            document.getElementById('txt_days').innerText = days;
+            document.getElementById('txt_pkg_cost').innerText = `Rp ${pkgCost.toLocaleString('id-ID')}`;
+            document.getElementById('txt_discount').innerText = `- Rp ${discountTotal.toLocaleString('id-ID')}`;
+            document.getElementById('txt_crew_cost').innerText = `Rp ${crewCost.toLocaleString('id-ID')}`;
+            document.getElementById('txt_genset_cost').innerText = `Rp ${gensetCost.toLocaleString('id-ID')}`;
+            document.getElementById('txt_trans_cost').innerText = `Rp ${transCost.toLocaleString('id-ID')}`;
+            document.getElementById('txt_grand_total').innerText = `Rp ${grandTotal.toLocaleString('id-ID')}`;
+
+            return { days, selectedPkg, pkgCost, discountTotal, crewCost, gensetCost, transCost, grandTotal };
+        }
+
+        // SUBMIT BOOKING (WITH OVERLAP CHECK)
+        function handleBookingSubmit(e) {
+            e.preventDefault();
+
+            const pkgId = document.getElementById('package_select').value;
+            const start = document.getElementById('start_date').value;
+            const end = document.getElementById('end_date').value;
+
+            // Check Schedule Conflict
+            const existingBookings = JSON.parse(localStorage.getItem('fraudio_bookings'));
+            const isOverlap = existingBookings.some(b => {
+                return b.package_id == pkgId &&
+                       ((start <= b.end_date) && (end >= b.start_date));
+            });
+
+            if (isOverlap) {
+                alert('❌ MAAF: Paket sound ini sudah disewa oleh orang lain pada tanggal tersebut! Silakan pilih tanggal lain atau paket lainnya.');
+                return;
+            }
+
+            const calc = calculateTotal();
+            const eventTypeVal = document.getElementById('event_type').value;
+            const finalEventType = eventTypeVal === 'Lainnya' ? document.getElementById('custom_event_name').value : eventTypeVal;
+
+            const newBooking = {
+                id: 'FRA-' + Date.now().toString().slice(-6),
+                renter_name: document.getElementById('renter_name').value,
+                phone_number: document.getElementById('phone_number').value,
+                start_date: start,
+                end_date: end,
+                start_time: document.getElementById('start_time').value || '-',
+                event_type: finalEventType,
+                prov: document.getElementById('prov').value,
+                kab: document.getElementById('kab').value,
+                kec: document.getElementById('kec').value,
+                des: document.getElementById('des').value,
+                dus: document.getElementById('dus').value,
+                package_id: pkgId,
+                package_name: calc.selectedPkg.name,
+                days: calc.days,
+                grandTotal: calc.grandTotal,
+                created_at: new Date().toLocaleDateString('id-ID')
+            };
+
+            existingBookings.push(newBooking);
+            localStorage.setItem('fraudio_bookings', JSON.stringify(existingBookings));
+
+            alert(`✅ SUCCESS!\nPemesanan Berhasil Terdaftar.\nKode: ${newBooking.id}\nTotal Bayar: Rp ${calc.grandTotal.toLocaleString('id-ID')}`);
+            document.getElementById('bookingForm').reset();
+            switchTab('home');
+        }
+
+        // ADMIN AUTHENTICATION
+        function openAdminAuth() { document.getElementById('adminModal').classList.remove('hidden'); }
+        function closeAdminAuth() { document.getElementById('adminModal').classList.add('hidden'); }
+
+        function handleAdminLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('login_email').value;
+            const pass = document.getElementById('login_pass').value;
+
+            if (email === 'rozakkfatkhur@gmail.com' && pass === 'faro124578') {
+                isAdminLoggedIn = true;
+                closeAdminAuth();
+                switchTab('admin');
+            } else {
+                alert('Email atau Password Admin Salah!');
+            }
+        }
+
+        function logoutAdmin() {
+            isAdminLoggedIn = false;
+            switchTab('home');
+        }
+
+        // RENDER ADMIN BOOKINGS & EXPORT PDF
+        function renderAdminBookings() {
+            const bookings = JSON.parse(localStorage.getItem('fraudio_bookings'));
+            const tbody = document.getElementById('admin-booking-tbody');
+            tbody.innerHTML = '';
+
+            if (bookings.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-slate-400">Belum ada acara yang terdaftar.</td></tr>`;
+                return;
+            }
+
+            bookings.forEach(b => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="p-3 font-bold">${b.id}</td>
+                    <td class="p-3">${b.renter_name}<br><span class="text-[10px] text-slate-500">${b.phone_number}</span></td>
+                    <td class="p-3">${b.start_date} s/d ${b.end_date}<br><span class="text-[10px] font-semibold text-purple-700">${b.event_type} (${b.start_time})</span></td>
+                    <td class="p-3">Ds. ${b.des}, Kec. ${b.kec}, ${b.kab}</td>
+                    <td class="p-3 font-semibold">${b.package_name}</td>
+                    <td class="p-3 font-bold text-brandViolet">Rp ${b.grandTotal.toLocaleString('id-ID')}</td>
+                    <td class="p-3 text-center">
+                        <button onclick="exportInvoicePDF('${b.id}')" class="bg-brandAccent text-white px-2.5 py-1.5 rounded text-[10px] font-bold hover:bg-purple-700">Ekspor PDF</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // EXPORT PDF INVOICE ENGINE (jsPDF)
+        function exportInvoicePDF(id) {
+            const bookings = JSON.parse(localStorage.getItem('fraudio_bookings'));
+            const b = bookings.find(item => item.id === id);
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Header FR AUDIO
+            doc.setTextColor(46, 8, 84); // Violet
+            doc.setFontSize(20);
+            doc.text("FR AUDIO", 20, 20);
+
+            doc.setTextColor(139, 92, 246);
+            doc.setFontSize(9);
+            doc.text("The Violet and White Essence of Sound", 20, 26);
+
+            doc.setDrawColor(46, 8, 84);
+            doc.setLineWidth(1);
+            doc.line(20, 30, 190, 30);
+
+            // Invoice Meta
+            doc.setTextColor(30);
+            doc.setFontSize(10);
+            doc.text(`KUITANSI PEMESANAN: ${b.id}`, 20, 40);
+            doc.text(`Tanggal Cetak: ${new Date().toLocaleDateString('id-ID')}`, 20, 46);
+
+            // Rincian Pemesan
+            doc.text(`Nama Pemesan / Grup : ${b.renter_name}`, 20, 58);
+            doc.text(`WhatsApp            : ${b.phone_number}`, 20, 64);
+            doc.text(`Jenis Acara         : ${b.event_type}`, 20, 70);
+            doc.text(`Tanggal Acara       : ${b.start_date} s/d ${b.end_date} (${b.days} Hari)`, 20, 76);
+            doc.text(`Jam Mulai           : ${b.start_time}`, 20, 82);
+            doc.text(`Lokasi Acara        : Dusun ${b.dus}, Des. ${b.des}, Kec. ${b.kec}, ${b.kab}`, 20, 88);
+
+            // Financial Summary
+            doc.setDrawColor(200);
+            doc.line(20, 95, 190, 95);
+
+            doc.setFontSize(11);
+            doc.setTextColor(46, 8, 84);
+            doc.text("RINCIAN PAKET SOUND SYSTEM:", 20, 105);
+
+            doc.setFontSize(10);
+            doc.setTextColor(50);
+            doc.text(`• ${b.package_name}`, 25, 113);
+            doc.text(`• Total Biaya Terhitung : Rp ${b.grandTotal.toLocaleString('id-ID')}`, 25, 120);
+
+            doc.setFontSize(12);
+            doc.setTextColor(0, 128, 0);
+            doc.text(`STATUS: RESMI TERDAFTAR`, 20, 135);
+
+            doc.save(`Invoice_${b.id}_FR_AUDIO.pdf`);
+        }
+
+        // SAVE NEW PACKAGE
+        function savePackage(e) {
+            e.preventDefault();
+            const pkgs = JSON.parse(localStorage.getItem('fraudio_packages'));
+            const newPkg = {
+                id: Date.now(),
+                name: document.getElementById('m_pkg_name').value,
+                price: Number(document.getElementById('m_pkg_price').value),
+                sub_count: Number(document.getElementById('m_pkg_sub_count').value),
+                sub_inch: Number(document.getElementById('m_pkg_sub_inch').value),
+                middle: document.getElementById('m_pkg_middle').value,
+                mixer: document.getElementById('m_pkg_mixer').value,
+                discount: Number(document.getElementById('m_pkg_discount').value || 0),
+                extra: document.getElementById('m_pkg_extra').value || '-'
+            };
+            pkgs.push(newPkg);
+            localStorage.setItem('fraudio_packages', JSON.stringify(pkgs));
+            alert('Paket berhasil ditambahkan!');
+            renderCatalog();
+            switchAdminSubTab('packages');
+        }
+
+        // OPERATIONAL SETTINGS
+        function loadOpSettingsToForm() {
+            const s = JSON.parse(localStorage.getItem('fraudio_settings'));
+            document.getElementById('set_crew').value = s.crew;
+            document.getElementById('set_genset').value = s.genset;
+            document.getElementById('set_fuel').value = s.fuel;
+            document.getElementById('set_trans').value = s.trans;
+        }
+
+        function saveOpSettings(e) {
+            e.preventDefault();
+            const settings = {
+                crew: Number(document.getElementById('set_crew').value),
+                genset: Number(document.getElementById('set_genset').value),
+                fuel: Number(document.getElementById('set_fuel').value),
+                trans: Number(document.getElementById('set_trans').value)
+            };
+            localStorage.setItem('fraudio_settings', JSON.stringify(settings));
+            alert('Tarif Operasional Berhasil Di-update!');
+        }
+
+        // INIT LOAD
+        renderCatalog();
+    </script>
+</body>
+</html>
