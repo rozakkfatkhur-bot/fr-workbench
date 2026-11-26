@@ -117,9 +117,16 @@ dialog p{color:var(--mu);margin-bottom:12px;max-width:60ch}
 @media(min-width:900px){main{grid-template-columns:1fr 350px;grid-template-rows:minmax(240px,42%) minmax(0,1fr);grid-template-areas:"pv pn" "tw pn"}.pn{max-height:none;border-left:1px solid var(--ln);border-top:0}}
 @media(max-width:600px){.hide-s{display:none}label{grid-template-columns:84px 1fr 54px}footer .tx{display:none}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+.hd2{display:none;position:absolute;top:0;bottom:0;width:22px;background:var(--vi);touch-action:none;cursor:ew-resize;z-index:2}
+.hd2::after{content:"";position:absolute;top:20px;bottom:20px;left:9px;width:3px;border-radius:2px;background:#1a1a1a}
+.hd2[data-s=l]{left:0;border-radius:5px 0 0 5px}.hd2[data-s=r]{right:0;border-radius:0 5px 5px 0}
+.row.on .clip:not(.lk) .hd2{display:block}.row.on .clip:not(.lk) b{left:28px}
+body.nd nav,body.nd #pn{display:none}
+body.nd main{grid-template-rows:minmax(150px,34%) minmax(0,1fr);grid-template-areas:"pv" "tw"}
+@media(min-width:900px){body.nd main{grid-template-columns:1fr;grid-template-rows:minmax(240px,42%) minmax(0,1fr)}}
 </style>
 </head>
-<body>
+<body class="nd">
 <header>
   <span id="hb" class="lg" data-lg="brand"></span>
   <input id="pj" value="Proyek tanpa judul" aria-label="Nama proyek">
@@ -145,6 +152,7 @@ dialog p{color:var(--mu);margin-bottom:12px;max-width:60ch}
       <span id="tc">0:00.00</span>
       <span class="sp"></span>
       <input type="range" data-o="m" data-k="out" min="0" max="1.5" step=".01" value="1" aria-label="Fader master">
+      <button id="dk" aria-label="Alat pengaturan" data-ic="eq"></button>
       <button id="zo" aria-label="Perkecil" data-ic="zo"></button>
       <button id="zi" aria-label="Perbesar" data-ic="zi"></button>
     </div>
@@ -259,7 +267,7 @@ function ubtn(){$('#un').disabled=hx<=0;$('#re').disabled=hx>=hist.length-1}
 function restore(s){const id=sel&&sel.id;pause();T.forEach(t=>{try{t.n.g.disconnect()}catch(e){}});T.length=0;s.forEach(o=>{const t={...o};if(AC&&o.buf){t.n=mk(AC,E,t);apply(t)}T.push(t)});sel=T.find(t=>t.id==id)||T[0]||null;render()}
 $('#un').onclick=()=>{if(hx>0){hx--;restore(hist[hx]);ubtn()}};$('#re').onclick=()=>{if(hx<hist.length-1){hx++;restore(hist[hx]);ubtn()}};
 /* ===== Edit klip ===== */
-function op(a){if(a=='done'){edit=0;ctx();return}const t=sel;if(!t)return;if(a=='mute'||a=='solo'){t[a]^=1;applyAll();push();render();return}if(t.lock&&a!='lock')return toast('Klip terkunci. Buka kunci dulu.');const rel=pos-t.off,inside=rel>.05&&rel<t.du-.05;
+function op(a){if(a=='done'){edit=0;ctx();setDock(false);return}if(a=='dock'){setDock(true);return}const t=sel;if(!t)return;if(a=='mute'||a=='solo'){t[a]^=1;applyAll();push();render();return}if(t.lock&&a!='lock')return toast('Klip terkunci. Buka kunci dulu.');const rel=pos-t.off,inside=rel>.05&&rel<t.du-.05;
  if(a=='split'){if(!inside)return toast('Geser playhead ke dalam klip untuk memisah.');const c={...t,id:uid++,name:t.name+' b',off:pos,tr:t.tr+rel,du:t.du-rel,fie:0};c.n=t.buf?mk(AC,E,c):null;apply(c);t.du=rel;t.foe=0;T.splice(T.indexOf(t)+1,0,c);sel=c}
  else if(a=='dup'){const c={...t,id:uid++,name:t.name+' (2)',off:t.off+t.du};c.n=t.buf?mk(AC,E,c):null;apply(c);T.push(c);sel=c}
  else if(a=='tl'){if(!inside)return toast('Playhead harus di dalam klip.');t.off=pos;t.tr+=rel;t.du-=rel}
@@ -268,8 +276,8 @@ function op(a){if(a=='done'){edit=0;ctx();return}const t=sel;if(!t)return;if(a==
  else if(a=='del'){if(t.vid)t.vid.pause();if(t.n)t.n.g.disconnect();T.splice(T.indexOf(t),1);sel=T[0]||null;edit=0}
  if(playing)play();push();render()}
 $('#ctx').onclick=e=>{const b=e.target.closest('button');if(b)op(b.dataset.a)};
-function ctx(){const el=$('#ctx');el.hidden=!(edit&&sel);if(el.hidden)return;let B=[['split','Pisah'],['dup','Duplikat'],['tl','Potong awal'],['tr','Potong akhir'],['mute',sel.mute?'Aktifkan':'Bisukan'],['solo','Solo'],['lock',sel.lock?'Buka kunci':'Kunci'],['del','Hapus'],['done','Selesai']];
- if(!sel.n)B=B.filter(b=>b[0]!='mute'&&b[0]!='solo');el.innerHTML=B.map(([a,l])=>`<button data-a="${a}">${ic({split:'sp',dup:'dp',tl:'tl',tr:'tr',lock:'lk',del:'dl',mute:'vol',solo:'mic',done:'ok'}[a])}${l}</button>`).join('')}
+function ctx(){const el=$('#ctx');el.hidden=!(edit&&sel);if(el.hidden)return;let B=[['split','Pisah'],['dup','Duplikat'],['tl','Potong awal'],['tr','Potong akhir'],['mute',sel.mute?'Aktifkan':'Bisukan'],['solo','Solo'],['lock',sel.lock?'Buka kunci':'Kunci'],['del','Hapus'],['dock','Atur'],['done','Selesai']];
+ if(!sel.n)B=B.filter(b=>b[0]!='mute'&&b[0]!='solo');el.innerHTML=B.map(([a,l])=>`<button data-a="${a}">${ic({split:'sp',dup:'dp',tl:'tl',tr:'tr',lock:'lk',del:'dl',mute:'vol',solo:'mic',done:'ok',dock:'eq'}[a])}${l}</button>`).join('')}
 /* ===== Timeline: playhead tetap di tengah, klip yang bergerak ===== */
 const dim=el=>el?[el.videoWidth||el.naturalWidth||el.width||16,el.videoHeight||el.naturalHeight||el.height||9]:null;
 function wave(c,t){const w=c.width=Math.max(1,Math.min(8000,Math.ceil(t.du*pps))),h=c.height=56,x=c.getContext('2d');
@@ -281,7 +289,7 @@ const tl=$('#tl');
 function syncScroll(){tl.scrollLeft=pos*pps}
 function render(){const half=Math.floor(tl.clientWidth/2),W=Math.ceil((total()+6)*pps),st=pps>=100?1:pps>=40?5:10;let r='';for(let s=0;s<W/pps;s+=st)r+=`<span style="left:${s*pps}px">${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}</span>`;
  const bx=$('#box');bx.style.setProperty('--pad',half+'px');bx.style.width=(half*2+W)+'px';
- bx.innerHTML=`<div class="rul">${r}</div>`+(T.length?T.map((t,i)=>`<div class="row${t===sel?' on':''}" data-i="${i}" style="--c:${t.col}"><div class="ln" style="width:${W}px"><div class="clip${t.lock?' lk':''}${t.mute?' mu':''}" style="left:${t.off*pps}px;width:${t.du*pps}px"><canvas></canvas><b>${esc(t.name)}${t.vid?' ▶':t.im?' ▣':''}</b>${fxo(t)}</div></div></div>`).join(''):`<div class="empty"><p>Belum ada klip. Impor audio, video, atau gambar (WAV, MP3, MP4, JPG, PNG) untuk mulai menyusun timeline.</p><button class="pri" data-a="imp">${ic('imp')}Impor berkas</button></div>`);
+ bx.innerHTML=`<div class="rul">${r}</div>`+(T.length?T.map((t,i)=>`<div class="row${t===sel?' on':''}" data-i="${i}" style="--c:${t.col}"><div class="ln" style="width:${W}px"><div class="clip${t.lock?' lk':''}${t.mute?' mu':''}" style="left:${t.off*pps}px;width:${t.du*pps}px"><canvas></canvas><b>${esc(t.name)}${t.vid?' ▶':t.im?' ▣':''}</b>${fxo(t)}<u class="hd2" data-s="l"></u><u class="hd2" data-s="r"></u></div></div></div>`).join(''):`<div class="empty"><p>Belum ada klip. Impor audio, video, atau gambar (WAV, MP3, MP4, JPG, PNG) untuk mulai menyusun timeline.</p><button class="pri" data-a="imp">${ic('imp')}Impor berkas</button></div>`);
  $$('#box .clip canvas').forEach((c,i)=>wave(c,T[i]));ctx();panel();if(view=='mx')mixer();syncScroll()}
 let ui=0,utm;
 const tch=()=>{ui=1;clearTimeout(utm)},rel=()=>{clearTimeout(utm);utm=setTimeout(()=>ui=0,500)};
@@ -291,10 +299,17 @@ addEventListener('resize',()=>{if(view=='tl')render()});
 $('#box').addEventListener('pointerdown',e=>{if(e.target.closest('[data-a=imp]'))return $('#fa').click();
  const row=e.target.closest('.row');if(!row)return;const t=T[row.dataset.i],was=t===sel,clip=e.target.closest('.clip');
  sel=t;edit=clip?1:0;$$('#box .row').forEach((r,i)=>r.classList.toggle('on',T[i]===t));ctx();panel();
+ const hd=e.target.closest('.hd2');if(hd&&clip&&!t.lock){trimDrag(e,t,clip,hd.dataset.s);return}
  if(!clip)return;const x0=e.clientX,o0=t.off,s0=tl.scrollLeft;let mv=false;
  const m=ev=>{const d=ev.clientX-x0;if(Math.abs(d)>5)mv=true;if(!mv)return;if(was&&!t.lock){t.off=Math.max(0,o0+d/pps);clip.style.left=t.off*pps+'px'}else if(ev.pointerType=='mouse')tl.scrollLeft=s0-d};
  const u=()=>{removeEventListener('pointermove',m);removeEventListener('pointerup',u);removeEventListener('pointercancel',u);if(mv&&was&&!t.lock){push();if(playing)play()}};
  addEventListener('pointermove',m);addEventListener('pointerup',u);addEventListener('pointercancel',u)});
+function trimDrag(e,t,c,side){e.preventDefault();const x0=e.clientX,o0=t.off,r0=t.tr,d0=t.du,mx=t.im?1e9:(t.buf?t.buf.duration:t.vid.duration);
+ const m=ev=>{let d=(ev.clientX-x0)/pps;if(side=='l'){d=Math.max(-Math.min(o0,t.im?1e9:r0),Math.min(d,d0-.1));t.off=o0+d;t.tr=t.im?0:r0+d;t.du=d0-d}else t.du=Math.max(.1,Math.min(d0+d,mx-t.tr));c.style.left=t.off*pps+'px';c.style.width=t.du*pps+'px'};
+ const u=()=>{removeEventListener('pointermove',m);removeEventListener('pointerup',u);removeEventListener('pointercancel',u);if(playing)play();push();render()};
+ addEventListener('pointermove',m);addEventListener('pointerup',u);addEventListener('pointercancel',u)}
+function setDock(v){document.body.classList.toggle('nd',!v);$('#dk').classList.toggle('a',v);if(v)panel()}
+$('#dk').onclick=()=>setDock(document.body.classList.contains('nd'));
 $('#zi').onclick=()=>{pps=Math.min(240,pps*1.5);render()};$('#zo').onclick=()=>{pps=Math.max(10,pps/1.5);render()};
 /* ===== Mixer ===== */
 function mixer(){const S=(o,k,a,b,s,v,i,l)=>`<label><span>${l}</span><input type="range" data-o="${o}" data-k="${k}" ${i!=null?`data-i="${i}"`:''} min="${a}" max="${b}" step="${s}" value="${v}"></label>`;
